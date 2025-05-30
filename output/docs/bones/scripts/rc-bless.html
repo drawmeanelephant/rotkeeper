@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⚰️ rc-bless.sh Reference</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>⚰️ rc-bless.sh Reference</h1>
+  <p class="subtitle"></p>
+</header>
+
+<article>
+  <!--
+  🎨 Sora Prompt:
+  "A moonlit catacomb where rc-bless.sh inscribes new ritual violations into the changelog, candles flickering on tombstones of forgotten versions."
+  -->
+  <!-- Begin Ritual Script Documentation -->
+  <h2 id="purpose">Purpose</h2>
+  <p><strong>Script Path:</strong>
+  <code>bones/scripts/rc-bless.sh</code></p>
+  <!-- The sacred objectives of rc-bless.sh -->
+  <ul>
+  <li>Compare the current <code>asset-manifest.yaml</code> with the
+  blessed <code>asset-manifest.yaml.prev</code>.</li>
+  <li>Emit ritual violation entries into <code>CHANGELOG.md</code>.</li>
+  <li>Update the blessed manifest to the latest state.</li>
+  </ul>
+  <h2 id="cli-interface">CLI Interface</h2>
+  <!-- How to invoke the blessing ceremony -->
+  <div class="sourceCode" id="cb1"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rc-bless.sh</span> <span class="pp">[--</span><span class="ss">dry</span><span class="pp">-</span><span class="ss">run</span><span class="pp">]</span> <span class="pp">[--</span><span class="ss">verbose</span><span class="pp">]</span> <span class="pp">[--</span><span class="ss">help</span><span class="pp">]</span></span></code></pre></div>
+  <p>Supported flags: - <code>--help</code>, <code>-h</code> Show usage
+  information and exit. - <code>--dry-run</code> Preview changelog
+  update without writing to file. - <code>--verbose</code> Show detailed
+  logs during blessing.</p>
+  <h2 id="workflow-steps">Workflow Steps</h2>
+  <!-- Sequential rites performed by the script -->
+  <ol type="1">
+  <li><strong>Dependency Check</strong>
+  <ul>
+  <li><code>check_deps git date</code>.</li>
+  </ul></li>
+  <li><strong>Prepare Logs</strong>
+  <ul>
+  <li>Ensure <code>bones/logs/changelog.md</code> exists.</li>
+  </ul></li>
+  <li><strong>Generate Changelog Entry</strong>
+  <ul>
+  <li>Run <code>git diff</code> between HEAD~1 and HEAD, append or
+  preview under dry-run.</li>
+  </ul></li>
+  <li><strong>Finalize Blessing</strong>
+  <ul>
+  <li>Copy current changelog into archive if configured.</li>
+  </ul></li>
+  </ol>
+  <h2 id="exit-codes">Exit Codes</h2>
+  <!-- Symbolic outcomes of incantation -->
+  <ul>
+  <li><code>0</code> — Completed blessing (even if no violations).</li>
+  <li><code>1</code> — Usage error or missing flags.</li>
+  <li><code>2</code> — Dependency missing (e.g., <code>yq</code> not
+  found).</li>
+  </ul>
+  <h2 id="examples">Examples</h2>
+  <!-- Sample invocations for celebratory rites -->
+  <div class="sourceCode" id="cb2"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Standard blessing</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-bless.sh</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Preview blessing without writing</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-bless.sh</span> <span class="at">--dry-run</span> <span class="at">--verbose</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Show help</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-bless.sh</span> <span class="at">--help</span></span></code></pre></div>
+  <h2 id="navigation">🛣️ Navigation</h2>
+  <!-- Quick navigation links -->
+  <ul>
+  <li><a href="scripts/index.html">Scripts Index</a></li>
+  <li><a href="scripts/rc-bless.html">Bless Reference</a></li>
+  <li><a href="index.html">Bones Home</a></li>
+  </ul>
+  <!--
+  Limerick 1:
+  There once was a tomb full of code,
+  Where each artifact bore a load.
+  When blessings were cast,
+  The past versions passed,
+  And the changelog commemorated each node.
+
+  Limerick 2:
+  In crypts where old manifests lie,
+  rc-bless makes the spirits comply.
+  It notes every shift,
+  Each version’s swift drift,
+  Then seals the new state by and by.
+  -->
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> 0.2.1</p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

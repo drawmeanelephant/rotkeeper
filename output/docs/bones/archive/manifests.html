@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📋 Manifest Backups</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>📋 Manifest Backups</h1>
+  <p class="subtitle"></p>
+</header>
+
+<article>
+  <!-- asset-meta:
+       name:        "manifests.md"
+       version:     "v0.1.0"
+       description: "Backups of asset-manifest.yaml versions"
+       author:      "Rotkeeper Ritual Council"
+  -->
+  <h1 id="manifest-backups">📋 Manifest Backups</h1>
+  <!-- The council’s ledger of manifest evolution -->
+  <p>The <code>manifest-backups</code> archive holds previous snapshots
+  of <code>asset-manifest.yaml</code> captured by
+  <code>rc-bless.sh</code>. Each backup reflects a blessed tomb
+  state.</p>
+  <h2 id="location">Location</h2>
+  <ul>
+  <li>Directory: <code>archive/manifests/</code></li>
+  <li>Naming: <code>asset-manifest.yaml.YYYYMMDD-HHMMSS.bak</code></li>
+  </ul>
+  <h2 id="contents">Contents</h2>
+  <ul>
+  <li><strong>YAML backups</strong>: full copies of the manifest at each
+  blessing.</li>
+  <li><strong>Change summaries</strong>: optional <code>.md</code> files
+  summarizing key differences.</li>
+  </ul>
+  <h2 id="usage">🧭 Usage</h2>
+  <!-- How to restore or inspect backups -->
+  <p>To list available backups:</p>
+  <div class="sourceCode" id="cb1"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> archive/manifests/asset-manifest.yaml.<span class="pp">*</span>.bak</span></code></pre></div>
+  <p>To restore a specific backup:</p>
+  <div class="sourceCode" id="cb2"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> archive/manifests/asset-manifest.yaml.20250527-121314.bak asset-manifest.yaml</span></code></pre></div>
+  <h2 id="navigation">🛣️ Navigation</h2>
+  <!-- Quick links within Archive -->
+  <ul>
+  <li><a href="archive/index.html">Archive Index</a></li>
+  <li><a href="archive/scan-reports.html">Scan Reports</a></li>
+  <li><a href="archive/records.html">Session Records</a></li>
+  </ul>
+  <h2 id="future-additions">Future Additions</h2>
+  <!-- Aspirational rites for manifest backups -->
+  <ul>
+  <li>Automate cleanup of backups older than N days.</li>
+  <li>Embed diff metadata alongside each backup.</li>
+  <li>Support compressed backup formats (e.g.,
+  <code>.tar.gz</code>).</li>
+  </ul>
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> v0.1.0</p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

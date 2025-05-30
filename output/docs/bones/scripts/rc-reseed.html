@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>♻️ rc-reseed.sh Reference</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>♻️ rc-reseed.sh Reference</h1>
+  <p class="subtitle"></p>
+</header>
+
+<article>
+  <h1 id="rc-reseed.sh"><code>rc-reseed.sh</code></h1>
+  <p>This script restores a full project directory from a previously
+  packed <code>.tar.gz</code> tomb archive. It can be used to repopulate
+  the <code>home/</code>, <code>bones/</code>, and <code>output/</code>
+  structure from a historical version.</p>
+  <hr />
+  <h2 id="purpose">🧠 Purpose</h2>
+  <p>To resurrect an archived site state—useful for regression testing,
+  audits, or timeline divergence. It is the opposite of
+  <code>rc-pack.sh</code>.</p>
+  <hr />
+  <h2 id="usage">🌀 Usage</h2>
+  <div class="sourceCode" id="cb1"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/rc-reseed.sh</span> <span class="at">--archive</span> bones/archive/tomb-0.2.0.tar.gz</span></code></pre></div>
+  <p>If no archive is provided, the script may prompt or exit with
+  error.</p>
+  <hr />
+  <h2 id="flags">⚙️ Flags</h2>
+  <table>
+  <colgroup>
+  <col style="width: 20%" />
+  <col style="width: 79%" />
+  </colgroup>
+  <thead>
+  <tr>
+  <th>Flag</th>
+  <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td><code>--archive</code></td>
+  <td>Path to <code>.tar.gz</code> archive to unpack</td>
+  </tr>
+  <tr>
+  <td><code>--dry-run</code></td>
+  <td>Preview actions without extracting files</td>
+  </tr>
+  <tr>
+  <td><code>--verbose</code></td>
+  <td>Show detailed logs</td>
+  </tr>
+  <tr>
+  <td><code>--help</code>, <code>-h</code></td>
+  <td>Show usage information and exit</td>
+  </tr>
+  </tbody>
+  </table>
+  <hr />
+  <h2 id="example">📦 Example</h2>
+  <div class="sourceCode" id="cb2"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/rc-reseed.sh</span> <span class="at">--archive</span> bones/archive/tomb-0.1.9.tar.gz</span></code></pre></div>
+  <!-- 🎴 Limerick 1:
+  When old tombs lie silent and cold,
+  rc-reseed brings life untold.
+  It unpacks the past,
+  In memories vast,
+  And scripts from the archive unfold.
+  -->
+  <!-- 🎴 Limerick 2:
+  Should history’s bones need a spark,
+  this ritual revives each dark mark.
+  With tar’s gentle sweep,
+  It calls from the deep,
+  And lights up the shadows so stark.
+  -->
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> 0.2.1</p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🖼️ rc-assets.sh Reference</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🖼️ rc-assets.sh Reference</h1>
+  <p class="subtitle"></p>
+</header>
+
+<article>
+  <h1 id="rc-assets.sh">🖼️ rc-assets.sh</h1>
+  <!-- The sacred rite of asset manifest generation -->
+  <p><strong>Script Path:</strong>
+  <code>bones/scripts/rc-assets.sh</code></p>
+  <h2 id="purpose">Purpose</h2>
+  <!-- Core objectives of rc-assets.sh -->
+  <ul>
+  <li>Crawl the <code>home/assets/</code> directory to discover all
+  static resources.</li>
+  <li>Compute metadata: filename, path, SHA256 digest, size, and
+  modification timestamp.</li>
+  <li>Emit a consolidated YAML manifest for downstream tools.</li>
+  </ul>
+  <h2 id="cli-interface">CLI Interface</h2>
+  <div class="sourceCode" id="cb1"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rc-assets.sh</span> <span class="pp">[--</span><span class="ss">dry</span><span class="pp">-</span><span class="ss">run</span><span class="pp">]</span> <span class="pp">[--</span><span class="ss">verbose</span><span class="pp">]</span> <span class="pp">[--</span><span class="ss">help</span><span class="pp">]</span></span></code></pre></div>
+  <p>Supported flags: - <code>--help</code>, <code>-h</code> Show usage
+  information and exit. - <code>--dry-run</code> Preview actions without
+  writing output. - <code>--verbose</code> Show detailed logs.</p>
+  <h2 id="workflow-steps">Workflow Steps</h2>
+  <ol type="1">
+  <li><strong>Verify Dependencies</strong>:
+  <code>check_deps find sha256sum yq</code>.</li>
+  <li><strong>Discover Assets</strong>: Locate files in
+  <code>home/assets/</code>.</li>
+  <li><strong>Compute Metadata</strong>: Gather path, size, digest, and
+  timestamp.</li>
+  <li><strong>Assemble &amp; Write Manifest</strong>: Structure and
+  write to <code>bones/asset-manifest.yaml</code> or preview under
+  dry-run.</li>
+  </ol>
+  <h2 id="exit-codes">Exit Codes</h2>
+  <!-- Symbolic outcomes of incantation -->
+  <ul>
+  <li><code>0</code> — Manifest generated successfully.</li>
+  <li><code>1</code> — Dependencies missing or I/O error.</li>
+  <li><code>2</code> — No assets found.</li>
+  </ul>
+  <h2 id="examples">Examples</h2>
+  <div class="sourceCode" id="cb2"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate full manifest</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-assets.sh</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Preview without writing</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-assets.sh</span> <span class="at">--dry-run</span> <span class="at">--verbose</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Show help</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-assets.sh</span> <span class="at">--help</span></span></code></pre></div>
+  <h2 id="navigation">🛣️ Navigation</h2>
+  <!-- Quick navigation links -->
+  <ul>
+  <li><a href="scripts/index.html">Scripts Index</a></li>
+  <li><a href="scripts/rc-assets.html">Assets Reference</a></li>
+  <li><a href="index.html">Bones Home</a></li>
+  </ul>
+  <!--
+  Limerick 1:
+  In corridors of icons and sprites aligned,
+  rc-assets carves metadata refined.
+  With digest aflame,
+  It catalogs each name,
+  And preserves each relic assigned.
+
+  Limerick 2:
+  A scroll of YAML in spectral light,
+  Records each asset’s secret might.
+  It tracks size and date,
+  In tabular fate,
+  Ensuring no file fades from sight.
+  -->
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> 0.2.1</p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

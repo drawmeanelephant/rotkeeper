@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🌐 rc-webbook.sh Reference</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🌐 rc-webbook.sh Reference</h1>
+  <p class="subtitle"></p>
+</header>
+
+<article>
+  <!-- Begin Ritual Script Documentation -->
+  <h1 id="rc-webbook.sh">🌐 rc-webbook.sh</h1>
+  <!-- Converts a directory of Rotkeeper Markdown into a navigable HTML web-book -->
+  <h2 id="purpose">Purpose</h2>
+  <!-- Core objectives of rc-webbook.sh -->
+  <ul>
+  <li>Bundle selected Markdown files into a multi-page website with
+  table of contents.</li>
+  <li>Generate navigation links, next/prev buttons, and search
+  index.</li>
+  <li>Apply web-friendly layout, CSS, and responsive behaviors.</li>
+  </ul>
+  <h2 id="cli-interface">CLI Interface</h2>
+  <!-- How to invoke the web-book ritual -->
+  <div class="sourceCode" id="cb1"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rc-webbook.sh</span> [--input <span class="op">&lt;</span>dir<span class="op">&gt;</span>] [--output <span class="op">&lt;</span>dir<span class="op">&gt;</span>] [--css <span class="op">&lt;</span>file<span class="op">&gt;</span>] <span class="pp">[--</span><span class="ss">search</span><span class="pp">]</span> <span class="pp">[--</span><span class="ss">help</span><span class="pp">]</span></span></code></pre></div>
+  <h2 id="workflow-steps">Workflow Steps</h2>
+  <!-- Sequential rites performed by the script -->
+  <ol type="1">
+  <li><strong>Verify Environment</strong>
+  <ul>
+  <li>Ensure <code>pandoc</code>, <code>yq</code>, and a basic HTTP
+  server are available.</li>
+  </ul></li>
+  <li><strong>Collect Sources</strong>
+  <ul>
+  <li>Read Markdown files from the input directory in sorted order.</li>
+  </ul></li>
+  <li><strong>Build TOC</strong>
+  <ul>
+  <li>Parse frontmatter titles and headings to construct a JSON or HTML
+  table of contents.</li>
+  </ul></li>
+  <li><strong>Render Pages</strong>
+  <ul>
+  <li>Convert each Markdown to HTML with navigation controls
+  (<code>prev</code>/<code>next</code>).</li>
+  </ul></li>
+  <li><strong>Asset Injection</strong>
+  <ul>
+  <li>Copy or link CSS, JS assets into the output directory.</li>
+  </ul></li>
+  <li><strong>Search Index</strong>
+  <ul>
+  <li>If <code>--search</code> is enabled, build a JSON index for
+  client-side search.</li>
+  </ul></li>
+  <li><strong>Serve/Preview</strong>
+  <ul>
+  <li>Optionally launch a local server for preview
+  (<code>python -m http.server</code>).</li>
+  </ul></li>
+  </ol>
+  <h2 id="exit-codes">Exit Codes</h2>
+  <!-- Symbolic outcomes of incantation -->
+  <ul>
+  <li><code>0</code> — Web-book generated successfully.</li>
+  <li><code>1</code> — Missing input directory or files.</li>
+  <li><code>2</code> — Dependency missing or runtime error.</li>
+  <li><code>3</code> — Navigation index build failure.</li>
+  </ul>
+  <h2 id="examples">Examples</h2>
+  <!-- Sample invocations for celebratory rites -->
+  <div class="sourceCode" id="cb2"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate a full web-book</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-webbook.sh</span> <span class="at">--input</span> docs/bones <span class="at">--output</span> public/book</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Include custom CSS</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-webbook.sh</span> <span class="at">--input</span> docs/bones <span class="at">--output</span> public/book <span class="at">--css</span> assets/book.css</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Enable client-side search</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-webbook.sh</span> <span class="at">--input</span> docs/bones <span class="at">--output</span> public/book <span class="at">--search</span></span></code></pre></div>
+  <h2 id="roadmap">Roadmap</h2>
+  <!-- Aspirational rites to come -->
+  <ul>
+  <li>Support EPUB and MOBI export alongside HTML.</li>
+  <li>Embed annotations/comments directly into web-book pages.</li>
+  <li>Add incremental rebuild for large docs sets.</li>
+  <li>Integrate with CI to auto-publish on push to
+  <code>gh-pages</code>.</li>
+  </ul>
+  <!--
+  Limerick 1:
+  From markdown paths to a clickable tome,
+  rc-webbook brings chapters to roam.
+  It weaves link and CSS,
+  In labyrinthine finesse,
+  And publishes the ritual for home.
+
+  Limerick 2:
+  In HTML halls of loreful delight,
+  rc-webbook shines in the night.
+  Each page gently flows,
+  As the index then grows,
+  And the codex emerges in light.
+  -->
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> 0.2.1</p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

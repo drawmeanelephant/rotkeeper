@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>rc-api.sh</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>rc-api.sh</h1>
+  <p class="subtitle">Fetch, convert, or ingest remote content into
+tombs</p>
+</header>
+
+<article>
+  <h1 id="rc-api.sh">🌐 <code>rc-api.sh</code></h1>
+  <p><code>rc-api.sh</code> is an experimental script for fetching and
+  transforming external data sources into tomb-ready formats. It is
+  currently a stub and will be extended in future versions.</p>
+  <hr />
+  <h2 id="intended-purpose">🔮 Intended Purpose</h2>
+  <p>This script will allow you to:</p>
+  <ul>
+  <li>Pull JSON or YAML from remote sources (e.g., APIs, repos)</li>
+  <li>Convert those files into usable Markdown</li>
+  <li>Inject or update them into <code>home/content/</code> or
+  <code>bones/</code></li>
+  </ul>
+  <hr />
+  <h2 id="planned-features">🔧 Planned Features</h2>
+  <ul>
+  <li><code>--url &lt;source&gt;</code> — Target API or remote
+  endpoint</li>
+  <li><code>--yaml</code> / <code>--json</code> — Force expected
+  response format</li>
+  <li><code>--output &lt;path&gt;</code> — Destination file or
+  folder</li>
+  <li><code>--header &lt;key:val&gt;</code> — Pass custom request
+  headers</li>
+  <li><code>--convert</code> — Pipe output through a JSON→MD
+  adapter</li>
+  <li><code>--dry-run</code> — Preview fetch + transformation plan</li>
+  </ul>
+  <hr />
+  <h2 id="example-invocation">🧪 Example Invocation</h2>
+  <div class="sourceCode" id="cb1"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> bones/scripts/rc-api.sh <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--url</span> https://api.example.com/mascots <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--json</span> <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--convert</span> <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--output</span> home/content/mascots/from-api.md</span></code></pre></div>
+  <hr />
+  <h2 id="notes">📎 Notes</h2>
+  <ul>
+  <li>This script is <strong>not yet implemented</strong></li>
+  <li>Useful for:
+  <ul>
+  <li>Fetching mascot bios from a remote repo</li>
+  <li>Pulling changelogs from GitHub APIs</li>
+  <li>Syncing tags or taxonomies from external indexes</li>
+  </ul></li>
+  </ul>
+  <hr />
+  <h2 id="related">📌 Related</h2>
+  <ul>
+  <li><code>rc-expand.sh</code> — Generates Markdown from BOM
+  locally</li>
+  <li><code>rc-record.sh</code> — Tracks commit + system state</li>
+  <li><code>bones/logs/api-*</code> — Future location of fetch logs</li>
+  </ul>
+  <hr />
+  <!-- Sora Prompt: "A shell script wrapped in a network cable, pinging the clouds for forgotten data. Mascots hover behind a firewall of JSON ghosts, watching the conversion begin." -->
+  <!-- 🎴 Limerick 1:
+  There once was an API script,
+  That fetched from each distant crypt.
+  With JSON in hand,
+  It mapped content to sand,
+  And left local tombs fully equipped.
+  -->
+  <!-- 🎴 Limerick 2:
+  When endpoints would vanish or sway,
+  rc-api would cheerfully play.
+  It grabbed every byte,
+  By day and by night,
+  So your docs never ran astray.
+  -->
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> </p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

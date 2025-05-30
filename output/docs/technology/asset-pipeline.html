@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Asset Pipeline</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Asset Pipeline</h1>
+  <p class="subtitle"></p>
+</header>
+
+<article>
+  <!-- asset-meta: { name: "asset-pipeline.md", version: "v0.2.0-pre" } -->
+  <h1 id="asset-pipeline">📦 Asset Pipeline</h1>
+  <p>Rotkeeper’s asset pipeline governs how static files are copied,
+  versioned, and injected into the tomb environment. It also defines how
+  <code>asset-meta</code> tags are tracked and maintained throughout the
+  build cycle.</p>
+  <hr />
+  <h2 id="asset-sources">📁 Asset Sources</h2>
+  <p>Assets are typically sourced from:</p>
+  <pre><code>home/assets/
+home/themes/
+home/icons/</code></pre>
+  <p>These folders are expected to exist prior to running
+  <code>rc-assets.sh</code> and are recursively scanned.</p>
+  <hr />
+  <h2 id="copy-mechanisms">🔃 Copy Mechanisms</h2>
+  <p>The primary tool for copying assets is <code>rc-assets.sh</code>
+  (formerly ASSETELLA). It handles:</p>
+  <ul>
+  <li>Recursively copying from declared source folders</li>
+  <li>Maintaining folder structure</li>
+  <li>Logging each copied file into <code>bones/manifest.txt</code></li>
+  <li>Ensuring injected assets are recorded with
+  <code>asset-meta</code></li>
+  </ul>
+  <p>You can run it standalone or via the main CLI:</p>
+  <div class="sourceCode" id="cb2"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./rotkeeper</span> assets</span></code></pre></div>
+  <p>Or directly:</p>
+  <div class="sourceCode" id="cb3"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/rc-assets.sh</span></span></code></pre></div>
+  <hr />
+  <h2 id="asset-meta-headers">📑 <code>asset-meta</code> Headers</h2>
+  <p>Every tracked script, template, or asset should include an
+  <code>asset-meta:</code> header — either as shell comment, HTML
+  comment, or YAML frontmatter. These tags are required for changelog
+  visibility and audit inclusion:</p>
+  <div class="sourceCode" id="cb4"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- asset-meta ---</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co"># file: scripts/rc-render.sh</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># version: 0.1.2</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># tomb-version: 0.1.7.5</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co"># tracked: true</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co"># injected: 2025-05-12</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># --- end-meta ---</span></span></code></pre></div>
+  <p>These tags allow <code>rc-scan.sh</code> and
+  <code>rc-bless.sh</code> to:</p>
+  <ul>
+  <li>Detect stale, duplicated, or unversioned assets</li>
+  <li>Validate integrity during packing</li>
+  <li>Confirm changelog eligibility</li>
+  </ul>
+  <hr />
+  <h2 id="folders-typically-managed">📂 Folders Typically Managed</h2>
+  <table>
+  <thead>
+  <tr>
+  <th>Folder</th>
+  <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td><code>scripts/</code></td>
+  <td>Core and auxiliary <code>rc-*</code> scripts</td>
+  </tr>
+  <tr>
+  <td><code>templates/</code></td>
+  <td>HTML and partials for rendering</td>
+  </tr>
+  <tr>
+  <td><code>assets/</code></td>
+  <td>Static files like CSS, JS, fonts</td>
+  </tr>
+  <tr>
+  <td><code>themes/</code></td>
+  <td>Theme folders (e.g. HiQ)</td>
+  </tr>
+  <tr>
+  <td><code>icons/</code></td>
+  <td>SVG or emoji sets (e.g. OpenMoji)</td>
+  </tr>
+  </tbody>
+  </table>
+  <hr />
+  <h2 id="notes-on-pipeline-behavior">⚠️ Notes on Pipeline Behavior</h2>
+  <ul>
+  <li>The pipeline <strong>does not</strong> deduplicate—it’s your job
+  to manage redundant files</li>
+  <li>Files without <code>asset-meta</code> may be ignored by
+  <code>rc-bless.sh</code></li>
+  <li>If a file is missing from <code>bones/manifest.txt</code>, it
+  won’t be packed</li>
+  <li>Use <code>rc-scan.sh</code> to validate what’s missing or
+  untracked</li>
+  </ul>
+  <hr />
+  <h2 id="example-flow">🧪 Example Flow</h2>
+  <div class="sourceCode" id="cb5"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./rotkeeper</span> init         <span class="co"># creates structure</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./rotkeeper</span> assets       <span class="co"># injects static files</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="ex">./rotkeeper</span> render       <span class="co"># builds output</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="ex">./rotkeeper</span> pack         <span class="co"># archives everything in manifest.txt</span></span></code></pre></div>
+  <hr />
+  <p>Continue to <a href="template-library.md">Template
+  Library</a><br />
+  Back to <a href="configuration-reference.md">Configuration
+  Reference</a></p>
+  <!--
+  LIMERICK
+
+  The pipeline injected with grace,  
+  Each asset assigned to its place.  
+  With headers and tags,  
+  It zipped into bags—  
+  And logged its own rot with no trace.
+
+  SORA PROMPT
+
+  "a spectral asset pipeline copying ancient static files into a tomb, file paths glowing as they settle, digital ink bleeding from metadata"
+  -->
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> </p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Troubleshooting FAQ</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Troubleshooting FAQ</h1>
+  <p class="subtitle"></p>
+</header>
+
+<article>
+  <!-- asset-meta: { name: "troubleshooting-faq.md", version: "v0.1.0" } -->
+  <h1 id="troubleshooting-faq">🩹 Troubleshooting FAQ</h1>
+  <p>This FAQ covers common pitfalls, ritual mistakes, and rotkeeper
+  quirks you may encounter.</p>
+  <hr />
+  <h2 id="why-isnt-anything-rendering">❓ Why isn’t anything
+  rendering?</h2>
+  <p>Check the following: - Did you add <code>.md</code> files to the
+  <code>content/</code> folder? - Are you using
+  <code>rotkeeper render</code> or manually invoking
+  <code>rc-render.sh</code>? - Does your <code>manifest.txt</code>
+  include the files you’re expecting?</p>
+  <p>Also check:</p>
+  <div class="sourceCode" id="cb1"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">logs/render.log</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">logs/yougood.brah</span></span></code></pre></div>
+  <hr />
+  <h2 id="why-is-my-archive-empty">❓ Why is my archive empty?</h2>
+  <p>Usually: - <code>manifest.txt</code> is blank or missing - You ran
+  <code>rotkeeper pack</code> without running <code>init</code> or
+  <code>assets</code> - The files you wanted to include don’t have
+  <code>asset-meta</code> or were skipped by <code>rc-scan.sh</code></p>
+  <hr />
+  <h2 id="im-getting-missing-init-config.yaml">❓ I’m getting “missing
+  init-config.yaml”</h2>
+  <p>This means the CLI can’t find your initialization config.</p>
+  <p>Make sure: - <code>init-config.yaml</code> exists at project root -
+  It contains valid YAML and the <code>dirs:</code> and
+  <code>scripts:</code> keys</p>
+  <hr />
+  <h2 id="how-do-i-force-a-dry-run">❓ How do I force a dry run?</h2>
+  <p>Use:</p>
+  <div class="sourceCode" id="cb2"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rotkeeper</span> all <span class="at">--dry-run</span></span></code></pre></div>
+  <p>You’ll still get log output, but no files will be copied, rendered,
+  or packed.</p>
+  <hr />
+  <h2 id="whats-the-difference-between-yougood.brah-and-render.log">❓
+  What’s the difference between <code>yougood.brah</code> and
+  <code>render.log</code>?</h2>
+  <ul>
+  <li><code>yougood.brah</code>: General status log, used across all
+  phases</li>
+  <li><code>render.log</code>: Only contains output from Pandoc during
+  rendering</li>
+  </ul>
+  <hr />
+  <h2 id="i-see-skipped-inject.d-not-found">❓ I see “Skipped: inject.d
+  not found”</h2>
+  <p>This is normal if you haven’t created an <code>inject.d/</code>
+  directory. You can: - Create <code>inject.d/</code> and add files -
+  Use <code>--skip-inject</code> to suppress the warning - Ignore it
+  entirely if you’re not using injection</p>
+  <hr />
+  <h2 id="something-broke-and-i-want-to-start-fresh">❓ Something broke
+  and I want to start fresh</h2>
+  <ul>
+  <li>Delete or archive your <code>logs/</code> and <code>output/</code>
+  folders</li>
+  <li>Clear <code>manifest.txt</code></li>
+  <li>Rerun:</li>
+  </ul>
+  <div class="sourceCode" id="cb3"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rotkeeper</span> init</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">rotkeeper</span> assets</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ex">rotkeeper</span> render</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="ex">rotkeeper</span> pack</span></code></pre></div>
+  <hr />
+  <p>Back to <a href="persona-management.md">Persona
+  Management</a><br />
+  Continue to <a href="ci-cd-integration.md">CI/CD Integration</a></p>
+  <!--
+  LIMERICK
+
+  A question was posed in despair,  
+  “Why won't this tombbuilder care?”  
+  The CLI replied,  
+  With dry-run denied—  
+  And logs blinking silently bare.
+
+  SORA PROMPT
+
+  "a desperate user staring at a blank terminal, seeking help from a haunted CLI, faint error messages whispering in limerick form"
+  -->
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> </p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

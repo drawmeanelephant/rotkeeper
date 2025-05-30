@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>rc-status.sh</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>rc-status.sh</h1>
+  <p class="subtitle">Reports the current rotkeeper project state,
+including logs, active version, and tomb status.</p>
+</header>
+
+<article>
+  <h1 id="rc-status.sh"><code>rc-status.sh</code></h1>
+  <p>This script provides a snapshot of the current Rotkeeper
+  environment. It displays the active version, the latest changelog
+  entry, recent logs, archive size summaries, and other system
+  signals.</p>
+  <hr />
+  <h2 id="purpose">🧠 Purpose</h2>
+  <p>To get a quick overview of the current tomb state without
+  triggering full renders or validations. Useful for pre-deploy audits,
+  post-pack confirmation, or ritual postmortems.</p>
+  <hr />
+  <h2 id="usage">🌀 Usage</h2>
+  <div class="sourceCode" id="cb1"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/rc-status.sh</span></span></code></pre></div>
+  <p>No flags required. It operates read-only and emits to STDOUT.</p>
+  <hr />
+  <h2 id="example-output">📦 Example Output</h2>
+  <pre><code>Rotkeeper Version: 0.2.0
+Last Blessing: 2025-05-28 03:14 UTC
+Latest Tomb: bones/archive/tomb-0.2.0.tar.gz
+Log Count: 37
+Unblessed Files: 0
+Manifest: bones/asset-manifest.yaml (valid)</code></pre>
+  <hr />
+  <!-- 🎴 Limerick 1:
+  To query the bones with a glance so wise,
+  rc-status lets no secret disguise.
+  It shows you the state,
+  Before it’s too late,
+  And warns of decays in disguise.
+  -->
+  <!-- 🎴 Limerick 2:
+  In the hush of the script’s midnight tune,
+  status reveals what lurks in the tomb.
+  With version in line,
+  And logs all in time,
+  It guides your next ritual by noon.
+  -->
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> 0.2.0</p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

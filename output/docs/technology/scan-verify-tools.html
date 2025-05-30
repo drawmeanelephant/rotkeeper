@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scan &amp; Verify Tools</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Scan &amp; Verify Tools</h1>
+  <p class="subtitle"></p>
+</header>
+
+<article>
+  <!-- asset-meta: { name: "scan-verify-tools.md", version: "v0.1.0" } -->
+  <h1 id="scan-verify-tools">🔍 Scan &amp; Verify Tools</h1>
+  <p>Rotkeeper includes tooling to audit file rot, detect drift, and
+  confirm tomb integrity before archiving. These tools are designed for
+  paranoid deployments, CI pipelines, and changelog enforcement
+  rituals.</p>
+  <p>They complement one another: <code>rc-scan.sh</code> surfaces
+  issues <strong>in the current filesystem</strong>, while
+  <code>rc-verify.sh</code> inspects <strong>archived tombs</strong> and
+  ensures SHA integrity against manifests.</p>
+  <hr />
+  <h2 id="what-gets-scanned">📂 What Gets Scanned?</h2>
+  <p>Tools like <code>rc-scan.sh</code> and <code>rc-verify.sh</code>
+  inspect:</p>
+  <ul>
+  <li>bones/manifest.txt: expected tomb contents</li>
+  <li>bones/asset-manifest.yaml: tracked file versions</li>
+  <li>home/content/**/*.md: user-written tombdocs</li>
+  <li>output/**/*.html: rendered pages checked for missing assets</li>
+  <li>Script and template <code>asset-meta</code> blocks</li>
+  <li>Output folders (e.g. <code>/output/</code>, <code>/logs/</code>)
+  for untracked files</li>
+  </ul>
+  <p>For full usage details, see <a
+  href="../bones/scripts/rc-scan.md"><code>rc-scan.sh</code></a> and <a
+  href="../bones/scripts/rc-verify.md"><code>rc-verify.sh</code></a>.</p>
+  <hr />
+  <h2 id="rc-scan.sh">🧪 <code>rc-scan.sh</code></h2>
+  <p>This script walks the current environment and compares it to the
+  tomb’s manifest. It detects:</p>
+  <ul>
+  <li>Missing files listed in <code>bones/manifest.txt</code></li>
+  <li>Orphaned files that exist but are not tracked</li>
+  <li>Assets referenced in rendered HTML that no longer exist</li>
+  <li>Markdown or script files missing <code>asset-meta:</code>
+  frontmatter</li>
+  </ul>
+  <p>Flags supported: - <code>--manifest-only</code>: skip disk scan,
+  only report manifest status - <code>--json-only</code>,
+  <code>--md-only</code>: limit output format - <code>--dry-run</code>:
+  preview actions - <code>--verbose</code>: show extra debug info</p>
+  <p>Output includes a Markdown report in
+  <code>home/content/rotkeeper/scan-report-*.md</code> and a JSON
+  version in <code>bones/reports/scan-report-*.json</code>.</p>
+  <hr />
+  <h2 id="rc-verify.sh">📏 <code>rc-verify.sh</code></h2>
+  <p>This script compares file hashes against
+  <code>asset-manifest.yaml</code>. It confirms that each listed
+  file:</p>
+  <ul>
+  <li>Exists on disk</li>
+  <li>Matches its recorded SHA256 checksum</li>
+  <li>Was not silently modified or regenerated</li>
+  </ul>
+  <p>This is most useful after a pack/unpack cycle or before release.
+  Failure will surface any corrupted or tampered content.</p>
+  <p>Flags: - <code>--quiet</code>: suppress normal output, exit codes
+  only - <code>--manifest</code>: verify manifest entries only, skip
+  full tomb unpack</p>
+  <hr />
+  <h2 id="sample-output-markdown-scan-report">🧾 Sample Output: Markdown
+  Scan Report</h2>
+  <div class="sourceCode" id="cb1"><pre
+  class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">## Missing Files</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>bones/templates/ritual-missing.html</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">## Orphan Files</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>home/assets/forgotten-favicon.ico</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">## File Digests</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`bones/scripts/rc-pack.sh`</span>: a1b2c3d4e5f6…</span></code></pre></div>
+  <hr />
+  <h2 id="tips-for-verification-workflows">🧠 Tips for Verification
+  Workflows</h2>
+  <ul>
+  <li>Run <code>rc-scan.sh</code> before every <code>rc-bless.sh</code>
+  invocation</li>
+  <li>Automate <code>rc-verify.sh</code> in your CI to validate
+  <code>.tar.gz</code> outputs</li>
+  <li>Consider writing diffs between manifest versions to surface
+  unexpected drift</li>
+  </ul>
+  <p>Example integration into a CI pipeline:</p>
+  <div class="sourceCode" id="cb2"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> rc-render.sh</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> rc-pack.sh</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> rc-scan.sh <span class="at">--json-only</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> rc-verify.sh <span class="at">--quiet</span></span></code></pre></div>
+  <p>Exit codes: - <code>0</code>: no issues - <code>1</code>: warnings
+  or mismatches (non-fatal) - <code>2</code>: missing dependencies,
+  unreadable manifests, or structural failures</p>
+  <hr />
+  <p>Back to <a href="index.md">Documentation Index</a><br />
+  Continue to <a href="changelog-blessing.md">Changelog &amp; Version
+  Blessing</a></p>
+  <!--
+  LIMERICK
+
+  A scanner inspected the tomb,  
+  Declared certain headers in gloom.  
+  It flagged them with care,  
+  Some vanished, some bare—  
+  And verified files in the room.
+
+  SORA PROMPT
+
+  "a decaying command-line scanner analyzing a digital tomb's manifest, ghostly metadata scrolling past, flickering with errors and confirmations"
+  -->
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> </p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

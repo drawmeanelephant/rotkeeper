@@ -1,0 +1,13 @@
+[INFO] rc-scan started at Fri May 30 07:33:28 EDT 2025
+[INFO] Disk scan completed
+2025-05-30 07:33:28 [WARN] File not found for digest: 
+2025-05-30 07:33:28 [WARN] File not found for digest: 
+2025-05-30 07:33:28 [INFO] JSON report written: bones/reports/scan-report-20250530_073328.json
+2025-05-30 07:33:28 [INFO] JSON report written: bones/reports/scan-report-20250530_073328.json
+2025-05-30 07:33:28 [INFO] Markdown report written: bones/reports/scan-report-20250530_073328.md
+2025-05-30 07:33:28 [INFO] Markdown report written: bones/reports/scan-report-20250530_073328.md
+2025-05-30 07:33:28 [INFO] rc-scan.sh completed successfully.
+2025-05-30 07:33:28 [INFO] rc-scan.sh completed successfully.
+[INFO] rc-scan completed at Fri May 30 07:33:28 EDT 2025
+2025-05-30 07:33:28 [INFO] Cleaning up after rc-scan.sh.
+2025-05-30 07:33:28 [INFO] Cleaning up after rc-scan.sh.

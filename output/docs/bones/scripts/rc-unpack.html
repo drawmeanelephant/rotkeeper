@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>rc-unpack.sh</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>rc-unpack.sh</h1>
+  <p class="subtitle">Unpack tomb archives and restore site state</p>
+</header>
+
+<article>
+  <h1 id="rc-unpack.sh">🪦 <code>rc-unpack.sh</code></h1>
+  <p><code>rc-unpack.sh</code> is a planned restoration script that will
+  reverse the effects of <code>rc-pack.sh</code>. It will extract
+  archived tombs and restore either the rendered HTML
+  (<code>/output/</code>) or exported JSON data for rehydration or
+  inspection.</p>
+  <blockquote>
+  <p><strong>Status:</strong> This script is <strong>not yet
+  implemented</strong>. It is reserved for future versions of
+  Rotkeeper.</p>
+  </blockquote>
+  <hr />
+  <h2 id="what-it-will-do">📂 What It Will Do</h2>
+  <p>When passed a <code>.tar.gz</code> archive from
+  <code>rc-pack.sh</code>, this script will:</p>
+  <ul>
+  <li>Extract <code>/output/</code> contents into your local project
+  folder</li>
+  <li>Optionally restore logs, templates, or JSON exports</li>
+  <li>Log its actions to <code>bones/logs/rc-unpack-*.log</code></li>
+  <li>Refuse to overwrite existing files unless <code>--force</code> is
+  passed</li>
+  </ul>
+  <hr />
+  <h2 id="planned-json-support">🧬 Planned JSON Support</h2>
+  <p>Rotkeeper may also support direct restoration from exported JSON
+  files:</p>
+  <pre class="plaintext"><code>bones/archive/tomb-export-YYYY-MM-DD_HHMM.json</code></pre>
+  <p>This would allow:</p>
+  <ul>
+  <li>Rebuilding <code>.md</code> files into
+  <code>home/content/</code></li>
+  <li>Inspecting or transforming JSON records without running
+  Pandoc</li>
+  </ul>
+  <hr />
+  <h2 id="planned-usage">🛠 Planned Usage</h2>
+  <div class="sourceCode" id="cb2"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> bones/scripts/rc-unpack.sh bones/archive/tomb-2025-05-27_1113.tar.gz</span></code></pre></div>
+  <p>Optional flags may include:</p>
+  <ul>
+  <li><code>--to output/</code> — Target unpack destination</li>
+  <li><code>--json</code> — Input is a JSON file, not a
+  <code>.tar.gz</code></li>
+  <li><code>--dry-run</code> — Show changes without writing files</li>
+  <li><code>--force</code> — Allow overwriting existing output</li>
+  </ul>
+  <hr />
+  <h2 id="safety-features">🔐 Safety Features</h2>
+  <ul>
+  <li>Prompts before overwriting <code>output/</code> or logs</li>
+  <li>Logs all restored files to <code>bones/manifest.txt</code> and
+  <code>bones/logs/</code></li>
+  <li>May use SHA256 or tomb signature to confirm archive lineage</li>
+  </ul>
+  <hr />
+  <h2 id="related-files-scripts">📌 Related Files &amp; Scripts</h2>
+  <ul>
+  <li><a href="rc-pack.md"><code>rc-pack.sh</code></a> — Entombs the
+  site</li>
+  <li><a href="rc-reseed.md"><code>rc-reseed.sh</code></a> — Rehydrates
+  full tombs from archive</li>
+  <li><code>bones/archive/</code> — Default folder for
+  <code>.tar.gz</code> and JSON outputs</li>
+  <li><code>bones/logs/</code> — Where <code>rc-unpack</code> logs will
+  go when implemented</li>
+  </ul>
+  <hr />
+  <!--
+  A tomb once was zipped up so tight,  
+  But rotkeeper brought it to light.  
+  With a single unpack,  
+  The ghosts all came back—  
+  And output was soon back in sight.
+  -->
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> </p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

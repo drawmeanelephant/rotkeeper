@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rotkeeper Script Index</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Rotkeeper Script Index</h1>
+  <p class="subtitle"></p>
+</header>
+
+<article>
+  <!-- asset-meta:
+       name:        "scripts-index.md"
+       version:     "v0.2.1"
+       updated:     "2025-05-29"
+       description: "Index of all rc-*.sh ritual scripts with status and links"
+       author:      "Rotkeeper Ritual Council"
+  -->
+  <h1 id="rotkeeper-scripts-bones-of-the-machine">📜 Rotkeeper Scripts —
+  Bones of the Machine</h1>
+  <p>Every <code>rc-*.sh</code> script serves a ceremonial function in
+  the Rotkeeper CLI. This page links out to the full autopsy reports and
+  usage notes for each.</p>
+  <p>All scripts live in:</p>
+  <pre><code>bones/scripts/</code></pre>
+  <h2 id="script-inventory">📂 Script Inventory</h2>
+  <!-- The council’s ledger of all ritual scripts -->
+  <table>
+  <colgroup>
+  <col style="width: 17%" />
+  <col style="width: 40%" />
+  <col style="width: 34%" />
+  <col style="width: 8%" />
+  </colgroup>
+  <thead>
+  <tr>
+  <th>Script</th>
+  <th>Purpose</th>
+  <th>Link</th>
+  <th>Status</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td>rc-init.sh</td>
+  <td>Initialize directory and file layout</td>
+  <td><a href="rc-init.html">rc-init.sh</a></td>
+  <td>Ready</td>
+  </tr>
+  <tr>
+  <td>rc-expand.sh</td>
+  <td>Generate content stubs from BOM</td>
+  <td><a href="rc-expand.html">rc-expand.sh</a></td>
+  <td>Ready</td>
+  </tr>
+  <tr>
+  <td>rc-render.sh</td>
+  <td>Convert markdown to HTML</td>
+  <td><a href="rc-render.html">rc-render.sh</a></td>
+  <td>Ready</td>
+  </tr>
+  <tr>
+  <td>rc-pack.sh</td>
+  <td>Archive <code>/output/</code>, export JSON</td>
+  <td><a href="rc-pack.html">rc-pack.sh</a></td>
+  <td>Ready</td>
+  </tr>
+  <tr>
+  <td>rc-scan.sh</td>
+  <td>Detect orphan/missing files, create digests</td>
+  <td><a href="rc-scan.html">rc-scan.sh</a></td>
+  <td>Ready</td>
+  </tr>
+  <tr>
+  <td>rc-bless.sh</td>
+  <td>Append changelog entries</td>
+  <td><a href="rc-bless.html">rc-bless.sh</a></td>
+  <td>Ready</td>
+  </tr>
+  <tr>
+  <td>rc-assets.sh</td>
+  <td>Manifest static assets in YAML</td>
+  <td><a href="rc-assets.html">rc-assets.sh</a></td>
+  <td>Ready</td>
+  </tr>
+  <tr>
+  <td>rc-record.sh</td>
+  <td>Log Git hash and timestamp snapshot</td>
+  <td><a href="rc-record.html">rc-record.sh</a></td>
+  <td>Ready</td>
+  </tr>
+  <tr>
+  <td>rc-verify.sh</td>
+  <td>Compare digests with current state</td>
+  <td><a href="rc-verify.html">rc-verify.sh</a></td>
+  <td>Ready</td>
+  </tr>
+  <tr>
+  <td>rc-reseed.sh</td>
+  <td>Restore from <code>.tar.gz</code> archive</td>
+  <td><a href="rc-reseed.html">rc-reseed.sh</a></td>
+  <td>Ready</td>
+  </tr>
+  <tr>
+  <td>rc-status.sh</td>
+  <td>Summarize project health and logs</td>
+  <td><a href="rc-status.html">rc-status.sh</a></td>
+  <td>Ready</td>
+  </tr>
+  <tr>
+  <td>rc-cleanup-bones.sh</td>
+  <td>Backup and prune bones/ archives and logs</td>
+  <td><a href="rc-cleanup-bones.html">rc-cleanup-bones.sh</a></td>
+  <td>Ready</td>
+  </tr>
+  <tr>
+  <td>rc-docs-fix.sh</td>
+  <td>Patch frontmatter on Markdown docs</td>
+  <td><a href="rc-docs-fix.html">rc-docs-fix.sh</a></td>
+  <td>Ready</td>
+  </tr>
+  <tr>
+  <td>rc-api.sh</td>
+  <td>Fetch data from remote APIs</td>
+  <td><a href="rc-api.html">rc-api.sh</a></td>
+  <td>Stub</td>
+  </tr>
+  <tr>
+  <td>rc-unpack.sh</td>
+  <td><em>Planned</em> — restore output from archive</td>
+  <td><a href="rc-unpack.html">rc-unpack.sh</a></td>
+  <td>Planned</td>
+  </tr>
+  </tbody>
+  </table>
+  <h2 id="navigation">🛣️ Navigation</h2>
+  <!-- Quick navigation to scripts -->
+  <ul>
+  <li><a href="rc-bless.html">rc-bless.sh</a></li>
+  <li><a href="rc-record.html">rc-record.sh</a></li>
+  <li><a href="rc-assets.html">rc-assets.sh</a></li>
+  <li><a href="rc-verify.html">rc-verify.sh</a></li>
+  <li><a href="rc-scan.html">rc-scan.sh</a></li>
+  <li><a href="rc-status.html">rc-status.sh</a></li>
+  <li><a href="index.html">Other scripts…</a></li>
+  </ul>
+  <h2 id="usage">🧭 Usage</h2>
+  <p>All scripts may be run manually:</p>
+  <div class="sourceCode" id="cb2"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> bones/scripts/rc-render.sh</span></code></pre></div>
+  <p>Or through the CLI dispatcher:</p>
+  <div class="sourceCode" id="cb3"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./rotkeeper</span> render</span></code></pre></div>
+  <h2 id="future-additions">🔮 Future Additions</h2>
+  <ul>
+  <li><code>rc-mascot.sh</code>: Mascot-aware frontmatter
+  enforcement</li>
+  <li><code>rc-doclint.sh</code>: Structural Markdown and YAML
+  validator</li>
+  <li><code>rc-shell.sh</code>: REPL interface for tomb diagnostics</li>
+  </ul>
+  <hr />
+  <!-- Sora Prompt: "A rusted clipboard listing shell script names beside ancient terminals, glowing runes next to filenames. A mascot skeleton whispers which scripts are working." -->
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> </p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

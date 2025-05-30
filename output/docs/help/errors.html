@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Common Errors &amp; Ritual Interruptions</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Common Errors &amp; Ritual Interruptions</h1>
+  <p class="subtitle">Troubleshooting and decay recovery procedures</p>
+</header>
+
+<article>
+  <h1 id="common-errors-ritual-interruptions">❌ Common Errors &amp;
+  Ritual Interruptions</h1>
+  <p>Even in blessed environments, the rot may resist. This page
+  collects common problems encountered during render, bless, or verify
+  phases, and how to exorcise them.</p>
+  <hr />
+  <h2 id="dependency-missing">🔧 Dependency Missing</h2>
+  <p><strong>Symptom:</strong><br />
+  Scripts fail with <code>command not found: yq</code> or similar.</p>
+  <p><strong>Fix:</strong><br />
+  Install missing tool via Homebrew:</p>
+  <div class="sourceCode" id="cb1"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install yq jq pandoc</span></code></pre></div>
+  <hr />
+  <h2 id="path-or-directory-not-found">📂 Path or Directory Not
+  Found</h2>
+  <p><strong>Symptom:</strong><br />
+  Errors like
+  <code>No such file or directory: bones/logs/rc-render.log</code></p>
+  <p><strong>Fix:</strong><br />
+  Ensure <code>rotkeeper.sh init</code> has been run. If folders are
+  still missing, create them manually:</p>
+  <div class="sourceCode" id="cb2"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> bones/logs home/content output</span></code></pre></div>
+  <hr />
+  <h2 id="permissions-denied">🔐 Permissions Denied</h2>
+  <p><strong>Symptom:</strong><br />
+  Scripts fail with <code>Permission denied</code>.</p>
+  <p><strong>Fix:</strong><br />
+  Ensure scripts are executable:</p>
+  <div class="sourceCode" id="cb3"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">chmod</span> +x scripts/rc-<span class="pp">*</span>.sh rotkeeper.sh</span></code></pre></div>
+  <hr />
+  <h2 id="weird-output-or-render-fails">🧟 Weird Output or Render
+  Fails</h2>
+  <p><strong>Symptom:</strong><br />
+  HTML output is empty or broken, or Pandoc errors.</p>
+  <p><strong>Fix:</strong><br />
+  Check the Markdown frontmatter. You may be missing <code>title</code>,
+  <code>template</code>, or <code>tomb-version</code>.</p>
+  <hr />
+  <h2 id="logfile-not-rotating">📉 Logfile Not Rotating</h2>
+  <p><strong>Symptom:</strong><br />
+  Multiple logs pile up in root folder.</p>
+  <p><strong>Fix:</strong><br />
+  Ensure all <code>rc-*.sh</code> scripts are updated to write logs to
+  <code>bones/logs/</code>.</p>
+  <hr />
+  <blockquote>
+  <p><em>“Every failed ritual is a lesson. Every log a
+  confession.”</em></p>
+  </blockquote>
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> 0.2.0</p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📖 rc-docbook.sh Reference</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>📖 rc-docbook.sh Reference</h1>
+  <p class="subtitle"></p>
+</header>
+
+<article>
+  <!-- Begin Ritual Script Documentation -->
+  <h1 id="rc-docbook.sh">📖 rc-docbook.sh</h1>
+  <!-- Converts Markdown with Rotkeeper frontmatter into DocBook XML for offline manuals -->
+  <h2 id="purpose">Purpose</h2>
+  <!-- Core objectives of rc-docbook.sh -->
+  <ul>
+  <li>Transform curated Markdown pages into valid DocBook XML
+  chapters.</li>
+  <li>Preserve metadata and section structure (frontmatter, headings,
+  code blocks).</li>
+  <li>Facilitate generation of cohesive PDF/HTML manuals.</li>
+  </ul>
+  <h2 id="cli-interface">CLI Interface</h2>
+  <!-- How to invoke the DocBook ritual -->
+  <div class="sourceCode" id="cb1"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rc-docbook.sh</span> [--input <span class="op">&lt;</span>dir<span class="op">&gt;</span>] [--output <span class="op">&lt;</span>file<span class="op">&gt;</span>] [--toc <span class="op">&lt;</span>level<span class="op">&gt;</span>] <span class="pp">[--</span><span class="ss">help</span><span class="pp">]</span></span></code></pre></div>
+  <h2 id="workflow-steps">Workflow Steps</h2>
+  <!-- Sequential rites performed by the script -->
+  <ol type="1">
+  <li><strong>Verify Dependencies</strong>
+  <ul>
+  <li>Ensure <code>pandoc</code> with DocBook support is installed.</li>
+  </ul></li>
+  <li><strong>Gather Sources</strong>
+  <ul>
+  <li>Read Markdown files from <code>&lt;input&gt;</code>
+  directory.</li>
+  </ul></li>
+  <li><strong>Extract Metadata</strong>
+  <ul>
+  <li>Parse frontmatter for title, author, version.</li>
+  </ul></li>
+  <li><strong>Convert to DocBook</strong>
+  <ul>
+  <li>Invoke <code>pandoc</code> to produce DocBook XML.</li>
+  <li>Inject <code>&lt;toc&gt;</code> sections up to the specified
+  level.</li>
+  </ul></li>
+  <li><strong>Post-process</strong>
+  <ul>
+  <li>Apply XSLT transforms if configured.</li>
+  <li>Validate resulting XML.</li>
+  </ul></li>
+  <li><strong>Write Output</strong>
+  <ul>
+  <li>Write combined XML to <code>&lt;output&gt;</code> path.</li>
+  </ul></li>
+  </ol>
+  <h2 id="exit-codes">Exit Codes</h2>
+  <!-- Symbolic outcomes of incantation -->
+  <ul>
+  <li><code>0</code> — Conversion succeeded without errors.</li>
+  <li><code>1</code> — Missing input files or directories.</li>
+  <li><code>2</code> — Pandoc or dependencies not found.</li>
+  <li><code>3</code> — XML validation errors.</li>
+  </ul>
+  <h2 id="examples">Examples</h2>
+  <!-- Sample invocations for celebratory rites -->
+  <div class="sourceCode" id="cb2"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate a complete manual XML</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-docbook.sh</span> <span class="at">--input</span> docs/bones <span class="at">--output</span> build/manual.xml <span class="at">--toc</span> 2</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Produce a single-chapter XML</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-docbook.sh</span> <span class="at">--input</span> docs/bones/scripts <span class="at">--output</span> build/scripts.xml <span class="at">--toc</span> 1</span></code></pre></div>
+  <!-- 🎴 Limerick 1:
+  From markdown’s plains to DocBook high,
+  rc-docbook lets your manuals fly.
+  It reads every note,
+  From frontmatter’s quote,
+  And crafts XML that won’t lie.
+  -->
+  <!-- 🎴 Limerick 2:
+  When manual builds felt dreary and long,
+  this script sang a transformation song.
+  With pandoc in play,
+  It led the way,
+  And made your docs sturdy and strong.
+  -->
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> 0.2.1</p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

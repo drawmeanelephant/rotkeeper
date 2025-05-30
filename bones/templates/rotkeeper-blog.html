@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>$title$</title>
+  <meta name="description" content="$subtitle$" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    html, body {
+      background-color: #111;
+      color: #eee;
+      font-family: 'IBM Plex Mono', monospace;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+    body {
+      max-width: 768px;
+      margin: 2rem auto;
+      padding-bottom: 4rem;
+    }
+    header {
+      border-bottom: 1px solid #444;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+    }
+    .meta-block {
+      background: #222;
+      padding: 1rem;
+      margin-top: 2rem;
+      border-left: 4px solid #6cf;
+    }
+    footer {
+      font-size: 0.8rem;
+      color: #888;
+      margin-top: 3rem;
+      border-top: 1px solid #444;
+      padding-top: 1rem;
+    }
+    .sora-block {
+      font-style: italic;
+      color: #9ef;
+      background: #1a1a1a;
+      border-left: 5px solid #39f;
+      padding: 1rem;
+      margin-top: 3rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>$title$</h1>
+    <p>$subtitle$</p>
+  </header>
+
+  <article>
+    $body$
+  </article>
+
+  <section class="meta-block">
+    <h2>Asset Metadata</h2>
+    <pre>$asset-meta$</pre>
+  </section>
+
+  <footer>
+    <p>Rendered with <code>rotkeeper</code> at $date$</p>
+  </footer>
+
+  <section class="sora-block">
+    <p>$sora-prompt$</p>
+  </section>
+
+</body>
+</html>

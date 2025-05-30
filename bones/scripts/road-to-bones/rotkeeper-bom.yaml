@@ -1,0 +1,255 @@
+version: 0.2.1
+
+scripts:
+  - path: bones/scripts/rotkeeper.sh
+    stub: false
+    header: "rotkeeper — main ritual entrypoint"
+    body: |
+      #!/usr/bin/env bash
+      # rotkeeper — main ritual entrypoint
+      set -euo pipefail
+
+      echo "Usage: $0 {init|expand|render|pack|scan|bless|assets|record}"
+  - path: bones/scripts/rc-render.sh
+    stub: false
+    header: "rc-render — Pandoc-based renderer for Rotkeeper tombs"
+    body: |
+      #!/usr/bin/env bash
+      # render.sh — Pandoc-based renderer for Rotkeeper tombs
+      set -euo pipefail
+      IFS=$'\n\t'
+
+      # Resolve script directory and related paths
+      SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+      CONFIG_FILE="$SCRIPTDIR/../config/render-flags.yaml"
+      MANIFEST="$SCRIPTDIR/../manifest.txt"
+
+      # Example render logic (placeholder)
+      echo "Starting render process..."
+      if [[ -f "$CONFIG_FILE" ]]; then
+        echo "Using config file: $CONFIG_FILE"
+      else
+        echo "Config file not found, proceeding with defaults."
+      fi
+
+      # Iterate over content files and render using pandoc
+      CONTENT_DIR="$SCRIPTDIR/../../home/content"
+      OUTPUT_DIR="$SCRIPTDIR/../../home/output"
+
+      mkdir -p "$OUTPUT_DIR"
+
+      for mdfile in "$CONTENT_DIR"/*.md; do
+        filename=$(basename "$mdfile" .md)
+        echo "Rendering $filename.md to HTML..."
+        pandoc "$mdfile" -o "$OUTPUT_DIR/$filename.html" --template="$SCRIPTDIR/../templates/rotkeeper-bones.html"
+      done
+
+      echo "Render process completed."
+  - path: bones/scripts/rc-expand.sh
+    stub: true
+    header: "rc-expand — create files from rotkeeper-bom.yaml"
+    body: |
+      #!/usr/bin/env bash
+      # rc-expand — create files from rotkeeper-bom.yaml
+      set -euo pipefail
+
+      echo "Expanding content..."
+      # TODO: implement expand logic
+  - path: bones/scripts/rc-assets.sh
+    stub: true
+    body: |
+      #!/usr/bin/env bash
+      # rc-assets — generate asset manifest
+      set -euo pipefail
+
+      echo "Generating asset manifest..."
+      # TODO: implement assets logic
+  - path: bones/scripts/rc-pack.sh
+    stub: true
+    body: |
+      #!/usr/bin/env bash
+      # rc-pack — package rendered output
+      set -euo pipefail
+
+      echo "Packaging output..."
+      # TODO: implement pack logic
+  - path: bones/scripts/rc-scan.sh
+    stub: true
+    body: |
+      #!/usr/bin/env bash
+      # rc-scan — audit manifest integrity
+      set -euo pipefail
+
+      echo "Scanning manifest..."
+      # TODO: implement scan logic
+  - path: bones/scripts/rc-bless.sh
+    stub: true
+    body: |
+      #!/usr/bin/env bash
+      # rc-bless — generate changelog
+      set -euo pipefail
+
+      echo "Generating changelog..."
+      # TODO: implement bless logic
+  - path: bones/scripts/rc-init.sh
+    stub: true
+    body: |
+      #!/usr/bin/env bash
+      # rc-init — initialize environment
+      set -euo pipefail
+
+      echo "Initializing setup..."
+      # TODO: implement init logic
+  - path: bones/scripts/rc-record.sh
+    stub: true
+    body: |
+      #!/usr/bin/env bash
+      # rc-record — record state
+      set -euo pipefail
+
+      echo "Recording state..."
+      # TODO: implement record logic
+
+templates:
+  - path: bones/templates/rotkeeper-bones.html
+    skeleton: true
+  - path: bones/templates/plainstone.html
+    skeleton: true
+  - path: bones/templates/sidebar-slab.html
+    skeleton: true
+  - path: bones/templates/glyphic.html
+    skeleton: true
+
+config:
+  - path: bones/config/render-flags.yaml
+    stub: true
+  - path: bones/config/ASSETELLA.yaml
+    stub: true
+  - path: bones/config/template-index.yaml
+    stub: true
+
+content:
+  - filename: todo.md
+    title: "Rotkeeper 0.2.0 TODO"
+    template: sidebar-slab.html
+    subtitle: "Placeholder TODO"
+    body: |
+      - [ ] Run `rc-expand.sh`
+      - [ ] Bless initial templates
+      - [ ] Inject OpenMoji test page
+      - [ ] Wire sidebar nav
+      - [ ] Finalize rotkeeper-bom.yaml v0.2.0
+
+  - filename: minimal.md
+    title: "Minimal Render"
+    template: rotkeeper-bones.html
+    subtitle: "Pure bones output"
+    body: |
+      This is a minimal page built with bones only.
+      No sidebar, no emoji, no help.
+      Just markdown and a footer. Like nature intended.
+
+  - filename: hello.md
+    title: "Hello Tomb"
+    template: rotkeeper-bones.html
+    subtitle: "Basic test page"
+    body: |
+      Hello tomb.
+      This file exists purely to verify that template routing works, and that render scripts do not crash.
+
+      - Title rendering ✅
+      - Subtitle rendering ✅
+      - Body rendering ✅
+
+  - filename: overview.md
+    title: "Overview"
+    template: rotkeeper-bones.html
+    subtitle: "System overview placeholder"
+    body: |
+      Rotkeeper is a flat-file ritual site builder for documenting forgotten digital systems.
+
+      - Everything is tracked with versionless metadata
+      - Pages are final drafts
+      - Files rot by design
+      - Bones equal dollars in our world.
+
+  - filename: mascots.md
+    title: "Mascot Lore"
+    template: plainstone.html
+    subtitle: "Placeholder lore dump"
+    body: |
+      ## Mascot Lore (Placeholder)
+
+      Each mascot guards a ritual.
+
+      - **Patchy Mx.CLI**: Oversees expansion scripts
+      - **Bricky**: File clerk and deadlink auditor
+      - **Wafflette**: Frybar manipulator and emoji indexer
+
+  - filename: emoji-index.md
+    title: "Emoji Index"
+    template: glyphic.html
+    subtitle: "Placeholder emoji glyphsheet"
+    body: |
+      ## Emoji Index
+
+      These glyphs appear throughout Rotkeeper.
+
+      - 💀 rot
+      - 🔮 magic
+      - 🗿 structure
+      - 📜 documentation
+      - 📦 tombs
+
+  - filename: sidebar-test.md
+    title: "Sidebar Test"
+    template: sidebar-slab.html
+    subtitle: "Checking sidebar rendering"
+    body: |
+      This page exists to test sidebar rendering.
+      It should appear with left-nav content active and usable.
+
+      - Section 1
+      - Section 2
+      - Section 3
+
+  - filename: demo-expansion.md
+    title: "Expansion Demo"
+    template: plainstone.html
+    subtitle: "rc-expand.sh Demonstration"
+    body: |
+      ## rc-expand.sh Output Demo
+
+      Ran `./rc-expand.sh` against this BOM; observed:
+
+      - Generated content pages in `home/`:
+        - todo.md, minimal.md, hello.md, overview.md, mascots.md, emoji-index.md, sidebar-test.md
+      - Stub scripts created under `bones/scripts/` (excluding existing `rc-render.sh`):
+        - rotkeeper.sh, rc-expand.sh, rc-assets.sh, rc-pack.sh, rc-scan.sh, rc-bless.sh, rc-init.sh, rc-record.sh
+      - Config stubs touched in `bones/config/`
+      - Template skeletons generated in `bones/templates/`
+      - Folders ensured: bones/logs/, bones/archive/, bones/graveyard/, bones/user/icons/, bones/user/fonts/, home/content/, home/assets/
+
+      This document captures the current state after expansion.
+
+folders:
+  - path: bones/logs/
+  - path: bones/archive/
+  - path: bones/graveyard/
+  - path: bones/user/icons/
+  - path: bones/user/fonts/
+  - path: home/content/
+  - path: home/assets/
+
+assets:
+  - path: user/icons/openmoji-svg-color/1F354.svg
+  - path: user/icons/openmoji-svg-color/1F35F.svg
+
+special:
+  - rotkeeper-bom.yaml
+  - graveyard/
+
+haunted_flags:
+  - x-cloak present
+  - frybar toggles registered
+  - emoji CDN usage enabled

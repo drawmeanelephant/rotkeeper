@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>rotkeeper.sh</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>rotkeeper.sh</h1>
+  <p class="subtitle">Master CLI wrapper for ritual script dispatch</p>
+</header>
+
+<article>
+  <h1 id="rotkeeper.sh"><code>rotkeeper.sh</code></h1>
+  <p>This is the main CLI interface for invoking Rotkeeper rituals. It
+  wraps and dispatches calls to each <code>rc-*.sh</code> script using
+  familiar subcommands.</p>
+  <hr />
+  <h2 id="purpose">🧠 Purpose</h2>
+  <p>To provide a unified command for interacting with all parts of the
+  rotkeeper toolchain, including initialization, rendering, blessing,
+  verifying, and packing.</p>
+  <hr />
+  <h2 id="usage">📜 Usage</h2>
+  <div class="sourceCode" id="cb1"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./rotkeeper.sh</span> <span class="pp">[</span><span class="ss">command</span><span class="pp">]</span> <span class="pp">[</span><span class="ss">flags</span><span class="pp">]</span></span></code></pre></div>
+  <hr />
+  <h2 id="supported-commands">🔧 Supported Commands</h2>
+  <table>
+  <thead>
+  <tr>
+  <th>Command</th>
+  <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td><code>init</code></td>
+  <td>Create default folders and templates</td>
+  </tr>
+  <tr>
+  <td><code>assets</code></td>
+  <td>Copy static files into <code>output/</code></td>
+  </tr>
+  <tr>
+  <td><code>render</code></td>
+  <td>Render markdown into HTML tombs</td>
+  </tr>
+  <tr>
+  <td><code>bless</code></td>
+  <td>Create changelog and version marker</td>
+  </tr>
+  <tr>
+  <td><code>verify</code></td>
+  <td>Check tomb integrity</td>
+  </tr>
+  <tr>
+  <td><code>record</code></td>
+  <td>Log current git + datetime info</td>
+  </tr>
+  <tr>
+  <td><code>pack</code></td>
+  <td>Create <code>.tar.gz</code> of output &amp; logs</td>
+  </tr>
+  <tr>
+  <td><code>test</code></td>
+  <td>Run all scripts in dry mode</td>
+  </tr>
+  <tr>
+  <td><code>help</code></td>
+  <td>Show available commands</td>
+  </tr>
+  </tbody>
+  </table>
+  <hr />
+  <h2 id="example">🧪 Example</h2>
+  <div class="sourceCode" id="cb2"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./rotkeeper.sh</span> render</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./rotkeeper.sh</span> bless</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">./rotkeeper.sh</span> pack</span></code></pre></div>
+  <hr />
+  <blockquote>
+  <p><em>“The rotkeeper never types the full path. The path types
+  itself.”</em></p>
+  </blockquote>
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> 0.2.0</p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

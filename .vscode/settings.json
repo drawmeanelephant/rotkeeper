@@ -1,0 +1,15 @@
+// .vscode/settings.json
+{
+  "editor.tabSize": 4,
+  "files.trimTrailingWhitespace": true,
+  // …your other project-specific prefs…
+  ,
+  "terminal.integrated.profiles.osx": {
+    "bash (brew)": {
+      "path": "/opt/homebrew/bin/bash",
+      "args": ["--login"],
+      "icon": "terminal-bash"
+    }
+  },
+  "terminal.integrated.defaultProfile.osx": "bash (brew)"
+}

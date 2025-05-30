@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Template Library</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Template Library</h1>
+  <p class="subtitle"></p>
+</header>
+
+<article>
+  <!-- asset-meta: { name: "quickstart-guide.md", version: "v0.1.0" } -->
+  <h1 id="template-library">🧱 Template Library</h1>
+  <p>Rotkeeper supports basic HTML template rendering using
+  Pandoc-compatible layouts. This page catalogs the included templates,
+  explains layout logic, and outlines how to create or override your
+  own.</p>
+  <hr />
+  <h2 id="where-templates-live">📁 Where Templates Live</h2>
+  <p>Templates are stored in the <code>/templates/</code> directory.</p>
+  <p>You can define which ones get copied during init using
+  <code>init-config.yaml</code>:</p>
+  <div class="sourceCode" id="cb1"><pre
+  class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">templates</span><span class="kw">:</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> templates/stackburger.html</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> templates/rot-notice.html</span></span></code></pre></div>
+  <hr />
+  <h2 id="stackburger.html">🍔 <code>stackburger.html</code></h2>
+  <p>The default layout for HTML output. It includes: - A head with
+  linked stylesheets - A placeholder for page content - Optional
+  asset/meta inclusion logic</p>
+  <p>You can customize it to include: - OpenMoji icons - Static banners
+  - Post-render scripts - Log-referenced inline metadata</p>
+  <hr />
+  <h2 id="rot-notice.html">🚫 <code>rot-notice.html</code></h2>
+  <p>A minimal template for rendering warnings, blank states, or expired
+  tomb notices.<br />
+  Use this if you need to output content that’s been redacted or
+  obsoleted.</p>
+  <hr />
+  <h2 id="how-to-make-a-new-template">🛠 How to Make a New Template</h2>
+  <ol type="1">
+  <li>Create an HTML file in <code>/templates/</code></li>
+  <li>Use Pandoc’s templating syntax (<code>$body$</code>,
+  <code>$title$</code>, etc.)</li>
+  <li>Optionally add an asset-meta block:</li>
+  </ol>
+  <div class="sourceCode" id="cb2"><pre
+  class="sourceCode html"><code class="sourceCode html"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">&lt;!--</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">asset-meta:</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">  file: templates/my-custom.html</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">  version: 0.1.0</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">  tomb-version: 0.1.7.5</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">  tracked: true</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">  author: &quot;tomb-engine&quot;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">--&gt;</span></span></code></pre></div>
+  <ol start="4" type="1">
+  <li>Reference the new template in your <code>init-config.yaml</code>
+  or pass it via CLI:</li>
+  </ol>
+  <div class="sourceCode" id="cb3"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pandoc</span> input.md <span class="at">-o</span> output.html <span class="at">--template</span> templates/my-custom.html</span></code></pre></div>
+  <hr />
+  <h2 id="custom-layout-conventions">🧬 Custom Layout Conventions</h2>
+  <ul>
+  <li>All templates should render cleanly with minimal dependencies</li>
+  <li>You may use inline CSS, HiQ classes, or external links</li>
+  <li>Templates may include <code>&lt;!-- comments --&gt;</code> for
+  inline metadata or warnings</li>
+  <li>You are encouraged to make the templates visibly haunted</li>
+  </ul>
+  <hr />
+  <p>Back to <a href="asset-pipeline.md">Asset Pipeline</a><br />
+  Continue to <a href="content-structure.md">Content Structure</a></p>
+  <!--
+  LIMERICK
+
+  A template once stitched from the dread,  
+  With `$body$` and `$title$` it bled.  
+  It rendered the page,  
+  Contained all the rage—  
+  Of markdown now statically dead.
+
+  SORA PROMPT
+
+  "a haunted HTML template engine rendering markdown into digital tombs, glowing Pandoc variables swirling in spectral layout space"
+  -->
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> </p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

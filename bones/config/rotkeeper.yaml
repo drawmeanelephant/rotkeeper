@@ -1,0 +1,46 @@
+
+
+# 🔮 rotkeeper.yaml — canonical configuration for all CLI rituals
+# This file replaces scattered config fragments (render-flags.yaml, template-index.yaml, etc.)
+# It is parsed by all rc-*.sh modules for consistent behavior and flag normalization.
+
+version: "0.1.9.9"
+
+# 🏗️ Content Rendering Settings
+content:
+  dirs:
+    - home/content/rotkeeper
+    - home/content/mascots
+  default_template: rotkeeper-bones.html
+  archive_after_render: true  # Toggle automatic tar.gz of output after render
+
+# 🎭 Template Registry
+templates:
+  plainstone: "Plain unstyled rendering"
+  rotkeeper-bones: "Main ritual layout with metadata blocks"
+  # Additional template slugs may be added here
+
+# 📁 Asset Management
+assets:
+  scan_dir: home/assets
+  manifest_file: bones/asset-manifest.yaml
+  generate_checksums: true
+
+# 🔐 Verification Options
+verify:
+  manifest_path: bones/asset-manifest.yaml
+  enforce_hash: true
+  enforce_frontmatter: true
+
+# 🧾 Logging + Output Settings
+log:
+  enable_verbose: true
+  record_file: bones/logs/record.log
+  changelog_file: bones/logs/changelog.md
+
+# 💀 Ritual Behavior Toggles
+flags:
+  dry_run: false
+  strict_mode: false
+  auto_bless: false
+  pack_full_on_render: false

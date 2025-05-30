@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ritual Record Generator</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Ritual Record Generator</h1>
+  <p class="subtitle"></p>
+</header>
+
+<article>
+  <!-- asset-meta: { name: "quickstart-guide.md", version: "v0.1.0" } -->
+  <h1 id="ritual-record-generator">🧃 Ritual Record Generator</h1>
+  <p>Rotkeeper’s planned <code>rc-record.sh</code> tool allows a tomb to
+  generate the script that built it. This helps with reproducibility,
+  documentation, debugging, and preservation of ritual steps in a
+  literal, executable format.</p>
+  <hr />
+  <h2 id="what-it-does">🪬 What It Does</h2>
+  <p><code>rc-record.sh</code> will output a reproducible
+  <code>.sh</code> script that captures:</p>
+  <ul>
+  <li>Folder creation order and structure (<code>rc-init.sh</code>)</li>
+  <li>Files added to <code>manifest.txt</code></li>
+  <li>Asset injection steps</li>
+  <li>Template render instructions (Pandoc calls)</li>
+  <li>Packing invocation (with the resulting archive path)</li>
+  </ul>
+  <p>The result is a snapshot not just of state, but of
+  <strong>procedure</strong>.</p>
+  <hr />
+  <h2 id="example-output">📄 Example Output</h2>
+  <div class="sourceCode" id="cb1"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/bin/bash</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Recorded by rotkeeper v0.1.7.5 on 2025-05-13</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> content logs output templates</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> assets/hiq-custom.css output/</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="ex">pandoc</span> content/index.md <span class="at">-o</span> output/index.html <span class="at">--template</span> templates/stackburger.html</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">tar</span> <span class="at">-czf</span> tomb-v0.1.7.5.tar.gz <span class="at">-T</span> manifest.txt</span></code></pre></div>
+  <p>You can pipe this into a file for reproduction:</p>
+  <div class="sourceCode" id="cb2"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/rc-record.sh</span> <span class="op">&gt;</span> tomb-replay.sh</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> tomb-replay.sh</span></code></pre></div>
+  <hr />
+  <h2 id="use-cases">🎛 Use Cases</h2>
+  <ul>
+  <li>Generate portable build scripts for tombs</li>
+  <li>Archive a tomb and its ritual in the same
+  <code>.tar.gz</code></li>
+  <li>Restore an old version’s state <em>exactly</em> from a past
+  invocation</li>
+  <li>Let AI agents replay and audit rot procedures for forensic
+  analysis</li>
+  </ul>
+  <hr />
+  <h2 id="future-features">🔮 Future Features</h2>
+  <ul>
+  <li>Flag support: <code>--compact</code>, <code>--commented</code>,
+  <code>--annotated</code></li>
+  <li>Embed persona signature in generated file</li>
+  <li>Include optional SHA validation or meta header summary</li>
+  </ul>
+  <hr />
+  <p>Back to <a href="changelog-blessing.md">Changelog &amp; Version
+  Blessing</a><br />
+  Return to <a href="index.md">Documentation Index</a></p>
+  <!--
+  LIMERICK
+
+  A record was etched in the void,  
+  A ritual script to be deployed.  
+  With each line replayed,  
+  The tomb was remade—  
+  And entropy briefly enjoyed.
+
+  SORA PROMPT
+
+  "a terminal script auto-generating itself from logs, digital runes forming a ritual replay, soft glowing shell prompts on a black mirror background"
+  -->
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> </p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

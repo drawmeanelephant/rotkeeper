@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📚 Archive Index</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>📚 Archive Index</h1>
+  <p class="subtitle"></p>
+</header>
+
+<article>
+  <!-- asset-meta:
+       name:        "archive-index.md"
+       version:     "v0.1.0"
+       description: "Ledger of all archived tomb artifacts and reports"
+       author:      "Rotkeeper Ritual Council"
+  -->
+  <h1 id="archive-tomb-artifacts">🏺 Archive — Tomb Artifacts</h1>
+  <!-- The council’s ledger of archival records -->
+  <table>
+  <colgroup>
+  <col style="width: 20%" />
+  <col style="width: 37%" />
+  <col style="width: 33%" />
+  <col style="width: 8%" />
+  </colgroup>
+  <thead>
+  <tr>
+  <th>Artifact</th>
+  <th>Description</th>
+  <th>Link</th>
+  <th>Status</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td>scan-reports</td>
+  <td>Historical scan outputs and digests</td>
+  <td><a href="scan-reports.html">scan-reports</a></td>
+  <td>Ready</td>
+  </tr>
+  <tr>
+  <td>changelog</td>
+  <td>Full ritual violation history</td>
+  <td><a href="CHANGELOG.html">CHANGELOG</a></td>
+  <td>Ready</td>
+  </tr>
+  <tr>
+  <td>manifest-backups</td>
+  <td>Previous versions of asset-manifest.yaml</td>
+  <td><a href="manifests.html">manifests</a></td>
+  <td>Stub</td>
+  </tr>
+  <tr>
+  <td>session-records</td>
+  <td>rc-record.sh dumps</td>
+  <td><a href="records.html">records</a></td>
+  <td>Ready</td>
+  </tr>
+  <tr>
+  <td>tomb-render-logs</td>
+  <td>Logs from <code>rc-render.sh</code> runs</td>
+  <td><a href="renders.html">renders</a></td>
+  <td>Missing</td>
+  </tr>
+  <tr>
+  <td>…</td>
+  <td>…</td>
+  <td>…</td>
+  <td>…</td>
+  </tr>
+  </tbody>
+  </table>
+  <h2 id="navigation">🛣️ Navigation</h2>
+  <!-- Quick nav to archive sections -->
+  <ul>
+  <li><a href="scan-reports.html">scan-reports</a><br />
+  </li>
+  <li><a href="CHANGELOG.html">CHANGELOG</a><br />
+  </li>
+  <li><a href="manifests.html">manifests</a><br />
+  </li>
+  <li><a href="records.html">records</a><br />
+  </li>
+  <li><a href="renders.html">renders</a><br />
+  </li>
+  <li><a href="index.html">Other archives…</a></li>
+  </ul>
+  <h2 id="usage">🧭 Usage</h2>
+  <p><em>(This section can describe how to explore or publish the
+  archive index.)</em></p>
+  <h2 id="future-additions">Future Additions</h2>
+  <p><em>(E.g. automated archive pruning, web-UI for browsing relics,
+  etc.)</em></p>
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> v0.1.0</p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rotkeeper CLI &amp; Subroutine Reference</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Rotkeeper CLI &amp; Subroutine Reference</h1>
+  <p class="subtitle"></p>
+</header>
+
+<article>
+  <!-- asset-meta: { name: "rotkeeper-help.md", version: "v0.1.0" } -->
+  <h1 id="rotkeeper-cli-subroutine-reference">📜 Rotkeeper CLI &amp;
+  Subroutine Reference</h1>
+  <p>This document outlines how to use the <code>rotkeeper</code> CLI
+  and its alphabetized <code>rc-*</code> subroutines to scaffold,
+  render, and archive tombs.</p>
+  <hr />
+  <h2 id="core-cli-usage">🧰 Core CLI Usage</h2>
+  <p>The <code>rotkeeper</code> script is the master ritual coordinator.
+  It wraps core subroutines (<code>rc-*</code>) and handles full
+  lifecycle execution.</p>
+  <h3 id="general-syntax">🔧 General Syntax</h3>
+  <div class="sourceCode" id="cb1"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./rotkeeper</span> <span class="op">&lt;</span>command<span class="op">&gt;</span> <span class="pp">[</span><span class="ss">flags</span><span class="pp">]</span></span></code></pre></div>
+  <h3 id="available-commands">⚙️ Available Commands</h3>
+  <table>
+  <thead>
+  <tr>
+  <th>Command</th>
+  <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td><code>init</code></td>
+  <td>Set up the project structure</td>
+  </tr>
+  <tr>
+  <td><code>assets</code></td>
+  <td>Copy static files from declared asset directories</td>
+  </tr>
+  <tr>
+  <td><code>render</code></td>
+  <td>Convert Markdown content to HTML</td>
+  </tr>
+  <tr>
+  <td><code>pack</code></td>
+  <td>Bundle tomb contents into a <code>.tar.gz</code> archive</td>
+  </tr>
+  <tr>
+  <td><code>all</code></td>
+  <td>Run <code>init</code>, <code>assets</code>, <code>render</code>,
+  and <code>pack</code> in order</td>
+  </tr>
+  <tr>
+  <td><code>help</code></td>
+  <td>Display available commands and usage tips</td>
+  </tr>
+  </tbody>
+  </table>
+  <hr />
+  <h2 id="common-flags">🏴‍☠️ Common Flags</h2>
+  <table>
+  <thead>
+  <tr>
+  <th>Flag</th>
+  <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td><code>--dry-run</code></td>
+  <td>Preview operations without writing to disk</td>
+  </tr>
+  <tr>
+  <td><code>--skip-inject</code></td>
+  <td>Avoid injection logic (e.g. <code>inject.d/</code>)</td>
+  </tr>
+  <tr>
+  <td><code>--verbose</code></td>
+  <td>Enable detailed logs</td>
+  </tr>
+  <tr>
+  <td><code>--version</code></td>
+  <td>Print current rotkeeper version</td>
+  </tr>
+  <tr>
+  <td><code>--ritualize</code></td>
+  <td>Output the script used to create this tomb (planned)</td>
+  </tr>
+  </tbody>
+  </table>
+  <hr />
+  <h2 id="subroutine-scripts-rc-">🧩 Subroutine Scripts
+  (<code>rc-*</code>)</h2>
+  <p>Each subroutine lives in <code>scripts/</code> and may be invoked
+  directly.</p>
+  <table>
+  <colgroup>
+  <col style="width: 47%" />
+  <col style="width: 52%" />
+  </colgroup>
+  <thead>
+  <tr>
+  <th>Script</th>
+  <th>Purpose</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td><code>rc-init.sh</code></td>
+  <td>Creates folders, seed files, and templates</td>
+  </tr>
+  <tr>
+  <td><code>rc-assets.sh</code></td>
+  <td>Copies assets from <code>assets/</code>, <code>themes/</code>,
+  etc.</td>
+  </tr>
+  <tr>
+  <td><code>rc-render.sh</code></td>
+  <td>Converts <code>content/</code> Markdown to <code>output/</code>
+  HTML</td>
+  </tr>
+  <tr>
+  <td><code>rc-pack.sh</code></td>
+  <td>Builds <code>.tar.gz</code> from <code>manifest.txt</code></td>
+  </tr>
+  <tr>
+  <td><code>rc-scan.sh</code></td>
+  <td>Checks for missing files, version drift (planned)</td>
+  </tr>
+  <tr>
+  <td><code>rc-bless.sh</code></td>
+  <td>Writes a changelog and blesses the current version</td>
+  </tr>
+  <tr>
+  <td><code>rc-inject.sh</code></td>
+  <td>Optional script to copy contents from <code>inject.d/</code></td>
+  </tr>
+  <tr>
+  <td><code>rc-limerick.sh</code></td>
+  <td>Emits random limericks to <code>yougood.brah</code> (planned)</td>
+  </tr>
+  <tr>
+  <td><code>rc-record.sh</code></td>
+  <td>Generates a shell script to recreate the tomb (planned)</td>
+  </tr>
+  </tbody>
+  </table>
+  <hr />
+  <h2 id="environment-variables">🧠 Environment Variables</h2>
+  <table>
+  <thead>
+  <tr>
+  <th>Variable</th>
+  <th>Use</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td><code>TOMB_VERSION</code></td>
+  <td>Sets version string in logs, meta</td>
+  </tr>
+  <tr>
+  <td><code>RK_CONFIG</code></td>
+  <td>Alternate path to <code>init-config.yaml</code></td>
+  </tr>
+  <tr>
+  <td><code>RK_DRY</code></td>
+  <td>Global dry-run override</td>
+  </tr>
+  <tr>
+  <td><code>RK_VERBOSE</code></td>
+  <td>Global verbose logging override</td>
+  </tr>
+  </tbody>
+  </table>
+  <hr />
+  <h2 id="example-workflows">🔍 Example Workflows</h2>
+  <h3 id="minimal-render-and-pack">Minimal render and pack:</h3>
+  <div class="sourceCode" id="cb2"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./rotkeeper</span> init</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./rotkeeper</span> render</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">./rotkeeper</span> pack</span></code></pre></div>
+  <h3 id="full-lifecycle">Full lifecycle:</h3>
+  <div class="sourceCode" id="cb3"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./rotkeeper</span> all <span class="at">--verbose</span></span></code></pre></div>
+  <h3 id="direct-invocation">Direct invocation:</h3>
+  <div class="sourceCode" id="cb4"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/rc-render.sh</span></span></code></pre></div>
+  <hr />
+  <p>Back to <a href="index.md">Documentation Index</a></p>
+  <!--
+  LIMERICK
+
+  The keeper accepts your command,  
+  And echoes them back, ghostly and bland.  
+  Each subroutine call  
+  Just rewrites it all—  
+  By entropy’s deeply chilled hand.
+
+  SORA PROMPT
+
+  "a monochrome terminal with glowing command-line invocations, each input summoning faded subroutines, cold static and flickering glyphs around them"
+  -->
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> </p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

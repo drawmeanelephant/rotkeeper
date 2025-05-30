@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🔄 rc-convert.sh Reference</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🔄 rc-convert.sh Reference</h1>
+  <p class="subtitle"></p>
+</header>
+
+<article>
+  <!-- asset-meta:
+       name:        "rc-convert.sh"
+       version:     "v0.2.0-pre"
+       description: "Utility to convert documents between supported formats (Markdown, JSON, DocBook)"
+       author:      "Rotkeeper Ritual Council"
+  -->
+  <!--
+  🎨 Sora Prompt:
+  "An alchemical chamber where rc-convert.sh transmutes files—Markdown, JSON, and DocBook scrolls swirl in a glowing circle of conversion runes."
+  -->
+  <!-- Begin Ritual Script Documentation -->
+  <h1 id="rc-convert.sh">🔄 rc-convert.sh</h1>
+  <!-- The sacred rite of document transmutation -->
+  <p><strong>Script Path:</strong>
+  <code>bones/scripts/rc-convert.sh</code></p>
+  <h2 id="purpose">Purpose</h2>
+  <!-- Core objectives of rc-convert.sh -->
+  <ul>
+  <li>Convert documentation files between supported formats: Markdown,
+  JSON, and DocBook XML.</li>
+  <li>Preserve metadata and frontmatter during conversion.</li>
+  <li>Facilitate downstream processing by other Rotkeeper tools.</li>
+  </ul>
+  <h2 id="cli-interface">CLI Interface</h2>
+  <!-- How to invoke the conversion ceremony -->
+  <div class="sourceCode" id="cb1"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rc-convert.sh</span> <span class="at">--input</span> <span class="op">&lt;</span>file<span class="op">&gt;</span> --from <span class="op">&lt;</span>md<span class="kw">|</span><span class="ex">json</span><span class="kw">|</span><span class="ex">xml</span><span class="op">&gt;</span> --to <span class="op">&lt;</span>md<span class="kw">|</span><span class="ex">json</span><span class="kw">|</span><span class="ex">xml</span><span class="op">&gt;</span> [--output <span class="op">&lt;</span>file<span class="op">&gt;</span>] [-h<span class="kw">|</span><span class="ex">--help]</span></span></code></pre></div>
+  <p>Supported options: - <code>--input &lt;file&gt;</code><br />
+  Source file path to convert. -
+  <code>--from &lt;format&gt;</code><br />
+  Source format (<code>md</code>, <code>json</code>, <code>xml</code>).
+  - <code>--to &lt;format&gt;</code><br />
+  Target format (<code>md</code>, <code>json</code>, <code>xml</code>).
+  - <code>--output &lt;file&gt;</code><br />
+  Output file path (default: overwrite input). -
+  <code>-h, --help</code><br />
+  Show usage and exit.</p>
+  <h2 id="workflow-steps">Workflow Steps</h2>
+  <!-- Sequential rites performed by the script -->
+  <ol type="1">
+  <li><strong>Verify Dependencies</strong>
+  <ul>
+  <li>Ensure <code>pandoc</code>, <code>jq</code>, and
+  <code>xmllint</code> are installed.</li>
+  </ul></li>
+  <li><strong>Validate Input</strong>
+  <ul>
+  <li>Check file existence and correct <code>--from</code> format.</li>
+  </ul></li>
+  <li><strong>Execute Conversion</strong>
+  <ul>
+  <li>Invoke Pandoc or relevant parser based on formats.</li>
+  </ul></li>
+  <li><strong>Post-process</strong>
+  <ul>
+  <li>Re-inject frontmatter and metadata if needed.</li>
+  </ul></li>
+  <li><strong>Write Output</strong>
+  <ul>
+  <li>Save converted document to the output path.</li>
+  </ul></li>
+  </ol>
+  <h2 id="exit-codes">Exit Codes</h2>
+  <!-- Symbolic outcomes of incantation -->
+  <ul>
+  <li><code>0</code> — Conversion succeeded.</li>
+  <li><code>1</code> — Invalid arguments or missing input.</li>
+  <li><code>2</code> — Conversion engine error.</li>
+  <li><code>3</code> — Post-processing failure.</li>
+  </ul>
+  <h2 id="examples">Examples</h2>
+  <!-- Sample invocations for celebratory rites -->
+  <div class="sourceCode" id="cb2"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Markdown to DocBook</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-convert.sh</span> <span class="at">--input</span> docs/manual.md <span class="at">--from</span> md <span class="at">--to</span> xml</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># DocBook to JSON</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-convert.sh</span> <span class="at">--input</span> build/manual.xml <span class="at">--from</span> xml <span class="at">--to</span> json <span class="at">--output</span> manual.json</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># JSON to Markdown in-place</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-convert.sh</span> <span class="at">--input</span> data/notes.json <span class="at">--from</span> json <span class="at">--to</span> md</span></code></pre></div>
+  <h2 id="roadmap">Roadmap</h2>
+  <!-- Aspirational rites to come -->
+  <ul>
+  <li>Support additional formats (e.g., EPUB, PDF metadata
+  embedding).</li>
+  <li>Add batch conversion mode for multiple files or directories.</li>
+  <li>Integrate with CI to validate conversion on updates.</li>
+  <li>Provide a <code>--validate</code> flag to check output against
+  schemas.</li>
+  </ul>
+  <h2 id="navigation">🛣️ Navigation</h2>
+  <!-- Quick navigation links -->
+  <ul>
+  <li><a href="scripts/index.html">Scripts Index</a></li>
+  <li><a href="scripts/rc-convert.html">Convert Reference</a></li>
+  <li><a href="index.html">Bones Home</a></li>
+  </ul>
+  <!--
+  Limerick 1:
+  In runes of code and file decree,
+  rc-convert sets formats free.
+  It flows through each gate,
+  With metadata straight,
+  Ensuring no lore goes empty.
+
+  Limerick 2:
+  When scroll meets its destined form,
+  rc-convert weathers the storm.
+  From MD to XML,
+  Or JSON as well,
+  It crafts every page to transform.
+  -->
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> v0.2.0-pre</p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

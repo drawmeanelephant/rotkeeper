@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Persona Management</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Persona Management</h1>
+  <p class="subtitle"></p>
+</header>
+
+<article>
+  <!-- asset-meta: { name: "quickstart-guide.md", version: "v0.1.0" } -->
+  <h1 id="persona-management">🧑‍🎤 Persona Management</h1>
+  <p>Rotkeeper supports the integration of named personas into tombs,
+  logs, and rendered files. These fictional or thematic identities give
+  your project tone, structure, and long-form weirdness.</p>
+  <p>Personas can narrate logs, sign metadata, influence page templates,
+  or act as symbolic maintainers of your decaying stack.</p>
+  <hr />
+  <h2 id="what-is-a-persona">🪞 What Is a Persona?</h2>
+  <p>A <strong>persona</strong> is a named character, entity, or
+  bureaucratic mask that serves a function within the rotkeeper
+  ecosystem.</p>
+  <p>They may: - Appear as authors in asset-meta blocks - Be credited in
+  changelogs or commit logs - “Speak” in terminal logs or
+  template-generated pages - Serve as symbolic stewards of decaying
+  content</p>
+  <hr />
+  <h2 id="where-personas-can-be-used">🧬 Where Personas Can Be Used</h2>
+  <table>
+  <thead>
+  <tr>
+  <th>Context</th>
+  <th>Example</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td><code>asset-meta</code></td>
+  <td><code>author: Bricky Goldbricksworth</code></td>
+  </tr>
+  <tr>
+  <td>Terminal Output</td>
+  <td><code>🔔 [Boily McPlaterton] Injecting rot-scripts...</code></td>
+  </tr>
+  <tr>
+  <td>Page Footer</td>
+  <td>“Filed and rendered by Patchy Mx.CLI, 2025”</td>
+  </tr>
+  <tr>
+  <td>Logs</td>
+  <td><code>✅ Rot blessed by Council of Mascot Authors</code></td>
+  </tr>
+  </tbody>
+  </table>
+  <hr />
+  <h2 id="defining-a-persona">✍️ Defining a Persona</h2>
+  <p>Create a persona block in a YAML or Markdown doc like:</p>
+  <div class="sourceCode" id="cb1"><pre
+  class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">persona</span><span class="kw">:</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Patchy Mx.CLI</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">role</span><span class="kw">:</span><span class="at"> Ritual Logkeeper</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">tone</span><span class="kw">:</span><span class="at"> Deadpan, procedural</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">icon</span><span class="kw">:</span><span class="at"> 🧾</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">metadata_inject</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span></code></pre></div>
+  <p>You can then reference this block from templates or logs using
+  simple interpolation logic.</p>
+  <hr />
+  <h2 id="suggested-persona-files">📁 Suggested Persona Files</h2>
+  <p>Personas can be organized in:</p>
+  <pre><code>personas/
+├── patchy-mx-cli.yaml
+├── bricky-goldbricksworth.yaml
+└── boilerplate-ghost.yaml</code></pre>
+  <p>These files can be read by scripts like <code>rc-render.sh</code>
+  or <code>rc-log.sh</code> to personalize output or narrate
+  actions.</p>
+  <hr />
+  <h2 id="tips">🧠 Tips</h2>
+  <ul>
+  <li>Use personas to differentiate logs from different systems</li>
+  <li>Give each mascot or subroutine a persona (optional but
+  glorious)</li>
+  <li>Consider embedding short bios in logs or changelogs</li>
+  <li>Stick to weird job titles like “Emotional Integrity Buffer” or
+  “Render Shaman”</li>
+  </ul>
+  <hr />
+  <p>Back to <a href="logging-diagnostics.md">Logging &amp;
+  Diagnostics</a><br />
+  Continue to <a href="troubleshooting-faq.md">Troubleshooting
+  FAQ</a></p>
+  <!--
+  LIMERICK
+
+  A ghost with a name in the logs,  
+  Appeared through some rot-scripted fogs.  
+  It signed every trace  
+  In a font full of grace—  
+  And spoke through erroneous progs.
+
+  SORA PROMPT
+
+  "a ghostly avatar embedded in system logs, narrating rituals through static-laced terminal messages, flickering with digital personality"
+  -->
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> </p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

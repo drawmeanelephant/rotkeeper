@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎨 rc-render.sh Reference</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🎨 rc-render.sh Reference</h1>
+  <p class="subtitle"></p>
+</header>
+
+<article>
+  <!--
+  🎨 Sora Prompt:
+  "A cryptic ritual hall illuminated by rows of glowing <code>pandoc</code> invocations, candles flickering on terminal screens, as rc-render.sh weaves Markdown into spectral HTML pages."
+  -->
+  <!-- Begin Ritual Script Documentation -->
+  <h1 id="rc-render.sh">🎨 rc-render.sh</h1>
+  <!-- The sacred rite of tomb rendering -->
+  <p><strong>Script Path:</strong>
+  <code>bones/scripts/rc-render.sh</code></p>
+  <h2 id="purpose">Purpose</h2>
+  <!-- Core objectives of rc-render.sh -->
+  <ul>
+  <li>Convert all Markdown documentation into HTML pages.</li>
+  <li>Support custom templates, parallel execution, verbose logging, and
+  dry-run previews.</li>
+  <li>Emit detailed logs for ritual auditing.</li>
+  </ul>
+  <h2 id="cli-interface">CLI Interface</h2>
+  <!-- How to invoke the rendering ceremony -->
+  <div class="sourceCode" id="cb1"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rc-render.sh</span> <span class="pp">[--</span><span class="ss">dry</span><span class="pp">-</span><span class="ss">run</span><span class="pp">]</span> <span class="pp">[--</span><span class="ss">verbose</span><span class="pp">]</span> <span class="pp">[--</span><span class="ss">help</span><span class="pp">]</span></span></code></pre></div>
+  <p>Supported options: - <code>--help</code>, <code>-h</code> Show
+  usage information and exit. - <code>--dry-run</code>, <code>-n</code>
+  Preview actions without writing output. - <code>--verbose</code>,
+  <code>-v</code> Show detailed logs.</p>
+  <h2 id="workflow-steps">Workflow Steps</h2>
+  <!-- Sequential rites performed by the script -->
+  <ol type="1">
+  <li><strong>Check Dependencies</strong>
+  <ul>
+  <li>Ensure <code>pandoc</code>, <code>find</code>, <code>xargs</code>,
+  and <code>date</code> are available.</li>
+  </ul></li>
+  <li><strong>Initialize Logging</strong>
+  <ul>
+  <li>Create a timestamped log file and define helper functions.</li>
+  </ul></li>
+  <li><strong>Discover Markdown Files</strong>
+  <ul>
+  <li>Recursively locate <code>*.md</code> pages to render.</li>
+  </ul></li>
+  <li><strong>Render Files</strong>
+  <ul>
+  <li>Process each Markdown file sequentially using Pandoc.</li>
+  </ul></li>
+  <li><strong>Log Results</strong>
+  <ul>
+  <li>Record successes and failures with timestamps.</li>
+  </ul></li>
+  <li><strong>Cleanup</strong>
+  <ul>
+  <li>Remove temporary files on exit.</li>
+  </ul></li>
+  </ol>
+  <h2 id="exit-codes">Exit Codes</h2>
+  <!-- Symbolic outcomes of incantation -->
+  <ul>
+  <li><code>0</code> — All pages rendered successfully.</li>
+  <li><code>1</code> — Missing dependencies or invalid flags.</li>
+  <li><code>2</code> — One or more render failures.</li>
+  </ul>
+  <h2 id="examples">Examples</h2>
+  <!-- Sample invocations for celebratory rites -->
+  <div class="sourceCode" id="cb2"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Default render</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-render.sh</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Use custom template</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-render.sh</span> <span class="at">-t</span> templates/custom.html</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Dry-run with 8 parallel jobs</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-render.sh</span> <span class="at">-p</span> 8 <span class="at">-n</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Verbose output</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-render.sh</span> <span class="at">-v</span></span></code></pre></div>
+  <h2 id="navigation">🛣️ Navigation</h2>
+  <!-- Quick navigation links -->
+  <ul>
+  <li><a href="scripts/index.html">Scripts Index</a></li>
+  <li><a href="scripts/rc-render.html">Render Reference</a></li>
+  <li><a href="index.html">Bones Home</a></li>
+  </ul>
+  <!--
+  Limerick 1:
+  A chorus of pandoc calls in sync,
+  rc-render fills each HTML link.
+  With logs signed in time,
+  And parallel rhyme,
+  It crafts each tomb page in a blink.
+
+  Limerick 2:
+  In Markdown crypts of silent gloom,
+  rc-render breathes each page to bloom.
+  It logs every start,
+  And edges apart,
+  Leaving no page in pending doom.
+  -->
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> 0.2.1</p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

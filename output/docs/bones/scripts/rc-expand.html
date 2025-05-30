@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🌱 rc-expand.sh Reference</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🌱 rc-expand.sh Reference</h1>
+  <p class="subtitle"></p>
+</header>
+
+<article>
+  <!--
+  🎨 Sora Prompt:
+  "A spectral workshop where ancient BOM scrolls unroll themselves into blank Markdown templates, awaiting the scribe’s ritual incantations."
+  -->
+  <!-- Begin Ritual Script Documentation -->
+  <h1 id="rc-expand.sh">🌱 rc-expand.sh</h1>
+  <!-- The sacred rite of content stub generation -->
+  <h2 id="purpose">Purpose</h2>
+  <!-- Core objectives of rc-expand.sh -->
+  <ul>
+  <li>Read <code>rotkeeper-bom.yaml</code> to identify tomb sections and
+  asset patterns.</li>
+  <li>Generate initial Markdown files and directory structures for each
+  section.</li>
+  <li>Populate frontmatter and stub headers for future content.</li>
+  </ul>
+  <h2 id="cli-interface">CLI Interface</h2>
+  <!-- How to invoke the expansion ceremony -->
+  <div class="sourceCode" id="cb1"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rc-expand.sh</span> <span class="pp">[--</span><span class="ss">dry</span><span class="pp">-</span><span class="ss">run</span><span class="pp">]</span> <span class="pp">[--</span><span class="ss">verbose</span><span class="pp">]</span> <span class="pp">[--</span><span class="ss">help</span><span class="pp">]</span></span></code></pre></div>
+  <p>Supported options: - <code>--help</code>, <code>-h</code> Show
+  usage information and exit. - <code>--dry-run</code> Preview actions
+  without writing stubs. - <code>--verbose</code> Show detailed
+  logs.</p>
+  <h2 id="workflow-steps">Workflow Steps</h2>
+  <!-- Sequential rites performed by the script -->
+  <ol type="1">
+  <li><strong>Parse Flags &amp; Setup</strong>: Handle
+  <code>--dry-run</code>, <code>--verbose</code>,
+  <code>--help</code>.</li>
+  <li><strong>Determine BOM Path</strong>: Resolve
+  <code>rotkeeper-bom.yaml</code> relative to script.</li>
+  <li><strong>Generate Stubs</strong>: Create directories and markdown
+  files with frontmatter.</li>
+  <li><strong>Copy Scripts &amp; Resources</strong>: Replicate scripts,
+  configs, templates.</li>
+  <li><strong>Finalize</strong>: Copy BOM for future runs and log
+  completion.</li>
+  </ol>
+  <h2 id="exit-codes">Exit Codes</h2>
+  <!-- Symbolic outcomes of incantation -->
+  <ul>
+  <li><code>0</code> — Stubs generated successfully.</li>
+  <li><code>1</code> — BOM file not found or parse error.</li>
+  <li><code>2</code> — I/O error during directory or file creation.</li>
+  </ul>
+  <h2 id="examples">Examples</h2>
+  <!-- Sample invocations for celebratory rites -->
+  <div class="sourceCode" id="cb2"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Default expansion</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-expand.sh</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Preview expansion without changes</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-expand.sh</span> <span class="at">--dry-run</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Verbose expansion with detailed logs</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-expand.sh</span> <span class="at">--verbose</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Show help</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-expand.sh</span> <span class="at">--help</span></span></code></pre></div>
+  <!--
+  Limerick 1:
+  From BOM’s deep vaults, the stubs emerge,
+  rc-expand guides each hollow dir’s surge.
+  It weaves frontmatter light,
+  In the still of the night,
+  And readies pages for lore’s great purge.
+
+  Limerick 2:
+  In corridors of YAML decree,
+  rc-expand unlocks each MD entry.
+  It scaffolds with grace,
+  Then vanishes its trace,
+  Leaving blank tomes for scribes to decree.
+  -->
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> 0.2.1</p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

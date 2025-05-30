@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🖥️ Render Logs</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🖥️ Render Logs</h1>
+  <p class="subtitle"></p>
+</header>
+
+<article>
+  <!-- asset-meta:
+       name:        "renders.md"
+       version:     "v0.1.0"
+       description: "Logs from rc-render.sh HTML generation runs"
+       author:      "Rotkeeper Ritual Council"
+  -->
+  <h1 id="render-logs">🖥️ Render Logs</h1>
+  <!-- The council’s ledger of HTML render process artifacts -->
+  <p>This section archives the logs and statistics produced by each
+  execution of <code>rc-render.sh</code>, capturing timing, template
+  usage, and any errors or warnings.</p>
+  <h2 id="location">Location</h2>
+  <ul>
+  <li>Directory: <code>archive/renders/</code></li>
+  <li>Naming: <code>render-log-YYYYMMDD-HHMMSS.log</code> and
+  <code>.md</code></li>
+  </ul>
+  <h2 id="contents">Contents</h2>
+  <ul>
+  <li><strong>Log files</strong>: raw console output from the render
+  pipeline.</li>
+  <li><strong>Markdown summaries</strong>: human-readable overviews of
+  successes, failures, and timing.</li>
+  <li><strong>HTML snapshots</strong>: sample rendered pages for
+  verification.</li>
+  </ul>
+  <h2 id="usage">🧭 Usage</h2>
+  <!-- How to review archived render logs -->
+  <p>To view the latest render summary:</p>
+  <div class="sourceCode" id="cb1"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">less</span> archive/renders/render-log-<span class="va">$(</span><span class="fu">date</span> +%Y%m%d-<span class="va">)</span><span class="pp">*</span>.md</span></code></pre></div>
+  <p>To compare render timings between runs:</p>
+  <div class="sourceCode" id="cb2"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">diff</span> archive/renders/render-log-20250526-<span class="pp">*</span>.md archive/renders/render-log-20250527-<span class="pp">*</span>.md</span></code></pre></div>
+  <h2 id="navigation">🛣️ Navigation</h2>
+  <!-- Quick links within Archive -->
+  <ul>
+  <li><a href="archive/index.html">Archive Index</a></li>
+  <li><a href="archive/scan-reports.html">Scan Reports</a></li>
+  <li><a href="archive/manifests.html">Manifest Backups</a></li>
+  </ul>
+  <h2 id="future-additions">Future Additions</h2>
+  <!-- Aspirational rites for render logs -->
+  <ul>
+  <li>Capture HTML diff summaries (e.g., unchanged vs changed
+  elements).</li>
+  <li>Integrate visual regression snapshots.</li>
+  <li>Flag and annotate performance regressions.</li>
+  </ul>
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> v0.1.0</p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

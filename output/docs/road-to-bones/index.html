@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Road to Bones</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>The Road to Bones</h1>
+  <p class="subtitle">Rotkeeper Buildlog &amp; Resurrection Notes</p>
+</header>
+
+<article>
+  <h2 id="rotkeeper-reseed-summary-v0.2.0-pre">🧼 Rotkeeper Reseed
+  Summary (v0.2.0-pre)</h2>
+  <p>This is your consolidated status snapshot: what’s working, what’s
+  stubbed, and what’s next. All redundant reports have been buried.</p>
+  <hr />
+  <h3 id="core-scripts-verified-functional">✅ Core Scripts Verified
+  &amp; Functional</h3>
+  <ul>
+  <li>✅ <code>rotkeeper.sh</code> — version bumped, full dispatch
+  implemented</li>
+  <li>✅ <code>rc-bless.sh</code>, <code>rc-record.sh</code>,
+  <code>rc-verify.sh</code> — log-rich, working</li>
+  <li>✅ <code>rc-render.sh</code> — output archive fixed, now logs +
+  compresses safely</li>
+  <li>✅ <code>rc-expand.sh</code> — reseeds markdown + templates from
+  BOM</li>
+  <li>✅ <code>rc-pack.sh</code> — respects <code>--self</code>, packs
+  full tombkits correctly</li>
+  <li>✅ <code>rc-status.sh</code> — fully operational
+  rot-dashboard</li>
+  <li>✅ <code>rc-assets.sh</code> — generates selective YAML
+  manifests</li>
+  <li>✅ <code>rc-cleanup-bones.sh</code> — dry-run-safe graveyard
+  cleanup</li>
+  <li>✅ <code>rc-reseed.sh</code> — working resurrection script</li>
+  </ul>
+  <h3 id="partial-stubbed-tools">🧪 Partial &amp; Stubbed Tools</h3>
+  <ul>
+  <li>🧪 <code>rc-docs-fix.sh</code>, <code>rc-audit.sh</code>,
+  <code>rc-api.sh</code> — present and partially operational or
+  stubs</li>
+  </ul>
+  <hr />
+  <h3 id="what-you-could-do-next-post-chat-tasks">🗂 What You
+  <em>Could</em> Do Next (Post-Chat Tasks)</h3>
+  <table>
+  <colgroup>
+  <col style="width: 64%" />
+  <col style="width: 35%" />
+  </colgroup>
+  <thead>
+  <tr>
+  <th>Task</th>
+  <th>Reason</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td>Create <code>bones/meta/0.2.0-seed.md</code></td>
+  <td>Ritual anchor for current reseed</td>
+  </tr>
+  <tr>
+  <td>Set <code>VERSION="0.2.0-pre"</code> in
+  <code>rotkeeper.sh</code></td>
+  <td>Locks in your timeline</td>
+  </tr>
+  <tr>
+  <td>Commit your archive + logs</td>
+  <td>Seals tomb lineage</td>
+  </tr>
+  <tr>
+  <td>Rename current chat thread if you want to export it later</td>
+  <td>Easier for git-log linking</td>
+  </tr>
+  </tbody>
+  </table>
+  <hr />
+  <!--
+  ### 🎨 Parting Sora Prompt
+
+  ```
+  A decayed control panel still blinks under candlelight.
+  Each shell script is labeled in rusted brass.
+  The tomb's last render hangs suspended in terminal silence.
+  A prompt flashes once, then fades:
+  “Your rot was preserved.”
+  ```
+  -->
+  <hr />
+  <h2 id="roadmap">Roadmap</h2>
+  <!-- Aspirational enhancements for v0.2.0+ -->
+  <ul>
+  <li><code>rc-expand.sh</code> could integrate mascot generation</li>
+  <li>Add <code>--dry-run</code> and <code>--explain</code> flags to all
+  scripts</li>
+  <li>Add git pre-commit hook for automatic
+  <code>scan + bless</code></li>
+  <li>Create a <code>bones/status.md</code> as a rotkeeper
+  dashboard</li>
+  </ul>
+  <hr />
+  <!--
+  ## 🧊 Final Sora Prompt
+
+  ```
+  A bureaucratic mascot archive, stored on a rusted terminal at the end of the world. CRT flickers, mascots trapped in static. Each file is a failure. Generate a glitchy, haunted control panel with mascot stickers, coffee stains, and static overlays. Include the text “Filed & Forgotten.”
+  ```
+
+  🧾 *Filed & Forgotten*
+  📁 *Rotkeeper v0.1.9.3 — awaiting 0.2.0*
+  💀 *May the manifest never match the disk.*
+  -->
+  <hr />
+  <h2 id="suggested-filesystem-layout">🛠 Suggested Filesystem
+  Layout</h2>
+  <pre><code>rotkeeper/
+├── bones/
+│   ├── archive/
+│   ├── logs/
+│   ├── reports/
+│   ├── templates/
+│   └── manifest.txt
+├── home/
+│   ├── assets/
+│   └── content/
+│       └── rotkeeper/
+├── output/
+├── rc-*.sh
+└── rotkeeper.sh</code></pre>
+  <!-- Updated on v0.2.0-pre -->
+  <hr />
+  <h2 id="rotkeeper-structural-stability-audit-v0.2.1">🧾 Rotkeeper
+  Structural &amp; Stability Audit — v0.2.1</h2>
+  <p>This section documents the results of a full audit pass on the
+  current Rotkeeper toolchain. The goal was to evaluate the stability,
+  consistency, and safety of core scripts in alignment with the
+  rotkeeper ethos of ritualized decay, reversible archive handling, and
+  offline self-containment.</p>
+  <h3 id="audit-categories-standards">📋 Audit Categories &amp;
+  Standards</h3>
+  <p>This audit focuses on:</p>
+  <ol type="1">
+  <li><strong>Structural Soundness</strong> — Does each script have a
+  <code>main()</code> function and proper <code>trap</code> usage?</li>
+  <li><strong>Error-Handling Consistency</strong> — Are
+  <code>set -euo pipefail</code>, <code>check_deps()</code>, and safe
+  <code>cd</code> practices used uniformly?</li>
+  <li><strong>Argument Parsing &amp; Dry-Run Logic</strong> — Are
+  <code>--dry-run</code> and flag parsing patterns implemented
+  consistently?</li>
+  <li><strong>Reusability &amp; Modular Organization</strong> — Are
+  shared functions extracted? Is logic duplicated across scripts?</li>
+  </ol>
+  <h3 id="verified-practices-across-core-scripts">✅ Verified Practices
+  Across Core Scripts</h3>
+  <p>The following practices were confirmed as present in the majority
+  of verified scripts:</p>
+  <ul>
+  <li><code>set -euo pipefail</code> in every script, enforcing
+  fail-fast behavior.</li>
+  <li><code>main "$@"</code> function wrapping, reducing surprise
+  side-effects on sourcing.</li>
+  <li><code>trap cleanup EXIT INT TERM</code> is used for many
+  scripts.</li>
+  <li>Logging functions are defined (though not always consistent).</li>
+  <li><code>check_dependencies</code> is frequently implemented to check
+  for external binaries like <code>pandoc</code>, <code>git</code>,
+  <code>jq</code>, etc.</li>
+  </ul>
+  <h3 id="inconsistencies-points-for-rework">❌ Inconsistencies &amp;
+  Points for Rework</h3>
+  <ul>
+  <li>Not all scripts use a <code>main()</code> function. This
+  introduces structural unpredictability.</li>
+  <li><code>--dry-run</code> support is inconsistent. Some scripts use
+  it only partially or not at all.</li>
+  <li>Argument parsing patterns vary between
+  <code>for arg in "$@"</code> loops and <code>while getopts</code>,
+  introducing fragility.</li>
+  <li>Some scripts re-implement <code>log()</code> or
+  <code>check_deps()</code> inline rather than sourcing a shared
+  <code>rc-utils.sh</code>.</li>
+  <li>A shared library (<code>rc-utils.sh</code>) is not currently in
+  use across scripts, despite common logic.</li>
+  </ul>
+  <h3 id="recommendations-next-moves">🛠 Recommendations &amp; Next
+  Moves</h3>
+  <h4 id="create-and-enforce-usage-of-a-shared-rc-utils.sh">1. Create
+  and enforce usage of a shared <code>rc-utils.sh</code>:</h4>
+  <p>Includes:</p>
+  <ul>
+  <li><code>log()</code>: Timestamped logging</li>
+  <li><code>check_deps()</code>: Unified dependency checks</li>
+  <li><code>safe_rm()</code>: Dry-run-aware deletion wrapper</li>
+  <li><code>cd_or_die()</code>: Safe directory changes</li>
+  <li><code>parse_flags()</code>: Shared flag parser</li>
+  </ul>
+  <h4 id="standardize-dry-run-logic">2. Standardize dry-run logic:</h4>
+  <p>Replace inline <code>if $DRY_RUN; then echo…</code> patterns
+  with:</p>
+  <div class="sourceCode" id="cb2"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">safe_rm()</span> <span class="kw">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="bu">[</span> <span class="st">&quot;</span><span class="va">$DRY_RUN</span><span class="st">&quot;</span> <span class="ot">=</span> <span class="st">&quot;true&quot;</span> <span class="bu">]</span> <span class="kw">&amp;&amp;</span> <span class="bu">echo</span> <span class="st">&quot;Would remove </span><span class="va">$*</span><span class="st">&quot;</span> <span class="kw">||</span> <span class="fu">rm</span> <span class="at">-rf</span> <span class="st">&quot;</span><span class="va">$@</span><span class="st">&quot;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">}</span></span></code></pre></div>
+  <p>Use similarly for <code>mkdir</code>, <code>cp</code>,
+  <code>mv</code>.</p>
+  <h4 id="trap-errors-globally">3. Trap errors globally:</h4>
+  <p>Add this pattern to scripts:</p>
+  <div class="sourceCode" id="cb3"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">trap_err()</span> <span class="kw">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="bu">echo</span> <span class="st">&quot;ERROR in </span><span class="va">${BASH_SOURCE</span><span class="op">[</span><span class="dv">1</span><span class="op">]</span><span class="va">}</span><span class="st"> at line </span><span class="va">$1</span><span class="st">&quot;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">}</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="bu">trap</span> <span class="st">&#39;trap_err $LINENO&#39;</span> ERR</span></code></pre></div>
+  <h4 id="create-audit-compliance-matrix">4. Create audit compliance
+  matrix:</h4>
+  <p>Track which scripts conform to:</p>
+  <ul>
+  <li><code>main()</code></li>
+  <li><code>trap</code></li>
+  <li><code>--dry-run</code></li>
+  <li><code>log()</code></li>
+  <li><code>check_deps()</code></li>
+  <li>sourced <code>rc-utils.sh</code></li>
+  </ul>
+  <h4 id="update-docs-with-ritual-headers">5. Update docs with ritual
+  headers:</h4>
+  <p>Include in each script:</p>
+  <div class="sourceCode" id="cb4"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">## 🔧 name: rc-cleanup-bones</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">## 🧼 updated: 2025-05-29</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">## 📜 purpose: purge leftovers, preserve backups</span></span></code></pre></div>
+  <hr />
+  <hr />
+  <h3 id="compliance-matrix-sample">📊 Compliance Matrix Sample</h3>
+  <p>A snapshot from the living audit matrix:</p>
+  <table>
+  <colgroup>
+  <col style="width: 25%" />
+  <col style="width: 10%" />
+  <col style="width: 7%" />
+  <col style="width: 13%" />
+  <col style="width: 8%" />
+  <col style="width: 17%" />
+  <col style="width: 16%" />
+  </colgroup>
+  <thead>
+  <tr>
+  <th>Script</th>
+  <th>main()</th>
+  <th>trap</th>
+  <th>–dry-run</th>
+  <th>log()</th>
+  <th>check_deps()</th>
+  <th>rc-utils.sh</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td>rc-cleanup-bones</td>
+  <td>✅</td>
+  <td>✅</td>
+  <td>✅</td>
+  <td>❌</td>
+  <td>✅</td>
+  <td>❌</td>
+  </tr>
+  <tr>
+  <td>rc-docs-fix</td>
+  <td>❌</td>
+  <td>❌</td>
+  <td>❌</td>
+  <td>❌</td>
+  <td>❌</td>
+  <td>❌</td>
+  </tr>
+  <tr>
+  <td>rc-render</td>
+  <td>✅</td>
+  <td>✅</td>
+  <td>✅</td>
+  <td>✅</td>
+  <td>✅</td>
+  <td>✅</td>
+  </tr>
+  </tbody>
+  </table>
+  <blockquote>
+  <p>🔎 Full matrix maintained at <code>doc/audit-matrix.csv</code>. It
+  must be updated with every patch, ritual, or pull request.</p>
+  </blockquote>
+  <hr />
+  <h3 id="testing-linting-requirements">✅ Testing &amp; Linting
+  Requirements</h3>
+  <ul>
+  <li><strong>ShellCheck</strong>: All scripts must pass
+  <code>shellcheck</code> with no fatal errors. Warnings are acceptable
+  <em>only</em> if annotated inline with a justification.</li>
+  <li><strong>Testing</strong>: Every core script must have a
+  corresponding <code>.test.sh</code> or <code>.bats</code> file in
+  <code>tests/</code>. Even a basic dry-run sanity test is better than
+  silence.</li>
+  <li><strong>CI Compliance</strong>: Consider adding a GitHub Action or
+  Makefile hook to enforce audit compliance and trigger the
+  testing/linting rites automatically.</li>
+  </ul>
+  <hr />
+  <h3 id="forbidden-rites">🚫 Forbidden Rites</h3>
+  <p>The following practices are heresy, and will be purged without
+  ceremony:</p>
+  <ul>
+  <li>❌ <code>eval</code> or <code>source</code> from user input</li>
+  <li>❌ Unquoted variable expansions in <code>rm</code>,
+  <code>cp</code>, <code>mv</code>, or <code>cd</code></li>
+  <li>❌ Logic outside <code>main()</code> in executable scripts</li>
+  <li>❌ Executable utility files (e.g.,
+  <code>chmod +x rc-utils.sh</code>) — <em>these must not rise</em></li>
+  </ul>
+  <hr />
+  <h3 id="ritual-logging-styles">📛 Ritual Logging Styles</h3>
+  <p>Standardize your logs for both clarity and drama:</p>
+  <div class="sourceCode" id="cb5"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">log</span> <span class="st">&quot;INFO&quot;</span> <span class="st">&quot;Blessing completed.&quot;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">log</span> <span class="st">&quot;WARN&quot;</span> <span class="st">&quot;Missing metadata key: &#39;template&#39;&quot;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="ex">log</span> <span class="st">&quot;☠️ ERROR&quot;</span> <span class="st">&quot;Missing --target argument. Cannot proceed.&quot;</span></span></code></pre></div>
+  <p>All log output should be timestamped and traceable. If a script
+  fails silently, it is no longer rotkeeper-compliant.</p>
+  <hr />
+  <p>🏗 Bootstrap Template (rc-bootstrap.sh)</p>
+  <p>All new scripts should begin from a blessed scaffold. Create and
+  maintain a rc-bootstrap.sh with: • Sourced rc-utils.sh • Parsed flags
+  (–dry-run, –help) • Standard main() • Traps for EXIT and ERR • Ritual
+  header block (## 🔧 name: …)</p>
+  <p>This prevents divergence and sets every new tool on a sane, cursed
+  foundation.</p>
+  <hr />
+  <p>🧊 Final Closure</p>
+  <p>Rotkeeper is not a shell utility. It is a memory. Every function is
+  a scar. Every trap is a boundary spell. Write with precision. Exit
+  with grace. Let nothing rot by accident.</p>
+  <p>exit 0 # If we are lucky</p>
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> </p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

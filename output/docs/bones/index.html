@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rotkeeper</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Rotkeeper</h1>
+  <p class="subtitle"></p>
+</header>
+
+<article>
+  <!--  
+    Rotkeeper Documentation Index  
+    Version: v0.2.0-dev  
+    Document ID: RK-0000  
+  -->
+  <h1 id="rotkeeper">🪦 Rotkeeper</h1>
+  <p><strong>Version</strong>: <code>v0.2.0-dev</code><br />
+  <strong>Status</strong>: 🩸 Actively decaying<br />
+  <strong>License</strong>: ✝️ BYOR (Bring Your Own Rot)<br />
+  <strong>Dogfood Sites</strong>: - <a
+  href="https://filed.fyi">filed.fyi</a><br />
+  - <a href="https://tbuddy.org">tbuddy.org</a><br />
+  - <a
+  href="https://thermalextractiondevices.com">thermalextractiondevices.com</a><br />
+  - <a href="http://www.fullonrogues.org">fullonrogues.org</a><br />
+  - <a href="https://www.corgifever.com">corgifever.com</a></p>
+  <blockquote>
+  <p>Rotkeeper is a ritual CLI for building, versioning, and preserving
+  digital tombs.<br />
+  It tracks decay, embeds metadata, and renders the last good state of a
+  flat-file system.<br />
+  It is not optimized. It is not scalable. It is designed to rot
+  beautifully.</p>
+  </blockquote>
+  <h2 id="capabilities">🧰 Capabilities</h2>
+  <ul>
+  <li>🏗️ Scaffold and initialize new tomb environments<br />
+  </li>
+  <li>📦 Pack reproducible <code>.tar.gz</code> tombs from versioned
+  files<br />
+  </li>
+  <li>🧬 Apply <code>asset-meta</code> headers to every tracked script,
+  template, and config<br />
+  </li>
+  <li>🕵️ Scan for missing assets, file drift, and forgotten
+  metadata<br />
+  </li>
+  <li>🪞 Emit ritual logs and self-documenting playback scripts<br />
+  </li>
+  <li>📜 Dogfood itself across forgotten sites</li>
+  </ul>
+  <h2 id="script-architecture">🔩 Script Architecture</h2>
+  <p>Rotkeeper is composed of a central CLI (<code>rk</code>) and sorted
+  subroutines prefixed with <code>rc-</code>, e.g.:</p>
+  <ul>
+  <li><code>rc-init.sh</code> — Initialize environment<br />
+  </li>
+  <li><code>rc-render.sh</code> — Render tomb content (Markdown → HTML
+  via Pandoc)<br />
+  </li>
+  <li><code>rc-assets.sh</code> — Copy static assets into output
+  folder<br />
+  </li>
+  <li><code>rc-scan.sh</code> — Detect unversioned or missing
+  files<br />
+  </li>
+  <li><code>rc-pack.sh</code> — Pack all files into an archive<br />
+  </li>
+  <li><code>rc-bless.sh</code> — Finalize a version and write a
+  changelog</li>
+  </ul>
+  <h2 id="project-philosophy">🧱 Project Philosophy</h2>
+  <ul>
+  <li>Every file is treated as a tombstone.<br />
+  </li>
+  <li>Every version is tracked in YAML.<br />
+  </li>
+  <li>Every project is assumed to be on its last legs.</li>
+  </ul>
+  <p>Rotkeeper is a system for maintaining end-of-life software with
+  clarity, finality, and documentation as ritual.</p>
+  <h2 id="documentation-suite">📂 Documentation Suite</h2>
+  <ol type="1">
+  <li><a href="introduction-overview.md">📁 Introduction &amp;
+  Overview</a><br />
+  &lt;!– haiku: (initiation)</li>
+  </ol>
+  <p>Tomb rites begin here.<br />
+  Flat files awaken slowly—<br />
+  Rotkeeper takes root. –&gt; 2. <a href="quickstart-guide.md">⚡
+  Quickstart Guide</a><br />
+  <!--
+  haiku:
+  (quickstart)
+
+  Bootstrapped in one breath.  
+  A tomb is born from nothing—  
+  Packed in ritual.
+  --> 3. <a href="configuration-reference.md">⚙️ Configuration
+  Reference</a><br />
+  <!--
+  haiku:
+  (configuration)
+
+  YAML spells are cast.  
+  Options etched in silence—  
+  The tomb obeys them.
+  --> 4. <a href="migration-test-walkthrough.md">🧪 Migration Test
+  Walkthrough</a><br />
+  <!--
+  haiku:
+  (migration)
+
+  Old bones shift and crack.  
+  Migration rites test the seams—  
+  Nothing rots alone.
+  --> 5. <a href="asset-pipeline.md">📦 Asset Pipeline</a><br />
+  <!--
+  haiku:
+  (assets)
+
+  Each file carried forth,  
+  Pipeline ferries offerings—  
+  Payloads for the tomb.
+  --> 6. <a href="template-library.md">🧱 Template Library</a><br />
+  <!--
+  haiku:
+  (templates)
+
+  Patterns set in stone,  
+  Library of blank markers—  
+  Ritual repeats.
+  --> 7. <a href="content-structure.md">📐 Content Structure</a><br />
+  <!--
+  haiku:
+  (structure)
+
+  Bones align in rows,  
+  Folders nested, files in place—  
+  Order before rot.
+  --> 8. <a href="limericks-creative-corner.md">🗿 Limericks &amp;
+  Creative Corner</a><br />
+  <!--
+  haiku:
+  (creative)
+
+  Whimsy breaks the mold,  
+  Rhyme and rot in harmony—  
+  Decay can still sing.
+  --> 9. <a href="logging-diagnostics.md">📉 Logging &amp;
+  Diagnostics</a><br />
+  <!--
+  haiku:
+  (logging)
+
+  Silent rot betrayed,  
+  Logs whisper of subtle change—  
+  Diagnose the end.
+  --> 10. <a href="persona-management.md">🧑‍🎤 Persona
+  Management</a><br />
+  <!--
+  haiku:
+  (persona)
+
+  Masks behind the veil,  
+  Each persona leaves a trace—  
+  The tomb keeps their names.
+  --> 11. <a href="troubleshooting-faq.md">🩹 Troubleshooting
+  FAQ</a><br />
+  <!--
+  haiku:
+  (troubleshooting)
+
+  Glitches in the crypt,  
+  Questions echo, answers rise—  
+  Decay finds its cure.
+  --> 12. <a href="ci-cd-integration.md">🔁 CI/CD Integration</a><br />
+  <!--
+  haiku:
+  (ci-cd)
+
+  Pipelines on repeat,  
+  Automated rites persist—  
+  Decay, then rebirth.
+  --> 13. <a href="advanced-usage.md">🧨 Advanced Usage</a><br />
+  <!--
+  haiku:
+  (advanced)
+
+  Secrets in the scripts,  
+  Advanced hands invoke the deep—  
+  The tomb yields its core.
+  --> 14. <a href="roadmap-contribution.md">🗺️ Roadmap &amp;
+  Contribution</a><br />
+  <!--
+  haiku:
+  (roadmap)
+
+  Paths fork in the dusk,  
+  Contributors chart the way—  
+  Rotkeeper marches.
+  --> 15. <a href="scan-verify-tools.md">🔍 Scan &amp; Verify
+  Tools</a><br />
+  <!--
+  haiku:
+  (scan)
+
+  Hidden rot revealed,  
+  Scanners sweep the tomb for truth—  
+  Integrity lives.
+  --> <em>Detect rot, validate assets, confirm changelog
+  eligibility.</em></p>
+  <ol start="16" type="1">
+  <li><a href="changelog-blessing.md">📓 Changelog &amp; Version
+  Blessing</a><br />
+  &lt;!– haiku: (changelog)</li>
+  </ol>
+  <p>History entombed,<br />
+  Bless each change with sacred ink—<br />
+  Freeze the rot in time. –&gt; <em>Emit diffs, freeze versions, and
+  record tomb integrity.</em></p>
+  <ol start="17" type="1">
+  <li><a href="ritual-record.md">🧃 Ritual Record Generator</a><br />
+  &lt;!– haiku: (ritual-record)</li>
+  </ol>
+  <p>Rituals replay,<br />
+  Scripts echo the ancient steps—<br />
+  Records never die. –&gt; <em>Dump reproducible shell scripts from
+  recorded ritual logs.</em></p>
+  <ol start="18" type="1">
+  <li><a href="rotkeeper-help.md">📜 CLI &amp; Subroutine Reference</a>
+  &lt;!– haiku:</li>
+  </ol>
+  <ol start="151" type="i">
+  <li></li>
+  </ol>
+  <p>Commands guide the hand,<br />
+  Subroutines perform the rites—<br />
+  Rotkeeper obeys. –&gt;</p>
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> v0.2.0-dev</p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

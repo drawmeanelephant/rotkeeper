@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🔍 rc-scan.sh Reference</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🔍 rc-scan.sh Reference</h1>
+  <p class="subtitle"></p>
+</header>
+
+<article>
+  <!-- Begin Ritual Script Documentation -->
+  <h1 id="rc-scan.sh">🔍 rc-scan.sh</h1>
+  <!-- The sacred rite of tomb inspection -->
+  <p><strong>Script Path:</strong>
+  <code>bones/scripts/rc-scan.sh</code></p>
+  <h2 id="purpose">Purpose</h2>
+  <!-- Core objectives of rc-scan.sh -->
+  <ul>
+  <li>Traverse the file tree to identify orphan files (not in manifest)
+  and missing artifacts (in manifest but absent).</li>
+  <li>Compute and record SHA256 checksums for all valid files.</li>
+  <li>Produce machine-readable JSON and human-readable Markdown
+  summaries.</li>
+  </ul>
+  <h2 id="cli-interface">CLI Interface</h2>
+  <!-- How to invoke the scanning ceremony -->
+  <div class="sourceCode" id="cb1"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rc-scan.sh</span> <span class="pp">[--</span><span class="ss">dry</span><span class="pp">-</span><span class="ss">run</span><span class="pp">]</span> <span class="pp">[--</span><span class="ss">verbose</span><span class="pp">]</span> <span class="pp">[--</span><span class="ss">help</span><span class="pp">]</span></span></code></pre></div>
+  <p>Supported flags: - <code>--help</code>, <code>-h</code> Show usage
+  information and exit. - <code>--dry-run</code> Preview actions without
+  writing reports. - <code>--verbose</code> Show detailed logs.</p>
+  <h2 id="workflow-steps">Workflow Steps</h2>
+  <!-- Sequential rites performed by the script -->
+  <ol type="1">
+  <li><strong>Parse Flags &amp; Setup</strong>: Handle
+  <code>--dry-run</code>, <code>--verbose</code>, and
+  <code>--help</code>.</li>
+  <li><strong>Verify Dependencies</strong>:
+  <code>check_deps find sha256sum yq</code>.</li>
+  <li><strong>Load Manifest</strong>: Read asset-manifest.yaml into
+  <code>manifest_list</code>.</li>
+  <li><strong>Scan Files</strong>: Walk <code>home/assets/</code> (or
+  specified dir) into <code>disk_list</code>.</li>
+  <li><strong>Classification &amp; Checksums</strong>: Identify missing,
+  orphan files, compute SHA256.</li>
+  <li><strong>Report Generation</strong>: Write JSON and Markdown
+  reports or preview under dry-run.</li>
+  </ol>
+  <h2 id="exit-codes">Exit Codes</h2>
+  <!-- Symbolic outcomes of incantation -->
+  <ul>
+  <li><code>0</code> — Scan completed (even if orphans/missing
+  found).</li>
+  <li><code>1</code> — Critical error (missing manifest,
+  dependencies).</li>
+  <li><code>2</code> — No files found to scan.</li>
+  </ul>
+  <h2 id="examples">Examples</h2>
+  <!-- Sample invocations for celebratory rites -->
+  <div class="sourceCode" id="cb2"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Standard scan</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-scan.sh</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Preview scan without writing</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-scan.sh</span> <span class="at">--dry-run</span> <span class="at">--verbose</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Show help</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-scan.sh</span> <span class="at">--help</span></span></code></pre></div>
+  <h2 id="navigation">🛣️ Navigation</h2>
+  <!-- Quick navigation links -->
+  <ul>
+  <li><a href="scripts/index.html">Scripts Index</a></li>
+  <li><a href="scripts/rc-scan.html">Scan Reference</a></li>
+  <li><a href="index.html">Bones Home</a></li>
+  </ul>
+  <!--
+  Limerick 1:
+  In shadows where orphaned files roam,
+  rc-scan ushers them back home.
+  It marks each lone soul,
+  In a checksum scroll,
+  And guards the tomb’s spectral dome.
+
+  Limerick 2:
+  When manifests call out the lost,
+  rc-scan measures true arc cost.
+  With hashes in hand,
+  It restores the land,
+  Ensuring no file is at frost.
+  -->
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> 0.2.1</p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

@@ -1,0 +1,27 @@
+/* 🦴 rotkeeper.css: Supplemental ritual styling */
+
+body {
+  background-color: #121212;
+  color: #e2e2e2;
+  font-family: "IBM Plex Mono", monospace;
+}
+
+a {
+  color: #f77;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+code, pre {
+  background-color: #1a1a1a;
+  padding: 0.25em 0.5em;
+  border-radius: 3px;
+  font-size: 0.95em;
+}
+pre {
+  border-left: 3px solid #444;
+  padding-left: 1em;
+  overflow-x: auto;
+}

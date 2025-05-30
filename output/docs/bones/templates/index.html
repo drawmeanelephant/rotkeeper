@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rotkeeper Templates</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Rotkeeper Templates</h1>
+  <p class="subtitle">Overview of HTML templates used in rendering
+rituals.</p>
+</header>
+
+<article>
+  <h1 id="rotkeeper-template-rituals">🧾 Rotkeeper Template Rituals</h1>
+  <p>These templates define how rendered HTML outputs look across
+  different parts of the Rotkeeper system. They’re consumed by
+  <code>rc-render.sh</code> and selected using
+  <code>render-flags.yaml</code>.</p>
+  <p>Each template lives in:</p>
+  <pre><code>bones/templates/</code></pre>
+  <h2 id="template-list">📄 Template List</h2>
+  <table>
+  <colgroup>
+  <col style="width: 32%" />
+  <col style="width: 50%" />
+  <col style="width: 17%" />
+  </colgroup>
+  <thead>
+  <tr>
+  <th>Template File</th>
+  <th>Purpose</th>
+  <th>Style</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td><code>rotkeeper-doc.html</code></td>
+  <td>Maximalist aesthetic / Sora-centric docs</td>
+  <td>Glitchy</td>
+  </tr>
+  <tr>
+  <td><code>rotkeeper-blog.html</code></td>
+  <td>Clean Bootstrap with metadata block</td>
+  <td>Readable</td>
+  </tr>
+  <tr>
+  <td><code>rotkeeper-bones.html</code></td>
+  <td>Raw Pandoc passthrough (no layout)</td>
+  <td>Skeleton only</td>
+  </tr>
+  <tr>
+  <td><code>rotkeeper-tech.html</code></td>
+  <td><em>[planned]</em> For manuals, scripts, flags</td>
+  <td>CLI-friendly</td>
+  </tr>
+  </tbody>
+  </table>
+  <h2 id="how-rendering-works">⚙️ How Rendering Works</h2>
+  <p>Template selection is configured in <code>render-flags.yaml</code>
+  using the keys:</p>
+  <div class="sourceCode" id="cb2"><pre
+  class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">template_dir</span><span class="kw">:</span><span class="at"> bones/templates/</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">default_template</span><span class="kw">:</span><span class="at"> rotkeeper-doc.html</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">per_path</span><span class="kw">:</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">docs/bones/scripts</span><span class="kw">:</span><span class="at"> rotkeeper-tech.html</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">docs/blog</span><span class="kw">:</span><span class="at"> rotkeeper-blog.html</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">docs/mascots</span><span class="kw">:</span><span class="at"> rotkeeper-doc.html</span></span></code></pre></div>
+  <h2 id="metadata-access">🧠 Metadata Access</h2>
+  <p>Each template can access the following injected fields:</p>
+  <ul>
+  <li><code>$title$</code></li>
+  <li><code>$subtitle$</code></li>
+  <li><code>$date$</code></li>
+  <li><code>$asset-meta$</code></li>
+  <li><code>$body$</code> (main rendered content)</li>
+  <li><code>$sora-prompt$</code> (optional block from markdown)</li>
+  </ul>
+  <h2 id="future-plans">🔮 Future Plans</h2>
+  <ul>
+  <li>Add <code>rotkeeper-mascot.html</code> for character bios</li>
+  <li>Add <code>rotkeeper-log.html</code> for dev logs and audits</li>
+  <li>Add dark-mode toggle or per-mascot themes</li>
+  </ul>
+  <hr />
+  <!-- Sora Prompt: "A glowing folder labeled 'bones/templates/', with tiny mascots pulling HTML ribbons from inside. Terminal UI overlays drift across a digital ritual altar." -->
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> </p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

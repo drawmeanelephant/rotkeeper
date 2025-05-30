@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Asset Manifest</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Asset Manifest</h1>
+  <p class="subtitle">YAML Index of Static Assets</p>
+</header>
+
+<article>
+  <h1 id="asset-manifest">🧾 Asset Manifest</h1>
+  <p>Rotkeeper catalogs all static assets into a structured YAML
+  file:<br />
+  <code>bones/asset-manifest.yaml</code></p>
+  <p>This manifest is used for:</p>
+  <ul>
+  <li>Verifying file presence and integrity
+  (<code>rc-verify.sh</code>)</li>
+  <li>Generating accessible file listings</li>
+  <li>Supporting template references to icons, images, fonts, etc.</li>
+  </ul>
+  <h2 id="what-gets-tracked">📁 What Gets Tracked</h2>
+  <p><code>rc-assets.sh</code> recursively scans:</p>
+  <ul>
+  <li><code>home/assets/</code></li>
+  <li><code>home/themes/</code></li>
+  <li><code>home/icons/</code></li>
+  </ul>
+  <p>Each file is registered in the manifest with:</p>
+  <ul>
+  <li>Relative path</li>
+  <li>SHA256 checksum</li>
+  <li>Last modified time</li>
+  <li>Optional alt text (if annotated)</li>
+  </ul>
+  <h2 id="sample-manifest-entry">🧬 Sample Manifest Entry</h2>
+  <div class="sourceCode" id="cb1"><pre
+  class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">-</span><span class="at"> </span><span class="fu">path</span><span class="kw">:</span><span class="at"> home/assets/logo.svg</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">sha256</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;a8b91c847d94b...&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">size</span><span class="kw">:</span><span class="at"> </span><span class="dv">3821</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">modified</span><span class="kw">:</span><span class="at"> 2025-05-27T11:19:00</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">alt</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;Filed Systems logo (monochrome)&quot;</span></span></code></pre></div>
+  <h2 id="usage-in-the-pipeline">🛠 Usage in the Pipeline</h2>
+  <p>This manifest is consumed by: • rc-verify.sh: verifies file hashes
+  and presence • rc-pack.sh: determines what assets to include •
+  rc-scan.sh: detects orphaned or undocumented files</p>
+  <h2 id="cleaning-the-manifest">🧼 Cleaning the Manifest</h2>
+  <pre><code>•   Run rc-assets.sh --prune to remove entries for deleted files
+•   Use --dry-run to preview changes before updating</code></pre>
+  <p>Sora Prompt: “A glowing YAML scroll held by a tiny archivist bot,
+  surrounded by floating icons, asset folders, and checksum sigils.”
+  –&gt;</p>
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> </p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

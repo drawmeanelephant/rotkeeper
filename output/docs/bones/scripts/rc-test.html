@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>✅ rc-test.sh Reference</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>✅ rc-test.sh Reference</h1>
+  <p class="subtitle"></p>
+</header>
+
+<article>
+  <h1 id="rc-test.sh">rc-test.sh</h1>
+  <p><strong>Purpose:</strong> Smoke‑test the Rotkeeper scripts suite by
+  running each command under <code>--dry-run</code> and reporting
+  PASS/FAIL.</p>
+  <h2 id="cli-interface">CLI Interface</h2>
+  <div class="sourceCode" id="cb1"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rc-test.sh</span> <span class="pp">[--</span><span class="ss">help</span><span class="pp">]</span> <span class="pp">[--</span><span class="ss">verbose</span><span class="pp">]</span></span></code></pre></div>
+  <p>Supported flags:</p>
+  <ul>
+  <li><code>--help</code>, <code>-h</code> Show usage information and
+  exit.</li>
+  <li><code>--verbose</code>, <code>-v</code> Show detailed logs for
+  each script test.</li>
+  </ul>
+  <h2 id="workflow-steps">Workflow Steps</h2>
+  <ol type="1">
+  <li><strong>Parse Flags &amp; Setup</strong>
+  <ul>
+  <li>Handle <code>--help</code> and <code>--verbose</code>.</li>
+  <li>Initialize a log file under
+  <code>bones/logs/rc-test-&lt;timestamp&gt;.log</code>.</li>
+  </ul></li>
+  <li><strong>Test Loop</strong>
+  <ul>
+  <li>Iterate over each <code>rc-*.sh</code> in
+  <code>bones/scripts/</code>, skipping <code>rc-api.sh</code>,
+  <code>rc-unpack.sh</code>, and <code>rc-test.sh</code> itself.</li>
+  <li>For each script, run <code>bash &lt;script&gt; --dry-run</code>;
+  capture exit status.</li>
+  <li>Log <code>PASS</code> or <code>FAIL</code> per script in both
+  console and log file.</li>
+  </ul></li>
+  <li><strong>Summary</strong>
+  <ul>
+  <li>After testing all scripts, report the total number of PASS and
+  FAIL counts.</li>
+  <li>Exit with status <code>0</code> if all passed, or <code>1</code>
+  if any failed.</li>
+  </ul></li>
+  </ol>
+  <h2 id="examples">Examples</h2>
+  <div class="sourceCode" id="cb2"><pre
+  class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Run smoke tests</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-test.sh</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Verbose mode for detailed logs</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-test.sh</span> <span class="at">--verbose</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Show help</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="ex">./bones/scripts/rc-test.sh</span> <span class="at">--help</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>!-- <span class="ex">🎴</span> Limerick 1:</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="ex">In</span> scripts tested with failsafe so clever,</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="ex">rc-test</span> ensures all scripts live forever.</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="ex">It</span> loops through each file,</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="ex">With</span> a cheeky green smile,</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="ex">And</span> marks PASS when the run ends in never.</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="ex">--</span><span class="op">&gt;</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>!-- <span class="ex">🎴</span> Limerick 2:</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="ex">When</span> flags dry-run or verbose arise,</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="ex">rc-test</span> logs each script’s compromise.</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="ex">It</span> reports every pass,</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="ex">And</span> each minor impasse,</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="ex">Then</span> exits with truth in its eyes.</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="ex">--</span><span class="op">&gt;</span></span></code></pre></div>
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> 0.2.1</p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>

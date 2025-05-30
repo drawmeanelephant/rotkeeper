@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🚩 render-flags.yaml Reference</title>
+  <link rel="stylesheet" href="/assets/css/hiq.css" />
+  <link rel="stylesheet" href="/assets/css/rotkeeper.css" />
+
+  <style>
+    body {
+      font-family: "IBM Plex Mono", monospace;
+      background-color: #121212;
+      color: #eaeaea;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .metadata {
+      font-size: 0.85em;
+      color: #aaa;
+      border-top: 1px dashed #444;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    .sora-note {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 3rem;
+      padding: 0.5em;
+      border-left: 3px solid #333;
+      background: #1a1a1a;
+    }
+    h1, h2, h3 {
+      font-family: inherit;
+      border-bottom: 1px solid #444;
+    }
+    a {
+      color: #f77;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🚩 render-flags.yaml Reference</h1>
+  <p class="subtitle"></p>
+</header>
+
+<article>
+  <!-- asset-meta:
+       name:        "render-flags.yaml"
+       version:     "v0.1.0"
+       description: "Flags and options for rc-render.sh"
+       author:      "Rotkeeper Ritual Council"
+  -->
+  <h1 id="render-flags.yaml">🚩 render-flags.yaml</h1>
+  <!-- Settings that drive the Pandoc pipeline in rc-render.sh -->
+  <table>
+  <colgroup>
+  <col style="width: 20%" />
+  <col style="width: 17%" />
+  <col style="width: 61%" />
+  </colgroup>
+  <thead>
+  <tr>
+  <th>Flag</th>
+  <th>Default</th>
+  <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+  <td><code>template</code></td>
+  <td><code>default.html</code></td>
+  <td>Which HTML template to apply</td>
+  </tr>
+  <tr>
+  <td><code>css</code></td>
+  <td><code>styles.css</code></td>
+  <td>Comma-separated list of CSS files to include</td>
+  </tr>
+  <tr>
+  <td><code>toc</code></td>
+  <td><code>false</code></td>
+  <td>Generate a table of contents</td>
+  </tr>
+  <tr>
+  <td><code>math</code></td>
+  <td><code>true</code></td>
+  <td>Enable MathJax support</td>
+  </tr>
+  <tr>
+  <td><em>…</em></td>
+  <td><em>…</em></td>
+  <td><em>…</em></td>
+  </tr>
+  </tbody>
+  </table>
+  <h2 id="usage">🛠️ Usage</h2>
+  <p>```bash rc-render.sh –config render-flags.yaml</p>
+</article>
+
+<section class="metadata">
+  <p><strong>Author:</strong> </p>
+  <p><strong>Project:</strong> Rotkeeper</p>
+  <p><strong>Version:</strong> v0.1.0</p>
+  <p><strong>License:</strong> </p>
+</section>
+
+<section class="sora-note">
+  <!-- Sora prompt: "A clean markdown dossier rendered in a rusted obsidian notebook, with monospaced glyphs and document margins burned in from printer heat" -->
+</section>
+
+</body>
+</html>
