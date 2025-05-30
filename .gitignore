@@ -5,6 +5,7 @@ SUPPORT/
 .DS_Store
 
 # Output artifacts and temporary builds
+# Output folder is render-generated and excluded from git
 output/
 *.tar.gz
 *.zip
