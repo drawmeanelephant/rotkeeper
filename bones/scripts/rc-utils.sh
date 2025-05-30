@@ -75,3 +75,43 @@ cleanup() {
 # Set traps for errors and exit
 trap 'trap_err $LINENO' ERR
 trap 'cleanup' EXIT INT TERM
+
+# Initialize log file with script name
+init_log() {
+  local name="${1:-$(basename "$0" .sh)}"
+  LOG_FILE="bones/logs/${name}-$(date +%Y-%m-%d_%H%M).log"
+  mkdir -p "$(dirname "$LOG_FILE")"
+}
+
+# Return script directory
+resolve_script_dir() {
+  cd "$(dirname "${BASH_SOURCE[0]}")" && pwd
+}
+
+# Check if file has YAML frontmatter
+has_frontmatter() {
+  local file="$1"
+  grep -q '^---' "$file"
+}
+
+# Extract value from YAML frontmatter key (primitive)
+get_yaml_key() {
+  local key="$1"
+  local file="$2"
+  awk -v k="$key" '$0 ~ "^"k":" {print $2; exit}' "$file"
+}
+
+# List markdown files in a directory
+list_md_files() {
+  find "$1" -type f -name '*.md'
+}
+
+# Require env vars to be set
+require_env_vars() {
+  for var in "$@"; do
+    if [[ -z "${!var:-}" ]]; then
+      log "ERROR" "Required env var not set: $var"
+      exit 1
+    fi
+  done
+}

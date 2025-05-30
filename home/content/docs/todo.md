@@ -2,9 +2,9 @@
 title:  "Rotkeeper TODO"
 slug: todo
 template: rotkeeper-doc.html
-version: 0.1.9.5
+version: 0.2.2-pre
 ---
-<!-- asset-meta: { name: "todo.md", version: "v0.1.9.5" } -->
+<!-- asset-meta: { name: "todo.md", version: "v0.2.2-pre" } -->
 
 # ✅ Rotkeeper Build TODO
 
@@ -102,6 +102,16 @@ This section consolidates the status, review, and next-phase plan for your CLI s
 
 ---
 
+## 🔍 Script Compliance Audit
+
+- [ ] Ensure all `rc-*.sh` scripts define `main()` and use `trap` safely
+- [ ] Apply `set -euo pipefail` to every script
+- [ ] Move shared logic to `rc-utils.sh` and source it
+- [ ] Use `check_deps` or equivalent in all scripts
+- [ ] Sanity-check argument handling for `--dry-run`, `--help`, `--verbose`
+
+---
+
 ## 🪦 Output Enhancements
 
 - [ ] Create HTML `/index.html` showcasing rendered pages
@@ -127,6 +137,15 @@ This section consolidates the status, review, and next-phase plan for your CLI s
 
 ---
 
+## 🧾 Audit Tools & Metadata Rituals
+
+- [ ] Create `rotkeeper-audit.md` for checklist-based rotkeeper health tracking
+- [ ] Patch `rc-render.sh` to validate YAML frontmatter
+- [ ] Enforce `asset-meta:` in all Markdown via `rc-audit.sh`
+- [ ] Add failure modes to `rc-audit.sh` for missing frontmatter
+
+---
+
 ## 🌐 Optional
 
 - [ ] Generate real Markdown personas for Patchy, Bricky, etc.
@@ -145,14 +164,20 @@ This section consolidates the status, review, and next-phase plan for your CLI s
 - [ ] Log clearly whether a stub was created vs. a real script preserved
 - [ ] Consider `.scripts-seeded` flag to skip future stub generation unless forced
 
+## 🧼 CSS & Template Cleanup
+
+- [x] Bootstrap removal task moved to `template-debt.md`
+- [ ] Ensure templates use Hiq or pure CSS only
+- [ ] Purge Bootstrap references from `render-flags.yaml` and `.html` comments
+
 Last updated: 2025-05-13
 <!--
 LIMERICK
 
-A checklist that kept getting longer,  
-Each ritual entry grew stronger.  
-Though nothing was done,  
-The logs showed it won—  
+A checklist that kept getting longer,
+Each ritual entry grew stronger.
+Though nothing was done,
+The logs showed it won—
 And the tombshell grew buggier, not wronger.
 
 SORA PROMPT
