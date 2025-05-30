@@ -1,0 +1,6 @@
+- path: "css/hiq.css"
+  sha256: "00afa687b137d23ee6622dfa90e6d8072d1a380cd78f2bd55ea1e097b5226dd9"
+- path: "css/rotkeeper.css"
+  sha256: "9e70e89daa85365f788b2ffa8754fc1baaf18d42c07356119834e4bb678b543d"
+- path: "images/rotkeeper-splash.png"
+  sha256: "3ef1ced52c4829f5fa803115a98afccfee32e2225eb53876934e6b6ace4166a2"

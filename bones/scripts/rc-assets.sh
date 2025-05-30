@@ -109,18 +109,19 @@ main() {
         log "INFO" "Scanning rendered HTML for referenced assets..."
     fi
 
-    ASSET_PATHS=$(grep -rhoE '(src|href)="assets/[^"]+"' "$OUTPUT_DIR"/*.html 2>/dev/null | \
-        sed -E 's/(src|href)="assets\/([^"]+)"/\2/' | sort | uniq)
+    ASSET_PATHS=$(grep -rhoE '(src|href)="\/?assets/[^"]+"' "$OUTPUT_DIR"/*.html 2>/dev/null | \
+        sed -E 's/(src|href)="\/?assets\/([^"]+)"/\2/' | sort | uniq)
 
     asset_count=$(echo "$ASSET_PATHS" | grep -c . || true)
     log "INFO" "Found $asset_count asset references."
 
     [[ "$DRY_RUN" == false ]] && > "$REPORT"
 
-    if [[ -z "$ASSET_PATHS" ]]; then
+    if [[ -z "${ASSET_PATHS// }" ]]; then
         log "WARN" "No asset references found in rendered HTML files."
-        echo "# No asset references found." > "$REPORT"
+        echo "# assets: []" > "$REPORT"
         cp "$REPORT" "$MANIFEST"
+        log "INFO" "Empty manifest generated at: $MANIFEST"
     else
         echo "$ASSET_PATHS" | while read -r relpath; do
             [[ -z "$relpath" ]] && continue

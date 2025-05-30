@@ -39,16 +39,20 @@ echo "=====================================" | tee -a "$LOGFILE"
 for f in "${scripts_to_test[@]}"; do
   script_name=$(basename "$f")
 
-  case "$script_name" in
-    rc-api.sh|rc-unpack.sh|rc-test.sh)
-      echo "⚠️  Skipping $script_name (known stub/self)" | tee -a "$LOGFILE"
-      continue
-      ;;
-  esac
+  # Avoid running this script on itself or known stubs
+  if [[ "$script_name" == "rc-test.sh" || "$script_name" == "rc-api.sh" || "$script_name" == "rc-unpack.sh" ]]; then
+    echo "⚠️  Skipping $script_name (known stub/self)" | tee -a "$LOGFILE"
+    continue
+  fi
 
   echo "🔧 Testing $script_name..." | tee -a "$LOGFILE"
-  bash "$f" --dry-run >>"$LOGFILE" 2>&1
-  status=$?
+  if [[ "$script_name" == "rc-docs-fix.sh" ]]; then
+    bash "$f" --pattern "Rotkeeper" --replace "Rotkeeper" --search-only >>"$LOGFILE" 2>&1
+    status=$?
+  else
+    bash "$f" --dry-run >>"$LOGFILE" 2>&1
+    status=$?
+  fi
 
   if [[ $status -eq 0 ]]; then
     echo "✅ PASS: $script_name" | tee -a "$LOGFILE"

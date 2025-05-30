@@ -11,6 +11,7 @@ output/
 *.zip
 
 # Backup logs, test junk, and generated reports
+# Reports are locally generated and not tracked
 bones/reports/
 bones/logs/
 bones/archive/

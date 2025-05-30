@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 # ░▒▓█ ROTKEEPER SCRIPT █▓▒░
 # Script: rc-docs-fix.sh
 # Purpose: Search, replace, and backup doc files based on given pattern
@@ -8,33 +9,10 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-LOGDIR="bones/logs"
-mkdir -p "$LOGDIR"
-LOG_FILE="$LOGDIR/rc-docs-fix.log"
-
-log() {
-    local level="$1"; shift
-    printf '%s [%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$level" "$*" | tee -a "$LOG_FILE"
-}
-
-cleanup() {
-    log "INFO" "Cleaning up after rc-docs-fix.sh."
-    # Add cleanup commands here
-}
-trap cleanup EXIT INT TERM
-
-check_dependencies() {
-    local deps=(git rsync ssh pandoc date)
-    for cmd in "${deps[@]}"; do
-        command -v "$cmd" >/dev/null 2>&1 || {
-            log "ERROR" "$cmd required but not installed."
-            exit 1
-        }
-    done
-}
+init_log "rc-docs-fix"
 
 main() {
-    check_dependencies
+    check_deps git rsync ssh pandoc date
     log "INFO" "Running rc-docs-fix.sh."
 
 # rc-docs-fix.sh — grep & fix your docs with automatic backup
@@ -62,8 +40,26 @@ REPLACEMENT=
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --pattern)    PATTERN="$2"; shift 2;;
-    --replace)    REPLACEMENT="$2"; shift 2;;
+    --pattern)
+      if [[ -n "${2:-}" ]]; then
+        PATTERN="$2"
+        shift 2
+      else
+        echo "Error: --pattern requires an argument"
+        print_usage
+        exit 1
+      fi
+      ;;
+    --replace)
+      if [[ -n "${2:-}" ]]; then
+        REPLACEMENT="$2"
+        shift 2
+      else
+        echo "Error: --replace requires an argument"
+        print_usage
+        exit 1
+      fi
+      ;;
     --dry-run)    DRY_RUN=true; shift;;
     --backup-only) BACKUP_ONLY=true; shift;;
     --search-only) SEARCH_ONLY=true; shift;;

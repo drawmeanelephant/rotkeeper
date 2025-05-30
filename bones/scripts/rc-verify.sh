@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 # ░▒▓█ ROTKEEPER SCRIPT █▓▒░
 # Script: rc-verify.sh
 # Purpose: Verify file integrity using asset-manifest.yaml and SHA256 digests
@@ -8,30 +9,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-TIMESTAMP=$(date +%Y-%m-%d_%H%M)
-LOG_PATH="bones/logs/rc-verify-$TIMESTAMP.log"
-mkdir -p "$(dirname "$LOG_PATH")"
-
-log() {
-    local level="$1"; shift
-    printf '%s [%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$level" "$*" | tee -a "$LOG_PATH"
-}
-
-cleanup() {
-    log "INFO" "Cleaning up after rc-verify.sh."
-    # Add additional cleanup commands here if needed
-}
-trap cleanup EXIT INT TERM
-
-check_dependencies() {
-    local deps=(sha256sum yq date awk)
-    for cmd in "${deps[@]}"; do
-        command -v "$cmd" >/dev/null 2>&1 || {
-            log "ERROR" "$cmd required but not installed."
-            exit 1
-        }
-    done
-}
+init_log "rc-verify"
 
 main() {
     DRY_RUN=false
@@ -46,7 +24,7 @@ main() {
         ./bones/scripts/rc-assets.sh
     fi
 
-    check_dependencies
+    check_deps sha256sum yq date awk
 
     MANIFEST="bones/asset-manifest.yaml"
     if [[ ! -f "$MANIFEST" ]]; then
@@ -61,6 +39,10 @@ main() {
 
     # No mapfile: instead, loop through lines directly
     yq e '.[] | [.path, .sha256] | @tsv' "$MANIFEST" | while IFS=$'\t' read -r RELPATH EXPECTED; do
+        if [[ -z "$RELPATH" ]]; then
+            log "WARN" "Skipping empty path entry in manifest."
+            continue
+        fi
         FILE="home/$RELPATH"
 
         if [[ "$DRY_RUN" == true ]]; then

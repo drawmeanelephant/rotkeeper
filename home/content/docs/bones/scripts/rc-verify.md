@@ -2,14 +2,14 @@
 title: "🔒 rc-verify.sh Reference"
 slug: rc-verify
 template: rotkeeper-doc.html
-version: "0.2.1"
-updated: "2025-05-29"
+version: "0.2.2"
+updated: "2025-05-30"
 ---
 <!-- Begin Ritual Script Documentation -->
 # 🔒 rc-verify.sh
 <!-- The sacred rite of checksum validation -->
 
-**Version:** v0.1.1
+**Version:** v0.2.2
 **Script Path:** `bones/scripts/rc-verify.sh`
 
 ## Purpose
@@ -53,10 +53,12 @@ Supported flags:
    - Parse CLI flags for custom behavior.
 
 2. **Load Manifest**
-   - Parse each `<path>` + `<expected-sha>` pair into an associative array.
+   - Use `yq` to read each asset `path` and `sha256` value from the manifest.
 
 3. **Verification Loop**
    For each manifest entry, recompute SHA256, compare, log `OK` or `ERROR`; on mismatches respect `--warn-only`.
+
+   Skip any entries where the `path` is empty or malformed.
 
 4. **Manifest Update (optional)**
    - If `--update` is used, replace expected SHA values in the manifest with computed ones.
@@ -70,7 +72,7 @@ Supported flags:
 
 - `0` — All files verified (or mismatches only logged in `--warn-only` mode).
 - `1` — One or more mismatches detected.
-- `2` — Missing manifest file or missing tracked file.
+- `2` — Manifest not found, or tracked file is missing.
 
 ## Examples
 <!-- Sample invocations for celebratory rites -->

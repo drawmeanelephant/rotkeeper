@@ -2,12 +2,12 @@
 title: "📝 rc-audit.sh Reference"
 slug: rc-audit
 template: rotkeeper-doc.html
-version: "v0.1.1"
+version: "v0.2.2"
 ---
-<!-- asset-meta: { name: "quickstart-guide.md", version: "v0.1.0" } -->
+<!-- asset-meta: { name: "quickstart-guide.md", version: "v0.2.2" } -->
 # 📝 rc-audit.sh
 
-**Version:** v0.1.1
+**Version:** v0.2.2
 **Script Path:** `bones/scripts/rc-audit.sh`
 
 ## Purpose
@@ -49,12 +49,12 @@ Supported flags:
    - Parse CLI arguments and prepare environment.
 
 2. **Load Manifest Entries**
-   - Read each line of `bones/manifest.txt` into an array of file paths.
+   - Read each asset path from `bones/asset-manifest.yaml` via yq.
 
 3. **Audit Loop**
    - For each file path:
      a. Check if the file exists; if missing, record an error.
-     b. Open the file and search for an `asset-meta:` block at the top.
+     b. Open the file and check for a valid `asset-meta:` block in the frontmatter.
      c. If the block is missing or malformed, record an error.
      d. If `--fix` is enabled and missing, inject a default metadata stub into the file.
 
@@ -66,7 +66,7 @@ Supported flags:
 5. **Exit Codes**
    - `0` — All files passed audit (or fixes applied).
    - `1` — Errors found and not all fixes applied.
-   - `2` — Missing manifest file or critical failure.
+   - `2` — Missing manifest, critical YAML parse error, or failure to complete audit.
 
 ## Examples
 
@@ -75,7 +75,7 @@ Supported flags:
 ./bones/scripts/rc-audit.sh
 
 # Only generate Markdown report
-./bones/scripts/rc-audit.sh --json-only=false --md-only
+./bones/scripts/rc-audit.sh --md-only
 
 # Audit and auto-fix missing metadata stubs
 ./bones/scripts/rc-audit.sh --fix --verbose
@@ -105,4 +105,3 @@ It filled every block,
 With no missing stock,
 And secured them in versioned cage.
 -->
-

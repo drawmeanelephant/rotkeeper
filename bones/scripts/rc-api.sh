@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 # ░▒▓█ ROTKEEPER SCRIPT █▓▒░
 # Script: rc-api.sh
 # Purpose: Fetch and ingest remote content (templates, assets, packs)
@@ -8,33 +9,52 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-LOG_FILE="rc-api.sh.log"
+DRY_RUN=false
+for arg in "$@"; do
+  [[ "$arg" == "--dry-run" ]] && DRY_RUN=true
+done
 
-log() {
-    local level="$1"; shift
-    printf '%s [%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$level" "$*" | tee -a "$LOG_FILE"
-}
+init_log "rc-api"
 
-cleanup() {
-    log "INFO" "Cleaning up after rc-api.sh."
-    # Add cleanup commands here
-}
-trap cleanup EXIT INT TERM
 
-check_dependencies() {
-    local deps=(git rsync ssh pandoc date)
-    for cmd in "${deps[@]}"; do
-        command -v "$cmd" >/dev/null 2>&1 || {
-            log "ERROR" "$cmd required but not installed."
-            exit 1
-        }
+main() {
+    check_deps git rsync ssh pandoc date
+    log "INFO" "Running rc-api.sh."
+
+    CONFIG_FILE="bones/config/remote-sources.yaml"
+    DEST_DIR="home/assets/remote"
+    mkdir -p "$DEST_DIR"
+
+    if [[ ! -f "$CONFIG_FILE" ]]; then
+        log "ERROR" "Missing config file: $CONFIG_FILE"
+        exit 1
+    fi
+
+    count=$(yq e '.sources | length' "$CONFIG_FILE")
+    log "INFO" "Found $count source(s) in config."
+
+    for i in $(seq 0 $((count - 1))); do
+        url=$(yq e ".sources[$i].url" "$CONFIG_FILE")
+        filename=$(yq e ".sources[$i].filename" "$CONFIG_FILE")
+        dest="$DEST_DIR/$filename"
+
+        if [[ -z "$url" || -z "$filename" ]]; then
+            log "WARN" "Skipping invalid entry at index $i"
+            continue
+        fi
+
+        if [[ "$DRY_RUN" == true ]]; then
+          log "DRY-RUN" "Would fetch: $url → $dest"
+        else
+          log "INFO" "Fetching: $url → $dest"
+          curl -s -L -o "$dest" "$url" && \
+              log "OK" "Fetched $filename" || \
+              log "ERROR" "Failed to fetch $url"
+        fi
     done
 }
 
-main() {
-    check_dependencies
-    log "INFO" "Running rc-api.sh."
-    # =============================================================================
+# =============================================================================
 # remote-sources.yaml — Remote asset source declarations for rc-api.sh
 # =============================================================================
 # This file controls which external resources will be fetched when rc-api.sh runs.
@@ -51,20 +71,20 @@ main() {
 # Each source block should define:
 #   - url: the full URL to the file
 #   - filename: the name it should be saved as locally
-
-sources:
-  - url: "https://assets.rotkeeper.com/templates/plainstone.html"
-    filename: "plainstone.html"
-
-  - url: "https://assets.rotkeeper.com/scripts/rc-bless.sh"
-    filename: "rc-bless.sh"
-
-  - url: "https://assets.rotkeeper.com/packs/openmoji-icons.zip"
-    filename: "openmoji-icons.zip"
-
-  - url: "https://assets.rotkeeper.com/packs/core-tombdocs.zip"
-    filename: "core-tombdocs.zip"
-    log "INFO" "rc-api.sh completed successfully."
-}
+#
+# Example sources:
+#
+# sources:
+#   - url: "https://assets.rotkeeper.com/templates/plainstone.html"
+#     filename: "plainstone.html"
+#
+#   - url: "https://assets.rotkeeper.com/scripts/rc-bless.sh"
+#     filename: "rc-bless.sh"
+#
+#   - url: "https://assets.rotkeeper.com/packs/openmoji-icons.zip"
+#     filename: "openmoji-icons.zip"
+#
+#   - url: "https://assets.rotkeeper.com/packs/core-tombdocs.zip"
+#     filename: "core-tombdocs.zip"
 
 main "$@"

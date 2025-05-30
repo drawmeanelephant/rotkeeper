@@ -1,55 +1,48 @@
 ---
 title: "rc-api.sh"
 template: rotkeeper-doc.html
-subtitle: "Fetch, convert, or ingest remote content into tombs"
+subtitle: "Fetch templates, packs, or updates from remote sources"
 asset-meta:
   name: rc-api.md
-  version: 0.2.0-pre
+  version: 0.2.2
   tags: [scripts, api, ingestion, fetch, external]
 ---
 
 # 🌐 `rc-api.sh`
 
-`rc-api.sh` is an experimental script for fetching and transforming external data sources into tomb-ready formats. It is currently a stub and will be extended in future versions.
+`rc-api.sh` fetches external assets, templates, and packs as defined in a local YAML config. It is used to keep remote parts of your tombsite up-to-date.
 
 ---
 
 ## 🔮 Intended Purpose
 
-This script will allow you to:
-
-- Pull JSON or YAML from remote sources (e.g., APIs, repos)
-- Convert those files into usable Markdown
-- Inject or update them into `home/content/` or `bones/`
+This script is designed to:
+- Read a config file (`bones/config/remote-sources.yaml`)
+- Download files from listed `url` entries
+- Save them to `home/assets/remote/`
+- Log actions and failures to `bones/logs/`
 
 ---
 
 ## 🔧 Planned Features
 
-- `--url <source>` — Target API or remote endpoint
-- `--yaml` / `--json` — Force expected response format
-- `--output <path>` — Destination file or folder
-- `--header <key:val>` — Pass custom request headers
-- `--convert` — Pipe output through a JSON→MD adapter
-- `--dry-run` — Preview fetch + transformation plan
+- Uses `yq` to parse source URLs
+- `--dry-run` flag supported
+- Can be extended to support JSON ingestion or content conversion
 
 ---
 
 ## 🧪 Example Invocation
 
 ```bash
-bash bones/scripts/rc-api.sh \
-  --url https://api.example.com/mascots \
-  --json \
-  --convert \
-  --output home/content/mascots/from-api.md
+./rotkeeper.sh api
 ```
 
 ---
 
 ## 📎 Notes
 
-- This script is **not yet implemented**
+- This script is implemented and active in `v0.2.2`
 - Useful for:
   - Fetching mascot bios from a remote repo
   - Pulling changelogs from GitHub APIs
@@ -62,6 +55,7 @@ bash bones/scripts/rc-api.sh \
 - `rc-expand.sh` — Generates Markdown from BOM locally
 - `rc-record.sh` — Tracks commit + system state
 - `bones/logs/api-*` — Future location of fetch logs
+- `remote-sources.yaml` — Defines the assets fetched by this script
 
 ---
 

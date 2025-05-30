@@ -2,8 +2,8 @@
 title: "🛠️ rc-docs-fix.sh Reference"
 slug: rc-docs-fix
 template: rotkeeper-doc.html
-version: "0.2.1"
-updated: "2025-05-29"
+version: "0.2.2"
+updated: "2025-05-30"
 ---
 
 ## 📑 Table of Contents
@@ -28,7 +28,7 @@ A concise overview of what `rc-docs-fix.sh` does in the Rotkeeper toolkit, provi
 
 **Requirements:** Bash 4+, GNU or BSD sed, standard Unix utilities (grep, find, mkdir, cp).
 
-The `rc-docs-fix.sh` utility audits and patches Markdown files by inserting stub sections for Purpose, Usage, Examples, Troubleshooting, and Future Plans if they are missing. **Inputs:** Target directory path. **Outputs:** Updated Markdown files with consistent structure and backup copies of originals.
+The `rc-docs-fix.sh` utility audits and patches Markdown files by inserting stub sections for Purpose, Usage, Examples, Troubleshooting, and Future Plans if they are missing. **Inputs:** Target directory path (default: `home/content/docs/`). **Outputs:** Updated Markdown files with inserted section stubs and corresponding backups.
 
 ---
 
@@ -37,7 +37,7 @@ The `rc-docs-fix.sh` utility audits and patches Markdown files by inserting stub
 <!-- Invocation ceremony and options -->
 
 ```bash
-rc-docs-fix [OPTIONS] [DIR]
+rc-docs-fix.sh [OPTIONS] [DIR]
 ```
 
 **Options:**
@@ -50,12 +50,12 @@ rc-docs-fix [OPTIONS] [DIR]
 
 Generating stubs in the default docs folder:
 ```bash
-rc-docs-fix
+./bones/scripts/rc-docs-fix.sh
 ```
 
 Targeting a specific directory:
 ```bash
-rc-docs-fix bones/archive
+./bones/scripts/rc-docs-fix.sh bones/archive
 ```
 
 Display help:
@@ -70,7 +70,7 @@ rc-docs-fix --help
 <!-- Under-the-hood ritual mechanics -->
 
 Upon invocation, the utility:
-1. Parses options and determines the target directory.
+1. Parses flags, resolves the target directory, and confirms write access.
    - e.g., `rc-docs-fix bones/archive`
 2. Detects the appropriate `sed` in-place flag for the host environment.
 3. Creates a timestamped backup directory under the target.
@@ -94,6 +94,7 @@ Upon invocation, the utility:
 - **Missing frontmatter errors?** Ensure each file begins with `---` on its own line.
 - **Permission denied?** Verify you have write permissions for both the target directory and backup location.
 - **Unsupported sed version?** Install GNU sed or adjust the script’s sed-detection logic.
+- **No changes made?** Use `--dry-run` to inspect what would be added, or verify the files are missing known stub headings.
 
 ---
 

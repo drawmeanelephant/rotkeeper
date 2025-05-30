@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 # ░▒▓█ ROTKEEPER SCRIPT █▓▒░
 # Script: rc-audit.sh
 # Purpose: Audit markdown files for valid asset-meta frontmatter blocks from manifest list
@@ -8,33 +9,10 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-LOGDIR="bones/logs"
-mkdir -p "$LOGDIR"
-LOG_FILE="$LOGDIR/rc-audit.log"
-
-log() {
-    local level="$1"; shift
-    printf '%s [%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$level" "$*" | tee -a "$LOG_FILE"
-}
-
-cleanup() {
-    log "INFO" "Cleaning up after rc-audit.sh."
-    # Add cleanup commands here
-}
-trap cleanup EXIT INT TERM
-
-check_dependencies() {
-    local deps=(git rsync ssh pandoc date)
-    for cmd in "${deps[@]}"; do
-        command -v "$cmd" >/dev/null 2>&1 || {
-            log "ERROR" "$cmd required but not installed."
-            exit 1
-        }
-    done
-}
+init_log "rc-audit"
 
 main() {
-    check_dependencies
+    check_deps git rsync ssh pandoc date
     log "INFO" "Running rc-audit.sh."
 # rc-audit.sh — Rotkeeper Asset-Meta Audit
 #

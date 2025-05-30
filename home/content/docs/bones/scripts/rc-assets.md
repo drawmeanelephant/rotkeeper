@@ -2,8 +2,8 @@
 title: "🖼️ rc-assets.sh Reference"
 slug: rc-assets
 template: rotkeeper-doc.html
-version: "0.2.1"
-updated: "2025-05-29"
+version: "0.2.2"
+updated: "2025-05-30"
 ---
 
 
@@ -15,9 +15,10 @@ updated: "2025-05-29"
 
 ## Purpose
 <!-- Core objectives of rc-assets.sh -->
-- Crawl the `home/assets/` directory to discover all static resources.
-- Compute metadata: filename, path, SHA256 digest, size, and modification timestamp.
-- Emit a consolidated YAML manifest for downstream tools.
+- Scan rendered HTML in `output/` for `<img>` or `<link>` tags referencing `assets/`
+- Identify actual files used in the tomb pages
+- Copy matched assets from `home/assets/` into `output/assets/`
+- Emit a YAML manifest of the matched files to `bones/asset-manifest.yaml`
 
 ## CLI Interface
 ```bash
@@ -34,15 +35,15 @@ Supported flags:
 
 ## Workflow Steps
 1. **Verify Dependencies**: `check_deps find sha256sum yq`.
-2. **Discover Assets**: Locate files in `home/assets/`.
-3. **Compute Metadata**: Gather path, size, digest, and timestamp.
+2. **Discover Assets**: Locate referenced assets in output/*.html
+3. **Compute Metadata**: For each referenced asset, compute SHA256 and copy into output/assets/
 4. **Assemble & Write Manifest**: Structure and write to `bones/asset-manifest.yaml` or preview under dry-run.
 
 ## Exit Codes
 <!-- Symbolic outcomes of incantation -->
 - `0` — Manifest generated successfully.
 - `1` — Dependencies missing or I/O error.
-- `2` — No assets found.
+- `2` — Critical error (e.g. missing inputs)
 
 ## Examples
 ```bash
@@ -56,6 +57,17 @@ Supported flags:
 ./bones/scripts/rc-assets.sh --help
 ```
 
+
+## Manifest Format
+
+The output manifest is a YAML file with entries like:
+
+```yaml
+- path: "images/rotkeeper-splash.png"
+  sha256: "abc123..."
+```
+
+If no assets are found, an empty manifest with `assets: []` is written.
 
 ## 🛣️ Navigation
 <!-- Quick navigation links -->
