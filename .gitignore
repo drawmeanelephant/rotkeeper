@@ -1,0 +1,21 @@
+# Rotkeeper local thrash and support dump
+SUPPORT/
+
+# MacOS system junk
+.DS_Store
+
+# Output artifacts and temporary builds
+output/
+*.tar.gz
+*.zip
+
+# Backup logs, test junk, and generated reports
+bones/reports/
+bones/logs/
+bones/archive/
+bones/backups/
+*.log
+
+# Obsidian vault, VSCode configs (optional, remove if used)
+.obsidian/
+.vscode/

@@ -1,6 +1,0 @@
-🧪 Rotkeeper CLI Test — 2025-05-30_0733
-=====================================
-⚠️  Skipping rc-api.sh (known stub/self)
-🔧 Testing rc-assets.sh...
-[2025-05-30 07:33:34] [INFO] [DRY RUN] Would scan and copy assets from home/assets to output/assets
-[2025-05-30 07:33:34] [INFO] Cleaning up after rc-assets.sh.

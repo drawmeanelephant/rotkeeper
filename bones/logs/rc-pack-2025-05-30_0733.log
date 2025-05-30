@@ -1,6 +1,0 @@
-2025-05-30 07:33:45 [INFO] Running rc-pack.sh.
-2025-05-30 07:33:45 [INFO] tar -czf "bones/archive/tomb-2025-05-30_0733.tar.gz" "output"
-2025-05-30 07:33:45 [INFO] Packaged       80 files into tomb-2025-05-30_0733.tar.gz
-2025-05-30 07:33:48 [INFO] mv "/var/folders/p_/h710w89x7b16x249r_061lkw0000gn/T/tmp.K9n8XXXkGd" "bones/archive/tomb-export-2025-05-30_0733.json"
-2025-05-30 07:33:48 [INFO] rc-pack.sh completed successfully.
-2025-05-30 07:33:48 [INFO] Cleaning up after rc-pack.sh.
