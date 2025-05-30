@@ -1,9 +1,9 @@
 ---
-rotkeeper_reseed: v0.2.1
-updated: 2025-05-30
+rotkeeper_reseed: v0.2.3
+updated: 2024-06-06
 ---
 
-# 🧬 Rotkeeper Reseed — v0.2.1
+# 🧬 Rotkeeper Reseed — v0.2.3
 
 This document serves as a ritual continuity point for new sessions, threads, or assistants. It captures the current state of the Rotkeeper project, ensuring future helpers may rise without confusion or decay.
 
@@ -12,7 +12,7 @@ This document serves as a ritual continuity point for new sessions, threads, or 
 ## 🪦 Project Summary
 
 **Name**: Rotkeeper
-**Version**: `v0.2.1` (live on GitHub)
+**Version**: `v0.2.3-pre` (in development)
 **Type**: Ritual CLI for decaying flat-file systems
 **Core Features**:
 - Bash modular scripts (`rc-*.sh`)
@@ -42,31 +42,31 @@ rotkeeper/
 ## 🌐 GitHub & Site
 
 - **GitHub Repo**: https://github.com/drawmeanelephant/rotkeeper
-- **Release Tag**: [`v0.2.1`](https://github.com/drawmeanelephant/rotkeeper/releases/tag/v0.2.1)
+- **Release Tag**: `dev-0.2.3`
 - **Archive**: https://rotkeeper.com/0.2.0.0.tar.gz
 
 ---
 
 ## 🔧 Recent Patches (v0.2.1)
 
-- `rc-scan.sh`: SHA skipping logic, stable report output
-- `rc-verify.sh`: `--regen` now functional
-- `rc-assets.sh`: manifest output even when empty
-- Cleaned template outputs, log folder logic, trap coverage
+- All scripts now source `rc-utils.sh`
+- Logging standardized (`init_log`, `trap`)
+- Asset manifest logic hardened (empty emits, bad paths skipped)
+- `rc-api.sh` now functional with `remote-sources.yaml`
+- Doc coverage expanded for `home/`, `assets/`, `scripts/`
+- Test suite (`rc-test.sh`) supports dry-run and skips itself
+- All `.sh` scripts pass local test ritual
 
 ---
 
-## 🛠 Patch Queue (planned for v0.2.2)
+## 🛠 Patch Queue (planned for v0.2.3)
 
-- `rc-bless.sh`: write real git changelogs to `bones/logs/changelog.md`
-- `rc-record.sh`: stamp commit + timestamp
-- `rc-assets.sh`: verify manifest accuracy under `--dry-run`
-- `rc-verify.sh`: SHA256 regression check consistency
-- `rc-audit.sh`: enforce `asset-meta:` frontmatter block
-- Shared logic: extract to `rc-utils.sh`
-- Normalize `main()`, `trap`, and `check_deps` across scripts
-- Patch `rc-render.sh` for frontmatter validation
-- Add `rotkeeper-audit.md` checklist to track ritual stability
+- Expand `rc-api.sh` with extract + post-fetch support
+- Standardize `--dry-run` and `--help` flags across all scripts
+- Build `.vscode/` onboarding config for dev environment
+- Improve `rc-render.sh` frontmatter validation
+- Begin `rc-pack.sh` tomb metadata enhancements
+- Draft `.woa/` integration (optional WebObjects mode)
 
 ---
 
@@ -101,12 +101,7 @@ rotkeeper/
 
 ---
 
-## 🧬 Next Ritual Thread
-
-To continue this project in a new session:
-> Refer to `reseed.md` and let your assistant read this file to restore context.
-
-You may safely archive this file in `bones/meta/` or the repo root.
+- Audit sheet: `rotkeeper-audit.md` added for tracking script state
 
 ---
 
