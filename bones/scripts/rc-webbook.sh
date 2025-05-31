@@ -23,7 +23,7 @@ LOG_FILE="$SCRIPTDIR/../logs/rc-webbook-$(date +%Y-%m-%d_%H%M).log"
 mkdir -p "$(dirname "$LOG_FILE")"
 
 main() {
-  check_deps find mkdir cat
+  require_bins find mkdir cat
   log "INFO" "Running rc-webbook.sh."
 
   OUTPUT="bones/reports/rotkeeper-webbook.md"

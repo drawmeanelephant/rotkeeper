@@ -2,8 +2,8 @@
 # ░▒▓█ ROTKEEPER SCRIPT █▓▒░
 # Script: rc-scriptbook.sh
 # Purpose: Consolidate all rc-*.sh scripts into a Markdown ritual manual for GPT ingestion
-# Version: 0.1.9.9
-# Updated: 2025-05-27
+# Version: 0.2.4-dev
+# Updated: 2025-05-31
 # -----------------------------------------
 # 🔮 rc-scriptbook.sh — Consolidate all rc-*.sh scripts into a Markdown scriptbook
 # Outputs to: bones/reports/rotkeeper-manual.md
@@ -19,7 +19,7 @@ mkdir -p bones/reports/
 cat <<EOF > "$BOOK_PATH"
 ---
 title: Rotkeeper Ritual Manual
-version: 0.2.0-pre
+version: 0.2.4-dev
 tags: [rotkeeper, scripts, bash, cli, archive]
 ---
 <!-- 🧠 This file is for GPT ingestion. It contains all scripts and docs for Rotkeeper. -->
@@ -33,7 +33,7 @@ echo '```markdown' >> "$BOOK_PATH"
 echo "---" >> "$BOOK_PATH"
 echo "title: Example" >> "$BOOK_PATH"
 echo "template: doc" >> "$BOOK_PATH"
-echo "version: 0.2.0-pre" >> "$BOOK_PATH"
+echo "version: 0.2.4-dev" >> "$BOOK_PATH"
 echo "---" >> "$BOOK_PATH"
 echo "This is an example documentation file stub." >> "$BOOK_PATH"
 echo '```' >> "$BOOK_PATH"

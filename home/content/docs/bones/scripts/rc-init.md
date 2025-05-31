@@ -2,7 +2,7 @@
 title: "🧱 rc-init.sh Reference"
 slug: rc-init
 template: rotkeeper-doc.html
-version: "0.2.1"
+version: "0.2.4-dev"
 updated: "2025-05-29"
 ---
 
@@ -29,19 +29,19 @@ It also ensures the following exist:
 ## 🔁 Behavior
 
 - Can be run repeatedly without error
-- Logs to `bones/logs/rc-init-*.log`
+- Logs are saved to `bones/logs/rc-init.log`. All stdout and stderr are captured.
+- Errors from `rc-expand.sh` or `rc-render.sh` will cause a non-zero exit and be captured in the log.
 - Exits `0` on success, `1` if required tools or permissions are missing
 
 ---
 
 ## 🏁 Flags
 
-_Currently none._
-Future flags may include:
-
-- `--force`: recreate everything even if it exists
-- `--dry-run`: print what would be made
-- `--skip-render`: omit initial render after structure creation
+```markdown
+- `--help`: print usage text and exit
+- `--verbose`: print log entries to terminal
+- `--dry-run`: simulate setup without creating files
+```
 
 ---
 
@@ -90,6 +90,8 @@ Or invoke through the main dispatcher:
 ./rotkeeper init
 ```
 
+All output is logged to `bones/logs/rc-init.log`.
+
 Use this at the beginning of any new tomb cycle or prior to reseeding from archive.
 
 ---
@@ -119,5 +121,6 @@ rotkeeper/
 - If `bones/manifest.txt` already exists, it will not be overwritten
 - Does not clone or fetch any default templates — only prepares the structure
 - Won’t run `expand` or `render` unless explicitly chained
+- Errors are trapped and logged via `trap_err`. Review `rc-init.log` for troubleshooting.
 
 <!-- Sora Prompt: "A ceremonial shovel labeled 'rc-init.sh' digging the first directory into a haunted filescape; skeletons holding folder trees, sigils glowing faintly on markdown pages." -->

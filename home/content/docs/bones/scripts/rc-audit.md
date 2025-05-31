@@ -2,18 +2,19 @@
 title: "📝 rc-audit.sh Reference"
 slug: rc-audit
 template: rotkeeper-doc.html
-version: "v0.2.2"
+version: "v0.2.4-dev"
 ---
 <!-- asset-meta: { name: "quickstart-guide.md", version: "v0.2.2" } -->
 # 📝 rc-audit.sh
 
-**Version:** v0.2.2
+**Version:** v0.2.4-dev
 **Script Path:** `bones/scripts/rc-audit.sh`
 
 ## Purpose
 
 - Audit tracked files to ensure each contains a proper `asset-meta` front-matter block.
 - Detect missing, malformed, or incomplete metadata entries.
+- Properly report missing files as errors.
 - Optionally inject a metadata stub when missing (`--fix` mode).
 
 ## CLI Interface
@@ -45,7 +46,7 @@ Supported flags:
 ## Workflow Steps
 
 1. **Setup & Configuration**
-   - Define manifest path (`bones/manifest.txt`), report/log directories, and default flags.
+   - Define manifest path (`bones/asset-manifest.yaml`), report/log directories, and default flags.
    - Parse CLI arguments and prepare environment.
 
 2. **Load Manifest Entries**
@@ -60,12 +61,12 @@ Supported flags:
 
 4. **Reporting**
    - Collect all audit results (errors and fixes performed).
-   - Write a JSON report to `bones/reports/audit-report-<timestamp>.json`.
-   - Write a Markdown report to `home/content/rotkeeper/audit-report-<timestamp>.md`.
+   - Write a JSON report to `bones/reports/asset-audit.json`.
+   - Write a Markdown report to `bones/reports/asset-audit.md`.
 
 5. **Exit Codes**
    - `0` — All files passed audit (or fixes applied).
-   - `1` — Errors found and not all fixes applied.
+   - `1` — Errors found including missing files, and not all fixes applied.
    - `2` — Missing manifest, critical YAML parse error, or failure to complete audit.
 
 ## Examples

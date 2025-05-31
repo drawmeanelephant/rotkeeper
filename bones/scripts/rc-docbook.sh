@@ -2,8 +2,8 @@
 # ░▒▓█ ROTKEEPER SCRIPT █▓▒░
 # Script: rc-docbook.sh
 # Purpose: Bundle all Markdown documentation into a single GPT-readable file
-# Version: 0.2.1
-# Updated: 2025-05-27
+# Version: 0.2.4-dev
+# Updated: 2025-05-31
 # -----------------------------------------
 
 set -euo pipefail

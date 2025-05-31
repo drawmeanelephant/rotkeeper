@@ -2,7 +2,7 @@
 title: "🌐 rc-webbook.sh Reference"
 slug: rc-webbook
 template: rotkeeper-doc.html
-version: "0.2.1"
+version: "v0.2.4-dev"
 updated: "2025-05-29"
 ---
 <!-- Begin Ritual Script Documentation -->
@@ -26,7 +26,7 @@ rc-webbook.sh [--input <dir>] [--output <dir>] [--css <file>] [--search] [--help
 ## Workflow Steps
 <!-- Sequential rites performed by the script -->
 1. **Verify Environment**
-   - Ensure `pandoc`, `yq`, and a basic HTTP server are available.
+   - Ensure `pandoc`, `yq`, and basic shell tools (`find`, `mkdir`, `cat`) are available.
 2. **Collect Sources**
    - Read Markdown files from the input directory in sorted order.
 3. **Build TOC**
@@ -46,6 +46,7 @@ rc-webbook.sh [--input <dir>] [--output <dir>] [--css <file>] [--search] [--help
 - `1` — Missing input directory or files.
 - `2` — Dependency missing or runtime error.
 - `3` — Navigation index build failure.
+- `4` — CSS or output directory creation failure.
 
 ## Examples
 <!-- Sample invocations for celebratory rites -->

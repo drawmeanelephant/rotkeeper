@@ -2,7 +2,7 @@
 title: "🎨 rc-render.sh Reference"
 slug: rc-render
 template: rotkeeper-doc.html
-version: "0.2.1"
+version: "v0.2.4-dev"
 updated: "2025-05-29"
 ---
 <!--
@@ -41,7 +41,7 @@ Supported options:
 1. **Check Dependencies**
    - Ensure `pandoc`, `find`, `xargs`, and `date` are available.
 2. **Initialize Logging**
-   - Create a timestamped log file and define helper functions.
+   - Write to `bones/logs/rc-render.log`. All stdout and stderr are captured.
 3. **Discover Markdown Files**
    - Recursively locate `*.md` pages to render.
 4. **Render Files**
@@ -57,17 +57,13 @@ Supported options:
 - `1` — Missing dependencies or invalid flags.
 - `2` — One or more render failures.
 
+Errors and render failures are logged to `bones/logs/rc-render.log`.
+
 ## Examples
 <!-- Sample invocations for celebratory rites -->
 ```bash
 # Default render
 ./bones/scripts/rc-render.sh
-
-# Use custom template
-./bones/scripts/rc-render.sh -t templates/custom.html
-
-# Dry-run with 8 parallel jobs
-./bones/scripts/rc-render.sh -p 8 -n
 
 # Verbose output
 ./bones/scripts/rc-render.sh -v

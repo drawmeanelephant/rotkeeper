@@ -42,8 +42,8 @@ then use the following helpers.
 - `log LEVEL MESSAGE…`
   Prints a timestamped log to stdout (and appended to script-specific log file).
 
-- `run COMMAND…`
-  Evaluates `COMMAND` unless `--dry-run` is set, in which case it logs a `DRY-RUN` message.
+- `run CMD [ARG…]`
+  Runs the command with arguments unless `--dry-run` is active. Logs `DRY-RUN` if skipping. Preserves argument quoting and prevents shell splitting.
 
 - `check_deps CMD…`
   Verifies each `CMD` is available; exits with error if any are missing.

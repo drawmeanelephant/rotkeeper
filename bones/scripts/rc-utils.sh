@@ -47,7 +47,7 @@ run() {
     log "DRY-RUN" "$*"
   else
     [[ "$VERBOSE" == true ]] && log "INFO" "$*"
-    eval "$*"
+    command "$@"
   fi
 }
 
