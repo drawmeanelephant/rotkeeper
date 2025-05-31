@@ -1,5 +1,3 @@
-
-
 ---
 title: "✅ rc-test.sh Reference"
 slug: rc-test

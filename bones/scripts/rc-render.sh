@@ -23,10 +23,11 @@ source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 set -euo pipefail
 IFS=$'\n\t'
 
-# --- Flag Parsing & Helpers ---
-DRY_RUN=false
-VERBOSE=false
+: "${DRY_RUN:=${RK_DRY:-false}}"
+: "${VERBOSE:=${RK_VERBOSE:-false}}"
 HELP=false
+
+# --- Flag Parsing & Helpers ---
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --dry-run)   DRY_RUN=true; shift ;;
@@ -59,7 +60,7 @@ run() {
     log "DRY-RUN" "$*"
   else
     [[ "$VERBOSE" == true ]] && log "INFO" "$*"
-    eval "$*"
+    "$@"
   fi
 }
 
@@ -80,6 +81,12 @@ cleanup() {
     # Add cleanup commands here
 }
 trap cleanup EXIT INT TERM
+
+trap_err() {
+  log "ERROR" "Unhandled error in ${BASH_SOURCE[1]} at line $1"
+  exit 1
+}
+trap 'trap_err $LINENO' ERR
 
 main() {
     require_bins git rsync ssh pandoc date awk grep find tar
@@ -174,17 +181,48 @@ main() {
       [[ -d "$SRC" ]] || continue
       while IFS= read -r mdfile; do
         [ -f "$mdfile" ] || continue
+        # Skip recursive mirrorverse created by prior misrenders
+        if [[ "$mdfile" == *"/docs/home/content/"* ]]; then
+          log "WARN" "Skipping recursive mirrorverse: $mdfile"
+          continue
+        fi
+        [[ "$VERBOSE" == true ]] && log "DEBUG" "Found markdown file: $mdfile"
         base=$(basename "$mdfile" .md)
         mdpath=$(realpath "$mdfile")
         srcpath=$(realpath "$SRC")
-        relpath="${mdpath#$srcpath/}"
+        # Debug logging for path resolution
+        [[ "$VERBOSE" == true ]] && {
+          log "DEBUG" "mdfile=$mdfile"
+          log "DEBUG" "mdpath=$mdpath"
+          log "DEBUG" "srcpath=$srcpath"
+        }
+        # Harden relpath: ensure srcpath is a prefix of mdpath, and trim only if so
+        if [[ "$mdpath" == "$srcpath"* ]]; then
+          relpath="${mdpath#$srcpath/}"
+        else
+          log "ERROR" "mdpath $mdpath is not under srcpath $srcpath; skipping."
+          continue
+        fi
+        # Debug relpath
+        [[ "$VERBOSE" == true ]] && log "DEBUG" "relpath=$relpath"
+        # Sanity guard: detect recursive or malformed relpaths
+        if [[ "$relpath" == *"content/"* && "$relpath" != *.md ]]; then
+          log "ERROR" "Recursive relpath detected: $relpath"
+          continue
+        fi
         reldir=$(dirname "$relpath")
         outdir="$OUTPUT_DIR/$reldir"
-        mkdir -p "$outdir"
+        if [[ -z "$outdir" || "$outdir" =~ ^[[:space:]]*$ ]]; then
+          log "WARN" "Invalid or empty output path for $rel_md — skipping."
+          continue
+        fi
+        log "DEBUG" "Resolved outdir='$outdir'"
+        run mkdir -p "$outdir"
         outfile="$outdir/${base}.html"
         rel_md="${mdpath#$PROJ_ROOT/}"
         rel_out="${outfile#$PROJ_ROOT/}"
         echo "📄 Rendering $rel_md → $rel_out"
+        TEMPLATE=""
         if grep -q '^template:' "$mdfile"; then
           TEMPLATE=$(awk '/^template:/ { print $2 }' "$mdfile")
         fi
@@ -197,7 +235,7 @@ main() {
           continue
         fi
 
-        run "pandoc \"$mdfile\" --from markdown --to html --template=\"$TEMPLATE_DIR/$TEMPLATE\" -o \"$outfile\""
+        run pandoc "$mdfile" --from markdown --to html --template="$TEMPLATE_DIR/$TEMPLATE" -o "$outfile"
         pages_rendered=$((pages_rendered + 1))
         log_manifest "$outfile"
       done < <(find "$SRC" -type f -name "*.md")
@@ -208,7 +246,7 @@ main() {
     ARCHIVE_DIR="$PROJ_ROOT/bones/archive"
     mkdir -p "$ARCHIVE_DIR"
     TOMB="tomb-$(date +%Y-%m-%d_%H%M).tar.gz"
-    run "tar -czf \"$ARCHIVE_DIR/$TOMB\" -C \"$PROJ_ROOT\" \"$OUTPUT_DIR_REL\""
+    run tar -czf "$ARCHIVE_DIR/$TOMB" -C "$PROJ_ROOT" "$OUTPUT_DIR_REL"
     echo "📦 Archived rendered output to bones/archive/$TOMB" >&2
     log "INFO" "Archived output as bones/archive/$TOMB"
 

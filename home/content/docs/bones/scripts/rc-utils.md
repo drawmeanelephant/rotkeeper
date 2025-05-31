@@ -1,9 +1,10 @@
 ---
 asset-meta:
   name: rc-utils.md
-  version: "v0.2.1"
-  updated: "2025-05-29"
+  version: "v0.2.4-dev"
+  updated: "2025-05-31"
   tags: [scripts, docs, utils]
+  template: rotkeeper-doc.html
 ---
 
 # rc-utils.sh

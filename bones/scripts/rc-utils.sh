@@ -2,9 +2,9 @@
 #!/usr/bin/env bash
 # ░▒▓█ ROTKEEPER SCRIPT █▓▒░
 # Script: rc-utils.sh
-# Purpose: Shared Rotkeeper helper functions
-# Version: 0.2.1
-# Updated: 2025-05-29
+# Purpose: Shared Rotkeeper helper functions and runtime sanity wrappers
+# Version: 0.2.4-dev
+# Updated: 2025-05-31
 # -----------------------------------------
 
 set -euo pipefail

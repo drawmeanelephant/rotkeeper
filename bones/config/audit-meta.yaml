@@ -1,0 +1,18 @@
+# audit-meta.yaml
+# Configuration file for rc-audit.sh
+# Defines default frontmatter block and required fields
+
+defaults:
+  title: "Untitled Asset"
+  asset-meta:
+    alt: "Description goes here"
+    tags: []
+    license: "CC-BY-SA-4.0"
+    created: "{{today}}"
+    updated: "{{today}}"
+
+required_fields:
+  - asset-meta
+  - asset-meta.alt
+  - asset-meta.tags
+  - asset-meta.license

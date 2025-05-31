@@ -1,9 +1,9 @@
 ---
-rotkeeper_reseed: v0.2.3
-updated: 2024-06-06
+rotkeeper_reseed: v0.2.4-dev
+updated: 2025-05-31
 ---
 
-# 🧬 Rotkeeper Reseed — v0.2.3
+# 🧬 Rotkeeper Reseed — v0.2.4-dev
 
 This document serves as a ritual continuity point for new sessions, threads, or assistants. It captures the current state of the Rotkeeper project, ensuring future helpers may rise without confusion or decay.
 
@@ -12,7 +12,7 @@ This document serves as a ritual continuity point for new sessions, threads, or 
 ## 🪦 Project Summary
 
 **Name**: Rotkeeper
-**Version**: `v0.2.3-pre` (in development)
+**Version**: `v0.2.4-dev` (in development)
 **Type**: Ritual CLI for decaying flat-file systems
 **Core Features**:
 - Bash modular scripts (`rc-*.sh`)
@@ -20,7 +20,7 @@ This document serves as a ritual continuity point for new sessions, threads, or 
 - YAML asset manifest verification
 - Git changelog tracking
 - `.tar.gz` and `.json` tomb archiving
-- `--dry-run`, `main()`, `trap` support
+- `--dry-run`, `--verbose`, `main()`, `trap` support
 
 ***
 
@@ -59,20 +59,19 @@ rotkeeper/
 
 ***
 
-## 🛠 Patch Queue (planned for v0.2.3)
+## 🛠 Patch Queue (v0.2.4-dev)
 
-- Expand `rc-api.sh` with extract + post-fetch support
-- Standardize `--dry-run` and `--help` flags across all scripts
-- Build `.vscode/` onboarding config for dev environment
-- Improve `rc-render.sh` frontmatter validation
-- Begin `rc-pack.sh` tomb metadata enhancements
-- Draft `.woa/` integration (optional WebObjects mode)
+- Harden `run()` to remove `eval` (done)
+- Add `trap_err` to all major scripts (done)
+- Render debug and fallback logic improved
+- Docs frontmatter normalized
+- Template validation added to `rc-render.sh`
 
 ***
 
 ## 📘 Docs Status
 
-- 67 pages render successfully via `render`
+- 81 pages render successfully via `render`
 - Templates work (`plainstone`, `rotkeeper-doc`, etc.)
 - Some stubs remain in `home/content/docs/`
 - Navigation needs manual stitching
@@ -109,23 +108,21 @@ rotkeeper/
 
 ***
 
-## 🧬 v0.2.3-pre — Snapshot for Reseed
+## 🧬 v0.2.4-dev — Snapshot for Reseed
 
-**Branch:** dev-0.2.3
+**Branch:** dev-0.2.4
 **Status:** Active
-**Buffer:** ~72% at time of reseed
-**Tone:** Sarcastic sysadmin. Doompoetry optional. Humor semi-feral.
+**Buffer:** ~55% at time of reseed
+**Tone:** Sarcastic sysadmin. Doompoetry respected.
 
 ### Completed This Cycle:
-- Dracula-themed `.vscode` config deployed
-- All scripts passed `rc-test.sh`
-- Logging, traps, dry-runs standardized
-- `.ritualtodo.md` removed, contents migrated
-- `rotkeeper-audit.md` seeded in `bones/meta/`
-- Obsidian integration marked for future ritual
-- `rc-pack.sh`, `rc-unpack.sh`, `rc-expand.sh` pending
-- All documentation synced and blessed
-- `rotkeeper-manual.md` and `rotkeeper-docbook.md` added to `bones/meta/` as internal reference books
+- `rc-render.sh` rewritten, eval removed
+- Archive + render logic debugged and patched
+- `rotkeeper-followups.md` introduced as long-range taskboard
+- Template fallback warnings now logged
+- Frontmatter fields enforced: `template`, `version`, `updated`
+- Audit updated: all script states reflected accurately
+- Rendered output: 81 pages, 1 tomb archived
 
 ### Next Touchpoint:
 - Reenter with audit and patch queue ready
@@ -133,4 +130,4 @@ rotkeeper/
 - `rc-render.sh` and `rc-api.sh` stable
 - Consider linking manual/docbook pages into future `rc-help.sh` or contributor docs
 
-_Session sealed by tombkeeper at 2025-05-30_
+_Session sealed by tombkeeper at 2025-05-31_
