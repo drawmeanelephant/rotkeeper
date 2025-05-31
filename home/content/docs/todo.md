@@ -10,7 +10,7 @@ version: 0.2.2-pre
 
 Tracking next steps, cleanup tasks, and ritual enforcement plans.
 
----
+***
 
 ## 🧠 Rotkeeper v0.2.0 Hardening Checklist
 
@@ -33,7 +33,7 @@ This section consolidates the status, review, and next-phase plan for your CLI s
 5. **Poetic Ritual Flavor**
    Limericks, glyphs, and atmospheric comments make this fun to read and maintain—great for onboarding new cultists.
 
----
+***
 
 ### 🔧 Areas to Harden
 
@@ -61,7 +61,7 @@ This section consolidates the status, review, and next-phase plan for your CLI s
 7. **Update Docs**
    Polish `configuration-reference.md`, `README.md`, and rendered output to reflect current CLI workflows and flags.
 
----
+***
 
 ### 🎯 Next Concrete Steps
 
@@ -73,7 +73,7 @@ This section consolidates the status, review, and next-phase plan for your CLI s
 6. Enable Pandoc-driven in-page Table of Contents via `--toc` flag and update `render-flags.yaml`.
 7. Inject `asset-meta` JSON into rendered HTML pages by extending the Pandoc template.
 
----
+***
 
 ## 🔧 Manifest Hygiene
 
@@ -81,7 +81,7 @@ This section consolidates the status, review, and next-phase plan for your CLI s
 - [ ] Add `sort -u` pass after each `log_manifest` call
 - [ ] Ensure `manifest.txt` is not polluted by multiple identical entries
 
----
+***
 
 ## 📦 Archive & Packing Cleanliness
 
@@ -89,7 +89,7 @@ This section consolidates the status, review, and next-phase plan for your CLI s
 - [ ] Improve log output: clarify repeated lines vs packed entries
 - [ ] Add post-pack message summarizing tomb contents count
 
----
+***
 
 ## 🧼 Script Cleanup & Branding
 
@@ -100,7 +100,7 @@ This section consolidates the status, review, and next-phase plan for your CLI s
 - [ ] Migrate any logic worth keeping into `rc-*` scripts
 - [ ] Annotate TODO list with hidden Sora prompt placeholders for future tone-setting.
 
----
+***
 
 ## 🔍 Script Compliance Audit
 
@@ -110,7 +110,7 @@ This section consolidates the status, review, and next-phase plan for your CLI s
 - [ ] Use `check_deps` or equivalent in all scripts
 - [ ] Sanity-check argument handling for `--dry-run`, `--help`, `--verbose`
 
----
+***
 
 ## 🪦 Output Enhancements
 
@@ -118,7 +118,7 @@ This section consolidates the status, review, and next-phase plan for your CLI s
 - [ ] Inject CSS, JS, or icon assets via `rc-assets.sh`
 - [ ] Add meta headers or banners to rendered output
 
----
+***
 
 ## 🧠 Docs Polish & Metadata Injection
 
@@ -127,7 +127,7 @@ This section consolidates the status, review, and next-phase plan for your CLI s
 - [ ] Add version tags to top of all rendered `.html` files
 - [ ] Ensure every file in `scripts/` and `templates/` has an `asset-meta` block
 
----
+***
 
 ## 🔁 Ritual Logging
 
@@ -135,7 +135,7 @@ This section consolidates the status, review, and next-phase plan for your CLI s
 - [ ] Add tomb version to every log bundle
 - [ ] Consider emitting a ritual summary `.md` after pack
 
----
+***
 
 ## 🧾 Audit Tools & Metadata Rituals
 
@@ -144,7 +144,7 @@ This section consolidates the status, review, and next-phase plan for your CLI s
 - [ ] Enforce `asset-meta:` in all Markdown via `rc-audit.sh`
 - [ ] Add failure modes to `rc-audit.sh` for missing frontmatter
 
----
+***
 
 ## 🌐 Optional
 
@@ -152,10 +152,10 @@ This section consolidates the status, review, and next-phase plan for your CLI s
 - [ ] Add 404.html and weird mascot lore into rendered output
 - [ ] Link all tombs to tomb index page
 
----
+***
 
 
----
+***
 
 ## 🧃 Script Stub Logic
 
@@ -169,6 +169,48 @@ This section consolidates the status, review, and next-phase plan for your CLI s
 - [x] Bootstrap removal task moved to `template-debt.md`
 - [ ] Ensure templates use Hiq or pure CSS only
 - [ ] Purge Bootstrap references from `render-flags.yaml` and `.html` comments
+
+## 🧟 Shadow Revelations from Peer Review
+
+The following entries arise from structured reviews, audits, and script dissections. These reflect gaps, fragilities, or design decisions flagged as haunted or misleading. To be addressed before or alongside `v0.2.3`.
+
+### 🔥 Critical Gaps
+
+- [ ] Finish or purge stub scripts (`rc-audit.sh`, `rc-unpack.sh`, `rc-webbook.sh`)
+- [ ] Fix archive name collisions: use `%Y-%m-%d_%H%M%S` or `%s` in tarball names
+- [ ] Validate `rotkeeper-bom.yaml`, `render-flags.yaml`, and `asset-manifest.yaml` via `yq` schema
+- [ ] Enforce standard exit codes: `0` (success), `1` (warn), `2` (fail)
+- [ ] Document full lifecycle: create `docs/workflow.md` describing `init → expand → render → pack → scan → reseed`
+
+### 🧪 Testing & Validation
+
+- [ ] Build real test suite using `bats`
+- [ ] Add unit tests for `rc-utils.sh` functions
+- [ ] Write integration test for full CLI flow (init → pack)
+- [ ] Mock `pandoc`, `curl`, `yq` for failure case simulation
+
+### 🧼 YAML + Dependency Fragility
+
+- [ ] Replace manual `awk`/`grep` YAML parsing with `yq` (Mike Farah)
+- [ ] Validate `yq` version compatibility in `rc-deps.sh`
+- [ ] Add timeout + retry logic to `curl` in `rc-api.sh`
+- [ ] Add checksum verification for remote assets
+
+### 🧟 Audit Ritual Enhancements
+
+- [ ] Define schema for `asset-meta` frontmatter
+- [ ] Have `rc-audit.sh` fail on missing or malformed metadata
+- [ ] Implement `--fix` mode in `rc-audit.sh` to inject missing `asset-meta` blocks
+
+### 📚 Docs to Author
+
+- [ ] `docs/schemas/rotkeeper-bom.md`
+- [ ] `docs/schemas/render-flags.md`
+- [ ] `docs/schemas/asset-manifest.md`
+- [ ] `docs/glossary.md`
+- [ ] `docs/errors.md`
+- [ ] `docs/workflow.md`
+- [ ] `bones/meta/rotkeeper-audit.md`
 
 Last updated: 2025-05-13
 <!--
@@ -184,3 +226,28 @@ SORA PROMPT
 
 "a decaying checklist on old paper, taped to a terminal, slowly being updated by a ghostly archivist with a flickering cursor"
 -->
+
+### 🕳️ Exit Interview Questions
+
+The following questions emerged from structured peer reviews and onboarding prompts intended to uncover design gaps, user confusion, or brittle behavior.
+
+- [ ] Where’s the “start here” script to run Rotkeeper rituals in sequence?
+- [ ] What is the canonical directory structure and where is it documented?
+- [ ] Which scripts are production-ready and which are placeholders (e.g. `rc-audit.sh`)?
+- [ ] What is the expected schema for `remote-sources.yaml`?
+- [ ] What is the full configuration schema for `render-flags.yaml`?
+- [ ] What are the bootstrap steps for initializing a fresh Rotkeeper repo?
+- [ ] Should we scaffold a default BOM if `rotkeeper-bom.yaml` is missing?
+- [ ] Is there a mechanism for staging/production config separation?
+- [ ] How are versions for `pandoc`, `yq`, `jq` handled and validated?
+- [ ] Should all scripts unify on `rc-utils.sh` or allow local overrides?
+- [ ] How should `tar`/`gzip` partial failures be handled?
+- [ ] Who owns cleanup duties for `bones/logs`, `bones/archive`, etc.?
+- [ ] Do we validate Markdown frontmatter or just hope it’s well-formed?
+- [ ] What’s the intended use case for `rc-record.sh`?
+- [ ] Are naming conventions enforced for tombs, templates, and assets?
+- [ ] What is the expected output of `rc-scan.sh --json-only`?
+- [ ] What’s the audit spec for `rc-audit.sh` and its timeline?
+- [ ] Should `--dry-run` enforce a strict no-write policy across all scripts?
+- [ ] Should `rc-pack.sh` check for existing archive name collisions?
+- [ ] Is there a formal CI pipeline or is test coverage DIY?

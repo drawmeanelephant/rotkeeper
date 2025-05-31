@@ -17,68 +17,68 @@ asset-meta:
 
 Even in blessed environments, the rot may resist. This page collects common problems encountered during render, bless, or verify phases, and how to exorcise them.
 
----
+***
 
 ## 🔧 Dependency Missing
 
-**Symptom:**  
+**Symptom:**
 Scripts fail with `command not found: yq` or similar.
 
-**Fix:**  
+**Fix:**
 Install missing tool via Homebrew:
 
 ```bash
 brew install yq jq pandoc
 ```
 
----
+***
 
 ## 📂 Path or Directory Not Found
 
-**Symptom:**  
+**Symptom:**
 Errors like `No such file or directory: bones/logs/rc-render.log`
 
-**Fix:**  
+**Fix:**
 Ensure `rotkeeper.sh init` has been run. If folders are still missing, create them manually:
 
 ```bash
 mkdir -p bones/logs home/content output
 ```
 
----
+***
 
 ## 🔐 Permissions Denied
 
-**Symptom:**  
+**Symptom:**
 Scripts fail with `Permission denied`.
 
-**Fix:**  
+**Fix:**
 Ensure scripts are executable:
 
 ```bash
 chmod +x scripts/rc-*.sh rotkeeper.sh
 ```
 
----
+***
 
 ## 🧟 Weird Output or Render Fails
 
-**Symptom:**  
+**Symptom:**
 HTML output is empty or broken, or Pandoc errors.
 
-**Fix:**  
+**Fix:**
 Check the Markdown frontmatter. You may be missing `title`, `template`, or `tomb-version`.
 
----
+***
 
 ## 📉 Logfile Not Rotating
 
-**Symptom:**  
+**Symptom:**
 Multiple logs pile up in root folder.
 
-**Fix:**  
+**Fix:**
 Ensure all `rc-*.sh` scripts are updated to write logs to `bones/logs/`.
 
----
+***
 
 > *“Every failed ritual is a lesson. Every log a confession.”*

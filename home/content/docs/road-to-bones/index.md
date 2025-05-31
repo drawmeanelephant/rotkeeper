@@ -9,7 +9,7 @@ slug: road-to-bones
 
 This is your consolidated status snapshot: what’s working, what’s stubbed, and what’s next. All redundant reports have been buried.
 
----
+***
 
 ### ✅ Core Scripts Verified & Functional
 
@@ -27,7 +27,7 @@ This is your consolidated status snapshot: what’s working, what’s stubbed, a
 
 * 🧪 `rc-docs-fix.sh`, `rc-audit.sh`, `rc-api.sh` — present and partially operational or stubs
 
----
+***
 
 ### 🗂 What You *Could* Do Next (Post-Chat Tasks)
 
@@ -38,7 +38,7 @@ This is your consolidated status snapshot: what’s working, what’s stubbed, a
 | Commit your archive + logs                                | Seals tomb lineage               |
 | Rename current chat thread if you want to export it later | Easier for git-log linking       |
 
----
+***
 
 <!--
 ### 🎨 Parting Sora Prompt
@@ -52,7 +52,7 @@ A prompt flashes once, then fades:
 ```
 -->
 
----
+***
 
 ## Roadmap
 <!-- Aspirational enhancements for v0.2.0+ -->
@@ -62,7 +62,7 @@ A prompt flashes once, then fades:
 * Add git pre-commit hook for automatic `scan + bless`
 * Create a `bones/status.md` as a rotkeeper dashboard
 
----
+***
 
 <!--
 ## 🧊 Final Sora Prompt
@@ -75,7 +75,7 @@ A bureaucratic mascot archive, stored on a rusted terminal at the end of the wor
 📁 *Rotkeeper v0.1.9.3 — awaiting 0.2.0*
 💀 *May the manifest never match the disk.*
 -->
----
+***
 
 ## 🛠 Suggested Filesystem Layout
 
@@ -98,7 +98,7 @@ rotkeeper/
 
 <!-- Updated on v0.2.0-pre -->
 
----
+***
 
 ## 🧾 Rotkeeper Structural & Stability Audit — v0.2.1
 
@@ -182,10 +182,10 @@ Include in each script:
 ## 📜 purpose: purge leftovers, preserve backups
 ```
 
----
+***
 
 
----
+***
 
 ### 📊 Compliance Matrix Sample
 

@@ -8,7 +8,7 @@ template: rotkeeper-doc.html
 
 Rotkeeper supports basic HTML template rendering using Pandoc-compatible layouts. This page catalogs the included templates, explains layout logic, and outlines how to create or override your own.
 
----
+***
 
 ## 📁 Where Templates Live
 
@@ -22,7 +22,7 @@ templates:
   - templates/rot-notice.html
 ```
 
----
+***
 
 ## 🍔 `stackburger.html`
 
@@ -37,14 +37,14 @@ You can customize it to include:
 - Post-render scripts
 - Log-referenced inline metadata
 
----
+***
 
 ## 🚫 `rot-notice.html`
 
-A minimal template for rendering warnings, blank states, or expired tomb notices.  
+A minimal template for rendering warnings, blank states, or expired tomb notices.
 Use this if you need to output content that's been redacted or obsoleted.
 
----
+***
 
 ## 🛠 How to Make a New Template
 
@@ -69,7 +69,7 @@ asset-meta:
 pandoc input.md -o output.html --template templates/my-custom.html
 ```
 
----
+***
 
 ## 🧬 Custom Layout Conventions
 
@@ -78,18 +78,18 @@ pandoc input.md -o output.html --template templates/my-custom.html
 - Templates may include `<!-- comments -->` for inline metadata or warnings
 - You are encouraged to make the templates visibly haunted
 
----
+***
 
-Back to [Asset Pipeline](asset-pipeline.md)  
+Back to [Asset Pipeline](asset-pipeline.md)
 Continue to [Content Structure](content-structure.md)
 
 <!--
 LIMERICK
 
-A template once stitched from the dread,  
-With `$body$` and `$title$` it bled.  
-It rendered the page,  
-Contained all the rage—  
+A template once stitched from the dread,
+With `$body$` and `$title$` it bled.
+It rendered the page,
+Contained all the rage—
 Of markdown now statically dead.
 
 SORA PROMPT

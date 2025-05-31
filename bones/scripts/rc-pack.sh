@@ -106,7 +106,7 @@ main() {
     OUTPUT_DIR="output"
     MANIFEST_FILE="$CONFIG_DIR/manifest.txt"
     VERSION=$(date +%Y-%m-%d_%H%M)
-    TOMB="tomb-$VERSION.tar.gz"
+    TOMB="tomb-$VERSION.tar"
     EXPORT_JSON="$ARCHIVE_DIR/tomb-export-$VERSION.json"
 
     mkdir -p "$ARCHIVE_DIR"
@@ -121,16 +121,34 @@ main() {
     if [[ "$SELF_MODE" == false ]]; then
       if [[ "$DRY_RUN" == false ]]; then
         echo "📦 Packing $OUTPUT_DIR into $TOMB"
-        run "tar -czf \"$ARCHIVE_DIR/$TOMB\" \"$OUTPUT_DIR\""
+        run "tar -cf \"$ARCHIVE_DIR/$TOMB\" \"$OUTPUT_DIR\""
         # Count files in the created archive and log summary
         if [[ "$DRY_RUN" == false ]]; then
-          count=$(tar -tzf "$ARCHIVE_DIR/$TOMB" | wc -l)
+          count=$(tar -tf "$ARCHIVE_DIR/$TOMB" | wc -l)
           log "INFO" "Packaged $count files into $TOMB"
         fi
         if [[ "$DRY_RUN" == false ]]; then
           SHA=$(sha256sum "$ARCHIVE_DIR/$TOMB" | cut -d' ' -f1)
           echo "$TOMB  $SHA" >> "$MANIFEST_FILE"
         fi
+
+        # Embed metadata into archive
+        if [[ "$DRY_RUN" == false ]]; then
+          METADATA_FILE="$(mktemp)"
+          jq -n \
+            --arg name "$TOMB" \
+            --arg sha "$SHA" \
+            --arg timestamp "$VERSION" \
+            --arg mode "default" \
+            --arg count "$count" \
+            '{name: $name, sha256: $sha, timestamp: $timestamp, mode: $mode, file_count: $count|tonumber}' > "$METADATA_FILE"
+          run "tar --append --file=\"$ARCHIVE_DIR/$TOMB\" -C \"$(dirname "$METADATA_FILE")\" \"$(basename "$METADATA_FILE")\""
+          run "gzip -f \"$ARCHIVE_DIR/$TOMB\""
+          rm "$METADATA_FILE"
+          TOMB="$TOMB.gz"
+          log "INFO" "Embedded metadata.json into $TOMB"
+        fi
+
         echo "🧾 Archived to $ARCHIVE_DIR/$TOMB"
       else
         log "DRYRUN" "Would pack $OUTPUT_DIR into $ARCHIVE_DIR/$TOMB"
@@ -138,18 +156,36 @@ main() {
     fi
 
     if [[ "$SELF_MODE" == true ]]; then
-      SELF_ARCHIVE="tombkit-$VERSION.tar.gz"
+      SELF_ARCHIVE="tombkit-$VERSION.tar"
       echo "📦 Packing full rotkeeper system into $SELF_ARCHIVE"
-      run "tar --exclude=\"$ARCHIVE_DIR\" -czf \"$ARCHIVE_DIR/$SELF_ARCHIVE\" rotkeeper.sh bones/ home/ output/"
+      run "tar --exclude=\"$ARCHIVE_DIR\" -cf \"$ARCHIVE_DIR/$SELF_ARCHIVE\" rotkeeper.sh bones/ home/ output/"
       # Count files in the self archive and log summary
       if [[ "$DRY_RUN" == false ]]; then
-        count=$(tar -tzf "$ARCHIVE_DIR/$SELF_ARCHIVE" | wc -l)
+        count=$(tar -tf "$ARCHIVE_DIR/$SELF_ARCHIVE" | wc -l)
         log "INFO" "Packaged $count files into $SELF_ARCHIVE"
       fi
       if [[ "$DRY_RUN" == false ]]; then
         SHA=$(sha256sum "$ARCHIVE_DIR/$SELF_ARCHIVE" | cut -d' ' -f1)
         echo "$SELF_ARCHIVE  $SHA" >> "$MANIFEST_FILE"
       fi
+
+      # Embed metadata into archive
+      if [[ "$DRY_RUN" == false ]]; then
+        METADATA_FILE="$(mktemp)"
+        jq -n \
+          --arg name "$SELF_ARCHIVE" \
+          --arg sha "$SHA" \
+          --arg timestamp "$VERSION" \
+          --arg mode "self" \
+          --arg count "$count" \
+          '{name: $name, sha256: $sha, timestamp: $timestamp, mode: $mode, file_count: $count|tonumber}' > "$METADATA_FILE"
+        run "tar --append --file=\"$ARCHIVE_DIR/$SELF_ARCHIVE\" -C \"$(dirname "$METADATA_FILE")\" \"$(basename "$METADATA_FILE")\""
+        run "gzip -f \"$ARCHIVE_DIR/$SELF_ARCHIVE\""
+        rm "$METADATA_FILE"
+        SELF_ARCHIVE="$SELF_ARCHIVE.gz"
+        log "INFO" "Embedded metadata.json into $SELF_ARCHIVE"
+      fi
+
       echo "🧾 Archived full tombkit to $ARCHIVE_DIR/$SELF_ARCHIVE"
     fi
 

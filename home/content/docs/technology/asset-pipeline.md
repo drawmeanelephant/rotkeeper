@@ -9,7 +9,7 @@ template: rotkeeper-doc.html
 
 Rotkeeper's asset pipeline governs how static files are copied, versioned, and injected into the tomb environment. It also defines how `asset-meta` tags are tracked and maintained throughout the build cycle.
 
----
+***
 
 ## 📁 Asset Sources
 
@@ -23,7 +23,7 @@ home/icons/
 
 These folders are expected to exist prior to running `rc-assets.sh` and are recursively scanned.
 
----
+***
 
 ## 🔃 Copy Mechanisms
 
@@ -46,7 +46,7 @@ Or directly:
 ./scripts/rc-assets.sh
 ```
 
----
+***
 
 ## 📑 `asset-meta` Headers
 
@@ -80,7 +80,7 @@ These tags allow `rc-scan.sh` and `rc-bless.sh` to:
 | `themes/` | Theme folders (e.g. HiQ) |
 | `icons/` | SVG or emoji sets (e.g. OpenMoji) |
 
----
+***
 
 ## ⚠️ Notes on Pipeline Behavior
 
@@ -89,7 +89,7 @@ These tags allow `rc-scan.sh` and `rc-bless.sh` to:
 - If a file is missing from `bones/manifest.txt`, it won’t be packed
 - Use `rc-scan.sh` to validate what’s missing or untracked
 
----
+***
 
 ## 🧪 Example Flow
 
@@ -100,18 +100,18 @@ These tags allow `rc-scan.sh` and `rc-bless.sh` to:
 ./rotkeeper pack         # archives everything in manifest.txt
 ```
 
----
+***
 
-Continue to [Template Library](template-library.md)  
+Continue to [Template Library](template-library.md)
 Back to [Configuration Reference](configuration-reference.md)
 
 <!--
 LIMERICK
 
-The pipeline injected with grace,  
-Each asset assigned to its place.  
-With headers and tags,  
-It zipped into bags—  
+The pipeline injected with grace,
+Each asset assigned to its place.
+With headers and tags,
+It zipped into bags—
 And logged its own rot with no trace.
 
 SORA PROMPT

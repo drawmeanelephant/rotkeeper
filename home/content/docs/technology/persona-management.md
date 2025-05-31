@@ -33,7 +33,7 @@ They may:
 | Page Footer | “Filed and rendered by Patchy Mx.CLI, 2025” |
 | Logs | `✅ Rot blessed by Council of Mascot Authors` |
 
----
+***
 
 ## ✍️ Defining a Persona
 
@@ -50,7 +50,7 @@ persona:
 
 You can then reference this block from templates or logs using simple interpolation logic.
 
----
+***
 
 ## 📁 Suggested Persona Files
 
@@ -65,7 +65,7 @@ personas/
 
 These files can be read by scripts like `rc-render.sh` or `rc-log.sh` to personalize output or narrate actions.
 
----
+***
 
 ## 🧠 Tips
 
@@ -74,18 +74,18 @@ These files can be read by scripts like `rc-render.sh` or `rc-log.sh` to persona
 - Consider embedding short bios in logs or changelogs
 - Stick to weird job titles like “Emotional Integrity Buffer” or “Render Shaman”
 
----
+***
 
-Back to [Logging & Diagnostics](logging-diagnostics.md)  
+Back to [Logging & Diagnostics](logging-diagnostics.md)
 Continue to [Troubleshooting FAQ](troubleshooting-faq.md)
 
 <!--
 LIMERICK
 
-A ghost with a name in the logs,  
-Appeared through some rot-scripted fogs.  
-It signed every trace  
-In a font full of grace—  
+A ghost with a name in the logs,
+Appeared through some rot-scripted fogs.
+It signed every trace
+In a font full of grace—
 And spoke through erroneous progs.
 
 SORA PROMPT

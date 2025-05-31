@@ -1,5 +1,3 @@
-
-
 #!/usr/bin/env bash
 # ░▒▓█ ROTKEEPER SCRIPT █▓▒░
 # Script: rc-log.sh

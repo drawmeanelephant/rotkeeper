@@ -22,7 +22,7 @@ Rotkeeper’s planned `rc-record.sh` tool allows a tomb to generate the script t
 
 The result is a snapshot not just of state, but of **procedure**.
 
----
+***
 
 ## 📄 Example Output
 
@@ -43,7 +43,7 @@ You can pipe this into a file for reproduction:
 bash tomb-replay.sh
 ```
 
----
+***
 
 ## 🎛 Use Cases
 
@@ -52,7 +52,7 @@ bash tomb-replay.sh
 - Restore an old version’s state *exactly* from a past invocation
 - Let AI agents replay and audit rot procedures for forensic analysis
 
----
+***
 
 ## 🔮 Future Features
 
@@ -60,18 +60,18 @@ bash tomb-replay.sh
 - Embed persona signature in generated file
 - Include optional SHA validation or meta header summary
 
----
+***
 
-Back to [Changelog & Version Blessing](changelog-blessing.md)  
+Back to [Changelog & Version Blessing](changelog-blessing.md)
 Return to [Documentation Index](index.md)
 
 <!--
 LIMERICK
 
-A record was etched in the void,  
-A ritual script to be deployed.  
-With each line replayed,  
-The tomb was remade—  
+A record was etched in the void,
+A ritual script to be deployed.
+With each line replayed,
+The tomb was remade—
 And entropy briefly enjoyed.
 
 SORA PROMPT

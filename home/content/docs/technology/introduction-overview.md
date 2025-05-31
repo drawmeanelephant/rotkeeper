@@ -8,7 +8,7 @@ template: rotkeeper-doc.html
 
 > “Rotkeeper is what you use when the version you’re saving might be the last one.”
 
----
+***
 
 ## What Is Rotkeeper?
 
@@ -16,7 +16,7 @@ Rotkeeper is a ritual CLI system for building, preserving, and archiving flat-fi
 
 This project assumes you are working with collapsing sites, Markdown relics, digital zines, or static content that needs to be versioned and preserved with intent. It uses shell scripts, YAML, and minimal dependencies to produce `.tar.gz` tombs: bundled, reproducible site states you can carry across versions, projects, or eras.
 
----
+***
 
 ## Who Is It For?
 
@@ -24,17 +24,17 @@ Rotkeeper is for archivists, solo builders, weird site maintainers, necroweb mys
 
 If you're looking for SEO scores, database backends, or React hydration—you are in the wrong graveyard.
 
----
+***
 
 ## Why Rot? Why Ritual?
 
-Because flat-file collapse is coming anyway.  
-Because your last deploy might be the only one that survives.  
+Because flat-file collapse is coming anyway.
+Because your last deploy might be the only one that survives.
 Because version control belongs in the file, not in an external repo you forgot to push.
 
 Rotkeeper is built around ritual—not optimization. Each file contains metadata. Each render is an invocation. Each archive is a tomb.
 
----
+***
 
 ## What Does It Replace?
 
@@ -50,7 +50,7 @@ It gives you:
 - `rotkeeper` and `rc-*` tools for consistent behavior
 - A repeatable archive cycle that doesn't require a repo
 
----
+***
 
 ## Core Concepts and Ritual Structure
 
@@ -60,11 +60,11 @@ It gives you:
 - **Asset Metadata**: Embedded YAML-style headers in every tracked file
 - **Manifests**: Version maps (`asset-manifest.yaml`) showing what changed, when, and why
 
----
+***
 
 ## Ready to Begin?
 
-Start with the [Quickstart Guide](quickstart-guide.md) to render your first tomb.  
+Start with the [Quickstart Guide](quickstart-guide.md) to render your first tomb.
 Or jump to the [Configuration Reference](configuration-reference.md) to define your project's structure.
 
 Rotkeeper is not here to scale. It is here to rot well.
@@ -74,10 +74,10 @@ Back to [Documentation Index](index.md)
 <!--
 LIMERICK
 
-A keeper once built in despair,  
-Stored scripts with meticulous care.  
-Each folder a curse,  
-Each asset a hearse—  
+A keeper once built in despair,
+Stored scripts with meticulous care.
+Each folder a curse,
+Each asset a hearse—
 But the tombshell was perfectly bare.
 
 SORA PROMPT

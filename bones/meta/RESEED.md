@@ -22,7 +22,7 @@ This document serves as a ritual continuity point for new sessions, threads, or 
 - `.tar.gz` and `.json` tomb archiving
 - `--dry-run`, `main()`, `trap` support
 
----
+***
 
 ## 📁 Repo Structure
 
@@ -37,7 +37,7 @@ rotkeeper/
 ├── .gitignore          # Enforced (SUPPORT/, logs/, .DS_Store, etc)
 └── .github/            # Future CI workflows
 
----
+***
 
 ## 🌐 GitHub & Site
 
@@ -45,7 +45,7 @@ rotkeeper/
 - **Release Tag**: `dev-0.2.3`
 - **Archive**: https://rotkeeper.com/0.2.0.0.tar.gz
 
----
+***
 
 ## 🔧 Recent Patches (v0.2.1)
 
@@ -57,7 +57,7 @@ rotkeeper/
 - Test suite (`rc-test.sh`) supports dry-run and skips itself
 - All `.sh` scripts pass local test ritual
 
----
+***
 
 ## 🛠 Patch Queue (planned for v0.2.3)
 
@@ -68,7 +68,7 @@ rotkeeper/
 - Begin `rc-pack.sh` tomb metadata enhancements
 - Draft `.woa/` integration (optional WebObjects mode)
 
----
+***
 
 ## 📘 Docs Status
 
@@ -80,7 +80,7 @@ rotkeeper/
 - `render-flags.yaml` governs template logic + filter control
 - Frontmatter compliance checks in progress (`asset-meta:` focus)
 
----
+***
 
 ## 🧪 Known To-Dos
 
@@ -91,7 +91,7 @@ rotkeeper/
 - Finalize Obsidian/VScode project export logic
 - Automate `docs.rotkeeper.com` generation
 
----
+***
 
 ## 🧾 License & Fonts
 
@@ -99,10 +99,38 @@ rotkeeper/
 - Fonts: IBM Plex (OFL)
 - Emoji: OpenMoji (CC BY-SA 4.0)
 
----
+***
 
 - Audit sheet: `rotkeeper-audit.md` added for tracking script state
 
----
+***
 
 *Rotkeeper never dies. It forks.*
+
+***
+
+## 🧬 v0.2.3-pre — Snapshot for Reseed
+
+**Branch:** dev-0.2.3
+**Status:** Active
+**Buffer:** ~72% at time of reseed
+**Tone:** Sarcastic sysadmin. Doompoetry optional. Humor semi-feral.
+
+### Completed This Cycle:
+- Dracula-themed `.vscode` config deployed
+- All scripts passed `rc-test.sh`
+- Logging, traps, dry-runs standardized
+- `.ritualtodo.md` removed, contents migrated
+- `rotkeeper-audit.md` seeded in `bones/meta/`
+- Obsidian integration marked for future ritual
+- `rc-pack.sh`, `rc-unpack.sh`, `rc-expand.sh` pending
+- All documentation synced and blessed
+- `rotkeeper-manual.md` and `rotkeeper-docbook.md` added to `bones/meta/` as internal reference books
+
+### Next Touchpoint:
+- Reenter with audit and patch queue ready
+- Optional: begin refactor or ritual expansion
+- `rc-render.sh` and `rc-api.sh` stable
+- Consider linking manual/docbook pages into future `rc-help.sh` or contributor docs
+
+_Session sealed by tombkeeper at 2025-05-30_

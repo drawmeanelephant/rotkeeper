@@ -2,8 +2,8 @@
 title: "🪦 rc-pack.sh Reference"
 slug: rc-pack
 template: rotkeeper-doc.html
-version: "0.2.1"
-updated: "2025-05-29"
+version: "0.2.3-pre"
+updated: "2025-05-30"
 ---
 
 <!-- Begin Ritual Script Documentation -->
@@ -18,6 +18,7 @@ updated: "2025-05-29"
 <!-- Core objectives of rc-pack.sh -->
 - Bundle the `output/` directory into a timestamped `.tar.gz` archive and log it in `bones/manifest.txt`.
 - Export all Markdown under `home/content/` into a single JSON file for AI consumption and external indexing.
+- Embed archive metadata (`metadata.json`) directly into each tomb before compression for self-validation and ritual completeness.
 
 ## CLI Interface
 <!-- How to invoke the packing ceremony -->
@@ -45,6 +46,8 @@ Workflow Steps
 	•	Check for tar, jq, and pandoc.
 	2.	Archive Output
 	•	Create bones/archive/tomb-YYYY-MM-DD_HHMM.tar.gz from output/ (excluding backups if --self).
+	2.5. Embed Metadata
+	•  Inject a generated `metadata.json` file into each `.tar` archive before compression. This includes name, SHA256 checksum, timestamp, archive mode, and file count.
 	3.	Export Markdown
 	•	Use pandoc to convert .md files under home/content/ into JSON.
 	4.	Log Operation
@@ -78,6 +81,9 @@ Examples
 
 # Show help
 ./bones/scripts/rc-pack.sh --help
+
+# Embed metadata in default pack (done automatically)
+./bones/scripts/rc-pack.sh
 ```
 
 🛣️ Navigation

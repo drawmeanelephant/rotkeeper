@@ -2,7 +2,7 @@
 
 This project includes external assets used under open licenses:
 
----
+***
 
 ## 🎨 OpenMoji
 
@@ -10,7 +10,7 @@ Emoji symbols provided by [OpenMoji](https://openmoji.org/).
 License: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
 © OpenMoji – the open-source emoji and icon project.
 
----
+***
 
 ## 🔠 IBM Plex Font
 

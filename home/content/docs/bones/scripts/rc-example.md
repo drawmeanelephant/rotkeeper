@@ -16,7 +16,7 @@ updated: "2025-05-29"
 
 A concise overview of what `rc-example.sh` does in the Rotkeeper toolkit. Use it to kickstart new documentation pages with Rotkeeper conventions applied automatically.
 
----
+***
 
 ## 📝 Overview
 
@@ -24,7 +24,7 @@ A concise overview of what `rc-example.sh` does in the Rotkeeper toolkit. Use it
 
 The `rc-example.sh` utility jumpstarts your documentation workflow by generating fully-formed Markdown stubs that conform to Rotkeeper standards. **Purpose:** Provide a template for documenting Rotkeeper utilities. **Inputs:** Placeholder values or flags as defined. **Outputs:** A standardized documentation stub. **Typical use-case:** Bootstrapping new script documentation.
 
----
+***
 
 ## 🚀 Usage
 
@@ -64,13 +64,13 @@ Forcing overwrite:
 
 A concise overview of what `rc-test.sh` does in the Rotkeeper toolkit.
 
----
+***
 
 ## 📝 Overview
 
 The `rc-test.sh` utility jumpstarts your documentation workflow by generating fully-formed Markdown stubs that conform to Rotkeeper standards.
 
----
+***
 
 ## 🚀 Usage
 
@@ -85,13 +85,13 @@ The `rc-test.sh` utility jumpstarts your documentation workflow by generating fu
 ```
 ```
 
----
+***
 
 ## 🔍 Details
 
 When invoked, the utility loads its template and prepares the target directory, ensuring any existing stub is backed up if `--force` is used. It then validates inputs by checking that all required placeholders and flags are present and correctly formatted. After validation, the utility writes the output by emitting the markdown stub to the designated documentation location. Finally, it logs the status by reporting success or any errors encountered during the process.
 
----
+***
 
 
 ## Roadmap
@@ -116,7 +116,7 @@ Integrate a hook to generate and embed limericks automatically, adding a layer o
 ### 🔍 CI Stub Validation
 Implement continuous integration checks that validate front-matter, flag usage, and section completeness to ensure stub quality on every change.
 
----
+***
 
 ## 🛠️ Troubleshooting
 
@@ -131,7 +131,7 @@ Implement continuous integration checks that validate front-matter, flag usage, 
 - **Unexpected YAML parse errors**
   Check front-matter syntax for missing dashes or incorrect indentation.
 
----
+***
 
 <!--
 A fresh stub gleams at dawn’s first light,
@@ -145,7 +145,7 @@ And guides future script scribes aright.
 A place for limericks and invisible rot notes.
 -->
 
----
+***
 ## 💤 Haiku
 
 ### v1

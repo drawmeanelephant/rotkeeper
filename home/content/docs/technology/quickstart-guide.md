@@ -13,7 +13,7 @@ By the end of this guide, you will have:
 - Rendered a Markdown file into HTML using a template
 - Packed the project into a reproducible `.tar.gz` tomb
 
----
+***
 
 ## 🛠️ Prerequisites
 
@@ -25,7 +25,7 @@ Before you begin:
   cd rotkeeper
   ```
 
----
+***
 
 ## 1. Initialize the Project
 
@@ -46,7 +46,7 @@ You can view the log output in:
 cat logs/yougood.brah
 ```
 
----
+***
 
 ## 2. Add Sample Content
 
@@ -56,7 +56,7 @@ Create a Markdown file inside the `content/` directory:
 echo "# My First Tomb" > content/example.md
 ```
 
----
+***
 
 ## 3. Render the Site
 
@@ -68,7 +68,7 @@ Use the `render` command to convert your Markdown into HTML:
 
 The output will appear in the `output/` folder, using the default layout (`templates/stackburger.html`).
 
----
+***
 
 ## 4. Pack the Tomb
 
@@ -83,7 +83,7 @@ This will:
 - Exclude unwanted files (like `archive/`)
 - Output a `.tar.gz` file in the root project folder
 
----
+***
 
 ## ✅ Success
 

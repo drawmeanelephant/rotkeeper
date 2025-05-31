@@ -3,9 +3,8 @@
         "redhat.vscode-yaml",
         "shd101wyy.markdown-preview-enhanced",
         "yzhang.markdown-all-in-one",
-        "beardedbear.beardedtheme",
-        "beardedbear.beardedicons",
         "bierner.emojisense",
-        "continue.continue"
+        "continue.continue",
+        "dracula-theme.theme-dracula"
     ]
 }

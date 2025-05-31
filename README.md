@@ -2,13 +2,15 @@
 
 # 🪦 Rotkeeper
 
-Ritual CLI for decaying flat-file systems and rendering tombs.
-Rotkeeper is a modular Bash-based system for maintaining Markdown-based archives, verifying content integrity, and automating digital decay rituals.
-This project is intentionally over-commented, offline-friendly, and not afraid of the void.
+*“What lives in `/bones/` may yet render again.”*
 
-**Version:** `0.2.1`
+Rotkeeper is a haunted CLI suite for Markdown morticians, static site cryptkeepers, and ritual sysadmins.
+Written in modular Bash, it automates the slow decay and archival rebirth of your flat-file knowledge hoards.
+Every script is annotated for post-apocalyptic readability. No network required. Only reverence.
 
----
+**Current Version:** `0.2.3-pre`
+
+***
 
 ## 📁 What It Does
 
@@ -18,7 +20,7 @@ This project is intentionally over-commented, offline-friendly, and not afraid o
 - Packs full tomb archives for portable decay
 - Supports `--dry-run` logic and offline use
 
----
+***
 
 ## ⚙️ Requirements
 
@@ -26,7 +28,7 @@ This project is intentionally over-commented, offline-friendly, and not afraid o
 - `pandoc`, `shasum`, `yq` (for YAML processing)
 - Terminal that understands the grimness of existence
 
----
+***
 
 ## 🔧 Quickstart
 
@@ -43,7 +45,7 @@ For a full ritual, try:
 ./rotkeeper.sh all
 ```
 
----
+***
 
 ## 📜 Folder Layout
 
@@ -55,7 +57,7 @@ For a full ritual, try:
 ├── rotkeeper.sh        # The main dispatcher script
 ```
 
----
+***
 
 ## ✨ Highlights
 
@@ -64,7 +66,7 @@ For a full ritual, try:
 - No unnecessary dependencies
 - All output can be archived as `.tar.gz` tombs
 
----
+***
 
 ## 🚧 Status
 
@@ -73,7 +75,7 @@ It is **functional but haunted**.
 Most scripts work cleanly. Some logs whisper.
 Perfect for archival weirdos, cursed sysadmins, and digital necromancers.
 
----
+***
 
 ## 📦 Releasing
 
@@ -82,13 +84,13 @@ https://rotkeeper.com/0.2.0.0.tar.gz
 
 GitHub tag: [v0.2.1](https://github.com/drawmeanelephant/rotkeeper/releases)
 
----
+***
 
 ## 💀 License
 
 MIT. You may rot freely.
 
----
+***
 
 <!--
 ⚠️ This is a post-labor ritual CLI.

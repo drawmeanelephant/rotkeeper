@@ -9,16 +9,16 @@ template: rotkeeper-doc.html
 
 # ⚙️ Configuration Reference
 
-Rotkeeper uses a structured configuration file to initialize the project environment.  
+Rotkeeper uses a structured configuration file to initialize the project environment.
 This reference explains the available fields, default values, and usage patterns for `init-config.yaml`.
 
----
+***
 
 ## 📄 File: `init-config.yaml`
 
 This YAML file is consumed by `rc-init.sh` (and indirectly by `rotkeeper init`) to determine which directories, templates, placeholders, and files to scaffold.
 
----
+***
 
 ## 📁 Key Sections
 
@@ -34,7 +34,7 @@ dirs:
   - scripts
 ```
 
----
+***
 
 ### `placeholders`
 Touch files added to empty directories to keep them in version control.
@@ -45,10 +45,10 @@ placeholders:
   - output/.keep
 ```
 
----
+***
 
 ### `templates`
-Seed templates placed in `templates/` during init.  
+Seed templates placed in `templates/` during init.
 You can customize or override them later.
 
 ```yaml
@@ -57,7 +57,7 @@ templates:
   - templates/rot-notice.html
 ```
 
----
+***
 
 ### `yamls`
 YAML-based files to seed during init—includes config stubs and asset-metadata files.
@@ -68,7 +68,7 @@ yamls:
   - asset-manifest.yaml
 ```
 
----
+***
 
 ### `scripts`
 Scripts seeded during init—should match your `rc-` naming convention.
@@ -80,7 +80,7 @@ scripts:
   - scripts/rc-bless.sh
 ```
 
----
+***
 
 ## 🧬 Asset-Meta Integration
 
@@ -98,7 +98,7 @@ All config files should include an embedded asset-meta block like:
 
 These fields are used by `rotkeeper`, `rc-bless.sh`, and `rc-scan.sh` to track decay, update status, and log file lifecycle changes.
 
----
+***
 
 ## 🪦 Example Full `init-config.yaml`
 
@@ -128,7 +128,7 @@ scripts:
   - scripts/rc-bless.sh
 ```
 
----
+***
 
 ## 🧠 Tips
 
@@ -137,18 +137,18 @@ scripts:
 - The order of entries doesn't matter, but grouping improves legibility
 - You can override templates and scripts by placing newer files in the tree before running `rotkeeper init` again
 
----
+***
 
-Back to [Documentation Index](index.md)  
+Back to [Documentation Index](index.md)
 Continue to [Asset Pipeline](asset-pipeline.md)
 
 <!--
 LIMERICK
 
-A config once typed in a daze  
-Defined all the folders and ways.  
-Its YAML was neat,  
-Its init complete—  
+A config once typed in a daze
+Defined all the folders and ways.
+Its YAML was neat,
+Its init complete—
 And it bootstrapped the tomb through a haze.
 
 SORA PROMPT

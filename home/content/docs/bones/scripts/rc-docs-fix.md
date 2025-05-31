@@ -20,7 +20,7 @@ updated: "2025-05-30"
 
 A concise overview of what `rc-docs-fix.sh` does in the Rotkeeper toolkit, providing automated insertion of standard sections into Markdown docs.
 
----
+***
 
 ## 📝 Overview
 
@@ -30,7 +30,7 @@ A concise overview of what `rc-docs-fix.sh` does in the Rotkeeper toolkit, provi
 
 The `rc-docs-fix.sh` utility audits and patches Markdown files by inserting stub sections for Purpose, Usage, Examples, Troubleshooting, and Future Plans if they are missing. **Inputs:** Target directory path (default: `home/content/docs/`). **Outputs:** Updated Markdown files with inserted section stubs and corresponding backups.
 
----
+***
 
 ## 🚀 Usage
 
@@ -63,7 +63,7 @@ Display help:
 rc-docs-fix --help
 ```
 
----
+***
 
 ## 🔍 Details
 
@@ -79,7 +79,7 @@ Upon invocation, the utility:
 5. Reports the files modified and backups created.
    - Summary printed to stdout, listing each file processed and backup location.
 
----
+***
 
 ## 🛣️ Navigation
 <!-- Quick navigation links -->
@@ -87,7 +87,7 @@ Upon invocation, the utility:
 - [Docs-Fix Reference](scripts/rc-docs-fix.html)
 - [Bones Home](index.html)
 
----
+***
 
 ## 🛠️ Troubleshooting
 
@@ -96,7 +96,7 @@ Upon invocation, the utility:
 - **Unsupported sed version?** Install GNU sed or adjust the script’s sed-detection logic.
 - **No changes made?** Use `--dry-run` to inspect what would be added, or verify the files are missing known stub headings.
 
----
+***
 
 ## 🎨 Sora Prompts
 

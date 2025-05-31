@@ -12,7 +12,7 @@ Rotkeeper scripts log everything. Every directory created, file injected, archiv
 
 This file explains how Rotkeeper logs work, where to find them, and how to interpret their often deadpan tone.
 
----
+***
 
 ## 📁 Log Output Location
 
@@ -24,7 +24,7 @@ Logs are stored in the `logs/` folder by default. You may see:
 
 You can modify these locations in your configuration, but the defaults are consistent across projects.
 
----
+***
 
 ## 🧾 yougood.brah
 
@@ -40,7 +40,7 @@ Example entries:
 
 It is safe to append your own entries to this file if you're extending behavior. It is meant to be human-readable and ritualistically reassuring.
 
----
+***
 
 ## 🧪 render.log
 
@@ -52,7 +52,7 @@ It will contain errors, warnings, and info from each Markdown file that is proce
 - Undefined variables in frontmatter
 - Files that fail to convert due to encoding issues
 
----
+***
 
 ## 📦 manifest.txt
 
@@ -63,7 +63,7 @@ It is used by:
 - `rc-bless.sh`
 - `rc-verify.sh`
 
----
+***
 
 ## ⚠️ Common Issues
 
@@ -71,7 +71,7 @@ It is used by:
 - If `render.log` is missing: you may not have invoked `rotkeeper render`
 - If `manifest.txt` is incomplete: assets may be missing asset-meta, or `rc-assets.sh` was skipped
 
----
+***
 
 ## 🧠 Tips
 
@@ -79,18 +79,18 @@ It is used by:
 - Avoid reusing logs between builds unless explicitly comparing
 - You can parse `manifest.txt` to quickly audit content drift between tombs
 
----
+***
 
-Back to [Limericks & Creative Corner](limericks-creative-corner.md)  
+Back to [Limericks & Creative Corner](limericks-creative-corner.md)
 Continue to [Persona Management](persona-management.md)
 
 <!--
 LIMERICK
 
-The logger once quietly groaned,  
-As subroutines echoed and moaned.  
-Its timestamps were terse,  
-Each message a curse—  
+The logger once quietly groaned,
+As subroutines echoed and moaned.
+Its timestamps were terse,
+Each message a curse—
 But the tomb’s full condition was known.
 
 SORA PROMPT

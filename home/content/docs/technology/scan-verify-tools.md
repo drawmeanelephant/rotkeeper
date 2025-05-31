@@ -11,7 +11,7 @@ Rotkeeper includes tooling to audit file rot, detect drift, and confirm tomb int
 
 They complement one another: `rc-scan.sh` surfaces issues **in the current filesystem**, while `rc-verify.sh` inspects **archived tombs** and ensures SHA integrity against manifests.
 
----
+***
 
 ## 📂 What Gets Scanned?
 
@@ -26,7 +26,7 @@ Tools like `rc-scan.sh` and `rc-verify.sh` inspect:
 
 For full usage details, see [`rc-scan.sh`](../bones/scripts/rc-scan.md) and [`rc-verify.sh`](../bones/scripts/rc-verify.md).
 
----
+***
 
 ## 🧪 `rc-scan.sh`
 
@@ -45,7 +45,7 @@ Flags supported:
 
 Output includes a Markdown report in `home/content/rotkeeper/scan-report-*.md` and a JSON version in `bones/reports/scan-report-*.json`.
 
----
+***
 
 ## 📏 `rc-verify.sh`
 
@@ -61,7 +61,7 @@ Flags:
 - `--quiet`: suppress normal output, exit codes only
 - `--manifest`: verify manifest entries only, skip full tomb unpack
 
----
+***
 
 ## 🧾 Sample Output: Markdown Scan Report
 
@@ -76,7 +76,7 @@ Flags:
 - `bones/scripts/rc-pack.sh`: a1b2c3d4e5f6…
 ```
 
----
+***
 
 ## 🧠 Tips for Verification Workflows
 
@@ -98,18 +98,18 @@ Exit codes:
 - `1`: warnings or mismatches (non-fatal)
 - `2`: missing dependencies, unreadable manifests, or structural failures
 
----
+***
 
-Back to [Documentation Index](index.md)  
+Back to [Documentation Index](index.md)
 Continue to [Changelog & Version Blessing](changelog-blessing.md)
 
 <!--
 LIMERICK
 
-A scanner inspected the tomb,  
-Declared certain headers in gloom.  
-It flagged them with care,  
-Some vanished, some bare—  
+A scanner inspected the tomb,
+Declared certain headers in gloom.
+It flagged them with care,
+Some vanished, some bare—
 And verified files in the room.
 
 SORA PROMPT

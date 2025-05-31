@@ -15,7 +15,7 @@ asset-meta:
 
 Rotkeeper is currently developed and tested on macOS. Linux and WSL support may be possible in the future—pending rituals, caffeine, and divine intervention.
 
----
+***
 
 ## 🔧 Required Tools
 
@@ -35,11 +35,11 @@ Optional:
 - `bat` (for pretty log dumps)
 - `grep`, `sed`, `find` (BSD variants are fine, but GNU versions preferred if you’re chaotic)
 
----
+***
 
 ## 🍎 macOS Setup
 
-1. **Install Homebrew** (if missing):  
+1. **Install Homebrew** (if missing):
    [https://brew.sh](https://brew.sh)
 
 2. **Run the full install stack**:
@@ -56,12 +56,12 @@ cd rotkeeper
 ./rotkeeper.sh render
 ```
 
----
+***
 
 ## 💭 Linux / WSL?
 
-Not supported yet, but theoretically viable.  
+Not supported yet, but theoretically viable.
 If you try and succeed—or suffer greatly—please submit a ritual report or log your screams to the issue tracker.
 
----
+***
 > *“macOS is the temple. WSL is the haunted basement. Linux is the field where bones are scattered.”*

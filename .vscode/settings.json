@@ -1,9 +1,8 @@
-// .vscode/settings.json
 {
   "editor.tabSize": 4,
+  "workbench.colorTheme": "Dracula",
   "files.trimTrailingWhitespace": true,
   // …your other project-specific prefs…
-  ,
   "terminal.integrated.profiles.osx": {
     "bash (brew)": {
       "path": "/opt/homebrew/bin/bash",

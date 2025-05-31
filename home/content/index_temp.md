@@ -10,7 +10,7 @@ subtitle: Ritual rendering for markdown tombs
 
 > [🪦](https://rotkeeper.com/0.2.0.0.tar.gz) This is Dash. He verifies your tombs and logs your decay. Say hi.
 
----
+***
 
 ## 💀 Rotkeeper
 

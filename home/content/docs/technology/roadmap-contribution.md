@@ -11,7 +11,7 @@ Rotkeeper is a living script graveyard. It survives because people keep feeding 
 
 This page outlines where the project is headed and how you can get involved—whether you’re adding features, documenting rot, or blessing tombs with better metadata.
 
----
+***
 
 ## 🧩 Current Focus Areas
 
@@ -23,7 +23,7 @@ This page outlines where the project is headed and how you can get involved—wh
 - Testing and validation tooling (`rc-scan.sh`, `rc-verify.sh`)
 - Building thematic assets and icon sets (HiQ, OpenMoji)
 
----
+***
 
 ## 💡 Future Ideas
 
@@ -34,7 +34,7 @@ This page outlines where the project is headed and how you can get involved—wh
 - Script inheritance & theming (persona-driven templates)
 - Graveyard server: auto-host rendered tombs from `.tar.gz`
 
----
+***
 
 ## 🤝 How to Contribute
 
@@ -46,25 +46,25 @@ If you want to contribute:
 - Run your changes through `rotkeeper init` + `render` to ensure they work
 - Open a PR with a limerick in the description (optional but respected)
 
----
+***
 
 ## 📫 Where to Find Us
 
 - GitHub: [https://github.com/drawmeanelephant69420/rotkeeper](https://github.com/drawmeanelephant69420/rotkeeper)
 - Filed & Forgotten: [https://filed.fyi](https://filed.fyi)
 
----
+***
 
-Back to [Advanced Usage](advanced-usage.md)  
+Back to [Advanced Usage](advanced-usage.md)
 Return to [Documentation Index](index.md)
 
 <!--
 LIMERICK
 
-A roadmap was buried with grace,  
-Each bullet entombed in its place.  
-The futures were dim,  
-Each line like a hymn—  
+A roadmap was buried with grace,
+Each bullet entombed in its place.
+The futures were dim,
+Each line like a hymn—
 To rot that transcended the trace.
 
 SORA PROMPT

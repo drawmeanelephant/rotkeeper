@@ -8,7 +8,7 @@ template: rotkeeper-doc.html
 
 Rotkeeper supports a ritualized version locking process using `rc-bless.sh`. This script freezes the current environment, generates a changelog, and optionally updates version headers across tracked files.
 
----
+***
 
 ## 🪦 What Does “Blessing” Mean?
 
@@ -20,7 +20,7 @@ Blessing a version means:
 
 This is intended for archival releases, milestone freezes, and meaningful rot milestones.
 
----
+***
 
 ## 🧩 `rc-bless.sh`
 
@@ -30,7 +30,7 @@ This subroutine performs the blessing ritual:
 2. Writes `CHANGELOG.md` or `changelog-vX.yaml`
 3. Optionally writes `.blessed` file with version + timestamp
 
----
+***
 
 ## 📝 Sample Changelog Entry
 
@@ -45,7 +45,7 @@ This subroutine performs the blessing ritual:
 
 Changelogs may live at the root of the project or in a `changelogs/` folder.
 
----
+***
 
 ## 🔀 Diff Logic
 
@@ -56,7 +56,7 @@ Changelogs may live at the root of the project or in a `changelogs/` folder.
 - Timestamp updates
 - Untracked file detection (optional)
 
----
+***
 
 ## 🧠 Tips for Blessing
 
@@ -65,9 +65,9 @@ Changelogs may live at the root of the project or in a `changelogs/` folder.
 - Use `--dry-run` to preview the diff before locking it in
 - Add a haiku or limerick to `CHANGELOG.md` if you must
 
----
+***
 
-Back to [Scan & Verify Tools](scan-verify-tools.md)  
+Back to [Scan & Verify Tools](scan-verify-tools.md)
 Continue to [Ritual Record Generator](ritual-record.md)
 
 <!--

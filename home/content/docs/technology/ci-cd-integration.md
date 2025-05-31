@@ -19,7 +19,7 @@ A typical pipeline performs these steps in order:
 - Generate a `.tar.gz` archive of the output
 - Log actions to `bones/logs/`
 
----
+***
 
 ## ⚙️ Minimal GitHub Actions Example
 
@@ -56,7 +56,7 @@ jobs:
           path: ./tomb-*.tar.gz
 ```
 
----
+***
 
 ## 🧪 Bash CI Example
 
@@ -79,7 +79,7 @@ else
 fi
 ```
 
----
+***
 
 ## 📆 Cron Scheduling Example
 
@@ -99,7 +99,7 @@ If you prefer more control, replace `all` with:
 ./rotkeeper init && ./rotkeeper render && ./rotkeeper pack
 ```
 
----
+***
 
 ## 🧠 Checklist for Smooth CI Rituals
 
@@ -107,7 +107,7 @@ If you prefer more control, replace `all` with:
 - 🪵 Inspect `bones/logs/` after every run
 - 🚫 Add `tomb-*.tar.gz` to `.gitignore` if you don't archive outputs in Git
 
----
+***
 
 ## 📦 Expected Output
 
@@ -118,7 +118,7 @@ Expect these outputs after each CI run:
 - 🪵 Log entry in `bones/logs/rc-pack-*.log`
 - 🧾 Optional: JSON export of all markdown tombs if `pandoc` and `jq` are installed
 
----
+***
 
 ## 🔁 Full Ritual Pipeline (Manual or CI)
 
@@ -137,9 +137,9 @@ To run every major step in order, use:
 
 Add or remove steps depending on your tomb cycle or validation needs.
 
----
+***
 
-Back to [Troubleshooting FAQ](troubleshooting-faq.md)  
+Back to [Troubleshooting FAQ](troubleshooting-faq.md)
 Continue to [Advanced Usage](advanced-usage.md)
 
 

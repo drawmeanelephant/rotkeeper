@@ -4,6 +4,7 @@ template: rotkeeper-doc.html
 subtitle: "CLI Ritual Index & Rendered Operations"
 tags: [rotkeeper, documentation, markdown, shell, decay, static-site]
 version: "0.2.3-pre"
+updated: "2025-05-31"
 asset-meta:
   author: "Filed Systems"
   project: "Rotkeeper"
@@ -13,21 +14,7 @@ asset-meta:
 
 # 📖 Rotkeeper Documentation Index
 
-Welcome to Rotkeeper, the command-line necropolis for static site decay rituals.
-
-This suite of shell scripts helps you manage dead markdown, render tombs as HTML, bless changelogs, and archive your rot with dignity.
-Whether you're new to file decay or just looking to automate your afterlife pipeline, you're in the right place.
-
-Ritual types include:
-
-- **Expand** – Generate Markdown stubs and configs
-- **Render** – Convert Markdown into static HTML tombs
-- **Scan** – Detect decay, missing metadata, or corruption
-- **Bless** – Stamp versions and log changelog updates
-- **Pack** – Archive a versioned tomb for long-term storage
-- **Record** – Commit the state of a ritual into Git & logs
-
-> 🕯️ Every file dies. Not every file decays with style.
+This is the internal documentation hub for all Rotkeeper rituals, scripts, formats, and failures. Start here if you’re already entombed in the CLI.
 
 ***
 
@@ -79,7 +66,8 @@ Ritual types include:
 
 ***
 
-**Start with**: [Getting Started](bones/install.md) or jump straight to [rc-render.sh](bones/scripts/rc-render.md)
+🕯️ **First time decaying?** Begin with the [Quickstart Guide](technology/quickstart-guide.md)
+⚙️ **Returning cryptkeeper?** Jump to [rc-render.sh](bones/scripts/rc-render.md)
 
 <!--
 Sora prompt: “A glitching wiki carved into obsidian, with glowing CLI runes etched in rust.”

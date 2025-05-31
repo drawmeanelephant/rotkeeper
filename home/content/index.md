@@ -5,10 +5,10 @@ title: Welcome to Rotkeeper
 
 # Rotkeeper: A Ritual CLI for Flat‑File Decay
 
-Rotkeeper is a terminal-based toolkit for rendering, archiving, and preserving the remains of Markdown-driven projects.  
+Rotkeeper is a terminal-based toolkit for rendering, archiving, and preserving the remains of Markdown-driven projects.
 Each file is a tomb. Each version is a ritual. Each render is final.
 
----
+***
 
 ## 🧪 Run It
 
@@ -20,7 +20,7 @@ To start rendering tombs:
 
 See the [Quickstart Guide](/docs/quickstart-guide.md) to begin your first decay ritual.
 
----
+***
 
 ## 🗺️ Subdomain Index
 
@@ -42,14 +42,14 @@ See the [Quickstart Guide](/docs/quickstart-guide.md) to begin your first decay 
 ### 🛠️ [tools.rotkeeper.com](/tools/)
 > Experimental GUI helpers. Generate manifests, edit render-flags, and tail live log output.
 
----
+***
 
 ## 🔖 Version: 0.2.0
 
 - [Changelog](/changelog/)
 - [How to Contribute](/contributing/)
 
----
+***
 
 **New to the project? Start with the [Docs](/docs/). Want to see a tomb? Visit the [Archive](/archive/).**
 

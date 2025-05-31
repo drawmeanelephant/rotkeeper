@@ -15,13 +15,13 @@ asset-meta:
 
 This is the main CLI interface for invoking Rotkeeper rituals. It wraps and dispatches calls to each `rc-*.sh` script using familiar subcommands.
 
----
+***
 
 ## 🧠 Purpose
 
 To provide a unified command for interacting with all parts of the rotkeeper toolchain, including initialization, rendering, blessing, verifying, and packing.
 
----
+***
 
 ## 📜 Usage
 
@@ -29,7 +29,7 @@ To provide a unified command for interacting with all parts of the rotkeeper too
 ./rotkeeper.sh [command] [flags]
 ```
 
----
+***
 
 ## 🔧 Supported Commands
 
@@ -45,7 +45,7 @@ To provide a unified command for interacting with all parts of the rotkeeper too
 | `test`      | Run all scripts in dry mode          |
 | `help`      | Show available commands              |
 
----
+***
 
 ## 🧪 Example
 
@@ -55,6 +55,6 @@ To provide a unified command for interacting with all parts of the rotkeeper too
 ./rotkeeper.sh pack
 ```
 
----
+***
 
 > *“The rotkeeper never types the full path. The path types itself.”*

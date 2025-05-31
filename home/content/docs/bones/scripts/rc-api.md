@@ -12,7 +12,7 @@ asset-meta:
 
 `rc-api.sh` fetches external assets, templates, and packs as defined in a local YAML config. It is used to keep remote parts of your tombsite up-to-date.
 
----
+***
 
 ## 🔮 Intended Purpose
 
@@ -22,7 +22,7 @@ This script is designed to:
 - Save them to `home/assets/remote/`
 - Log actions and failures to `bones/logs/`
 
----
+***
 
 ## 🔧 Planned Features
 
@@ -30,7 +30,7 @@ This script is designed to:
 - `--dry-run` flag supported
 - Can be extended to support JSON ingestion or content conversion
 
----
+***
 
 ## 🧪 Example Invocation
 
@@ -38,7 +38,7 @@ This script is designed to:
 ./rotkeeper.sh api
 ```
 
----
+***
 
 ## 📎 Notes
 
@@ -48,7 +48,7 @@ This script is designed to:
   - Pulling changelogs from GitHub APIs
   - Syncing tags or taxonomies from external indexes
 
----
+***
 
 ## 📌 Related
 
@@ -57,7 +57,7 @@ This script is designed to:
 - `bones/logs/api-*` — Future location of fetch logs
 - `remote-sources.yaml` — Defines the assets fetched by this script
 
----
+***
 
 <!-- Sora Prompt: "A shell script wrapped in a network cable, pinging the clouds for forgotten data. Mascots hover behind a firewall of JSON ghosts, watching the conversion begin." -->
 

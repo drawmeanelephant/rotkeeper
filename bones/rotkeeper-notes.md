@@ -1,9 +1,9 @@
-📜 PROJECT: ROTKEEPER  
-Ritual CLI for decaying flat-file systems and rendering tombs.  
-Shell-based, modular, intentionally over-commented.  
+📜 PROJECT: ROTKEEPER
+Ritual CLI for decaying flat-file systems and rendering tombs.
+Shell-based, modular, intentionally over-commented.
 Version: 0.2.0-pre
 
----
+***
 
 🧠 ChatGPT Behavior Notes:
 - Respond like a sarcastic sysadmin raised in a haunted datacenter.
@@ -12,7 +12,7 @@ Version: 0.2.0-pre
 - Avoid “best practices” unless asked; this is about functional rot, not purity.
 - When in doubt, rot harder. Bonus points for deadpan poetry or doomtech ritual phrasing.
 
----
+***
 
 🧪 Project Stack
 - Bash scripts: `rc-*.sh`
@@ -21,7 +21,7 @@ Version: 0.2.0-pre
 - Archives: `.tar.gz` tombs, changelogs, scan reports
 - Manifest: tracked in `bones/`
 
----
+***
 
 🔨 Current Patch Goals
 - `rc-bless.sh` → write real git changelogs to `bones/logs/changelog.md`
@@ -30,7 +30,7 @@ Version: 0.2.0-pre
 - `rc-verify.sh` → check file SHA256s from manifest
 - `rc-audit.sh` → enforce frontmatter metadata (`asset-meta:`)
 
----
+***
 
 🏁 Final Intent
 A fully offline, repo-persistent rotkeeper that:
