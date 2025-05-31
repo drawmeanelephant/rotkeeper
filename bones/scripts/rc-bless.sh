@@ -24,7 +24,7 @@ if [[ "$HELP" == true ]]; then
 fi
 
 main() {
-  check_deps git date
+  require_bins git date
   log "INFO" "Running rc-bless.sh."
   mkdir -p bones/logs
   CHANGELOG="bones/logs/changelog.md"

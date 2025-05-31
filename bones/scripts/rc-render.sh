@@ -81,18 +81,8 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-check_deps() {
-    local deps=(git rsync ssh pandoc date awk grep find tar)
-    for cmd in "${deps[@]}"; do
-        command -v "$cmd" >/dev/null 2>&1 || {
-            log "ERROR" "$cmd required but not installed."
-            exit 1
-        }
-    done
-}
-
 main() {
-    check_deps
+    require_bins git rsync ssh pandoc date awk grep find tar
     log "INFO" "Running rc-render.sh."
 
     # Initialize page counter and start time

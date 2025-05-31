@@ -1,4 +1,4 @@
-# ☠️ Rotkeeper Structural & Stability Audit — v0.2.3-pre
+# ☠️ Rotkeeper Structural & Stability Audit — v0.2.4-dev
 
 A living ledger of script rituals, docs, and decay states.
 
@@ -19,8 +19,8 @@ A living ledger of script rituals, docs, and decay states.
 | rc-render.sh        | ✅      | ✅     | ✅         | ✅            | ✅          | ✅     |
 | rc-test.sh          | ✅      | ✅     | ✅         | ✅            | ✅          | ⚠️ stub |
 | rc-unpack.sh        | ⚠️ stub| ❌     | ❌         | ❌            | ❌          | ❌     |
-| rc-expand.sh        | ⚠️ WIP | ❌     | ❌         | ❌            | ❌          | ❌     |
-| rc-pack.sh          | ⚠️ WIP | ❌     | ❌         | ❌            | ❌          | ❌     |
+| rc-expand.sh        | ✅     | ✅     | ✅         | ✅            | ✅          | ✅     |
+| rc-pack.sh          | ✅     | ✅     | ✅         | ✅            | ✅          | ✅     |
 
 ---
 
@@ -29,8 +29,6 @@ A living ledger of script rituals, docs, and decay states.
 Every script now has a doc page **except**:
 
 - `rc-unpack.sh`
-- `rc-expand.sh`
-- `rc-pack.sh`
 
 ---
 
@@ -75,3 +73,16 @@ A mix of puzzled hacker and occult documentation anthropologist. The goal: decip
 - Glossary stub for internal use
 
 This peer review is preserved in the audit so the project can remember what it looked like from the outside — before entropy set in.
+
+---
+
+## 📌 Followups for v0.2.4
+
+- [ ] Create `rotkeeper-followups.md` to track standard questions + next-phase tasks
+- [ ] Implement `require_yq()` helper in `rc-utils.sh`
+- [ ] Stub `rotkeeper-first-ritual.md` and glossary page
+- [ ] Draft `rc-audit.sh` to validate YAML, manifests, tomb metadata
+- [ ] Clarify `bones/manifest.txt` vs asset manifest behavior
+- [ ] Add formal `tomb.yaml` format doc
+- [ ] Write `rc-reset.sh` to purge and regrow project from known good state
+- [ ] Add logic to `rc-init.sh` to support reseed or full bootstrapping

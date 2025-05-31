@@ -22,7 +22,7 @@ main() {
         [[ "$arg" == "--dry-run" ]] && DRY_RUN=true
     done
 
-    check_deps
+    require_bins yq
     run "echo 'INFO Running rc-expand.sh.'"
 
     FORCE=${1:---skip}

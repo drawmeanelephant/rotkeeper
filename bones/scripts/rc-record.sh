@@ -36,7 +36,7 @@ fi
 
 main() {
   # Ensure git is available
-  check_deps git
+  require_bins git
 
   log "INFO" "Running rc-record.sh."
 

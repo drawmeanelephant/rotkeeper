@@ -5,6 +5,7 @@
 # Version: 0.1.9.9
 # Updated: 2025-05-27
 # -----------------------------------------
+source "$(dirname "$0")/rc-utils.sh"
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -17,6 +18,7 @@ log() {
 }
 
 log "INFO" "Running rc-status.sh"
+require_bins git find wc xargs ls grep sed date
 
 echo "🩺 Rotkeeper Status Report"
 echo "=========================="

@@ -33,19 +33,9 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-check_deps() {
-    local deps=( "$@" )
-    for cmd in "${deps[@]}"; do
-        command -v "$cmd" >/dev/null 2>&1 || {
-            log "ERROR" "$cmd required but not installed."
-            exit 1
-        }
-    done
-}
-
 main() {
     # Verify required tools
-    check_deps git rsync ssh pandoc date
+    require_bins git rsync ssh pandoc date
     $VERBOSE && log "INFO" "Dependencies verified."
 
     log "INFO" "🔄 Starting initialization..."

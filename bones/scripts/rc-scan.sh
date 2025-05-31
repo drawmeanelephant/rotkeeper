@@ -77,18 +77,9 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-check_deps() {
-    local deps=(git rsync ssh pandoc date)
-    for cmd in "${deps[@]}"; do
-        command -v "$cmd" >/dev/null 2>&1 || {
-            log "ERROR" "$cmd required but not installed."
-            exit 1
-        }
-    done
-}
 
 main() {
-    check_deps
+    require_bins git rsync ssh pandoc date
     log "INFO" "Running rc-scan.sh."
     # Use plain arrays for manifest and disk lists
     manifest_list=()
