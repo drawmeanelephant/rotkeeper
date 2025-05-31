@@ -24,14 +24,6 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-check_deps() {
-  for cmd in "$@"; do
-    if ! command -v "$cmd" >/dev/null; then
-      log "ERROR" "Missing required dependency: $cmd"
-      exit 2
-    fi
-  done
-}
 
 run() {
   if [[ "$DRY_RUN" == true ]]; then
@@ -96,7 +88,7 @@ main() {
       show_help
     fi
 
-    check_deps tar jq pandoc
+    require_bins tar jq pandoc
     $VERBOSE && log "DEBUG" "Dependencies verified."
 
     # --- Shared Configuration ---

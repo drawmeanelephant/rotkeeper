@@ -51,8 +51,8 @@ run() {
   fi
 }
 
-# Dependency checker: ensure required commands are available
-check_deps() {
+# Require explicitly listed command-line tools (use in main scripts)
+require_bins() {
   for cmd in "$@"; do
     if ! command -v "$cmd" >/dev/null 2>&1; then
       log "ERROR" "Missing required dependency: $cmd"
