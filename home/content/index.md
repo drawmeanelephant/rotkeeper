@@ -1,6 +1,21 @@
----
+title: "Welcome to Rotkeeper"
+slug: home
 template: rotkeeper-blog.html
-title: Welcome to Rotkeeper
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Rotkeeper CLI landing page. Get started with decay rituals, rendering tombs, and exploring archival output."
+tags:
+  - rotkeeper
+  - homepage
+  - cli
+  - decay
+asset_meta:
+  name: "index.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 
 # Rotkeeper: A Ritual CLI for Flat‑File Decay

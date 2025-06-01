@@ -1,7 +1,22 @@
 ---
-title:  "Changelog & Version Blessing"
+title: "📜 Changelog Blessing Protocol"
 slug: changelog-blessing
 template: rotkeeper-doc.html
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Outlines the process for approving, logging, and formatting ritual changes in the Rotkeeper changelog."
+tags:
+  - rotkeeper
+  - changelog
+  - process
+  - documentation
+asset_meta:
+  name: "changelog-blessing.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 
 # 📓 Changelog & Version Blessing

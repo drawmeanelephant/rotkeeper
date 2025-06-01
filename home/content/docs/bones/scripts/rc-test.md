@@ -1,9 +1,22 @@
 ---
-title: "✅ rc-test.sh Reference"
+title: "🧪 rc-test.sh Reference"
 slug: rc-test
 template: rotkeeper-doc.html
-version: "0.2.1"
-updated: "2025-05-29"
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Reference for testing and experimental rituals. May be unstable or used for staging edge-case logic."
+tags:
+  - rotkeeper
+  - scripts
+  - test
+  - experimental
+asset_meta:
+  name: "rc-test.md"
+  version: "0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 
 # rc-test.sh

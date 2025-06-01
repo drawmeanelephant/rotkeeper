@@ -1,10 +1,23 @@
 ---
-title:  "Rotkeeper TODO"
+title: "📌 Rotkeeper TODO Log"
 slug: todo
 template: rotkeeper-doc.html
-version: 0.2.2-pre
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Internal project TODO list and short-term priorities for active Rotkeeper patches."
+tags:
+  - rotkeeper
+  - todo
+  - internal
+  - planning
+asset_meta:
+  name: "todo.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-<!-- asset-meta: { name: "todo.md", version: "v0.2.2-pre" } -->
 
 # ✅ Rotkeeper Build TODO
 

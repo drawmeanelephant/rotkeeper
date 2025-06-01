@@ -1,7 +1,22 @@
 ---
-title:  "Limericks & Creative Corner"
+title: "🎭 Limericks & Creative Corner"
 slug: limericks-creative-corner
 template: rotkeeper-doc.html
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "A collection of poetic, humorous, or absurdist content from the Rotkeeper project, including limericks and short verse."
+tags:
+  - rotkeeper
+  - creative
+  - limericks
+  - humor
+asset_meta:
+  name: "limericks-creative-corner.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 
 # 🗿 Limericks & Creative Corner

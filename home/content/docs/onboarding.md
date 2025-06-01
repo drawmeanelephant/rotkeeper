@@ -1,6 +1,23 @@
-
-
-
+---
+title: "📋 Onboarding Guide"
+slug: onboarding
+template: rotkeeper-doc.html
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Internal checklist and commentary for contributors joining the Rotkeeper project. Includes environment and process notes."
+tags:
+  - rotkeeper
+  - onboarding
+  - internal
+  - contributors
+asset_meta:
+  name: "onboarding.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
+---
 # 🧟 Rotkeeper Maintainer Onboarding
 
 Welcome, unlucky soul. You’ve just inherited Rotkeeper — a Bash-based static documentation embalmer. It’s not a site generator. It’s a system of modular rituals (`rc-*.sh`) that:

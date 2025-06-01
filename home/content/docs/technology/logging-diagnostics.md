@@ -1,10 +1,23 @@
 ---
-title: "Logging & Diagnostics"
+title: "📟 Logging & Diagnostics"
 slug: logging-diagnostics
 template: rotkeeper-doc.html
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Explains how logs are generated, stored, and used for debugging in Rotkeeper rituals."
+tags:
+  - rotkeeper
+  - logging
+  - diagnostics
+  - debug
+asset_meta:
+  name: "logging-diagnostics.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-
-<!-- asset-meta: { name: "logging-diagnostics.md", version: "v0.1.0" } -->
 
 # 📉 Logging & Diagnostics
 

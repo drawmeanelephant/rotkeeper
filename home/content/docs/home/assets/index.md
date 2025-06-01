@@ -2,10 +2,23 @@
 title: "Assets"
 slug: assets
 template: rotkeeper-doc.html
-version: 0.2.2
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Describes the local assets directory used during rendering and archiving, including CSS, images, and remote fetches."
+tags:
+  - rotkeeper
+  - assets
+  - rendering
+  - static
+  - css
+asset_meta:
+  name: "assets.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-
-<!-- asset-meta: { name: "assets.md", version: "v0.2.2" } -->
 
 # 📦 Local Assets
 

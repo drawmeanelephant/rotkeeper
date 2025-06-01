@@ -2,10 +2,23 @@
 title: "Home Content"
 slug: content-home
 template: rotkeeper-doc.html
-version: 0.2.2
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Root directory for all Rotkeeper user-authored documentation. Contains rituals, tombs, audit logs, and support pages."
+tags:
+  - rotkeeper
+  - content
+  - structure
+  - docs
+  - layout
+asset_meta:
+  name: "home-content.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-
-<!-- asset-meta: { name: "home-content.md", version: "v0.2.2" } -->
 
 # 🏠 Home Content Directory
 

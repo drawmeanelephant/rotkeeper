@@ -1,7 +1,22 @@
----
+title: "Rotkeeper CLI"
+slug: home-temp
+subtitle: "Ritual rendering for markdown tombs"
 template: rotkeeper-blog.html
-title: Rotkeeper CLI
-subtitle: Ritual rendering for markdown tombs
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Temporary landing page for testing the Rotkeeper CLI interface and mascot rendering."
+tags:
+  - rotkeeper
+  - homepage
+  - cli
+  - test
+asset_meta:
+  name: "index_temp.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 
 <p align="center">

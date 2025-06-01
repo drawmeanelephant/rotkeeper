@@ -1,4 +1,23 @@
-
+---
+title: "📓 Peer Review Log"
+slug: peer-reviews
+template: rotkeeper-doc.html
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Captures questions, observations, and commentary from peer review sessions conducted on Rotkeeper components."
+tags:
+  - rotkeeper
+  - reviews
+  - audit
+  - process
+asset_meta:
+  name: "peer-reviews.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
+---
 
 # 🧠 Peer Reviews of the Rotkeeper Crypt
 

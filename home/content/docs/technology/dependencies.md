@@ -1,14 +1,22 @@
 ---
-title: "Dependencies (macOS)"
+title: "🔗 Dependencies"
+slug: dependencies
 template: rotkeeper-doc.html
-subtitle: "Installing tools and dependencies for ritual compatibility on macOS"
-tags: [rotkeeper, dependencies, macos, setup, shell]
-version: "0.2.0"
-asset-meta:
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Lists the required tools and environment dependencies for running Rotkeeper rituals, renderers, and CLI tools."
+tags:
+  - rotkeeper
+  - dependencies
+  - environment
+  - setup
+asset_meta:
+  name: "dependencies.md"
+  version: "0.2.3-pre"
   author: "Filed Systems"
   project: "Rotkeeper"
-  type: "docs"
   tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 
 # 🛠 Dependencies (macOS)

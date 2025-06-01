@@ -1,14 +1,23 @@
-
-
-
 ---
 title: "Script Docs"
 slug: script-docs
 template: rotkeeper-doc.html
-version: 0.2.2
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Generated reference pages for all rc-*.sh scripts in the Rotkeeper system. Created by rc-docbook.sh and not edited manually."
+tags:
+  - rotkeeper
+  - scripts
+  - docs
+  - generated
+asset_meta:
+  name: "script-docs.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-
-<!-- asset-meta: { name: "script-docs.md", version: "v0.2.2" } -->
 
 # 📜 Script Documentation (Generated)
 

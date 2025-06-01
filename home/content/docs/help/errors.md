@@ -1,5 +1,3 @@
-
-
 ---
 title: "Common Errors & Ritual Interruptions"
 template: rotkeeper-doc.html

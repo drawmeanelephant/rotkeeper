@@ -1,7 +1,22 @@
 ---
-title: "Introduction & Overview"
+title: "📘 Introduction & Overview"
 slug: introduction-overview
 template: rotkeeper-doc.html
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Welcome overview of Rotkeeper — what it is, why it exists, and what rituals it enables."
+tags:
+  - rotkeeper
+  - overview
+  - intro
+  - rituals
+asset_meta:
+  name: "introduction-overview.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 
 # 🪦 Introduction to Rotkeeper

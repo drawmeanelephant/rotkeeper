@@ -1,11 +1,25 @@
 ---
+title: "CLI Reference"
+slug: tech-index
+subtitle: "Rotkeeper Technology Overview"
 template: rotkeeper-doc.html
-title: CLI Reference
-subtitle: Rotkeeper Technology Overview
-asset-meta:
-  project: rotkeeper
-  type: toc
-  tags: [cli, technology, docs, shell]
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Overview of Rotkeeper's CLI-based tooling, shell scripts, and static rendering flow."
+tags:
+  - cli
+  - technology
+  - docs
+  - shell
+  - reference
+asset_meta:
+  name: "index.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  type: "toc"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 
 # 🧪 Rotkeeper Technology Index

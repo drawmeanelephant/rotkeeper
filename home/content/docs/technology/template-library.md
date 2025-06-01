@@ -1,9 +1,23 @@
 ---
-title: "Template Library"
+title: "📐 Template Library"
 slug: template-library
 template: rotkeeper-doc.html
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Overview of Pandoc and custom HTML templates used in Rotkeeper for rendering Markdown, index pages, and metadata structures."
+tags:
+  - rotkeeper
+  - templates
+  - rendering
+  - html
+asset_meta:
+  name: "template-library.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-<!-- asset-meta: { name: "quickstart-guide.md", version: "v0.1.0" } -->
 # 🧱 Template Library
 
 Rotkeeper supports basic HTML template rendering using Pandoc-compatible layouts. This page catalogs the included templates, explains layout logic, and outlines how to create or override your own.

@@ -1,9 +1,23 @@
 ---
-title:  "Advanced Usage"
+title: "🧠 Advanced Usage"
 slug: advanced-usage
 template: rotkeeper-doc.html
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Collection of power-user techniques and advanced rituals for flexible Rotkeeper integration."
+tags:
+  - rotkeeper
+  - advanced
+  - tips
+  - usage
+asset_meta:
+  name: "advanced-usage.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-<!-- asset-meta: { name: "advanced-usage.md", version: "v0.2.0-pre" } -->
 
 # 🧨 Advanced Usage
 

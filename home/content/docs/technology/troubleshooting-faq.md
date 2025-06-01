@@ -1,7 +1,22 @@
 ---
-title: "Troubleshooting FAQ"
+title: "🧯 Troubleshooting & FAQ"
 slug: troubleshooting-faq
 template: rotkeeper-doc.html
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Frequently asked questions and debugging solutions for Rotkeeper rituals, scripts, and rendering behavior."
+tags:
+  - rotkeeper
+  - faq
+  - troubleshooting
+  - support
+asset_meta:
+  name: "troubleshooting-faq.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 
 <!-- asset-meta: { name: "troubleshooting-faq.md", version: "v0.1.0" } -->

@@ -1,9 +1,23 @@
 ---
-title: "Scan & Verify Tools"
+title: "🔍 Scan & Verify Tools"
 slug: scan-verify-tools
 template: rotkeeper-doc.html
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Reference for rc-scan.sh and rc-verify.sh, tools used to inspect rot states, file hashes, and archived tomb metadata."
+tags:
+  - rotkeeper
+  - scan
+  - verify
+  - tools
+asset_meta:
+  name: "scan-verify-tools.md"
+  version: "0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-<!-- asset-meta: { name: "scan-verify-tools.md", version: "v0.1.0" } -->
 
 # 🔍 Scan & Verify Tools
 

@@ -1,11 +1,23 @@
 ---
-title: "Configuration Reference"
+title: "⚙️ Configuration Reference"
 slug: configuration-reference
 template: rotkeeper-doc.html
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Details every YAML and environment configuration file used by Rotkeeper, including BOM, render-flags, and remote-sources."
+tags:
+  - rotkeeper
+  - config
+  - reference
+  - yaml
+asset_meta:
+  name: "configuration-reference.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-
-<!-- asset-meta: { name: "configuration-reference.md", version: "v0.1.0" } -->
-
 
 # ⚙️ Configuration Reference
 

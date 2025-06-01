@@ -1,9 +1,23 @@
 ---
-title:  "Asset Pipeline"
+title: "📦 Asset Pipeline"
 slug: asset-pipeline
 template: rotkeeper-doc.html
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Explains how assets like CSS, images, and JS are discovered, linked, and verified in the Rotkeeper system."
+tags:
+  - rotkeeper
+  - pipeline
+  - assets
+  - rendering
+asset_meta:
+  name: "asset-pipeline.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-<!-- asset-meta: { name: "asset-pipeline.md", version: "v0.2.0-pre" } -->
 
 # 📦 Asset Pipeline
 

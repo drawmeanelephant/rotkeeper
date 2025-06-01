@@ -1,5 +1,3 @@
-
-
 <!-- This file is intentionally blank for audit testing -->
 
 # Missing File Stub

@@ -1,10 +1,23 @@
 ---
-title: "📝 rc-audit.sh Reference"
+title: "🧾 rc-audit.sh Reference"
 slug: rc-audit
 template: rotkeeper-doc.html
-version: "v0.2.4-dev"
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Runs consistency checks across Rotkeeper directories, validating structure, file states, and manifest integrity."
+tags:
+  - rotkeeper
+  - scripts
+  - audit
+  - validation
+asset_meta:
+  name: "rc-audit.md"
+  version: "0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-<!-- asset-meta: { name: "quickstart-guide.md", version: "v0.2.2" } -->
 # 📝 rc-audit.sh
 
 **Version:** v0.2.4-dev

@@ -1,14 +1,21 @@
 ---
-title: "Rotkeeper Documentation"
+title: "🌐 Rotkeeper Subdomains"
+slug: subdomains
 template: rotkeeper-doc.html
-subtitle: "CLI Ritual Index & Rendered Operations"
-tags: [rotkeeper, documentation, markdown, shell, decay, static-site]
 version: "0.2.3-pre"
-updated: "2025-05-31"
-asset-meta:
+updated: "2025-06-01"
+description: "Lists and explains the various functional subdomains of the Rotkeeper project, including content, config, and rendering layers."
+tags:
+  - rotkeeper
+  - structure
+  - domains
+  - architecture
+asset_meta:
+  name: "subdomains.md"
+  version: "0.2.3-pre"
   author: "Filed Systems"
   project: "Rotkeeper"
-  type: "docs-index"
+  tracked: true
   license: "CC-BY-SA-4.2-unreal"
 ---
 

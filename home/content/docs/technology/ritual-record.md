@@ -1,9 +1,23 @@
 ---
-title:  "Ritual Record Generator"
+title: "📜 Ritual Record"
 slug: ritual-record
 template: rotkeeper-doc.html
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Logs and describes use of rc-record.sh, a utility that documents file states, digests, and tomb metadata."
+tags:
+  - rotkeeper
+  - record
+  - logs
+  - archive
+asset_meta:
+  name: "ritual-record.md"
+  version: "0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-<!-- asset-meta: { name: "quickstart-guide.md", version: "v0.1.0" } -->
 # 🧃 Ritual Record Generator
 
 Rotkeeper’s planned `rc-record.sh` tool allows a tomb to generate the script that built it. This helps with reproducibility, documentation, debugging, and preservation of ritual steps in a literal, executable format.

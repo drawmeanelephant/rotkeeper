@@ -1,16 +1,24 @@
 ---
 title: "Rotkeeper"
-date: 2025-05-13
-layout: rotstacker
-version: "v0.2.0-dev"
-doc_id: RK-0000
+slug: docs-index
+template: rotkeeper-doc.html
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Central index for Rotkeeper documentation, CLI usage, philosophy, and subroutine references."
+tags:
+  - rotkeeper
+  - documentation
+  - markdown
+  - shell
+  - decay
+asset_meta:
+  name: "index.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-
-<!--
-  Rotkeeper Documentation Index
-  Version: v0.2.0-dev
-  Document ID: RK-0000
--->
 
 # 🪦 Rotkeeper
 

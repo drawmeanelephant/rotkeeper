@@ -1,14 +1,22 @@
 ---
-title: "rotkeeper.sh"
+title: "🦴 Rotkeeper Overview"
+slug: rotkeeper
 template: rotkeeper-doc.html
-subtitle: "Master CLI wrapper for ritual script dispatch"
-tags: [rotkeeper, cli, wrapper, shell, help]
-version: "0.2.0"
-asset-meta:
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Core introduction to the Rotkeeper ritual system — its purpose, philosophy, and tooling layers."
+tags:
+  - rotkeeper
+  - overview
+  - philosophy
+  - intro
+asset_meta:
+  name: "rotkeeper.md"
+  version: "0.2.3-pre"
   author: "Filed Systems"
   project: "Rotkeeper"
-  type: "cli-help"
   tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 
 # `rotkeeper.sh`

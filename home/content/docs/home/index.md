@@ -1,13 +1,23 @@
-
-
 ---
 title: "Home Directory"
 slug: home-folder
 template: rotkeeper-doc.html
-version: 0.2.2
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Documentation for the user-controlled 'home/' directory in Rotkeeper. Explains structure, ownership, and managed behaviors."
+tags:
+  - rotkeeper
+  - home
+  - filesystem
+  - docs
+asset_meta:
+  name: "home-index.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-
-<!-- asset-meta: { name: "home-index.md", version: "v0.2.2" } -->
 
 # 🏡 Home Folder
 

@@ -1,9 +1,22 @@
 ---
-title: "🔒 rc-verify.sh Reference"
+title: "✅ rc-verify.sh Reference"
 slug: rc-verify
 template: rotkeeper-doc.html
-version: "0.2.2"
-updated: "2025-05-30"
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Verifies tomb archives for presence, integrity, and valid embedded metadata. Used post-render or post-pack."
+tags:
+  - rotkeeper
+  - scripts
+  - verify
+  - integrity
+asset_meta:
+  name: "rc-verify.md"
+  version: "0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 <!-- Begin Ritual Script Documentation -->
 # 🔒 rc-verify.sh

@@ -1,13 +1,24 @@
-
-
 ---
 title: "Remote Assets"
 slug: remote-assets
 template: rotkeeper-doc.html
-version: 0.2.2
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Explains the remote assets directory and how rc-api.sh populates it based on remote-sources.yaml."
+tags:
+  - rotkeeper
+  - remote
+  - assets
+  - network
+  - fetch
+asset_meta:
+  name: "remote-assets.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-
-<!-- asset-meta: { name: "remote-assets.md", version: "v0.2.2" } -->
 
 # 🛰️ Remote Assets
 

@@ -1,8 +1,24 @@
 ---
 title: "The Road to Bones"
-template: rotkeeper-doc.html
-subtitle: "Rotkeeper Buildlog & Resurrection Notes"
 slug: road-to-bones
+subtitle: "Rotkeeper Buildlog & Resurrection Notes"
+template: rotkeeper-doc.html
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Buildlog, audit summary, and resurrection notes for Rotkeeper version 0.2.0-pre through 0.2.3-pre."
+tags:
+  - rotkeeper
+  - changelog
+  - audit
+  - bootstrap
+  - logs
+asset_meta:
+  name: "index.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 
 ## 🧼 Rotkeeper Reseed Summary (v0.2.0-pre)

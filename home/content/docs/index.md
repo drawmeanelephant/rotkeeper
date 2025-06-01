@@ -1,13 +1,21 @@
 ---
-title: "Rotkeeper Documentation"
+title: "Ritual Scripts"
+slug: scripts-index
 template: rotkeeper-doc.html
-subtitle: "CLI Ritual Index & Rendered Operations"
-tags: [rotkeeper, documentation, markdown, shell, decay, static-site]
 version: "0.2.3-pre"
-asset-meta:
+updated: "2025-06-01"
+description: "Directory index for all rc-*.sh scripts used in Rotkeeper. Includes manual tools, render helpers, and archival commands."
+tags:
+  - rotkeeper
+  - scripts
+  - cli
+  - reference
+asset_meta:
+  name: "scripts-index.md"
+  version: "0.2.3-pre"
   author: "Filed Systems"
   project: "Rotkeeper"
-  type: "docs-index"
+  tracked: true
   license: "CC-BY-SA-4.2-unreal"
 ---
 

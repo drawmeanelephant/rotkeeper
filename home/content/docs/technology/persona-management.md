@@ -1,9 +1,23 @@
 ---
-title:  "Persona Management"
+title: "🧑‍🎤 Persona Management"
 slug: persona-management
 template: rotkeeper-doc.html
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Details the persona system used to shape LLM outputs and steer agent behavior in the Rotkeeper ecosystem."
+tags:
+  - rotkeeper
+  - personas
+  - agents
+  - behavior
+asset_meta:
+  name: "persona-management.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-<!-- asset-meta: { name: "quickstart-guide.md", version: "v0.1.0" } -->
 # 🧑‍🎤 Persona Management
 
 Rotkeeper supports the integration of named personas into tombs, logs, and rendered files. These fictional or thematic identities give your project tone, structure, and long-form weirdness.

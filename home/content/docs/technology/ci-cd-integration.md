@@ -1,9 +1,23 @@
 ---
-title:  "CI/CD Integration"
+title: "🔁 CI/CD Integration"
 slug: ci-cd-integration
 template: rotkeeper-doc.html
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Describes ways to automate Rotkeeper rituals in continuous integration pipelines, including dry-run audits and artifact exports."
+tags:
+  - rotkeeper
+  - ci
+  - automation
+  - pipelines
+asset_meta:
+  name: "ci-cd-integration.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-<!-- asset-meta: { name: "ci-cd-integration.md", version: "v0.1.0" } -->
 
 # 🔁 CI/CD Integration
 
