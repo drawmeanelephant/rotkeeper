@@ -4,7 +4,9 @@
 # This file replaces scattered config fragments (render-flags.yaml, template-index.yaml, etc.)
 # It is parsed by all rc-*.sh modules for consistent behavior and flag normalization.
 
-version: "0.1.9.9"
+version: "0.2.3-pre"
+
+# Centralized config: audit-meta.yaml and remote-sources.yaml merged into this file.
 
 # 🏗️ Content Rendering Settings
 content:
@@ -31,6 +33,30 @@ verify:
   manifest_path: bones/asset-manifest.yaml
   enforce_hash: true
   enforce_frontmatter: true
+
+# 🧪 Audit Defaults
+audit:
+  defaults:
+    title: "Untitled Asset"
+    asset-meta:
+      alt: "Description goes here"
+      tags: []
+      license: "CC-BY-SA-4.0"
+      created: "{{today}}"
+      updated: "{{today}}"
+  required_fields:
+    - asset-meta
+    - asset-meta.alt
+    - asset-meta.tags
+    - asset-meta.license
+
+# 🌐 Remote Sources
+remote:
+  sources:
+    - url: "https://assets.rotkeeper.com/templates/plainstone.html"
+      filename: "plainstone.html"
+    - url: "https://assets.rotkeeper.com/scripts/rc-bless.sh"
+      filename: "rc-bless.sh"
 
 # 🧾 Logging + Output Settings
 log:
