@@ -2,8 +2,22 @@
 title: "🌐 rc-webbook.sh Reference"
 slug: rc-webbook
 template: rotkeeper-doc.html
-version: "v0.2.4-dev"
-updated: "2025-05-29"
+version: "v0.2.3-pre"
+updated: "2025-06-01"
+description: "Generates a Markdown book of rendered HTML pages for static web use. Deprecated in favor of rc-book.sh."
+status: "deprecating"
+tags:
+  - rotkeeper
+  - scripts
+  - web
+  - documentation
+asset_meta:
+  name: "rc-webbook.md"
+  version: "v0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 <!-- Begin Ritual Script Documentation -->
 

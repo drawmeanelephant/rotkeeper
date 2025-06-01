@@ -1,10 +1,24 @@
 ---
-title: "🎨 rc-render.sh Reference"
+title: "🖨️ rc-render.sh Reference"
 slug: rc-render
 template: rotkeeper-doc.html
-version: "v0.2.4-dev"
-updated: "2025-05-29"
+version: "v0.2.3-pre"
+updated: "2025-06-01"
+description: "Main rendering engine for converting Markdown tombs into HTML using Pandoc and custom templates."
+tags:
+  - rotkeeper
+  - scripts
+  - rendering
+  - pandoc
+asset_meta:
+  name: "rc-render.md"
+  version: "v0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
+
 <!--
 🎨 Sora Prompt:
 "A cryptic ritual hall illuminated by rows of glowing <code>pandoc</code> invocations, candles flickering on terminal screens, as rc-render.sh weaves Markdown into spectral HTML pages."

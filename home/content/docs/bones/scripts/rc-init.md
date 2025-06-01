@@ -1,9 +1,22 @@
 ---
-title: "🧱 rc-init.sh Reference"
+title: "🦴 rc-init.sh Reference"
 slug: rc-init
 template: rotkeeper-doc.html
-version: "0.2.4-dev"
-updated: "2025-05-29"
+version: "v0.2.3-pre"
+updated: "2025-06-01"
+description: "Initializes a new rotkeeper directory structure with all required folders, templates, and seed files."
+tags:
+  - rotkeeper
+  - scripts
+  - init
+  - bootstrap
+asset_meta:
+  name: "rc-init.md"
+  version: "v0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 
 # 🧱 rc-init — Ritual Bootstrap

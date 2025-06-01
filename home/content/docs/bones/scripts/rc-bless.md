@@ -2,8 +2,21 @@
 title: "⚰️ rc-bless.sh Reference"
 slug: rc-bless
 template: rotkeeper-doc.html
-version: "0.2.1"
-updated: "2025-05-29"
+version: "v0.2.3-pre"
+updated: "2025-06-01"
+description: "Emit ritual violation entries into the changelog and update the blessed manifest."
+tags:
+  - rotkeeper
+  - scripts
+  - changelog
+  - blessing
+asset_meta:
+  name: "rc-bless.md"
+  version: "v0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 <!--
 🎨 Sora Prompt:

@@ -1,11 +1,22 @@
 ---
-title: "rc-api.sh"
+title: "📡 rc-api.sh Reference"
+slug: rc-api
 template: rotkeeper-doc.html
-subtitle: "Fetch templates, packs, or updates from remote sources"
-asset-meta:
-  name: rc-api.md
-  version: 0.2.2
-  tags: [scripts, api, ingestion, fetch, external]
+version: "v0.2.3-pre"
+updated: "2025-06-01"
+description: "Experimental API utility for extracting or submitting Rotkeeper data between sessions. Not part of core ritual set."
+tags:
+  - rotkeeper
+  - scripts
+  - experimental
+  - api
+asset_meta:
+  name: "rc-api.md"
+  version: "v0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 
 # 🌐 `rc-api.sh`

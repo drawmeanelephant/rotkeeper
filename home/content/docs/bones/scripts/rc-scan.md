@@ -2,8 +2,21 @@
 title: "🔍 rc-scan.sh Reference"
 slug: rc-scan
 template: rotkeeper-doc.html
-version: "0.2.1"
-updated: "2025-05-29"
+version: "v0.2.3-pre"
+updated: "2025-06-01"
+description: "Scans the filesystem and rotkeeper manifest for mismatches, orphan files, and missing artifacts. Produces checksums and reports."
+tags:
+  - rotkeeper
+  - scripts
+  - scan
+  - digests
+asset_meta:
+  name: "rc-scan.md"
+  version: "v0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 
 <!-- Begin Ritual Script Documentation -->

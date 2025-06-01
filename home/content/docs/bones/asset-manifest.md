@@ -1,11 +1,23 @@
 ---
-title: "Asset Manifest"
+title: "📦 Asset Manifest Spec"
 slug: asset-manifest
 template: rotkeeper-doc.html
-version: 0.2.2
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Spec and explanation for asset-manifest.yaml, which tracks file hashes and file paths inside tombs."
+tags:
+  - rotkeeper
+  - yaml
+  - manifest
+  - assets
+asset_meta:
+  name: "asset-manifest.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-
-<!-- asset-meta: { name: "asset-manifest.md", version: "v0.2.2" } -->
 
 # 🧾 Asset Manifest
 

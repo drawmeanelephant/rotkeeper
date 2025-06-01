@@ -2,14 +2,21 @@
 title: "📜 Ritual Violations — Changelog"
 slug: changelog
 template: rotkeeper-doc.html
-version: "v0.1.0"
+version: "v0.2.3-pre"
+updated: "2025-06-01"
+description: "Archive of all ritual violation entries."
+tags:
+  - rotkeeper
+  - changelog
+  - violations
+asset_meta:
+  name: "CHANGELOG.md"
+  version: "v0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-<!-- asset-meta:
-     name:        "CHANGELOG.md"
-     version:     "v0.1.0"
-     description: "Archive of all ritual violation entries"
-     author:      "Rotkeeper Ritual Council"
--->
 
 # 📜 Ritual Violations — Changelog
 

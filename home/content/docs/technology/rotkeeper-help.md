@@ -1,10 +1,23 @@
 ---
-title: "Rotkeeper CLI & Subroutine Reference"
+title: "📘 Rotkeeper Help Overview"
 slug: rotkeeper-help
 template: rotkeeper-doc.html
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "High-level overview of how to use Rotkeeper, access its rituals, and understand the static site structure."
+tags:
+  - rotkeeper
+  - help
+  - overview
+  - docs
+asset_meta:
+  name: "rotkeeper-help.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-
-<!-- asset-meta: { name: "rotkeeper-help.md", version: "v0.1.0" } -->
 
 # 📜 Rotkeeper CLI & Subroutine Reference
 
@@ -105,10 +118,10 @@ Back to [Documentation Index](index.md)
 <!--
 LIMERICK
 
-The keeper accepts your command,  
-And echoes them back, ghostly and bland.  
-Each subroutine call  
-Just rewrites it all—  
+The keeper accepts your command,
+And echoes them back, ghostly and bland.
+Each subroutine call
+Just rewrites it all—
 By entropy’s deeply chilled hand.
 
 SORA PROMPT

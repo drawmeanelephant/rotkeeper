@@ -1,9 +1,22 @@
 ---
-title: "📝 rc-example.sh Reference"
+title: "📂 rc-example.sh Reference"
 slug: rc-example
 template: rotkeeper-doc.html
-version: "0.2.1"
-updated: "2025-05-29"
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Reference documentation for a sample or test rc-*.sh script used in Rotkeeper examples and testing."
+tags:
+  - rotkeeper
+  - example
+  - scripts
+  - docs
+asset_meta:
+  name: "rc-example.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 
 # rc-example — Example Utility Stub

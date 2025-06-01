@@ -1,16 +1,23 @@
 ---
-title: "rc-record.sh Reference"
+title: "📜 rc-record.sh Reference"
 slug: rc-record
 template: rotkeeper-doc.html
-version: "v0.2.1"
+version: "v0.2.3-pre"
+updated: "2025-06-01"
+description: "Record current git commit, timestamp, user, and host as part of a reproducible rotkeeper session dump."
+tags:
+  - rotkeeper
+  - scripts
+  - logging
+  - git
+asset_meta:
+  name: "rc-record.md"
+  version: "v0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-<!-- asset-meta:
-     name:        "rc-record.sh"
-     version:     "v0.2.1"
-     updated:     "2025-05-29"
-     description: "Record current git commit, timestamp, user, and host"
-     author:      "Rotkeeper Ritual Council"
--->
 <!--
 🎨 Sora Prompt:
 "A ghostly scribe in a candlelit vault, recording every command, env var, and manifest whisper as the rotkeeper’s session unfolds."

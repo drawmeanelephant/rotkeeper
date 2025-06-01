@@ -1,9 +1,21 @@
 ---
-title: rc-inject Script Documentation
-description: Placeholder page for the rc-inject utility script used in the rotkeeper documentation system.
-date: 2025-05-15
+title: "📎 rc-inject.sh Reference"
+slug: rc-inject
 template: rotkeeper-doc.html
-tags: [docs, script, placeholder]
+version: "v0.2.3-pre"
+updated: "2025-06-01"
+description: "Placeholder page for the rc-inject utility script used in the rotkeeper documentation system."
+tags:
+  - docs
+  - script
+  - placeholder
+asset_meta:
+  name: "rc-inject.md"
+  version: "v0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 
 # rc-inject

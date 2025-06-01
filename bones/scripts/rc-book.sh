@@ -1,0 +1,164 @@
+#!/usr/bin/env bash
+# rc-book.sh — binder ritual for scriptbook, docbook, webbook, and future collapse mode
+# Version: 0.1.0
+# Updated: 2025-05-31
+
+set -euo pipefail
+trap 'echo "Error on line $LINENO"; exit 1' ERR
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REPORT_DIR="$PROJECT_ROOT/bones/reports"
+
+# Defaults
+MODE=""
+CONFIG=""
+
+show_help() {
+  cat <<EOF
+Usage: rc-book.sh [--scriptbook|--docbook|--webbook|--all|--collapse] [--config file]
+
+  --scriptbook   Bind full source + comments into rotkeeper-scriptbook.md
+  --docbook      Bind meta documentation into rotkeeper-docbook.md
+  --webbook      Bind public markdown into rotkeeper-webbook.md
+  --all          Run all 3 binder rituals above
+  --collapse     Collapse all rotkeeper-*.md into collapsed-content.yaml
+  --config FILE  Optional config file for future filtering logic
+  --help         Show this helpful void
+
+EOF
+}
+
+parse_flags() {
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --scriptbook) MODE="scriptbook"; shift ;;
+      --docbook)    MODE="docbook"; shift ;;
+      --webbook)    MODE="webbook"; shift ;;
+      --all)        MODE="all"; shift ;;
+      --collapse)   MODE="collapse"; shift ;;
+      --config)     CONFIG="$2"; shift 2 ;;
+      --help)       show_help; exit 0 ;;
+      *) echo "Unknown option: $1"; show_help; exit 1 ;;
+    esac
+  done
+}
+
+run_scriptbook() {
+  local OUT="$REPORT_DIR/rotkeeper-scriptbook.md"
+
+  echo "---" > "$OUT"
+  echo "title: \"Rotkeeper Scriptbook\"" >> "$OUT"
+  echo "subtitle: \"Generated from script docblocks\"" >> "$OUT"
+  echo "---" >> "$OUT"
+
+  for script in "$PROJECT_ROOT"/bones/scripts/rc-*.sh; do
+    echo "## $(basename "$script")" >> "$OUT"
+    echo '```bash' >> "$OUT"
+    cat "$script" >> "$OUT"
+    echo '```' >> "$OUT"
+    echo "" >> "$OUT"
+  done
+
+  echo "[✔] Scriptbook written to $OUT"
+}
+
+run_docbook() {
+  local OUT="$REPORT_DIR/rotkeeper-docbook.md"
+
+  echo "---" > "$OUT"
+  echo "title: \"Home Content\"" >> "$OUT"
+  echo "subtitle: \"Structured documentation from meta/\"" >> "$OUT"
+  echo "---" >> "$OUT"
+  echo "" >> "$OUT"
+
+  for file in "$PROJECT_ROOT"/bones/meta/*.md; do
+    [[ -f "$file" ]] || continue
+    echo "# $(basename "$file")" >> "$OUT"
+    echo "" >> "$OUT"
+    cat "$file" >> "$OUT"
+    echo "" >> "$OUT"
+  done
+
+  echo "[✔] Docbook written to $OUT"
+}
+
+run_webbook() {
+  local OUT="$REPORT_DIR/rotkeeper-webbook.md"
+
+  {
+    echo "<!-- Rotkeeper Webbook -->"
+    echo "<!-- Compiled from rendered HTML pages in home/content/ -->"
+    echo ""
+  } > "$OUT"
+
+  find "$PROJECT_ROOT/home/content" -name '*.html' -print0 | sort -z |
+  while IFS= read -r -d '' file; do
+    echo "[INFO] Appending: $file"
+    echo "<!-- FILE: ${file} -->" >> "$OUT"
+    cat "$file" >> "$OUT"
+    echo -e "\n<!-- END: ${file} -->" >> "$OUT"
+  done
+
+  echo "[✔] Webbook written to $OUT"
+}
+
+run_mode() {
+  case "$MODE" in
+    scriptbook)
+      run_scriptbook
+      ;;
+    docbook)
+      run_docbook
+      ;;
+    webbook)
+      run_webbook
+      ;;
+    all)
+      run_scriptbook
+      run_docbook
+      run_webbook
+      ;;
+    collapse)
+      echo "[INFO] Collapsing reports into YAML..."
+
+      mkdir -p "$REPORT_DIR"
+
+      OUTPUT="$REPORT_DIR/collapsed-content.yaml"
+      > "$OUTPUT"
+
+      for file in "$REPORT_DIR"/rotkeeper-*.md; do
+        [[ -f "$file" ]] || continue
+
+        filename=$(basename "$file")
+
+        echo "[DEBUG] Reading: $file" >&2
+
+        title=$(awk 'BEGIN {found=0} /^\-\-\-/ {found+=1; next} found==1 && /^title:/ {print substr($0, index($0,$2))}' "$file" | head -n1 | sed 's/^"//; s/"$//')
+        subtitle=$(awk 'BEGIN {found=0} /^\-\-\-/ {found+=1; next} found==1 && /^subtitle:/ {print substr($0, index($0,$2))}' "$file" | head -n1 | sed 's/^"//; s/"$//')
+        echo "[DEBUG] → Found: $filename | title: '$title' | subtitle: '$subtitle'" >&2
+
+        if [[ -z "$title" ]]; then
+          echo "[WARN] Skipping $filename — no title found." >&2
+          continue
+        fi
+
+        echo "- filename: \"$filename\"" >> "$OUTPUT"
+        echo "  title: \"$title\"" >> "$OUTPUT"
+        echo "  subtitle: \"$subtitle\"" >> "$OUTPUT"
+        echo "  body: |" >> "$OUTPUT"
+        awk 'BEGIN{skip=1} /^---/ {if (skip==1) {skip=0; next}; if (skip==0) {nextfile}} skip==0' "$file" | sed 's/^/    /' >> "$OUTPUT"
+      done
+
+      echo "" >> "$OUTPUT"
+
+      echo "[DONE] Wrote: $OUTPUT"
+      ;;
+    *)
+      echo "No mode selected. Use --help."; exit 1 ;;
+  esac
+}
+
+# Main entry
+parse_flags "$@"
+run_mode

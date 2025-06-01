@@ -2,8 +2,21 @@
 title: "🌱 rc-expand.sh Reference"
 slug: rc-expand
 template: rotkeeper-doc.html
-version: "0.2.1"
-updated: "2025-05-29"
+version: "v0.2.3-pre"
+updated: "2025-06-01"
+description: "Expands the rotkeeper-bom.yaml into scaffolded markdown stubs and file structures, preparing tombs for ritual population."
+tags:
+  - rotkeeper
+  - scripts
+  - expansion
+  - stubs
+asset_meta:
+  name: "rc-expand.md"
+  version: "v0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 <!--
 🎨 Sora Prompt:

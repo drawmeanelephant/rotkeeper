@@ -1,9 +1,23 @@
 ---
-title: "Quickstart Guide"
+title: "🚀 Quickstart Guide"
 slug: quickstart-guide
 template: rotkeeper-doc.html
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "A rapid onboarding guide for using Rotkeeper, setting up tombs, and rendering documentation."
+tags:
+  - rotkeeper
+  - guide
+  - quickstart
+  - onboarding
+asset_meta:
+  name: "quickstart-guide.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-<!-- asset-meta: { name: "quickstart-guide.md", version: "v0.1.0" } -->
 # ⚡ Quickstart Guide
 
 This guide walks you through creating your first tomb with Rotkeeper.

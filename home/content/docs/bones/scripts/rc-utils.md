@@ -1,10 +1,22 @@
 ---
-asset-meta:
-  name: rc-utils.md
-  version: "v0.2.4-dev"
-  updated: "2025-05-31"
-  tags: [scripts, docs, utils]
-  template: rotkeeper-doc.html
+title: "🧩 rc-utils.sh Reference"
+slug: rc-utils
+template: rotkeeper-doc.html
+version: "v0.2.3-pre"
+updated: "2025-06-01"
+description: "Utility functions sourced by other rc-*.sh scripts, including logging, error handling, and dependency checks."
+tags:
+  - rotkeeper
+  - scripts
+  - utils
+  - shared
+asset_meta:
+  name: "rc-utils.md"
+  version: "v0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 
 # rc-utils.sh

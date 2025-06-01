@@ -1,9 +1,22 @@
 ---
 title: "File Tree Structure"
+slug: tree
 description: "Directory layout and tomb structure for the Rotkeeper ritual system."
 version: "0.2.3-pre"
 template: rotkeeper-doc.html
 updated: "2025-05-31"
+tags:
+  - rotkeeper
+  - structure
+  - filesystem
+  - reference
+asset_meta:
+  name: "tree.md"
+  version: "0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 
 # 🌲 File Tree Structure

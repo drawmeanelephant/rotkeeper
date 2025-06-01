@@ -2,8 +2,21 @@
 title: "🔄 rc-cleanup-bones.sh Reference"
 slug: rc-cleanup-bones
 template: rotkeeper-doc.html
-version: "0.2.1"
-updated: "2025-05-29"
+version: "v0.2.3-pre"
+updated: "2025-06-01"
+description: "Backs up and prunes outdated directories and logs from the bones/ archive system."
+tags:
+  - rotkeeper
+  - scripts
+  - cleanup
+  - backups
+asset_meta:
+  name: "rc-cleanup-bones.md"
+  version: "v0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 
 # rc-cleanup-bones.sh

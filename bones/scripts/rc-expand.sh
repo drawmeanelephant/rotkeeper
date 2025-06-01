@@ -4,11 +4,14 @@ source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 # ░▒▓█ ROTKEEPER SCRIPT █▓▒░
 # Script: rc-expand.sh
 # Purpose: Generate markdown, config, and skeleton files from a BOM definition
-# Version: 0.2.1
-# Updated: 2025-05-29
+# Version: 0.2.4-dev
+# Updated: 2025-05-31
 # -----------------------------------------
 set -euo pipefail
 IFS=$'\n\t'
+
+# Trap errors for debugging
+trap 'trap_err ${LINENO}' ERR
 
 # Parse common flags
 parse_flags "$@"
@@ -17,20 +20,15 @@ if [[ "$HELP" == true ]]; then
 fi
 
 main() {
-    DRY_RUN=false
-    for arg in "$@"; do
-        [[ "$arg" == "--dry-run" ]] && DRY_RUN=true
-    done
-
     require_bins yq
-    run "echo 'INFO Running rc-expand.sh.'"
+    log "INFO" "Running rc-expand.sh."
 
-    FORCE=${1:---skip}
-    if [[ "$FORCE" == "--force" ]]; then
-      FORCE=true
-    else
-      FORCE=false
-    fi
+    DRY_RUN=false
+    FORCE=false
+    for arg in "$@"; do
+      [[ "$arg" == "--dry-run" ]] && DRY_RUN=true
+      [[ "$arg" == "--force" ]] && FORCE=true
+    done
 
     # Resolve script directory and project root
     SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -46,39 +44,32 @@ main() {
     elif [[ -f "$ALT_CANDIDATE" ]]; then
       BOM="$ALT_CANDIDATE"
     else
-      log "ERROR" "Buildout file not found: tried $SCRIPT_BOM, $BOM_CANDIDATE, and $ALT_CANDIDATE"
+      run echo "ERROR Buildout file not found: tried $SCRIPT_BOM, $BOM_CANDIDATE, and $ALT_CANDIDATE"
       exit 1
     fi
     HOME_DIR="home"
-        if [[ "$DRY_RUN" == true ]]; then
-        run "echo '[DRY RUN] Would create directory $HOME_DIR'"
+    if [[ "$DRY_RUN" == true ]]; then
+        run echo "[DRY RUN] Would create directory $HOME_DIR"
     else
-        run "mkdir -p \"$HOME_DIR\""
+        run mkdir -p "$HOME_DIR"
     fi
 
-    run "echo '🧬 Expanding from buildout: $BOM'"
+    run echo "🧬 Expanding from buildout: $BOM"
 
-    # Check for yq
-    if ! command -v yq >/dev/null; then
-      run "echo '❌ ERROR: '\''yq'\'' is required but not installed.'"
-      run "echo '💡 Install it using your package manager:'"
-      run "echo '   brew install yq       # macOS'"
-      run "echo '   sudo apt install yq   # Debian/Ubuntu'"
-      run "echo '   sudo dnf install yq   # Fedora'"
-      run "echo '   or visit: https://github.com/mikefarah/yq'"
-      exit 1
-    fi
+    # (yq check removed, handled by require_bins)
 
     # Sanity check for BOM path
     if [[ ! -f "$BOM" ]]; then
-      run "echo '❌ ERROR: Buildout file not found: $BOM'"
-      run "echo '🧬 Expected at path: $BOM'"
+      run echo "❌ ERROR: Buildout file not found: $BOM"
+      run echo "🧬 Expected at path: $BOM"
       exit 1
     fi
 
     # Loop through each content item in the BOM
     page_count=$(yq e '.content | length' "$BOM")
 
+    CREATED=0
+    SKIPPED=0
     for i in $(seq 0 $((page_count - 1))); do
       FILENAME=$(yq e ".content[$i].filename" "$BOM")
       TITLE=$(yq e ".content[$i].title" "$BOM")
@@ -89,13 +80,14 @@ main() {
       OUTFILE="$HOME_DIR/$FILENAME"
 
       if [[ -f "$OUTFILE" && "$FORCE" != true ]]; then
-        run "echo '⚠️  Skipping $OUTFILE (already exists)'"
+        run echo "⚠️  Skipping $OUTFILE (already exists)"
+        ((SKIPPED++))
         continue
       fi
 
-      run "echo '📄 Generating: $OUTFILE'"
+      run echo "📄 Generating: $OUTFILE"
       if [[ "$DRY_RUN" == true ]]; then
-          run "echo '[DRY RUN] Would write to $OUTFILE'"
+          run echo "[DRY RUN] Would write to $OUTFILE"
       else
           {
             echo "---"
@@ -106,24 +98,27 @@ main() {
             echo ""
             echo "$BODY"
           } > "$OUTFILE"
+          ((CREATED++))
       fi
     done
 
-    run "echo '✅ Expansion complete.'"
+    run echo "✅ Expansion complete."
+    run echo "📈 Created: $CREATED"
+    run echo "⚠️ Skipped: $SKIPPED"
 
     # === SCRIPTS ===
     # === SELF REPLICATION ===
     SELF_DEST="bones/scripts/rc-expand.sh"
     if [[ "$SELF_DEST" == "$SELF_DEST" ]]; then
       if [[ "$DRY_RUN" == true ]]; then
-          run "echo '[DRY RUN] Would create directory $(dirname "$SELF_DEST")'"
-          run "echo '[DRY RUN] Would copy rc-expand.sh to $SELF_DEST'"
-          run "echo '[DRY RUN] Would chmod +x $SELF_DEST'"
+          run echo "[DRY RUN] Would create directory $(dirname "$SELF_DEST")"
+          run echo "[DRY RUN] Would copy rc-expand.sh to $SELF_DEST"
+          run echo "[DRY RUN] Would chmod +x $SELF_DEST"
       else
-          run "echo '🔄 Copying rc-expand.sh to $SELF_DEST'"
-          run "mkdir -p \"$(dirname "$SELF_DEST")\""
-          run "cp \"$0\" \"$SELF_DEST\""
-          run "chmod +x \"$SELF_DEST\""
+          run echo "🔄 Copying rc-expand.sh to $SELF_DEST"
+          run mkdir -p "$(dirname "$SELF_DEST")"
+          run cp "$0" "$SELF_DEST"
+          run chmod +x "$SELF_DEST"
       fi
     fi
 
@@ -139,23 +134,23 @@ main() {
       HEADER=$(yq e ".scripts[$i].header" "$BOM")
       STUB=$(yq e ".scripts[$i].stub" "$BOM")
       if [[ "$STUB" != "true" ]]; then
-        run "echo '⚠️  Skipping $SCRIPT_PATH (stub: false)'"
+        run echo "⚠️  Skipping $SCRIPT_PATH (stub: false)"
         continue
       fi
       if [[ ! -f "$SCRIPT_PATH" ]]; then
         if [[ "$DRY_RUN" == true ]]; then
-            run "echo '[DRY RUN] Would create directory $(dirname "$SCRIPT_PATH")'"
-            run "echo '[DRY RUN] Would create script: $SCRIPT_PATH'"
-            run "echo '[DRY RUN] Would chmod +x $SCRIPT_PATH'"
+            run echo "[DRY RUN] Would create directory $(dirname "$SCRIPT_PATH")"
+            run echo "[DRY RUN] Would create script: $SCRIPT_PATH"
+            run echo "[DRY RUN] Would chmod +x $SCRIPT_PATH"
         else
-            run "echo '⚙️  Creating script: $SCRIPT_PATH'"
-            run "mkdir -p \"$(dirname "$SCRIPT_PATH")\""
+            run echo "⚙️  Creating script: $SCRIPT_PATH"
+            run mkdir -p "$(dirname "$SCRIPT_PATH")"
             {
               echo "#!/usr/bin/env bash"
               [[ "$HEADER" != "null" ]] && echo "# $HEADER"
               echo "# TODO"
             } > "$SCRIPT_PATH"
-            run "chmod +x \"$SCRIPT_PATH\""
+            run chmod +x "$SCRIPT_PATH"
         fi
       fi
     done
@@ -166,11 +161,11 @@ main() {
       CONFIG_PATH=$(yq e ".config[$i].path" "$BOM")
       if [[ ! -f "$CONFIG_PATH" ]]; then
         if [[ "$DRY_RUN" == true ]]; then
-            run "echo '[DRY RUN] Would create directory $(dirname "$CONFIG_PATH")'"
-            run "echo '[DRY RUN] Would touch config file: $CONFIG_PATH and write headers'"
+            run echo "[DRY RUN] Would create directory $(dirname "$CONFIG_PATH")"
+            run echo "[DRY RUN] Would touch config file: $CONFIG_PATH and write headers"
         else
-            run "echo '📄 Touching config file: $CONFIG_PATH'"
-            run "mkdir -p \"$(dirname "$CONFIG_PATH")\""
+            run echo "📄 Touching config file: $CONFIG_PATH"
+            run mkdir -p "$(dirname "$CONFIG_PATH")"
             {
               echo "# 🔮 Generated by rc-expand.sh"
               echo "# ☠️ Do not edit unless you are bone-certified."
@@ -186,11 +181,11 @@ main() {
       SKELETON=$(yq e ".templates[$i].skeleton" "$BOM")
       if [[ ! -f "$TEMPLATE_PATH" && "$SKELETON" == "true" ]]; then
         if [[ "$DRY_RUN" == true ]]; then
-            run "echo '[DRY RUN] Would create directory $(dirname "$TEMPLATE_PATH")'"
-            run "echo '[DRY RUN] Would create template skeleton: $TEMPLATE_PATH'"
+            run echo "[DRY RUN] Would create directory $(dirname "$TEMPLATE_PATH")"
+            run echo "[DRY RUN] Would create template skeleton: $TEMPLATE_PATH"
         else
-            run "echo '🧱 Creating template skeleton: $TEMPLATE_PATH'"
-            run "mkdir -p \"$(dirname "$TEMPLATE_PATH")\""
+            run echo "🧱 Creating template skeleton: $TEMPLATE_PATH"
+            run mkdir -p "$(dirname "$TEMPLATE_PATH")"
             {
               echo "<!-- 🔮 Skeleton generated by rc-expand.sh -->"
               echo "<!DOCTYPE html>"
@@ -206,47 +201,47 @@ main() {
     folder_count=$(yq e '.folders | length' "$BOM")
     for i in $(seq 0 $((folder_count - 1))); do
       DIR=$(yq e ".folders[$i].path" "$BOM")
-      run "echo '📁 Ensuring folder exists: $DIR'"
+      run echo "📁 Ensuring folder exists: $DIR"
       if [[ "$DRY_RUN" == true ]]; then
-          run "echo '[DRY RUN] Would create directory $DIR'"
-          run "echo '[DRY RUN] Would touch $DIR/.keep'"
+          run echo "[DRY RUN] Would create directory $DIR"
+          run echo "[DRY RUN] Would touch $DIR/.keep"
       else
-          run "mkdir -p \"$DIR\""
-          run "touch \"$DIR/.keep\""
+          run mkdir -p "$DIR"
+          run touch "$DIR/.keep"
       fi
     done
 
 
-    run "echo '🧾 Expand complete. Home content lives in: $HOME_DIR/'"
+    run echo "🧾 Expand complete. Home content lives in: $HOME_DIR/"
 
     # === DUMP ENTIRE SCRIPT ENVIRONMENT ===
-    run "echo '💾 Dumping all scripts to bones/scripts/'"
+    run echo "💾 Dumping all scripts to bones/scripts/"
     if [[ "$DRY_RUN" == true ]]; then
-        run "echo '[DRY RUN] Would create directory bones/scripts'"
+        run echo "[DRY RUN] Would create directory bones/scripts"
     else
-        run "mkdir -p bones/scripts"
+        run mkdir -p bones/scripts
     fi
     for script in *.sh; do
       if [[ "$DRY_RUN" == true ]]; then
-          run "echo '[DRY RUN] Would copy $script to bones/scripts/'"
-          run "echo '[DRY RUN] Would chmod +x bones/scripts/$script'"
+          run echo "[DRY RUN] Would copy $script to bones/scripts/"
+          run echo "[DRY RUN] Would chmod +x bones/scripts/$script"
       else
-          run "echo '🔄 Copying $script to bones/scripts/'"
-          run "cp \"$script\" \"bones/scripts/$script\""
-          run "chmod +x \"bones/scripts/$script\""
+          run echo "🔄 Copying $script to bones/scripts/"
+          run cp "$script" "bones/scripts/$script"
+          run chmod +x "bones/scripts/$script"
       fi
     done
 
     # === COPY ROTKEEPER BOM ===
-    run "echo '📦 Copying BOM for environment replication'"
+    run echo "📦 Copying BOM for environment replication"
     if [[ "$DRY_RUN" == true ]]; then
-        run "echo '[DRY RUN] Would create directory bones/scripts/road-to-bones'"
-        run "echo '[DRY RUN] Would copy $BOM to bones/scripts/road-to-bones/rotkeeper-bom.yaml'"
+        run echo "[DRY RUN] Would create directory bones/scripts/road-to-bones"
+        run echo "[DRY RUN] Would copy $BOM to bones/scripts/road-to-bones/rotkeeper-bom.yaml"
     else
-        run "mkdir -p bones/scripts/road-to-bones"
-        run "cp \"$BOM\" bones/scripts/road-to-bones/rotkeeper-bom.yaml"
+        run mkdir -p bones/scripts/road-to-bones
+        run cp "$BOM" bones/scripts/road-to-bones/rotkeeper-bom.yaml
     fi
-    run "echo 'INFO rc-expand.sh completed successfully.'"
+    run echo "INFO rc-expand.sh completed successfully."
 }
 
 main "$@"

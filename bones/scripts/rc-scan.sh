@@ -84,38 +84,15 @@ main() {
     # Use plain arrays for manifest and disk lists
     manifest_list=()
     disk_list=()
-# rc-scan.sh — Audit manifest and scan environment for file reports
 #
-# Workflow:
-# 1. Discover Target Paths
-#    - Read bones/manifest.txt (if exists)
-#    - Scan directories: home/, bones/, output/
-#    Flags: --manifest-only (skip disk scan)
-#
-# 2. Filter & Classify
-#    - Default types: png, jpg, svg, css, js, md, html, json, yaml
-#    Flags: --include, --exclude
-#
-# 3. Compute File Metadata
-#    - Path, size (bytes), mtime, checksum (SHA256)
-#
-# 4. Compare Against Manifest
-#    - Identify missing files and orphans
-#
-# 5. Generate Reports
-#    - JSON: bones/reports/scan-report.json
-#    - Markdown: home/content/rotkeeper/scan-report.md
-#    - Log: bones/logs/rc-scan.log
-#
-# 6. Expose Digests
-#    - YAML: bones/reports/file-digests.yaml (path → checksum)
-#
-# 7. CLI Flags & Modes
-#    - --dry-run, --verbose, --json-only, --md-only
-#
-# 8. Exit Codes
-#    - 0: no issues
-#    - >0: missing files or usage errors
+# --- Output Artifacts ---
+# rc-scan.sh emits two optional report types (controlled by flags):
+#   - JSON Report: bones/reports/scan-report-YYYYMMDD_HHMMSS.json
+#   - Markdown Report: bones/reports/scan-report-YYYYMMDD_HHMMSS.md
+# Each report includes:
+#   - Missing Files: present in manifest but not on disk
+#   - Orphan Files: present on disk but not in manifest
+#   - File Digests: SHA256 hashes keyed by relative path
 #
 
 #

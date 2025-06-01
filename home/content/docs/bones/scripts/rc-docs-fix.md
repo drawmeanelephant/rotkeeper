@@ -1,9 +1,22 @@
 ---
-title: "🛠️ rc-docs-fix.sh Reference"
+title: "📚 Docs Fix Task"
 slug: rc-docs-fix
 template: rotkeeper-doc.html
-version: "0.2.2"
-updated: "2025-05-30"
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "Task notes and fix log for the Rotkeeper documentation structure and metadata pass."
+tags:
+  - rotkeeper
+  - docs
+  - meta
+  - task
+asset_meta:
+  name: "rc-docs-fix.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 
 ## 📑 Table of Contents

@@ -76,13 +76,6 @@ This peer review is preserved in the audit so the project can remember what it l
 
 ---
 
-## 📌 Followups for v0.2.4
+## 📌 Followups
 
-- [ ] Create `rotkeeper-followups.md` to track standard questions + next-phase tasks
-- [ ] Implement `require_yq()` helper in `rc-utils.sh`
-- [ ] Stub `rotkeeper-first-ritual.md` and glossary page
-- [ ] Draft `rc-audit.sh` to validate YAML, manifests, tomb metadata
-- [ ] Clarify `bones/manifest.txt` vs asset manifest behavior
-- [ ] Add formal `tomb.yaml` format doc
-- [ ] Write `rc-reset.sh` to purge and regrow project from known good state
-- [ ] Add logic to `rc-init.sh` to support reseed or full bootstrapping
+See `rotkeeper-followups.md` for all next-phase tasks, spec drafts, and unresolved system questions.

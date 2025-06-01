@@ -1,17 +1,22 @@
-
-
 ---
 title: "📜 Session Records"
 slug: records
 template: rotkeeper-doc.html
-version: "v0.1.0"
+version: "v0.2.3-pre"
+updated: 2025-06-01
+description: "Archives of rc-record.sh session dumps"
+tags:
+  - rotkeeper
+  - records
+  - sessions
+asset_meta:
+  name: "records.md"
+  version: "v0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-<!-- asset-meta:
-     name:        "records.md"
-     version:     "v0.1.0"
-     description: "Archives of rc-record.sh session dumps"
-     author:      "Rotkeeper Ritual Council"
--->
 
 # 📜 Session Records
 

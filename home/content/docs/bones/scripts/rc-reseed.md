@@ -2,8 +2,21 @@
 title: "♻️ rc-reseed.sh Reference"
 slug: rc-reseed
 template: rotkeeper-doc.html
-version: "0.2.1"
-updated: "2025-05-29"
+version: "v0.2.3-pre"
+updated: "2025-06-01"
+description: "Restores a full Rotkeeper project structure from a packed archive tomb using rc-reseed.sh."
+tags:
+  - rotkeeper
+  - scripts
+  - restore
+  - tombs
+asset_meta:
+  name: "rc-reseed.md"
+  version: "v0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 
 # `rc-reseed.sh`

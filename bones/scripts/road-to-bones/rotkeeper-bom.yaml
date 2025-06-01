@@ -46,15 +46,64 @@ scripts:
 
       echo "Render process completed."
   - path: bones/scripts/rc-expand.sh
-    stub: true
-    header: "rc-expand — create files from rotkeeper-bom.yaml"
+    stub: false
+    header: "rc-expand — generate content and config from rotkeeper-bom.yaml"
     body: |
       #!/usr/bin/env bash
-      # rc-expand — create files from rotkeeper-bom.yaml
+      # rc-expand — generate content and config from rotkeeper-bom.yaml
       set -euo pipefail
 
-      echo "Expanding content..."
-      # TODO: implement expand logic
+      # Load utilities and trap errors
+      source "$(dirname "$0")/../rc-utils.sh"
+      trap 'trap_err ${LINENO}' ERR
+
+      main() {
+        parse_flags "$@"
+        require_bins yq jq
+
+        log "INFO" "Running rc-expand.sh."
+
+        INPUT="bones/scripts/road-to-bones/rotkeeper-bom.yaml"
+        HOME_DIR="home/content"
+
+        CONTENT=$(yq eval '.content[]' "$INPUT" || true)
+        [[ -z "$CONTENT" ]] && log "WARN" "No content found in BOM." && exit 0
+
+        CREATED=0
+        SKIPPED=0
+
+        yq eval -o=json '.content[]' "$INPUT" | jq -c '.' | while IFS= read -r item; do
+          filename=$(echo "$item" | jq -r '.filename')
+          title=$(echo "$item" | jq -r '.title')
+          subtitle=$(echo "$item" | jq -r '.subtitle')
+          body=$(echo "$item" | jq -r '.body')
+
+          filepath="$HOME_DIR/$filename"
+
+          if [[ -f "$filepath" && "$FORCE" != true ]]; then
+            log "WARN" "Skipping $filepath (already exists)"
+            ((SKIPPED++))
+            continue
+          fi
+
+          mkdir -p "$HOME_DIR"
+          {
+            echo "---"
+            echo "title: \"$title\""
+            echo "subtitle: \"$subtitle\""
+            echo "---"
+            echo "$body"
+          } > "$filepath"
+
+          log "INFO" "Created $filepath"
+          ((CREATED++))
+        done
+
+        run echo "📈 Created: $CREATED"
+        run echo "⚠️ Skipped: $SKIPPED"
+      }
+
+      main "$@"
   - path: bones/scripts/rc-assets.sh
     stub: true
     body: |

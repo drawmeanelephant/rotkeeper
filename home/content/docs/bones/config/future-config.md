@@ -1,16 +1,23 @@
 ---
-title: "🔮 future-config.yaml Placeholder"
+title: "🔮 future-config.yaml Reference"
 slug: future-config
 template: rotkeeper-doc.html
-version: "v0.1.0"
+version: "v0.2.3-pre"
+updated: "2025-06-01"
+description: "Draft configuration schema for future-proofing rotkeeper rituals and speculative options."
+tags:
+  - rotkeeper
+  - yaml
+  - config
+  - draft
+asset_meta:
+  name: "future-config.md"
+  version: "v0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-<!-- asset-meta:
-     name:        "future-config.yaml"
-     version:     "v0.1.0"
-     description: "Placeholder for upcoming Rotkeeper configuration types"
-     author:      "Rotkeeper Ritual Council"
--->
-
 # 🔮 future-config.yaml
 
 <!-- Config relics yet to be defined -->

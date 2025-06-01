@@ -2,14 +2,21 @@
 title: "📚 Archive Index"
 slug: archive-index
 template: rotkeeper-doc.html
-version: "v0.1.0"
+version: "v0.2.3-pre"
+updated: 2025-06-01
+description: "Ledger of all archived tomb artifacts and reports"
+tags:
+  - rotkeeper
+  - archives
+  - tombs
+asset_meta:
+  name: "archive-index.md"
+  version: "v0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-<!-- asset-meta:
-     name:        "archive-index.md"
-     version:     "v0.1.0"
-     description: "Ledger of all archived tomb artifacts and reports"
-     author:      "Rotkeeper Ritual Council"
--->
 
 # 🏺 Archive — Tomb Artifacts
 
@@ -27,11 +34,11 @@ version: "v0.1.0"
 ## 🛣️ Navigation
 
 <!-- Quick nav to archive sections -->
-- [scan-reports](scan-reports.html)  
-- [CHANGELOG](CHANGELOG.html)  
-- [manifests](manifests.html)  
-- [records](records.html)  
-- [renders](renders.html)  
+- [scan-reports](scan-reports.html)
+- [CHANGELOG](CHANGELOG.html)
+- [manifests](manifests.html)
+- [records](records.html)
+- [renders](renders.html)
 - [Other archives…](index.html)
 
 ## 🧭 Usage

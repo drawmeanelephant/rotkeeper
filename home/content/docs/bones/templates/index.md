@@ -1,11 +1,22 @@
 ---
-title: Rotkeeper Templates
+title: "🧰 Template Index"
+slug: templates-index
 template: rotkeeper-doc.html
-subtitle: Overview of HTML templates used in rendering rituals.
-asset-meta:
-  name: templates-index.md
-  version: 0.2.0-pre
-  tags: [templates, rendering, documentation, pandoc]
+version: "v0.2.3-pre"
+updated: "2025-06-01"
+description: "Index of Pandoc and HTML templates used in Rotkeeper rendering workflows."
+tags:
+  - rotkeeper
+  - templates
+  - rendering
+  - index
+asset_meta:
+  name: "index.md"
+  version: "v0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 
 # 🧾 Rotkeeper Template Rituals

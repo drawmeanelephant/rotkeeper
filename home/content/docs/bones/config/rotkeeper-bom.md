@@ -2,14 +2,21 @@
 title: "📦 rotkeeper-bom.yaml Reference"
 slug: rotkeeper-bom
 template: rotkeeper-doc.html
-version: "v0.1.0"
+version: "v0.2.3-pre"
+updated: 2025-06-01
+description: "Bill of Materials config for Rotkeeper asset and directory tracking"
+tags:
+  - rotkeeper
+  - config
+  - bom
+asset_meta:
+  name: "rotkeeper-bom.yaml"
+  version: "v0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-<!-- asset-meta:
-     name:        "rotkeeper-bom.yaml"
-     version:     "v0.1.0"
-     description: "Bill of Materials config for Rotkeeper asset and directory tracking"
-     author:      "Rotkeeper Ritual Council"
--->
 
 # 📦 rotkeeper-bom.yaml
 

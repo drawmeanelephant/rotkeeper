@@ -2,8 +2,22 @@
 title: "📖 rc-docbook.sh Reference"
 slug: rc-docbook
 template: rotkeeper-doc.html
-version: "0.2.1"
-updated: "2025-05-29"
+version: "v0.2.3-pre"
+updated: "2025-06-01"
+description: "Converts Markdown files with Rotkeeper frontmatter into DocBook XML chapters. Pending deprecation in favor of rc-book.sh."
+tags:
+  - rotkeeper
+  - scripts
+  - docbook
+  - legacy
+status: "deprecating"
+asset_meta:
+  name: "rc-docbook.md"
+  version: "v0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 <!-- Begin Ritual Script Documentation -->
 

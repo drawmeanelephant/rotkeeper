@@ -1,16 +1,22 @@
 ---
-title: Rotkeeper Script Index
-template: rotkeeper-doc.html
+title: "Rotkeeper Script Index"
 slug: scripts-index
+template: rotkeeper-doc.html
+version: "v0.2.3-pre"
+updated: 2025-06-01
+description: "Index of all rc-*.sh ritual scripts with status and links"
+tags:
+  - rotkeeper
+  - scripts
+  - cli
+asset_meta:
+  name: "scripts-index.md"
+  version: "v0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-
-<!-- asset-meta:
-     name:        "scripts-index.md"
-     version:     "v0.2.1"
-     updated:     "2025-05-29"
-     description: "Index of all rc-*.sh ritual scripts with status and links"
-     author:      "Rotkeeper Ritual Council"
--->
 
 # 📜 Rotkeeper Scripts — Bones of the Machine
 

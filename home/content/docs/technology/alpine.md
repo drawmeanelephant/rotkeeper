@@ -1,9 +1,24 @@
+
 ---
 title: "Alpine.js Examples"
+slug: alpine
+template: rotkeeper-doc.html
+version: "v0.2.3-pre"
+updated: "2025-06-01"
 description: "Collection of Alpine.js usage examples for Rotkeeper project."
+tags:
+  - rotkeeper
+  - alpine
+  - javascript
+  - ui
+asset_meta:
+  name: "alpine.md"
+  version: "v0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-
-<!-- asset-meta: { name: "alpine.md", version: "v0.1.0" } -->
 
 # 🏔️ Alpine.js Examples and Documentation
 

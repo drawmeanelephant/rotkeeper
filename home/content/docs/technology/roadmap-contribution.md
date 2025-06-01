@@ -1,9 +1,23 @@
 ---
-title: "Roadmap & Contribution"
+title: "🛤️ Contribution Roadmap"
 slug: roadmap-contribution
 template: rotkeeper-doc.html
+version: "0.2.3-pre"
+updated: "2025-06-01"
+description: "An open roadmap and contribution guide for future Rotkeeper tasks and feature tracking."
+tags:
+  - rotkeeper
+  - roadmap
+  - contribution
+  - planning
+asset_meta:
+  name: "roadmap-contribution.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-<!-- asset-meta: { name: "roadmap-contribution.md", version: "v0.1.0" } -->
 
 # 🗺️ Roadmap & Contribution
 

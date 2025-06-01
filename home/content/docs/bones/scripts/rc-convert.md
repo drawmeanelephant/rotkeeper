@@ -2,14 +2,22 @@
 title: "🔄 rc-convert.sh Reference"
 slug: rc-convert
 template: rotkeeper-doc.html
-version: "v0.2.0-pre"
+version: "v0.2.3-pre"
+updated: "2025-06-01"
+description: "Utility to convert between supported formats (Markdown, JSON, DocBook); preserves metadata and supports multi-step rituals."
+tags:
+  - rotkeeper
+  - scripts
+  - conversion
+  - formats
+asset_meta:
+  name: "rc-convert.md"
+  version: "v0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-<!-- asset-meta:
-     name:        "rc-convert.sh"
-     version:     "v0.2.0-pre"
-     description: "Utility to convert documents between supported formats (Markdown, JSON, DocBook)"
-     author:      "Rotkeeper Ritual Council"
--->
 <!--
 🎨 Sora Prompt:
 "An alchemical chamber where rc-convert.sh transmutes files—Markdown, JSON, and DocBook scrolls swirl in a glowing circle of conversion runes."
@@ -35,28 +43,28 @@ rc-convert.sh --input <file> --from <md|json|xml> --to <md|json|xml> [--output <
 ```
 
 Supported options:
-- `--input <file>`  
+- `--input <file>`
   Source file path to convert.
-- `--from <format>`  
+- `--from <format>`
   Source format (`md`, `json`, `xml`).
-- `--to <format>`  
+- `--to <format>`
   Target format (`md`, `json`, `xml`).
-- `--output <file>`  
+- `--output <file>`
   Output file path (default: overwrite input).
-- `-h, --help`  
+- `-h, --help`
   Show usage and exit.
 
 ## Workflow Steps
 <!-- Sequential rites performed by the script -->
-1. **Verify Dependencies**  
+1. **Verify Dependencies**
    - Ensure `pandoc`, `jq`, and `xmllint` are installed.
-2. **Validate Input**  
+2. **Validate Input**
    - Check file existence and correct `--from` format.
-3. **Execute Conversion**  
+3. **Execute Conversion**
    - Invoke Pandoc or relevant parser based on formats.
-4. **Post-process**  
+4. **Post-process**
    - Re-inject frontmatter and metadata if needed.
-5. **Write Output**  
+5. **Write Output**
    - Save converted document to the output path.
 
 ## Exit Codes

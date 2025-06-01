@@ -2,14 +2,21 @@
 title: "🖥️ Render Logs"
 slug: renders
 template: rotkeeper-doc.html
-version: "v0.1.0"
+version: "v0.2.3-pre"
+updated: 2025-06-01
+description: "Logs from rc-render.sh HTML generation runs"
+tags:
+  - rotkeeper
+  - render
+  - logs
+asset_meta:
+  name: "renders.md"
+  version: "v0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-<!-- asset-meta:
-     name:        "renders.md"
-     version:     "v0.1.0"
-     description: "Logs from rc-render.sh HTML generation runs"
-     author:      "Rotkeeper Ritual Council"
--->
 
 # 🖥️ Render Logs
 

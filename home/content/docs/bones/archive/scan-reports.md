@@ -2,14 +2,21 @@
 title: "🔍 Scan Reports"
 slug: scan-reports
 template: rotkeeper-doc.html
-version: "v0.1.0"
+version: "v0.2.3-pre"
+updated: 2025-06-01
+description: "Archive of historical scan outputs and SHA256 digests"
+tags:
+  - rotkeeper
+  - scan
+  - digests
+asset_meta:
+  name: "scan-reports.md"
+  version: "v0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
-<!-- asset-meta:
-     name:        "scan-reports.md"
-     version:     "v0.1.0"
-     description: "Archive of historical scan outputs and SHA256 digests"
-     author:      "Rotkeeper Ritual Council"
--->
 
 # 🔍 Scan Reports
 

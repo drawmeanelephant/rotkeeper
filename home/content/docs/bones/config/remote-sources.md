@@ -1,8 +1,22 @@
 ---
-title: "Remote Sources Config"
+title: "📡 remote-sources.yaml Reference"
 slug: remote-sources
 template: rotkeeper-doc.html
-version: 0.2.2
+version: "v0.2.3-pre"
+updated: "2025-06-01"
+description: "Documentation and schema for the remote-sources.yaml configuration file used by rc-fetch and other rituals."
+tags:
+  - rotkeeper
+  - yaml
+  - config
+  - remotes
+asset_meta:
+  name: "remote-sources.md"
+  version: "v0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 
 <!-- asset-meta: { name: "remote-sources.md", version: "v0.2.2" } -->

@@ -1,9 +1,22 @@
 ---
-title: "🪦 rc-pack.sh Reference"
+title: "📦 rc-pack.sh Reference"
 slug: rc-pack
 template: rotkeeper-doc.html
-version: "0.2.3-pre"
-updated: "2025-05-30"
+version: "v0.2.3-pre"
+updated: "2025-06-01"
+description: "Creates a tar.gz tomb archive from the rendered directory and embeds tomb metadata into the archive."
+tags:
+  - rotkeeper
+  - scripts
+  - packing
+  - tombs
+asset_meta:
+  name: "rc-pack.md"
+  version: "v0.2.3-pre"
+  author: "Rotkeeper Ritual Council"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
 ---
 
 <!-- Begin Ritual Script Documentation -->
