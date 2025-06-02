@@ -48,6 +48,7 @@ Supported options:
   Show detailed logs.
 - `--self`
   Include the entire Rotkeeper project in the archive.
+  Includes the entire Rotkeeper repo, including scripts, configs, and source docs.
 - `--json-only`
   Export Markdown to JSON only, skip tarball.
 
@@ -82,6 +83,7 @@ Examples
 ```bash
 # Standard pack
 ./bones/scripts/rc-pack.sh
+# → Creates: bones/archive/tomb-YYYY-MM-DD_HHMM.tar.gz
 
 # Include full project in archive
 ./bones/scripts/rc-pack.sh --self

@@ -35,6 +35,8 @@ asset_meta:
 - Convert all Markdown documentation into HTML pages.
 - Support custom templates, parallel execution, verbose logging, and dry-run previews.
 - Emit detailed logs for ritual auditing.
+- Renders Markdown pages from `home/content/` to HTML in `output/rendered/`
+- Uses the `rotkeeper-doc.html` Pandoc template (if available)
 
 ## CLI Interface
 <!-- How to invoke the rendering ceremony -->
@@ -58,6 +60,7 @@ Supported options:
    - Write to `bones/logs/rc-render.log`. All stdout and stderr are captured.
 3. **Discover Markdown Files**
    - Recursively locate `*.md` pages to render.
+   - Searches `home/content/` recursively for `.md` files.
 4. **Render Files**
    - Process each Markdown file sequentially using Pandoc.
 5. **Log Results**

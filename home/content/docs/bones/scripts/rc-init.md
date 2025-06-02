@@ -45,6 +45,7 @@ It also ensures the following exist:
 - Logs are saved to `bones/logs/rc-init.log`. All stdout and stderr are captured.
 - Errors from `rc-expand.sh` or `rc-render.sh` will cause a non-zero exit and be captured in the log.
 - Exits `0` on success, `1` if required tools or permissions are missing
+- Sources `rc-env.sh` to set root path constants
 
 ---
 
@@ -62,6 +63,7 @@ It also ensures the following exist:
 
 - [`rc-expand.sh`](rc-expand.md) — generates content stubs
 - [`rc-render.sh`](rc-render.md) — renders output after structure is seeded
+- [`rc-book.sh`](rc-book.md) — generates documentation reports after init
 
 ---
 
@@ -135,5 +137,6 @@ rotkeeper/
 - Does not clone or fetch any default templates — only prepares the structure
 - Won’t run `expand` or `render` unless explicitly chained
 - Errors are trapped and logged via `trap_err`. Review `rc-init.log` for troubleshooting.
+- May be chained with `rc-book.sh` or `rc-render.sh` to generate reports and outputs after setup
 
 <!-- Sora Prompt: "A ceremonial shovel labeled 'rc-init.sh' digging the first directory into a haunted filescape; skeletons holding folder trees, sigils glowing faintly on markdown pages." -->

@@ -59,7 +59,9 @@ Supported flags:
    - Ensure `bones/logs/changelog.md` exists.
 3. **Generate Changelog Entry**
    - Run `git diff` between HEAD~1 and HEAD, append or preview under dry-run.
-4. **Finalize Blessing**
+4. **Update Docbook**
+   - Regenerate `rotkeeper-docbook.md` and inject the latest changelog.
+5. **Finalize Blessing**
    - Copy current changelog into archive if configured.
 
 ## Exit Codes

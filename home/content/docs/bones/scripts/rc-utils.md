@@ -66,6 +66,15 @@ then use the following helpers.
 - `cleanup()`
   No-op hook for cleanup; individual scripts can override to perform teardown.
 
+- `require_env_vars VAR…`
+  Ensures required environment variables are set; exits with error if any are unset or empty.
+
+- `init_log NAME`
+  Initializes a log file in `LOG_DIR` with the given script name.
+
+- `confirm PROMPT`
+  Prompts user to confirm destructive action; exits unless response is affirmative.
+
 ## Example
 
 ```bash

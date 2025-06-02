@@ -52,6 +52,7 @@ To provide a unified command for interacting with all parts of the rotkeeper too
 | `pack`      | Create `.tar.gz` of output & logs    |
 | `test`      | Run all scripts in dry mode          |
 | `help`      | Show available commands              |
+| `book`      | Generate documentation outputs (scriptbook, docbook, webbook) |
 
 ***
 
@@ -61,6 +62,7 @@ To provide a unified command for interacting with all parts of the rotkeeper too
 ./rotkeeper.sh render
 ./rotkeeper.sh bless
 ./rotkeeper.sh pack
+./rotkeeper.sh book --all
 ```
 
 ***

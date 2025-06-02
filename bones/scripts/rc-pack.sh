@@ -2,6 +2,8 @@
 # [✓] Bash-hardened for rotkeeper v0.2.4
 # Source shared Rotkeeper helpers
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+# Source environment variables (paths)
+source "$(dirname "${BASH_SOURCE[0]}")/rc-env.sh"
 # ░▒▓█ ROTKEEPER SCRIPT █▓▒░
 # Script: rc-pack.sh
 # Purpose: Bundle the rendered output into a versioned .tar.gz archive and export markdown content to JSON.
@@ -11,7 +13,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 set -euo pipefail
 IFS=$'\n\t'
 
-LOG_FILE="bones/logs/rc-pack-$(date +%Y-%m-%d_%H%M).log"
+LOG_FILE="$LOG_DIR/rc-pack-$(date +%Y-%m-%d_%H%M).log"
 run() {
   if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "$*"
@@ -99,17 +101,17 @@ main() {
     $VERBOSE && log "DEBUG" "Dependencies verified."
 
     # --- Shared Configuration ---
-    CONFIG_DIR="bones"
-    ARCHIVE_DIR="$CONFIG_DIR/archive"
-    SOURCE_DIR="home/content"
-    OUTPUT_DIR="output"
+    CONFIG_DIR="$BONES_DIR"
+    ARCHIVE_DIR="$ARCHIVE_DIR"
+    SOURCE_DIR="$CONTENT_DIR"
+    OUTPUT_DIR="$OUTPUT_DIR"
     MANIFEST_FILE="$CONFIG_DIR/manifest.txt"
     VERSION=$(date +%Y-%m-%d_%H%M)
     TOMB="tomb-$VERSION.tar"
     EXPORT_JSON="$ARCHIVE_DIR/tomb-export-$VERSION.json"
 
     run "mkdir -p \"$ARCHIVE_DIR\""
-    run "mkdir -p \"$(dirname "$LOG_FILE")\""
+    run "mkdir -p \"$LOG_DIR\""
 
     # Ensure the rendered output directory exists before packing.
     if [ ! -d "$OUTPUT_DIR" ]; then

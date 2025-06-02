@@ -6,6 +6,9 @@
 set -euo pipefail
 trap 'echo "Error on line $LINENO"; exit 1' ERR
 
+# Source shared environment variables
+source "$(dirname "${BASH_SOURCE[0]}")/rc-env.sh"
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 REPORT_DIR="$PROJECT_ROOT/bones/reports"
@@ -16,13 +19,14 @@ CONFIG=""
 
 show_help() {
   cat <<EOF
-Usage: rc-book.sh [--scriptbook|--docbook|--webbook|--all|--collapse] [--config file]
+Usage: rc-book.sh [--scriptbook|--docbook|--webbook|--all|--collapse|--docbook-clean] [--config file]
 
   --scriptbook   Bind full source + comments into rotkeeper-scriptbook.md
   --docbook      Bind meta documentation into rotkeeper-docbook.md
   --webbook      Bind public markdown into rotkeeper-webbook.md
   --all          Run all 3 binder rituals above
   --collapse     Collapse all rotkeeper-*.md into collapsed-content.yaml
+  --docbook-clean  Bind meta documentation into rotkeeper-docbook-clean.md (frontmatter stripped)
   --config FILE  Optional config file for future filtering logic
   --help         Show this helpful void
 
@@ -37,6 +41,7 @@ parse_flags() {
       --webbook)    MODE="webbook"; shift ;;
       --all)        MODE="all"; shift ;;
       --collapse)   MODE="collapse"; shift ;;
+      --docbook-clean) MODE="docbook_clean"; shift ;;
       --config)     CONFIG="$2"; shift 2 ;;
       --help)       show_help; exit 0 ;;
       *) echo "Unknown option: $1"; show_help; exit 1 ;;
@@ -72,8 +77,8 @@ run_docbook() {
   echo "---" >> "$OUT"
   echo "" >> "$OUT"
 
-  for file in "$PROJECT_ROOT"/bones/meta/*.md; do
-    [[ -f "$file" ]] || continue
+  find "$DOCS_DIR" -name '*.md' -type f | sort | while read -r file; do
+    # [[ -f "$file" ]] || continue
     echo "# $(basename "$file")" >> "$OUT"
     echo "" >> "$OUT"
     cat "$file" >> "$OUT"
@@ -83,12 +88,50 @@ run_docbook() {
   echo "[✔] Docbook written to $OUT"
 }
 
+run_docbook_clean() {
+  local OUT="$REPORT_DIR/rotkeeper-docbook-clean.md"
+
+  echo "---" > "$OUT"
+  echo "title: \"Home Content (Cleaned)\"" >> "$OUT"
+  echo "subtitle: \"Frontmatter-stripped, collapse-friendly version\"" >> "$OUT"
+  echo "---" >> "$OUT"
+  echo "" >> "$OUT"
+
+  find "$DOCS_DIR" -name '*.md' -type f | sort | while read -r file; do
+    local TITLE
+    TITLE=$(awk 'BEGIN {found=0} /^\-\-\-/ {found+=1; next} found==1 && /^title:/ {print substr($0, index($0,$2))}' "$file" | head -n1 | sed 's/^"//; s/"$//')
+    [[ -z "$TITLE" ]] && TITLE=$(basename "$file" .md)
+
+    echo "## $TITLE" >> "$OUT"
+    echo "" >> "$OUT"
+
+    awk '
+      BEGIN {in_yaml = 0}
+      {
+        if ($0 ~ /^---/) {
+          in_yaml++
+          next
+        }
+        if (in_yaml >= 2) {
+          print
+        }
+      }
+    ' "$file" >> "$OUT"
+
+    echo "" >> "$OUT"
+  done
+
+  echo "[✔] Cleaned Docbook written to $OUT"
+}
+
 run_webbook() {
   local OUT="$REPORT_DIR/rotkeeper-webbook.md"
 
   {
-    echo "<!-- Rotkeeper Webbook -->"
-    echo "<!-- Compiled from rendered HTML pages in home/content/ -->"
+    echo "---"
+    echo "title: \"Rotkeeper Webbook\""
+    echo "subtitle: \"Compiled from rendered HTML pages in home/content/\""
+    echo "---"
     echo ""
   } > "$OUT"
 
@@ -110,6 +153,9 @@ run_mode() {
       ;;
     docbook)
       run_docbook
+      ;;
+    docbook_clean)
+      run_docbook_clean
       ;;
     webbook)
       run_webbook
@@ -139,8 +185,8 @@ run_mode() {
         echo "[DEBUG] → Found: $filename | title: '$title' | subtitle: '$subtitle'" >&2
 
         if [[ -z "$title" ]]; then
-          echo "[WARN] Skipping $filename — no title found." >&2
-          continue
+          echo "[WARN] No title in frontmatter for $filename — falling back to basename." >&2
+          title=$(basename "$file" .md)
         fi
 
         echo "- filename: \"$filename\"" >> "$OUTPUT"

@@ -8,6 +8,7 @@
 
 # Source shared Rotkeeper helpers
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/rc-env.sh"
 
 set -euo pipefail
 
@@ -18,16 +19,15 @@ if [[ "$HELP" == true ]]; then
 fi
 
 # Ensure log directory exists and set up LOG_FILE
-SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOG_FILE="$SCRIPTDIR/../logs/rc-webbook-$(date +%Y-%m-%d_%H%M).log"
+LOG_FILE="$LOG_DIR/rc-webbook-$(date +%Y-%m-%d_%H%M).log"
 mkdir -p "$(dirname "$LOG_FILE")"
 
 main() {
   require_bins find mkdir cat
   log "INFO" "Running rc-webbook.sh."
 
-  OUTPUT="bones/reports/rotkeeper-webbook.md"
-  SOURCE_DIR="output"
+  OUTPUT="$REPORT_DIR/rotkeeper-webbook.md"
+  SOURCE_DIR="$OUTPUT_DIR"
 
   # Prepare output file
   if [[ "$DRY_RUN" == true ]]; then

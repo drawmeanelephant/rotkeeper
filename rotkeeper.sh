@@ -175,8 +175,9 @@ if [[ "$command" == "assets" ]]; then
 fi
 # === ASSETS SECTION END ===
 
- # --- RECORD SECTION ---
- # Capture a full session dump: environment, manifest, logs, and history.
+
+# --- RECORD SECTION ---
+# Capture a full session dump: environment, manifest, logs, and history.
 # === RECORD SECTION START ===
 if [[ "$command" == "record" ]]; then
   echo "📝 Recording state..."
@@ -184,6 +185,14 @@ if [[ "$command" == "record" ]]; then
   exit 0
 fi
 # === RECORD SECTION END ===
+
+# === BOOK SECTION START ===
+if [[ "$command" == "book" ]]; then
+  echo "📚 Binding documentation reports..."
+  bash ./bones/scripts/rc-book.sh "$@"
+  exit 0
+fi
+# === BOOK SECTION END ===
 
 # === VERIFY SECTION START ===
 if [[ "$command" == "verify" ]]; then
@@ -251,6 +260,14 @@ Commands:
   assets     Generate asset manifest from home/assets into bones/asset-manifest.yaml
 
   record     Log current git commit and timestamp to bones/logs/record.log
+
+  book       Generate documentation outputs (scriptbook, docbook, webbook)
+    --scriptbook     Generate rotkeeper-scriptbook.md
+    --docbook        Generate rotkeeper-docbook.md
+    --docbook-clean  Generate a collapse-friendly docbook variant
+    --webbook        Generate rotkeeper-webbook.md
+    --collapse       Convert reports into collapsed-content.yaml
+    --all            Run all binding rituals
 
   verify     Check all assets match recorded SHA256 values
 

@@ -21,7 +21,7 @@ asset_meta:
 
 # rc-cleanup-bones.sh
 
-**Purpose:** Backup and prune unneeded directories and templates from bones/
+**Purpose:** Backup and prune unneeded directories and logs from `bones/` using configurable retention policies. Designed for safe dry-run previews and terminal confirmations.
 
 ## CLI Interface
 
@@ -39,12 +39,15 @@ Supported flags:
   Show detailed logs.
 - `--days N`
   Set retention window in days (default: 30).
+ - `--force`
+  Skip confirmation prompt (auto-confirm cleanup operations).
 
 ## Workflow Steps
 
 1. **Parse Flags & Setup**
    - Ensure `bones/archive/cleanup-backups/` and `bones/logs/` exist.
    - Process `--dry-run`, `--verbose`, and `--days`.
+   - Prompts for confirmation unless overridden.
 
 2. **Backup**
    - Create a tar.gz of the entire `bones/` directory (excluding its own backups folder) into `bones/backups/`.
@@ -69,6 +72,9 @@ Supported flags:
 
 # Show help
 ./bones/scripts/rc-cleanup-bones.sh --help
+
+# Force cleanup without prompt
+./bones/scripts/rc-cleanup-bones.sh --force --days 7
 ```
 
 <!-- 🎴 Limerick 1:

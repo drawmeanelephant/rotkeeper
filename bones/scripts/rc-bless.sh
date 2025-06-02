@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # ░▒▓█ ROTKEEPER SCRIPT █▓▒░
-# Script: rc-bless.sh
-# Purpose: Generate changelog entries and bless state
-# Version: 0.2.1
+# Script: rc-docbook.sh
+# Purpose: Generate docbook reports
+# Version: 0.1.0
 # Updated: 2025-05-29
 # -----------------------------------------
 
@@ -11,11 +11,26 @@ IFS=$'\n\t'
 
 # --- Log File Setup ---
 SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOG_FILE="$SCRIPTDIR/../logs/rc-bless-$(date +%Y-%m-%d_%H%M).log"
+LOG_FILE="$SCRIPTDIR/../logs/rc-docbook-$(date +%Y-%m-%d_%H%M).log"
 mkdir -p "$(dirname "$LOG_FILE")"
 
 # Source shared Rotkeeper helpers
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/rc-env.sh"
+
+inject_changelog_to_docbook() {
+  local target_file="$REPORT_DIR/rotkeeper-docbook.md"
+  mkdir -p "$(dirname "$target_file")"
+  {
+    echo "# Rotkeeper Docbook Report"
+    echo "Generated on $(date '+%Y-%m-%d %H:%M')"
+    echo ""
+    git log --oneline --graph --decorate -n 10
+  } > "$target_file"
+}
+
+mkdir -p "$REPORT_DIR"
+OUTPUT="$REPORT_DIR/rotkeeper-docbook.md"
 
 # Parse common flags and handle help
 parse_flags "$@"
@@ -25,25 +40,15 @@ fi
 
 main() {
   require_bins git date
-  log "INFO" "Running rc-bless.sh."
-  mkdir -p bones/logs
-  CHANGELOG="bones/logs/changelog.md"
+  log "INFO" "Running rc-docbook.sh."
+  mkdir -p "$LOG_DIR"
   if [[ "$DRY_RUN" == false ]]; then
-    run "{
-      echo \"## $(date '+%Y-%m-%d %H:%M') — Blessing\"
-      echo \"\"
-      if git rev-parse HEAD~1 >/dev/null 2>&1; then
-          git diff --name-status HEAD~1 HEAD
-      else
-          echo \"(no prior commit to diff against)\"
-      fi
-      echo \"\"
-    } >> \"$CHANGELOG\""
+    inject_changelog_to_docbook
   else
-    log "DRY-RUN" "Would update changelog at $CHANGELOG"
+    log "DRY-RUN" "Would generate docbook report at $OUTPUT"
   fi
 
-  log "INFO" "rc-bless.sh completed successfully."
+  log "INFO" "rc-docbook.sh completed successfully."
 }
 
 main "$@"

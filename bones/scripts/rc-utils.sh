@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 # ░▒▓█ ROTKEEPER SCRIPT █▓▒░
 # Script: rc-utils.sh
@@ -7,8 +6,11 @@
 # Updated: 2025-05-31
 # -----------------------------------------
 
+
 set -euo pipefail
 IFS=$'\n\t'
+# Source environment variables if not already set
+source "$(dirname "${BASH_SOURCE[0]}")/rc-env.sh"
 
 # --- Global Flags ---
 DRY_RUN=false

@@ -6,10 +6,12 @@
 # Updated: 2025-05-31
 # -----------------------------------------
 
+source "$(dirname "${BASH_SOURCE[0]}")/rc-env.sh"
+
 set -euo pipefail
 
-OUTPUT="bones/reports/rotkeeper-docbook.md"
-DOC_DIRS=("home/content/docs" "home/docs" "bones/docs")
+OUTPUT="$REPORT_DIR/rotkeeper-docbook.md"
+DOC_DIRS=("$CONTENT_DIR/docs" "$ROOT_DIR/home/docs" "$BONES_DIR/docs")
 
 mkdir -p "$(dirname "$OUTPUT")"
 echo "# 📘 Rotkeeper Documentation Bundle" > "$OUTPUT"

@@ -8,12 +8,14 @@
 # 🔮 rc-scriptbook.sh — Consolidate all rc-*.sh scripts into a Markdown scriptbook
 # Outputs to: bones/reports/rotkeeper-manual.md
 
+
 set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/rc-env.sh"
 
-BOOK_PATH="bones/reports/rotkeeper-manual.md"
-SCRIPTS_DIR="bones/scripts"
+BOOK_PATH="$REPORT_DIR/rotkeeper-manual.md"
+SCRIPTS_DIR="$BONES_DIR/scripts"
 
-mkdir -p bones/reports/
+mkdir -p "$REPORT_DIR"
 
 # Write frontmatter
 cat <<EOF > "$BOOK_PATH"

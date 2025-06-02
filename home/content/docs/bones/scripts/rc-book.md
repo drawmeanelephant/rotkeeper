@@ -34,7 +34,7 @@ asset_meta:
 - `--docbook` — Gather documentation into `rotkeeper-docbook.md`
 - `--webbook` — Bind public content into `rotkeeper-webbook.md`
 - `--all` — Run all three rituals (scriptbook, docbook, webbook)
-- `--collapse` — (WIP) Convert markdown back into structured YAML
+- `--collapse` — Convert markdown reports into `collapsed-content.yaml`, with fallback title support
 - `--config FILE` — Optional config for future inclusion/exclusion logic
 - `--help` — Show help text
 
@@ -45,6 +45,7 @@ Each mode writes to `bones/reports/`:
 - `rotkeeper-scriptbook.md`
 - `rotkeeper-docbook.md`
 - `rotkeeper-webbook.md`
+- `rotkeeper-docbook-clean.md` (frontmatter-stripped, collapse-friendly)
 
 ## 🔮 Future Work
 
