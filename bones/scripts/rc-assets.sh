@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Source shared Rotkeeper helpers
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/rc-env.sh"
 # ░▒▓█ ROTKEEPER SCRIPT █▓▒░
 # Script: rc-assets.sh
 # Purpose: Generate a selective YAML manifest of referenced assets
@@ -89,12 +90,11 @@ main() {
     check_deps sha256sum rsync grep sed find sort uniq
     $VERBOSE && log "INFO" "Dependencies verified."
 
-    ASSET_DIR="home/assets"
-    OUTPUT_ASSET_DIR="output/assets"
-    MANIFEST="bones/asset-manifest.yaml"
-    ARCHIVE_DIR="bones/archive"
-    REPORT="bones/reports/asset-report-$TIMESTAMP.yaml"
-    OUTPUT_DIR="output"
+    ASSET_DIR="$ASSETS_DIR"
+    OUTPUT_ASSET_DIR="$OUTPUT_DIR/assets"
+    MANIFEST="$MANIFEST_FILE"
+    ARCHIVE_DIR="$ARCHIVE_DIR"
+    REPORT="$REPORTS_DIR/asset-report-$TIMESTAMP.yaml"
 
     mkdir -p "$OUTPUT_ASSET_DIR" "$ARCHIVE_DIR" "$(dirname "$REPORT")"
 

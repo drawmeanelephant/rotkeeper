@@ -2,9 +2,9 @@
 title: "🖨️ rc-render.sh Reference"
 slug: rc-render
 template: rotkeeper-doc.html
-version: "v0.2.3-pre"
-updated: "2025-06-01"
-description: "Main rendering engine for converting Markdown tombs into HTML using Pandoc and custom templates."
+version: "0.2.5-pre"
+updated: "2025-06-02"
+description: "Main rendering engine for converting Markdown tombs into HTML using Pandoc and custom templates. Now invokes rc-lint.sh to validate frontmatter and skips any Markdown with `status: draft`."
 tags:
   - rotkeeper
   - scripts
@@ -42,6 +42,12 @@ asset_meta:
 <!-- How to invoke the rendering ceremony -->
 ```bash
 rc-render.sh [--dry-run] [--verbose] [--help]
+
+# Note: rc-render.sh now runs lint first and skips drafts.
+# Flags:
+#   --dry-run (-n)  Preview actions without writing output; skips drafts and linting occurs first.
+#   --verbose (-v)  Show detailed logs.
+#   --help (-h)     Show usage information and exit.
 ```
 
 Supported options:
@@ -54,8 +60,11 @@ Supported options:
 
 ## Workflow Steps
 <!-- Sequential rites performed by the script -->
+0. **Lint Frontmatter and Filter Drafts**
+   - Invoke `rc-lint.sh` to verify required frontmatter keys and shell prelude.
+   - Any Markdown file with `status: draft` is skipped with a log entry.
 1. **Check Dependencies**
-   - Ensure `pandoc`, `find`, `xargs`, and `date` are available.
+   - Ensure `pandoc`, `find`, `xargs`, `date`, `yq`, and `rc-lint.sh` are available.
 2. **Initialize Logging**
    - Write to `bones/logs/rc-render.log`. All stdout and stderr are captured.
 3. **Discover Markdown Files**
@@ -84,6 +93,9 @@ Errors and render failures are logged to `bones/logs/rc-render.log`.
 
 # Verbose output
 ./bones/scripts/rc-render.sh -v
+
+# Dry-run (lint and draft skipping occur, but no output is written)
+./bones/scripts/rc-render.sh --dry-run
 ```
 
 ## 🛣️ Navigation

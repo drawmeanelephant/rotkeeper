@@ -2,9 +2,9 @@
 title: "🌱 rc-expand.sh Reference"
 slug: rc-expand
 template: rotkeeper-doc.html
-version: "v0.2.3-pre"
-updated: "2025-06-01"
-description: "Expands the rotkeeper-bom.yaml into scaffolded markdown stubs and file structures, preparing tombs for ritual population."
+version: "0.2.5-pre"
+updated: "2025-06-02"
+description: "Expands the rotkeeper-bom.yaml into scaffolded markdown stubs and file structures, preparing tombs for ritual population. Now filters out any tomb manifests with `status: draft`."
 tags:
   - rotkeeper
   - scripts
@@ -40,21 +40,29 @@ asset_meta:
 rc-expand.sh [--dry-run] [--verbose] [--help]
 ```
 
-Supported options:
-- `--help`, `-h`
-  Show usage information and exit.
-- `--dry-run`
-  Preview actions without writing stubs.
-- `--verbose`
-  Show detailed logs.
+
+# Note: rc-expand.sh now skips tomb manifests with `status: draft`.
+# Flags:
+#   --dry-run (-n)  Preview actions without creating files; skips drafts.
+#   --verbose (-v)  Show detailed logs.
+#   --help (-h)     Show usage information and exit.
 
 ## Workflow Steps
 <!-- Sequential rites performed by the script -->
+0. **Lint Frontmatter and Filter Draft Tombs**
+   - Invoke `rc-lint.sh` to validate frontmatter of tomb manifests.
+   - Skip any tomb manifests where `status: draft`, logging a notice.
 1. **Parse Flags & Setup**: Handle `--dry-run`, `--verbose`, `--help`.
 2. **Determine BOM Path**: Resolve `rotkeeper-bom.yaml` relative to script.
 3. **Generate Stubs**: Create directories and markdown files with frontmatter.
 4. **Copy Scripts & Resources**: Replicate scripts, configs, templates.
 5. **Finalize**: Copy BOM for future runs and log completion.
+
+## Dependencies
+
+- `bash` (≥5.0)
+- `yq` (≥4.2) for parsing YAML tomb manifests.
+- `rc-lint.sh` for frontmatter validation.
 
 ## Exit Codes
 <!-- Symbolic outcomes of incantation -->
@@ -76,6 +84,9 @@ Supported options:
 
 # Show help
 ./bones/scripts/rc-expand.sh --help
+
+# Dry-run example (skipping drafts without writing):
+./bones/scripts/rc-expand.sh --dry-run
 ```
 
 <!--

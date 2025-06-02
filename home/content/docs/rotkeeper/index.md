@@ -2,8 +2,8 @@
 title: "🦴 Rotkeeper Overview"
 slug: rotkeeper
 template: rotkeeper-doc.html
-version: "0.2.3-pre"
-updated: "2025-06-01"
+version: "0.2.5-pre"
+updated: "2025-06-02"
 description: "Core introduction to the Rotkeeper ritual system — its purpose, philosophy, and tooling layers."
 tags:
   - rotkeeper
@@ -12,7 +12,7 @@ tags:
   - intro
 asset_meta:
   name: "rotkeeper.md"
-  version: "0.2.3-pre"
+  version: "0.2.5-pre"
   author: "Filed Systems"
   project: "Rotkeeper"
   tracked: true

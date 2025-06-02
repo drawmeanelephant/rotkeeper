@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
-# rc-book.sh — binder ritual for scriptbook, docbook, webbook, and future collapse mode
-# Version: 0.1.0
-# Updated: 2025-05-31
+# ░▒▓█ ROTKEEPER SCRIPT █▓▒░
+# Script: rc-book.sh
+# Purpose: Binder ritual for scriptbook, docbook, webbook, and collapse mode
+# Version: 0.2.5-pre
+# Updated: 2025-06-02
+# -----------------------------------------
 
 set -euo pipefail
 trap 'echo "Error on line $LINENO"; exit 1' ERR

@@ -1,11 +1,20 @@
 #!/usr/bin/env bash
 # Source shared Rotkeeper helpers
+# Source shared Rotkeeper helpers
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+# Load environment variables from rc-env.sh if available
+ENV_PATH="$(dirname "${BASH_SOURCE[0]}")/rc-env.sh"
+if [[ -f "$ENV_PATH" ]]; then
+  source "$ENV_PATH"
+fi
+# Fallback: set SCRIPTDIR and PROJ_ROOT if not defined by rc-env.sh
+: "${SCRIPTDIR:=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+: "${PROJ_ROOT:=$(cd "$SCRIPTDIR/../.." && pwd)}"
 # ░▒▓█ ROTKEEPER SCRIPT █▓▒░
 # Script: rc-expand.sh
 # Purpose: Generate markdown, config, and skeleton files from a BOM definition
-# Version: 0.2.4-dev
-# Updated: 2025-05-31
+# Version: 0.2.5-pre
+# Updated: 2025-06-02
 # -----------------------------------------
 set -euo pipefail
 IFS=$'\n\t'
@@ -23,6 +32,9 @@ main() {
     require_bins yq
     log "INFO" "Running rc-expand.sh."
 
+    # Lint tomb manifests and content frontmatter
+    run bash "$SCRIPTDIR/rc-lint.sh"
+
     DRY_RUN=false
     FORCE=false
     for arg in "$@"; do
@@ -30,9 +42,7 @@ main() {
       [[ "$arg" == "--force" ]] && FORCE=true
     done
 
-    # Resolve script directory and project root
-    SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    PROJ_ROOT="$(cd "$SCRIPTDIR/../.." && pwd)"
+    # SCRIPTDIR and PROJ_ROOT are now set via rc-env.sh or fallback above
     # Determine BOM path, allowing for different layouts
     SCRIPT_BOM="$SCRIPTDIR/road-to-bones/rotkeeper-bom.yaml"
     BOM_CANDIDATE="$PROJ_ROOT/road-to-bones/rotkeeper-bom.yaml"
@@ -78,6 +88,14 @@ main() {
       BODY=$(yq e ".content[$i].body" "$BOM")
 
       OUTFILE="$HOME_DIR/$FILENAME"
+
+      # Check for draft status in content
+      STATUS=$(yq e ".content[$i].status // \"\"" "$BOM")
+      if [[ "$STATUS" == "draft" ]]; then
+        run echo "⏳ Skipping draft content: $FILENAME"
+        ((SKIPPED++))
+        continue
+      fi
 
       if [[ -f "$OUTFILE" && "$FORCE" != true ]]; then
         run echo "⚠️  Skipping $OUTFILE (already exists)"

@@ -1,21 +1,16 @@
 # ✅ Rotkeeper Task Ledger
 
-This document consolidates audit items, peer review critiques, and all known TODOs into one canonical list for `v0.2.4-dev`.
+This document consolidates audit items, peer review critiques, and all known TODOs into one canonical list for `v0.2.5-pre`.
 
 ---
 
 ## 🧠 Core Ritual Hardening
 
-- [ ] Unify flag parsing into `rc-utils.sh` (`parse_flags`, `DRY_RUN`)
-- [ ] Trap error standardization (`trap_err $LINENO`)
-- [x] Enforce `main()` in all scripts
 - [ ] Remove `eval` from all scripts (done in `rc-render.sh`)
 - [ ] Implement or purge stub: `rc-unpack.sh`
 - [ ] Complete `rc-lint.sh` (currently stub)
-- [ ] Enforce standard exit codes: `0 = success`, `1 = warn`, `2 = fail`
 - [ ] Add `--version` flag to all `rc-*.sh` scripts
 - [ ] Replace all HTML regex parsing in `rc-assets.sh` with a proper parser (`pup`, `htmlq`, or awk)
-- [ ] Collapse all `check_deps` and `require_bins` into a unified `init_env()` wrapper
 
 ---
 
@@ -27,22 +22,16 @@ This document consolidates audit items, peer review critiques, and all known TOD
 - [ ] Clarify policy on tomb versioning: does it invalidate old `.tar.gz` archives?
 - [ ] Fix archive naming collisions — consider fallback to Unix epoch
 - [ ] Add fallback recovery logic if `tar` or `gzip` fail in `rc-pack.sh`
-- [ ] Ensure each tomb archive embeds `rotkeeper.yaml`, `manifest`, and related config snapshots
 - [ ] Generate `tomb-replay.sh` during each render for ritual replay support
 
 ---
 
-- [x] Normalize all frontmatter in `/home/content/docs/`
-- [x] Enforce `template`, `version`, `updated` in metadata
-- [ ] Link `rc-help.sh` → `rotkeeper-help.md`
-- [ ] Add missing `render-flags.yaml` schema to docs
 - [ ] Write `workflow.md` explaining full init → bless cycle
 - [ ] Define and document the full ritual chain in `workflow.md` (`init → expand → render → pack → scan → reseed`)
-- [ ] Create `docs/glossary.md` and `docs/errors.md` for contributor guidance
 - [ ] Add schema docs for: `rotkeeper-bom.yaml`, `render-flags.yaml`, `asset-manifest.yaml`
-- [ ] Improve internal linking between all ritual docs, config references, and glossary
+- [x] Improve internal linking between all ritual docs, config references, and glossary
 - [ ] Ensure all index and navigation pages include backlinks to the root or documentation overview
-- [ ] Ensure rc-*-book.sh emit file inclusion count and warnings on empty
+- [x] Ensure rc-*-book.sh emit file inclusion count and warnings on empty
 - [ ] Build rc-pdfbook.sh to generate PDF from merged docbook/webbook
 - [ ] Optionally strip internal frontmatter blocks for clean PDF output
 - [ ] Add config-driven style selector for future PDF themes
@@ -78,7 +67,6 @@ This document consolidates audit items, peer review critiques, and all known TOD
 - [ ] Validate that `rc-utils.sh` unit tests cover all helper functions
 - [ ] Add smoke test for full CLI flow (`init → render → scan → pack`)
 - [ ] Expand `rc-test.sh` to compare logs and output against known-good fixtures
-- [ ] Add sanity checks to `rc-render.sh`, `rc-pack.sh`, and `rc-bless.sh`
 - [ ] Create `test/` directory to hold all test rituals and golden fixtures
 
 ---
@@ -88,10 +76,6 @@ This document consolidates audit items, peer review critiques, and all known TOD
 - [ ] Archive `peer-reviews.md` into `bones/meta/peer-review-sarcophagus.md`
 - [ ] Purge legacy `render.sh`, `ASSETELLA.sh`, etc.
 - [ ] Only generate stub scripts if file is empty or has `# TODO`
-- [ ] Final decision on what to do with haunted stub: rc-webbook.sh (refactor or kill)
-- [ ] Add `--persist` flag to `rc-book.sh` to retain `.md` output
-- [ ] Track contributors via `bones/roster.yaml`
-- [ ] Audit all `trap` usage across scripts (`ERR`, `EXIT`, `INT`) for consistency
 - [ ] Enhance ritual metaphors with optional CLI glyphs and epitaphs
 - [ ] Add helper for generating `--help` from a `.help.txt` or frontmatter-driven block per script
 
@@ -127,4 +111,4 @@ This document consolidates audit items, peer review critiques, and all known TOD
 
 ---
 
-_Last updated by tombkeeper: 2025-06-01_
+_Last updated by tombkeeper: 2025-06-01 — seedling branch: v0.2.5-pre_

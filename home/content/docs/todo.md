@@ -74,6 +74,11 @@ This section consolidates the status, review, and next-phase plan for your CLI s
 7. **Update Docs**
    Polish `configuration-reference.md`, `README.md`, and rendered output to reflect current CLI workflows and flags.
 
+8. Standardize parse_flags() usage (support associative arrays) across all rc-*.sh scripts.
+9. Ensure every script sources rc-env.sh and rc-utils.sh, calls init_log, uses require_bins, and wraps external calls in run().
+10. Add --dry-run support to rc-book.sh (and any scripts lacking it).
+11. Refactor rc-bless.sh to fail gracefully when not in a Git repository.
+12. Create rc-env.sh to centralize root path variables (bones/, output/, home/, etc.).
 ***
 
 ### 🎯 Next Concrete Steps
@@ -113,6 +118,9 @@ This section consolidates the status, review, and next-phase plan for your CLI s
 - [ ] Migrate any logic worth keeping into `rc-*` scripts
 - [ ] Annotate TODO list with hidden Sora prompt placeholders for future tone-setting.
 
+- [ ] Add a confirm() helper in rc-utils.sh for destructive operations (e.g., rc-cleanup-bones.sh).
+- [ ] Update log() helper to write to both stdout and $LOG_DIR/<script>.log.
+
 ***
 
 ## 🔍 Script Compliance Audit
@@ -140,6 +148,10 @@ This section consolidates the status, review, and next-phase plan for your CLI s
 - [ ] Add version tags to top of all rendered `.html` files
 - [ ] Ensure every file in `scripts/` and `templates/` has an `asset-meta` block
 
+- [ ] Consolidate init-config.yaml, render-flags.yaml, and remote-sources.yaml into a single rotkeeper.yaml.
+- [ ] Define and document a JSON/YAML schema for frontmatter and asset-meta blocks.
+- [ ] Integrate yq + JSON Schema validation in rc-lint.sh to enforce frontmatter and asset-meta consistency.
+
 ***
 
 ## 🔁 Ritual Logging
@@ -164,6 +176,9 @@ This section consolidates the status, review, and next-phase plan for your CLI s
 - [ ] Generate real Markdown personas for Patchy, Bricky, etc.
 - [ ] Add 404.html and weird mascot lore into rendered output
 - [ ] Link all tombs to tomb index page
+
+- [ ] Refactor or formally deprecate rc-webbook.sh in favor of rc-book.sh, and document its behavior.
+- [ ] Package docbook output into a .tar.gz including metadata and an index.
 
 ***
 
@@ -264,3 +279,7 @@ The following questions emerged from structured peer reviews and onboarding prom
 - [ ] Should `--dry-run` enforce a strict no-write policy across all scripts?
 - [ ] Should `rc-pack.sh` check for existing archive name collisions?
 - [ ] Is there a formal CI pipeline or is test coverage DIY?
+
+- [ ] Add a --version flag to every rc-*.sh script that prints its version and exits.
+- [ ] Update rc-record.sh (or create new helper) to emit a tomb-replay.sh inside each tomb archive for reconstruction.
+- [ ] In rc-pack.sh, if tar or gzip fails, delete partial archives and provide a retry/resume mechanism.

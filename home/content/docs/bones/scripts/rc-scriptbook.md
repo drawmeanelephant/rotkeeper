@@ -4,7 +4,7 @@ slug: rc-scriptbook
 template: rotkeeper-doc.html
 version: "v0.2.3-pre"
 updated: "2025-06-01"
-status: "deprecating"
+status: "draft"
 description: "Utility to generate a consolidated scriptbook from Rotkeeper shell scripts. Replaced by rc-book.sh."
 tags:
   - rotkeeper

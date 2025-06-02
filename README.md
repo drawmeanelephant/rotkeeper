@@ -1,6 +1,6 @@
-
-
 # 🪦 Rotkeeper
+
+[![Release](https://img.shields.io/github/v/release/drawmeanelephant/rotkeeper?sort=semver)](https://github.com/drawmeanelephant/rotkeeper/releases)
 
 *“What lives in `/bones/` may yet render again.”*
 
@@ -8,7 +8,7 @@ Rotkeeper is a haunted CLI suite for Markdown morticians, static site cryptkeepe
 Written in modular Bash, it automates the slow decay and archival rebirth of your flat-file knowledge hoards.
 Every script is annotated for post-apocalyptic readability. No network required. Only reverence.
 
-**Current Version:** `0.2.4-dev`
+**Current Version:** `v0.2.4`
 
 ***
 
@@ -73,7 +73,7 @@ Supports logging to `bones/logs/`, dry-run execution, and manifest-aware audits
 
 ## 🚧 Status
 
-This is version `0.2.4-dev`.
+This is version `v0.2.4`.
 It is **functional but haunted**.
 Most scripts work cleanly. Some logs whisper.
 Frontmatter validation, content expansion, and logging are now stable across core rituals.
@@ -86,7 +86,7 @@ Perfect for archival weirdos, cursed sysadmins, and digital necromancers.
 See the release archive:
 https://rotkeeper.com/0.2.0.0.tar.gz
 
-GitHub tag: [v0.2.1](https://github.com/drawmeanelephant/rotkeeper/releases)
+GitHub tag: [v0.2.4](https://github.com/drawmeanelephant/rotkeeper/releases/tag/0.2.4)
 
 ***
 
