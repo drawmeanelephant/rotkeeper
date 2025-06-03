@@ -9,8 +9,6 @@
 
 set -euo pipefail
 IFS=$'\n\t'
-# Source environment variables if not already set
-source "$(dirname "${BASH_SOURCE[0]}")/rc-env.sh"
 
 # --- Global Flags ---
 DRY_RUN=false
@@ -78,6 +76,16 @@ cleanup() {
 trap 'trap_err $LINENO' ERR
 trap 'cleanup' EXIT INT TERM
 
+# Load rc-env.sh from script root
+source_rc_env() {
+  local ENV_FILE="$(dirname "${BASH_SOURCE[0]:-$0}")/rc-env.sh"
+  if [[ -f "$ENV_FILE" ]]; then
+    source "$ENV_FILE"
+  else
+    log "WARN" "rc-env.sh not found at $ENV_FILE"
+  fi
+}
+
 # Initialize log file with script name
 init_log() {
   local name="${1:-$(basename "$0" .sh)}"
@@ -117,3 +125,9 @@ require_env_vars() {
     fi
   done
 }
+
+# Auto-load environment unless explicitly skipped
+: "${ROT_SKIP_ENV:=false}"
+if [[ "$ROT_SKIP_ENV" != true ]]; then
+  source_rc_env
+fi

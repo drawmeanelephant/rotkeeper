@@ -2,8 +2,8 @@
 title: "📚 Docs Fix Task"
 slug: rc-docs-fix
 template: rotkeeper-doc.html
-version: "0.2.3-pre"
-updated: "2025-06-01"
+version: "0.2.5"
+updated: "2025-06-03"
 description: "Task notes and fix log for the Rotkeeper documentation structure and metadata pass."
 tags:
   - rotkeeper
@@ -12,7 +12,7 @@ tags:
   - task
 asset_meta:
   name: "rc-docs-fix.md"
-  version: "0.2.3-pre"
+  version: "0.2.5"
   author: "Filed Systems"
   project: "Rotkeeper"
   tracked: true

@@ -50,7 +50,7 @@ Supported flags:
 ## Workflow Steps
 <!-- Sequential rites performed by the script -->
 1. **Parse Flags & Setup**: Handle `--dry-run`, `--verbose`, and `--help`.
-2. **Verify Dependencies**: `check_deps find sha256sum yq`.
+2. **Verify Dependencies**: require_bins find sha256sum yq (from rc-utils.sh).
 3. **Load Manifest**: Read asset-manifest.yaml into `manifest_list`.
 4. **Scan Files**: Walk `home/assets/` (or specified dir) into `disk_list`.
 5. **Classification & Checksums**: Identify missing, orphan files, compute SHA256.

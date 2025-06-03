@@ -29,7 +29,7 @@ This script sets up the environment by creating all directories defined in `rc-e
 - Creates any missing directories, skipping:
   - System paths (e.g. `/usr/`, `/System/`)
   - Paths that point to `.sh` files
-- Uses `check_deps()` from `rc-utils.sh` to verify required tools:
+- Uses `require_bins()` from `rc-utils.sh` to verify required tools:
   - `bash`, `awk`, `grep`, `sed`, `tar`, `date`, `yq`, `htmlq`, `pandoc`
 - Logs all actions using `log()` from `rc-utils.sh`
 

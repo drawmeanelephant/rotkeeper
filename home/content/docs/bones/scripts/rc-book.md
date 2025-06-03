@@ -3,9 +3,9 @@ title: "rc-book — binder ritual for compiling and collapsing Rotkeeper books"
 slug: rc-book
 template: rotkeeper-doc.html
 status: stable
-version: "v0.2.3-pre"
-updated: 2025-06-01
-description: "Compiles documentation and script comments into report books; supports collapse back into structured YAML."
+version: "v0.2.5"
+updated: 2025-06-03
+description: "Centralizes all documentation binding; compiles or collapses Rotkeeper books from markdown and script rituals."
 tags:
   - rotkeeper
   - scripts
@@ -13,14 +13,14 @@ tags:
   - binders
 asset_meta:
   name: "rc-book.md"
-  version: "v0.2.3-pre"
+  version: "v0.2.5"
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
   license: "CC-BY-SA-4.2-unreal"
 ---
 
-`rc-book.sh` is the central ritual binder for Rotkeeper. It consolidates multiple documentation and markdown rituals into a single interface, enabling project-wide compilation or collapse.
+`rc-book.sh` is the singular binder ritual for Rotkeeper. It replaces `rc-scriptbook.sh`, `rc-docbook.sh`, and `rc-webbook.sh`, providing a unified interface for compiling or collapsing documentation into canonical reports.
 
 ## 🧰 Usage
 

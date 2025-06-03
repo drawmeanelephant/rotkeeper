@@ -2,8 +2,8 @@
 # ░▒▓█ ROTKEEPER SCRIPT █▓▒░
 # Script: rc-cleanup-bones.sh
 # Purpose: Backup and prune unneeded directories and templates from bones/
-# Version: 0.2.1
-# Updated: 2025-05-29
+# Version: 0.2.5
+# Updated: 2025-06-03
 # -----------------------------------------
 
 # Source shared Rotkeeper helpers
@@ -34,7 +34,7 @@ if [[ "$HELP" == true ]]; then
 fi
 
 main() {
-  check_deps tar find rm
+  require_bins tar find rm
   log "INFO" "Running rc-cleanup-bones.sh."
 
   # Retention window (days)
@@ -52,15 +52,29 @@ main() {
   BACKUP_NAME="bones-backup-$TIMESTAMP.tar.gz"
 
   log "INFO" "Backing up bones/ to $BACKUP_DIR/$BACKUP_NAME"
-  run "mkdir -p \"$BACKUP_DIR\""
-  run "tar --exclude=\"$BACKUP_DIR\" -czf \"$BACKUP_DIR/$BACKUP_NAME\" bones/"
+  run mkdir -p "$BACKUP_DIR"
+  run tar --exclude="$BACKUP_DIR" -czf "$BACKUP_DIR/$BACKUP_NAME" bones/
+
+  if [[ "$DRY_RUN" == true ]]; then
+    log "INFO" "Dry run enabled — skipping backup verification and deletion steps."
+    return 0
+  fi
+
+  BACKUP_PATH="$BACKUP_DIR/$BACKUP_NAME"
+  if [[ ! -s "$BACKUP_PATH" ]]; then
+    log "ERROR" "Backup tarball appears to be missing or empty: $BACKUP_NAME"
+    exit 1
+  fi
+
+  BACKUP_SIZE=$(du -h "$BACKUP_PATH" | cut -f1)
+  log "INFO" "Backup created successfully: $BACKUP_NAME ($BACKUP_SIZE)"
 
   log "INFO" "Pruning backups older than $RETAIN_DAYS days"
-  run "find \"$BACKUP_DIR\" -type f -mtime +$RETAIN_DAYS -print -delete"
+  run find "$BACKUP_DIR" -type f -mtime +"$RETAIN_DAYS" -print -delete
 
   LOG_DIR="bones/logs"
   log "INFO" "Pruning logs older than $RETAIN_DAYS days in $LOG_DIR"
-  run "find \"$LOG_DIR\" -type f -mtime +$RETAIN_DAYS -print -delete"
+  run find "$LOG_DIR" -type f -mtime +"$RETAIN_DAYS" -print -delete
 
   log "INFO" "✅ Cleanup complete."
 }

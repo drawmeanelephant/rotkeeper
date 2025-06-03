@@ -1,10 +1,13 @@
-
-
 #!/usr/bin/env bash
 # ░▒▓█ ROTKEEPER HELP AGGREGATOR █▓▒░
 # Purpose: Aggregate and display help texts for all rc-*.sh scripts.
-# Version: 0.1.0
-# Updated: 2025-06-02
+# Version: 0.2.5-pre
+# Updated: 2025-06-03
+
+# TODO:
+# - Add --verbose to show full internal script paths
+# - Add --script [name] to limit to one script
+# - Improve formatting for Obsidian export
 
 set -euo pipefail
 IFS=$'\n\t'
@@ -13,19 +16,23 @@ show_header() {
   echo
   echo "======================================="
   echo " Rotkeeper: Comprehensive Help Index"
-  echo " Version: 0.1.0 (Generated on 2025-06-02)"
+  echo " Version: 0.2.5-pre (Generated on 2025-06-03)"
   echo "======================================="
   echo
 }
 
 show_help() {
   show_header
-  for script in "$(dirname "${BASH_SOURCE[0]}")"/rc-*.sh; do
+  for script in "$(dirname "${BASH_SOURCE[0]:-$0}")"/rc-*.sh; do
     if [[ -x "$script" ]]; then
       echo "───────────────────────────────────────"
       echo " Help for $(basename "$script")"
       echo "───────────────────────────────────────"
-      bash "$script" --help
+      if bash "$script" --help 2>/dev/null; then
+        :
+      else
+        echo "[ERROR] Could not run help for $(basename "$script")"
+      fi
       echo
     fi
   done

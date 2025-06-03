@@ -2,8 +2,8 @@
 title: "🧾 rc-audit.sh Reference"
 slug: rc-audit
 template: rotkeeper-doc.html
-version: "0.2.3-pre"
-updated: "2025-06-01"
+version: "0.2.5"
+updated: "2025-06-03"
 description: "Runs consistency checks across Rotkeeper directories, validating structure, file states, and manifest integrity."
 tags:
   - rotkeeper
@@ -12,7 +12,7 @@ tags:
   - validation
 asset_meta:
   name: "rc-audit.md"
-  version: "0.2.3-pre"
+  version: "0.2.5"
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
@@ -29,6 +29,7 @@ asset_meta:
 - Detect missing, malformed, or incomplete metadata entries.
 - Properly report missing files as errors.
 - Optionally inject a metadata stub when missing (`--fix` mode).
+- Uses `rc-utils.sh` for shared logging, trap, and environment path logic.
 
 ## CLI Interface
 

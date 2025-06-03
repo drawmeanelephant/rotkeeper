@@ -88,19 +88,7 @@ This document outlines the full sequence of Rotkeeper rituals, from initializing
   ```
 - **Result**: Exit code `0` if no mismatches (or warnings), `1` if issues found.
 
-## 6. Record Assets (`rc-record.sh`)
-
-- **Purpose**: Update manifests for rendered assets and tomb archives.
-- **Actions**:
-  1. Append new file paths to `bones/manifest.txt`.
-  2. Update `bones/asset-manifest.yaml` with file metadata (path, checksum, version).
-- **Usage**:
-  ```bash
-  ./bones/scripts/rc-record.sh [--help]
-  ```
-- **Result**: Centralized manifest and asset‐manifest reflect current project state.
-
-## 7. Reseed Project (`rc-reseed.sh`)
+## 6. Reseed Project (`rc-reseed.sh`)
 
 - **Purpose**: Refresh the project’s reseed ritual document with current state.
 - **Actions**:
@@ -113,7 +101,7 @@ This document outlines the full sequence of Rotkeeper rituals, from initializing
   ```
 - **Result**: `RESEED.md` is up-to-date, reflecting all current versions and pending tasks.
 
-## 8. Help Aggregator (`rc-help.sh`)
+## 7. Help Aggregator (`rc-help.sh`)
 
 - **Purpose**: Consolidate all script `--help` outputs into a single reference.
 - **Actions**:
@@ -150,9 +138,8 @@ graph LR
   F --> G[bones/archive/*.tar.gz]
   G --> H[rc-scan.sh]
   H --> I[verification logs]
-  F --> J[rc-record.sh]
   I --> K[rc-reseed.sh]
-  J --> K
+  F --> K
   K --> L[RESEED.md]
 ```
 

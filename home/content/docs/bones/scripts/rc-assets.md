@@ -2,8 +2,8 @@
 title: "🧾 rc-assets.sh Reference"
 slug: rc-assets
 template: rotkeeper-doc.html
-version: "0.2.3-pre"
-updated: "2025-06-01"
+version: "0.2.5"
+updated: "2025-06-03"
 description: "Documents and explains the behavior of rc-assets.sh, which scans HTML for asset links and generates a manifest."
 tags:
   - rotkeeper
@@ -12,7 +12,7 @@ tags:
   - manifest
 asset_meta:
   name: "rc-assets.md"
-  version: "0.2.3-pre"
+  version: "0.2.5"
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
@@ -47,7 +47,7 @@ Supported flags:
   Show detailed logs.
 
 ## Workflow Steps
-1. **Verify Dependencies**: `check_deps find sha256sum yq`.
+1. **Verify Dependencies**: `require_bins find sha256sum yq` (sourced from `rc-utils.sh`).
 2. **Discover Assets**: Locate referenced assets in output/*.html
 3. **Compute Metadata**: For each referenced asset, compute SHA256 and copy into output/assets/
 4. **Assemble & Write Manifest**: Structure and write to `bones/asset-manifest.yaml` or preview under dry-run.

@@ -140,15 +140,6 @@ scripts:
 
       echo "Initializing setup..."
       # TODO: implement init logic
-  - path: bones/scripts/rc-record.sh
-    stub: true
-    body: |
-      #!/usr/bin/env bash
-      # rc-record — record state
-      set -euo pipefail
-
-      echo "Recording state..."
-      # TODO: implement record logic
 
 templates:
   - path: bones/templates/rotkeeper-bones.html
@@ -265,7 +256,7 @@ content:
       - Generated content pages in `home/`:
         - todo.md, minimal.md, hello.md, overview.md, mascots.md, emoji-index.md, sidebar-test.md
       - Stub scripts created under `bones/scripts/` (excluding existing `rc-render.sh`):
-        - rotkeeper.sh, rc-expand.sh, rc-assets.sh, rc-pack.sh, rc-scan.sh, rc-init.sh, rc-record.sh
+        - rotkeeper.sh, rc-expand.sh, rc-assets.sh, rc-pack.sh, rc-scan.sh, rc-init.sh
       - Config stubs touched in `bones/config/`
       - Template skeletons generated in `bones/templates/`
       - Folders ensured: bones/logs/, bones/archive/, bones/graveyard/, bones/user/icons/, bones/user/fonts/, home/content/, home/assets/

@@ -2,8 +2,8 @@
 title: "🧩 rc-utils.sh Reference"
 slug: rc-utils
 template: rotkeeper-doc.html
-version: "v0.2.3-pre"
-updated: "2025-06-01"
+version: "v0.2.5"
+updated: "2025-06-03"
 description: "Utility functions sourced by other rc-*.sh scripts, including logging, error handling, and dependency checks."
 tags:
   - rotkeeper
@@ -12,7 +12,7 @@ tags:
   - shared
 asset_meta:
   name: "rc-utils.md"
-  version: "v0.2.3-pre"
+  version: "v0.2.5"
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
@@ -57,8 +57,8 @@ then use the following helpers.
 - `run CMD [ARG…]`
   Runs the command with arguments unless `--dry-run` is active. Logs `DRY-RUN` if skipping. Preserves argument quoting and prevents shell splitting.
 
-- `check_deps CMD…`
-  Verifies each `CMD` is available; exits with error if any are missing.
+- `require_bins CMD…`
+  Verifies each `CMD` is available in the system PATH; exits with error if any are missing.
 
 - `trap_err LINE`
   Default error handler: logs an error with line number and exits.
@@ -88,7 +88,7 @@ parse_flags "$@"
 [[ "$HELP" == true ]] && show_help
 
 main() {
-  check_deps git yq
+  require_bins git yq
   log "INFO" "Running example"
   run "echo Hello, world!"
 }

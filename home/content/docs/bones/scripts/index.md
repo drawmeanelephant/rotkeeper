@@ -40,7 +40,6 @@ bones/scripts/
 | rc-pack.sh          | Archive `/output/`, export JSON                | [rc-pack.sh](rc-pack.html)      | Ready    |
 | rc-scan.sh          | Detect orphan/missing files, create digests    | [rc-scan.sh](rc-scan.html)      | Ready    |
 | rc-assets.sh        | Manifest static assets in YAML                 | [rc-assets.sh](rc-assets.html)  | Ready    |
-| rc-record.sh        | Log Git hash and timestamp snapshot            | [rc-record.sh](rc-record.html)  | Ready    |
 | rc-verify.sh        | Compare digests with current state             | [rc-verify.sh](rc-verify.html)  | Ready    |
 | rc-reseed.sh        | Restore from `.tar.gz` archive                 | [rc-reseed.sh](rc-reseed.html)  | Ready    |
 | rc-status.sh        | Summarize project health and logs              | [rc-status.sh](rc-status.html)  | Ready    |
@@ -52,7 +51,6 @@ bones/scripts/
 ## 🛣️ Navigation
 
 <!-- Quick navigation to scripts -->
-- [rc-record.sh](rc-record.html)
 - [rc-assets.sh](rc-assets.html)
 - [rc-verify.sh](rc-verify.html)
 - [rc-scan.sh](rc-scan.html)

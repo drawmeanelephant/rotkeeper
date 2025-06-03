@@ -19,6 +19,7 @@ REPORT_DIR="$PROJECT_ROOT/bones/reports"
 # Defaults
 MODE=""
 CONFIG=""
+DRY_RUN=false
 
 show_help() {
   cat <<EOF
@@ -31,6 +32,7 @@ Usage: rc-book.sh [--scriptbook|--docbook|--webbook|--all|--collapse|--docbook-c
   --collapse     Collapse all rotkeeper-*.md into collapsed-content.yaml
   --docbook-clean  Bind meta documentation into rotkeeper-docbook-clean.md (frontmatter stripped)
   --config FILE  Optional config file for future filtering logic
+  --dry-run      Show what would be done without making changes
   --help         Show this helpful void
 
 EOF
@@ -46,6 +48,7 @@ parse_flags() {
       --collapse)   MODE="collapse"; shift ;;
       --docbook-clean) MODE="docbook_clean"; shift ;;
       --config)     CONFIG="$2"; shift 2 ;;
+      --dry-run)    DRY_RUN=true; shift ;;
       --help)       show_help; exit 0 ;;
       *) echo "Unknown option: $1"; show_help; exit 1 ;;
     esac
@@ -54,6 +57,11 @@ parse_flags() {
 
 run_scriptbook() {
   local OUT="$REPORT_DIR/rotkeeper-scriptbook.md"
+
+  if [[ "$DRY_RUN" == true ]]; then
+    echo "[DRY-RUN] Would generate scriptbook at: $OUT"
+    return 0
+  fi
 
   echo "---" > "$OUT"
   echo "title: \"Rotkeeper Scriptbook\"" >> "$OUT"
@@ -74,13 +82,19 @@ run_scriptbook() {
 run_docbook() {
   local OUT="$REPORT_DIR/rotkeeper-docbook.md"
 
+  if [[ "$DRY_RUN" == true ]]; then
+    echo "[DRY-RUN] Would generate docbook at: $OUT"
+    return 0
+  fi
+
   echo "---" > "$OUT"
   echo "title: \"Home Content\"" >> "$OUT"
   echo "subtitle: \"Structured documentation from meta/\"" >> "$OUT"
   echo "---" >> "$OUT"
   echo "" >> "$OUT"
 
-  find "$DOCS_DIR" -name '*.md' -type f | sort | while read -r file; do
+  mapfile -t doc_files < <(find "$DOCS_DIR" -name '*.md' -type f | sort)
+  for file in "${doc_files[@]}"; do
     # [[ -f "$file" ]] || continue
     echo "# $(basename "$file")" >> "$OUT"
     echo "" >> "$OUT"
@@ -93,6 +107,11 @@ run_docbook() {
 
 run_docbook_clean() {
   local OUT="$REPORT_DIR/rotkeeper-docbook-clean.md"
+
+  if [[ "$DRY_RUN" == true ]]; then
+    echo "[DRY-RUN] Would generate cleaned docbook at: $OUT"
+    return 0
+  fi
 
   echo "---" > "$OUT"
   echo "title: \"Home Content (Cleaned)\"" >> "$OUT"
@@ -130,6 +149,11 @@ run_docbook_clean() {
 run_webbook() {
   local OUT="$REPORT_DIR/rotkeeper-webbook.md"
 
+  if [[ "$DRY_RUN" == true ]]; then
+    echo "[DRY-RUN] Would generate webbook at: $OUT"
+    return 0
+  fi
+
   {
     echo "---"
     echo "title: \"Rotkeeper Webbook\""
@@ -164,9 +188,15 @@ run_mode() {
       run_webbook
       ;;
     all)
-      run_scriptbook
-      run_docbook
-      run_webbook
+      if [[ "$DRY_RUN" == true ]]; then
+        echo "[DRY-RUN] Would generate scriptbook at: $REPORT_DIR/rotkeeper-scriptbook.md"
+        echo "[DRY-RUN] Would generate docbook at: $REPORT_DIR/rotkeeper-docbook.md"
+        echo "[DRY-RUN] Would generate webbook at: $REPORT_DIR/rotkeeper-webbook.md"
+      else
+        run_scriptbook
+        run_docbook
+        run_webbook
+      fi
       ;;
     collapse)
       echo "[INFO] Collapsing reports into YAML..."
@@ -204,7 +234,10 @@ run_mode() {
       echo "[DONE] Wrote: $OUTPUT"
       ;;
     *)
-      echo "No mode selected. Use --help."; exit 1 ;;
+      echo "[WARN] No mode selected — defaulting to '--all'"
+      MODE="all"
+      run_mode
+      ;;
   esac
 }
 

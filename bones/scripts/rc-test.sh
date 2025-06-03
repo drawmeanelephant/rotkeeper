@@ -2,8 +2,8 @@
 # ░▒▓█ ROTKEEPER SCRIPT █▓▒░
 # Script: rc-test.sh
 # Purpose: Run dry-run tests on all rc-*.sh scripts and log their results
-# Version: 0.2.1
-# Updated: 2025-05-29
+# Version: 0.2.5
+# Updated: 2025-06-03
 # -----------------------------------------
 
 # Source shared Rotkeeper helpers
@@ -29,9 +29,9 @@ pass_count=0
 fail_count=0
 
 TIMESTAMP=$(date +"%Y-%m-%d_%H%M")
-LOGFILE="bones/logs/rc-test-${TIMESTAMP}.log"
+LOGFILE="$LOG_DIR/rc-test-${TIMESTAMP}.log"
 
-mkdir -p bones/logs/
+mkdir -p "$LOG_DIR"
 
 echo "🧪 Rotkeeper CLI Test — $TIMESTAMP" | tee "$LOGFILE"
 echo "=====================================" | tee -a "$LOGFILE"
@@ -47,7 +47,7 @@ for f in "${scripts_to_test[@]}"; do
 
   echo "🔧 Testing $script_name..." | tee -a "$LOGFILE"
   if [[ "$script_name" == "rc-docs-fix.sh" ]]; then
-    bash "$f" --pattern "Rotkeeper" --replace "Rotkeeper" --search-only >>"$LOGFILE" 2>&1
+    bash "$f" "--pattern" "Rotkeeper" "--replace" "Rotkeeper" "--dry-run" >>"$LOGFILE" 2>&1
     status=$?
   else
     bash "$f" --dry-run >>"$LOGFILE" 2>&1

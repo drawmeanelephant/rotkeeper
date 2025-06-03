@@ -2,8 +2,8 @@
 title: "🧱 rc-env.sh"
 slug: rc-env
 template: rotkeeper-doc.html
-version: "0.2.4-dev"
-updated: "2025-06-01"
+version: "0.2.5"
+updated: "2025-06-03"
 description: "Defines centralized environment variables and directory layout for the Rotkeeper ritual system."
 tags:
   - rotkeeper
@@ -16,6 +16,7 @@ asset_meta:
   project: "Rotkeeper"
   license: "CC-BY-SA-4.2-unreal"
   tracked: true
+  version: "0.2.5"
 ---
 
 # 🧱 rc-env.sh
@@ -37,6 +38,7 @@ It should be sourced by **every `rc-*.sh` script** to establish a consistent and
 - `BONES_DIR` — `"$ROOT_DIR/bones"`
 - `OUTPUT_DIR` — `"$ROOT_DIR/output"`
 - `CONTENT_DIR` — `"$ROOT_DIR/home/content"`
+- `ASSETS_DIR` — `"$ROOT_DIR/home/assets"`
 - `LOG_DIR` — `"$BONES_DIR/logs"`
 - `TMP_DIR` — `"$ROOT_DIR/tmp"`
 - `CONFIG_DIR` — `"$BONES_DIR/config"`
@@ -45,6 +47,9 @@ It should be sourced by **every `rc-*.sh` script** to establish a consistent and
 - `TEMPLATE_DIR` — `"$BONES_DIR/templates"`
 - `DOCS_DIR` — `"$OUTPUT_DIR/docs"`
 - `WEB_DIR` — `"$OUTPUT_DIR/web"`
+- `HELP_DIR` — `"$CONTENT_DIR/help"`
+- `SCRIPT_DIR` — `"$BONES_DIR/scripts"`
+- `META_DIR` — `"$BONES_DIR/meta"`
 
 ## 🔧 Usage
 

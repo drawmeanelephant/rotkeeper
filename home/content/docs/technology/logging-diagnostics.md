@@ -4,7 +4,7 @@ slug: logging-diagnostics
 template: rotkeeper-doc.html
 version: "0.2.5-pre"
 updated: "2025-06-03"
-description: "Explains how logs are generated, stored, and used for debugging in Rotkeeper rituals."
+description: "Describes how to interpret Rotkeeper logs and use external tools to debug render failures and asset drift."
 tags:
   - rotkeeper
   - logging
@@ -21,11 +21,7 @@ asset_meta:
 
 # 📉 Logging & Diagnostics
 
-Rotkeeper scripts log everything. Every directory created, file injected, archive built, and ritual run leaves a trail.
-
-Rotkeeper’s logs form a death-rattle ledger—tracking decay, output, and decisions made by every `rc-*` script.
-
-This file explains how Rotkeeper logs work, where to find them, and how to interpret their often deadpan tone.
+Rotkeeper logs are a byproduct of its rituals. These log files help trace outputs, detect failures, and diagnose decay—especially when something fails mid-pipeline. This page focuses on reading logs, interpreting common patterns, and using tools like `grep`, `yq`, or `jq` to extract useful context.
 
 ***
 
@@ -53,7 +49,7 @@ Example entries:
 ⚠️  Skipped: inject.d not found
 ```
 
-It is safe to append your own entries to this file if you're extending behavior. It is meant to be human-readable and ritualistically reassuring.
+This log is human-readable and useful for high-level confirmation during dry runs or light rituals.
 
 ***
 
@@ -67,6 +63,8 @@ It will contain errors, warnings, and info from each Markdown file that is proce
 - Undefined variables in frontmatter
 - Files that fail to convert due to encoding issues
 
+You can inspect this file with `grep "ERROR"` to locate failed conversions or frontmatter issues.
+
 ***
 
 ## 📦 manifest.txt
@@ -75,7 +73,6 @@ This file is regenerated (or updated) on every pack cycle and determines what ge
 
 It is used by:
 - `rc-pack.sh`
-- `rc-record.sh`
 - `rc-verify.sh`
 
 ***
@@ -101,6 +98,15 @@ Use this file to diagnose systemic failures across scripts, especially when one 
 - You can parse `manifest.txt` to quickly audit content drift between tombs
 
 - `diag.log` is your last resort for when things go deeply sideways—treat it as your postmortem log.
+
+***
+
+## 🛠 Useful Tools for Parsing Logs
+
+- `grep`: search for error codes or file paths
+- `jq`: extract structured fields from JSON logs (if enabled)
+- `yq`: process YAML-based manifest or config artifacts
+- `diff`: compare logs between archive cycles
 
 ***
 

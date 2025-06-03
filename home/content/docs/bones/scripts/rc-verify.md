@@ -2,8 +2,8 @@
 title: "✅ rc-verify.sh Reference"
 slug: rc-verify
 template: rotkeeper-doc.html
-version: "0.2.3-pre"
-updated: "2025-06-01"
+version: "0.2.5"
+updated: "2025-06-03"
 description: "Verifies tomb archives for presence, integrity, and valid embedded metadata. Used post-render or post-pack."
 tags:
   - rotkeeper
@@ -12,7 +12,7 @@ tags:
   - integrity
 asset_meta:
   name: "rc-verify.md"
-  version: "0.2.3-pre"
+  version: "0.2.5"
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
@@ -22,7 +22,7 @@ asset_meta:
 # 🔒 rc-verify.sh
 <!-- The sacred rite of checksum validation -->
 
-**Version:** v0.2.2
+**Version:** v0.2.5
 **Script Path:** `bones/scripts/rc-verify.sh`
 
 ## Purpose
@@ -61,7 +61,7 @@ Supported flags:
 <!-- Sequential rites performed by the script -->
 
 1. **Setup & Configuration**
-   - Locate `asset-manifest.yaml` and ensure `logs/` directory exists.
+   - Source environment variables via `rc-utils.sh` and locate `asset-manifest.yaml`; ensure `logs/` directory exists.
    - Parse CLI flags for custom behavior.
 
 2. **Load Manifest**

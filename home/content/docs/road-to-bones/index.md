@@ -30,7 +30,6 @@ This is your consolidated status snapshot: what’s working, what’s stubbed, a
 ### ✅ Core Scripts Verified & Functional
 
 * ✅ `rotkeeper.sh` — version bumped, full dispatch implemented
-* ✅ `rc-record.sh`, `rc-verify.sh` — log-rich, working
 * ✅ `rc-render.sh` — output archive fixed, now logs + compresses safely
 * ✅ `rc-expand.sh` — reseeds markdown + templates from BOM
 * ✅ `rc-pack.sh` — respects `--self`, packs full tombkits correctly
@@ -125,7 +124,7 @@ This section documents the results of a full audit pass on the current Rotkeeper
 This audit focuses on:
 
 1. **Structural Soundness** — Does each script have a `main()` function and proper `trap` usage?
-2. **Error-Handling Consistency** — Are `set -euo pipefail`, `check_deps()`, and safe `cd` practices used uniformly?
+2. **Error-Handling Consistency** — Are `set -euo pipefail`, `require_bins()`, and safe `cd` practices used uniformly?
 3. **Argument Parsing & Dry-Run Logic** — Are `--dry-run` and flag parsing patterns implemented consistently?
 4. **Reusability & Modular Organization** — Are shared functions extracted? Is logic duplicated across scripts?
 
@@ -137,15 +136,15 @@ The following practices were confirmed as present in the majority of verified sc
 - `main "$@"` function wrapping, reducing surprise side-effects on sourcing.
 - `trap cleanup EXIT INT TERM` is used for many scripts.
 - Logging functions are defined (though not always consistent).
-- `check_dependencies` is frequently implemented to check for external binaries like `pandoc`, `git`, `jq`, etc.
+- `require_bins()` from `rc-utils.sh` is used to validate external dependencies like `pandoc`, `git`, `jq`, etc. All prior instances of legacy dependency checkers have been purged. `require_bins()` is now the sole ritual for verifying external tools.
 
 ### ❌ Inconsistencies & Points for Rework
 
 - Not all scripts use a `main()` function. This introduces structural unpredictability.
 - `--dry-run` support is inconsistent. Some scripts use it only partially or not at all.
 - Argument parsing patterns vary between `for arg in "$@"` loops and `while getopts`, introducing fragility.
-- Some scripts re-implement `log()` or `check_deps()` inline rather than sourcing a shared `rc-utils.sh`.
-- A shared library (`rc-utils.sh`) is not currently in use across scripts, despite common logic.
+- Some scripts re-implement `log()` inline rather than sourcing a shared `rc-utils.sh`.
+- A shared library (`rc-utils.sh`) is now used across scripts, providing unified logic.
 
 ### 🛠 Recommendations & Next Moves
 
@@ -153,7 +152,7 @@ The following practices were confirmed as present in the majority of verified sc
 Includes:
 
 - `log()`: Timestamped logging
-- `check_deps()`: Unified dependency checks
+- `require_bins()`: Unified dependency checks
 - `safe_rm()`: Dry-run-aware deletion wrapper
 - `cd_or_die()`: Safe directory changes
 - `parse_flags()`: Shared flag parser
@@ -186,7 +185,7 @@ Track which scripts conform to:
 - `trap`
 - `--dry-run`
 - `log()`
-- `check_deps()`
+- `require_bins()`
 - sourced `rc-utils.sh`
 
 #### 5. Update docs with ritual headers:
@@ -207,11 +206,11 @@ Include in each script:
 
 A snapshot from the living audit matrix:
 
-| Script             | main() | trap | --dry-run | log() | check_deps() | rc-utils.sh |
-|--------------------|--------|------|-----------|-------|--------------|-------------|
-| rc-cleanup-bones   | ✅     | ✅   | ✅        | ❌    | ✅           | ❌          |
-| rc-docs-fix        | ❌     | ❌   | ❌        | ❌    | ❌           | ❌          |
-| rc-render          | ✅     | ✅   | ✅        | ✅    | ✅           | ✅          |
+| Script             | main() | trap | --dry-run | log() | require_bins() | rc-utils.sh |
+|--------------------|--------|------|-----------|-------|---------------|-------------|
+| rc-cleanup-bones   | ✅     | ✅   | ✅        | ❌    | ✅            | ❌          |
+| rc-docs-fix        | ❌     | ❌   | ❌        | ❌    | ❌            | ❌          |
+| rc-render          | ✅     | ✅   | ✅        | ✅    | ✅            | ✅          |
 
 > 🔎 Full matrix maintained at `doc/audit-matrix.csv`. It must be updated with every patch, ritual, or pull request.
 

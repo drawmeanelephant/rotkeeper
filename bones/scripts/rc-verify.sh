@@ -3,8 +3,8 @@ source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 # ░▒▓█ ROTKEEPER SCRIPT █▓▒░
 # Script: rc-verify.sh
 # Purpose: Verify file integrity using asset-manifest.yaml and SHA256 digests
-# Version: 0.2.0
-# Updated: 2025-05-27
+# Version: 0.2.5-pre
+# Updated: 2025-06-03
 # -----------------------------------------
 set -euo pipefail
 IFS=$'\n\t'
@@ -24,7 +24,7 @@ main() {
         ./bones/scripts/rc-assets.sh
     fi
 
-    check_deps sha256sum yq date awk
+    require_bins sha256sum yq date awk
 
     MANIFEST="bones/asset-manifest.yaml"
     if [[ ! -f "$MANIFEST" ]]; then
@@ -34,6 +34,8 @@ main() {
     fi
 
     log "INFO" "Starting verification against $MANIFEST"
+    COUNT=$(yq e 'length' "$MANIFEST")
+    log "INFO" "Verifying $COUNT file(s)..."
 
     STATUS=0
 
@@ -43,7 +45,7 @@ main() {
             log "WARN" "Skipping empty path entry in manifest."
             continue
         fi
-        FILE="home/$RELPATH"
+        FILE="home/assets/$RELPATH"
 
         if [[ "$DRY_RUN" == true ]]; then
             if [[ -f "$FILE" ]]; then
@@ -72,5 +74,19 @@ main() {
     log "INFO" "rc-verify.sh completed with status $STATUS"
     exit $STATUS
 }
+
+
+# Help handler (before invoking main)
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  echo "rc-verify.sh — Verify files against manifest SHA256 hashes"
+  echo
+  echo "Usage: rc-verify.sh [options]"
+  echo
+  echo "Options:"
+  echo "  --help, -h       Show this help message and exit"
+  echo "  --dry-run        Show what would be verified without checking hashes"
+  echo "  --regen          Re-run rc-assets.sh to regenerate the manifest before verifying"
+  exit 0
+fi
 
 main "$@"

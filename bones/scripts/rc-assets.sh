@@ -5,8 +5,8 @@ source "$(dirname "${BASH_SOURCE[0]}")/rc-env.sh"
 # ░▒▓█ ROTKEEPER SCRIPT █▓▒░
 # Script: rc-assets.sh
 # Purpose: Generate a selective YAML manifest of referenced assets
-# Version: 0.2.0
-# Updated: 2025-05-27
+# Version: 0.2.5-pre
+# Updated: 2025-06-03
 # -----------------------------------------
 
 set -euo pipefail
@@ -68,7 +68,7 @@ trap 'trap_err $LINENO' ERR
 
 
 TIMESTAMP=$(date +%Y-%m-%d_%H%M)
-LOG_FILE="bones/logs/rc-assets-$TIMESTAMP.log"
+LOG_FILE="$LOG_DIR/rc-assets-$TIMESTAMP.log"
 mkdir -p "$(dirname "$LOG_FILE")"
 
 cleanup() {
@@ -76,25 +76,21 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-check_deps() {
-    local deps=(sha256sum rsync grep sed find sort uniq)
-    for cmd in "${deps[@]}"; do
-        command -v "$cmd" >/dev/null 2>&1 || {
-            log "ERROR" "$cmd required but not installed."
-            exit 1
-        }
-    done
-}
 
 main() {
-    check_deps sha256sum rsync grep sed find sort uniq
+    require_bins sha256sum rsync grep sed find sort uniq
     $VERBOSE && log "INFO" "Dependencies verified."
+
+    : "${ASSETS_DIR:?Missing ASSETS_DIR from rc-env.sh}"
+    : "${OUTPUT_DIR:?Missing OUTPUT_DIR from rc-env.sh}"
+    : "${MANIFEST_FILE:=$CONFIG_DIR/asset-manifest.yaml}"
+    : "${ARCHIVE_DIR:?Missing ARCHIVE_DIR from rc-env.sh}"
+    : "${REPORT_DIR:?Missing REPORT_DIR from rc-env.sh}"
 
     ASSET_DIR="$ASSETS_DIR"
     OUTPUT_ASSET_DIR="$OUTPUT_DIR/assets"
     MANIFEST="$MANIFEST_FILE"
-    ARCHIVE_DIR="$ARCHIVE_DIR"
-    REPORT="$REPORTS_DIR/asset-report-$TIMESTAMP.yaml"
+    REPORT="$REPORT_DIR/asset-report-$TIMESTAMP.yaml"
 
     mkdir -p "$OUTPUT_ASSET_DIR" "$ARCHIVE_DIR" "$(dirname "$REPORT")"
 

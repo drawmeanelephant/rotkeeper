@@ -62,13 +62,6 @@ VERSION="0.2.1"
 #    With paths that were true,
 #    A record of all design signs.
 #    - Execute rc-assets.sh to catalog home/assets into bones/asset-manifest.yaml.
-# 7. Record state:
-#    A recorder inscribed commit’s name,
-#    With timestamp it joined the game.
-#    Each hash was preserved,
-#    So history served,
-#    As proof of the ritual’s claim.
-#    - Use rc-record.sh to log current git commit and timestamp.
 # 8. Help and usage:
 #    And help was a guide in the dark,
 #    A beacon, a bright little spark.
@@ -77,7 +70,7 @@ VERSION="0.2.1"
 #    To perform any command or mark.
 #    - Display usage message for available commands.
 ## Usage:
-#   rotkeeper.sh {init|expand|render|pack|scan|assets|record|help}
+#   rotkeeper.sh {init|expand|render|pack|scan|assets|help}
 
 # --- ENTRY CHECK ---
 # Capture the subcommand or default to empty.
@@ -159,15 +152,6 @@ fi
 # === ASSETS SECTION END ===
 
 
-# --- RECORD SECTION ---
-# Capture a full session dump: environment, manifest, logs, and history.
-# === RECORD SECTION START ===
-if [[ "$command" == "record" ]]; then
-  echo "📝 Recording state..."
-  bash ./bones/scripts/rc-record.sh
-  exit 0
-fi
-# === RECORD SECTION END ===
 
 # === BOOK SECTION START ===
 if [[ "$command" == "book" ]]; then
@@ -240,7 +224,6 @@ Commands:
 
   assets     Generate asset manifest from home/assets into bones/asset-manifest.yaml
 
-  record     Log current git commit and timestamp to bones/logs/record.log
 
   book       Generate documentation outputs (scriptbook, docbook, webbook)
     --scriptbook     Generate rotkeeper-scriptbook.md

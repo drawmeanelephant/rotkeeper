@@ -92,8 +92,7 @@ This document consolidates audit items, peer review critiques, and all known TOD
 ---
 
 - [ ] Document `rc-expand.sh` invocation patterns
-- [ ] Clarify `rc-record.sh` scope (script emitter only)
-
+- [ ]
 ---
 
 ## 🗺️ Future Options
@@ -215,7 +214,7 @@ This section consolidates the status, review, and next-phase plan for your CLI s
 - [ ] Ensure all `rc-*.sh` scripts define `main()` and use `trap` safely
 - [ ] Apply `set -euo pipefail` to every script
 - [ ] Move shared logic to `rc-utils.sh` and source it
-- [ ] Use `check_deps` or equivalent in all scripts
+- [ ] Use `require_bins` or equivalent in all scripts
 - [ ] Sanity-check argument handling for `--dry-run`, `--help`, `--verbose`
 
 ***
@@ -357,7 +356,6 @@ The following questions emerged from structured peer reviews and onboarding prom
 - [ ] How should `tar`/`gzip` partial failures be handled?
 - [ ] Who owns cleanup duties for `bones/logs`, `bones/archive`, etc.?
 - [ ] Do we validate Markdown frontmatter or just hope it’s well-formed?
-- [ ] What’s the intended use case for `rc-record.sh`?
 - [ ] Are naming conventions enforced for tombs, templates, and assets?
 - [ ] What is the expected output of `rc-scan.sh --json-only`?
 - [ ] What’s the audit spec for `rc-audit.sh` and its timeline?
@@ -366,5 +364,4 @@ The following questions emerged from structured peer reviews and onboarding prom
 - [ ] Is there a formal CI pipeline or is test coverage DIY?
 
 - [ ] Add a --version flag to every rc-*.sh script that prints its version and exits.
-- [ ] Update rc-record.sh (or create new helper) to emit a tomb-replay.sh inside each tomb archive for reconstruction.
 - [ ] In rc-pack.sh, if tar or gzip fails, delete partial archives and provide a retry/resume mechanism.

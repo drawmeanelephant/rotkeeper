@@ -3,8 +3,8 @@ source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 # ░▒▓█ ROTKEEPER SCRIPT █▓▒░
 # Script: rc-api.sh
 # Purpose: Fetch and ingest remote content (templates, assets, packs)
-# Version: 0.1.9.9
-# Updated: 2025-05-27
+# Version: 0.2.5
+# Updated: 2025-06-03
 # -----------------------------------------
 set -euo pipefail
 IFS=$'\n\t'
@@ -18,11 +18,11 @@ init_log "rc-api"
 
 
 main() {
-    check_deps git rsync ssh pandoc date
+    require_bins git rsync ssh pandoc date
     log "INFO" "Running rc-api.sh."
 
-    CONFIG_FILE="bones/config/remote-sources.yaml"
-    DEST_DIR="home/assets/remote"
+    CONFIG_FILE="$CONFIG_DIR/remote-sources.yaml"
+    DEST_DIR="$ASSETS_DIR/remote"
     mkdir -p "$DEST_DIR"
 
     if [[ ! -f "$CONFIG_FILE" ]]; then

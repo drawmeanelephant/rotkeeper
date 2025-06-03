@@ -3,8 +3,11 @@
 # Script: rc-setenv.sh
 # Purpose: Setup and validate all environment paths and dependencies
 # Version: 0.2.5-pre
-# Updated: 2025-06-02
+# Updated: 2025-06-03
 # -----------------------------------------
+# TODO:
+# - Optionally dump created dirs to a tempfile for downstream inspection
+# - Allow filtering which dirs to create via CLI args
 set -euo pipefail
 
 # Source rc-env.sh to get all required environment variables
@@ -35,7 +38,7 @@ done
 
 # Optional: dependency check via rc-utils.sh
 log "INFO" "Verifying known dependencies..."
-check_deps bash awk grep sed tar date yq htmlq pandoc || {
+require_bins bash awk grep sed tar date yq htmlq pandoc || {
   log "WARN" "One or more recommended tools are missing"
 }
 

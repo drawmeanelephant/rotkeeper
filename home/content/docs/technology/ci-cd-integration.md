@@ -4,7 +4,7 @@ slug: ci-cd-integration
 template: rotkeeper-doc.html
 version: "0.2.3-pre"
 updated: "2025-06-01"
-description: "Describes ways to automate Rotkeeper rituals in continuous integration pipelines, including dry-run audits and artifact exports."
+description: "Outlines how to automate Rotkeeper rituals using cron or external pipelines. Focuses on render scheduling and tomb archiving."
 tags:
   - rotkeeper
   - ci
@@ -23,7 +23,7 @@ asset_meta:
 
 Use Rotkeeper in CI/CD to auto-render, pack, and verify your markdown tombs on every commit, schedule, or push.
 
-Rotkeeper automates file decay and HTML rendering for flat-file sites. While it's built for local rituals, it works smoothly in modern automation setups. This guide shows how to run Rotkeeper in CI/CD pipelines using GitHub Actions, Bash loops, or cron-based scheduling.
+Rotkeeper automates file decay and HTML rendering for flat-file sites. While it's built for local rituals, it works smoothly in modern automation setups. This guide shows how to run Rotkeeper in cron-based or external scheduling systems.
 
 These examples assume your repository includes all Rotkeeper scripts in `bones/scripts/` and that `rotkeeper.sh` is set as your CLI entrypoint.
 
@@ -32,66 +32,6 @@ A typical pipeline performs these steps in order:
 - Render HTML tombs from Markdown
 - Generate a `.tar.gz` archive of the output
 - Log actions to `bones/logs/`
-
-***
-
-## ⚙️ Minimal GitHub Actions Example
-
-```yaml
-name: Build & Tomb
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout rot
-        uses: actions/checkout@v3
-
-      - name: Install deps
-        run: sudo apt-get install pandoc
-
-      - name: Execute Rotkeeper pipeline
-        run: |
-          chmod +x ./rotkeeper
-          ./rotkeeper init
-          ./rotkeeper assets
-          ./rotkeeper render
-          ./rotkeeper pack
-
-      - name: Archive tomb
-        uses: actions/upload-artifact@v3
-        with:
-          name: tomb-archive
-          path: ./tomb-*.tar.gz
-```
-
-***
-
-## 🧪 Bash CI Example
-
-If you're using plain shell:
-
-```bash
-#!/bin/bash
-set -e
-
-./rotkeeper init
-./rotkeeper assets
-./rotkeeper render
-./rotkeeper pack
-
-if [ -f tomb-*.tar.gz ]; then
-  echo "✅ Tomb sealed."
-else
-  echo "❌ No tomb found."
-  exit 1
-fi
-```
 
 ***
 
@@ -117,9 +57,7 @@ If you prefer more control, replace `all` with:
 
 ## 🧠 Checklist for Smooth CI Rituals
 
-- ✅ Ensure `rotkeeper` is executable: `chmod +x rotkeeper`
 - 🪵 Inspect `bones/logs/` after every run
-- 🚫 Add `tomb-*.tar.gz` to `.gitignore` if you don't archive outputs in Git
 
 ***
 

@@ -27,7 +27,6 @@ asset_meta:
 | scan-reports          | Historical scan outputs and digests       | [scan-reports](scan-reports.html) | Ready  |
 | changelog             | Full ritual violation history             | [CHANGELOG](CHANGELOG.html)     | Ready    |
 | manifest-backups      | Previous versions of asset-manifest.yaml  | [manifests](manifests.html)     | Stub     |
-| session-records       | rc-record.sh dumps                        | [records](records.html)         | Ready    |
 | tomb-render-logs      | Logs from `rc-render.sh` runs             | [renders](renders.html)         | Missing  |
 | …                     | …                                         | …                                     | …        |
 

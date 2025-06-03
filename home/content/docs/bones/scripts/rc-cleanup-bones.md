@@ -2,8 +2,8 @@
 title: "🔄 rc-cleanup-bones.sh Reference"
 slug: rc-cleanup-bones
 template: rotkeeper-doc.html
-version: "v0.2.3-pre"
-updated: "2025-06-01"
+version: "v0.2.5"
+updated: "2025-06-03"
 description: "Backs up and prunes outdated directories and logs from the bones/ archive system."
 tags:
   - rotkeeper
@@ -12,7 +12,7 @@ tags:
   - backups
 asset_meta:
   name: "rc-cleanup-bones.md"
-  version: "v0.2.3-pre"
+  version: "v0.2.5"
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
@@ -48,9 +48,10 @@ Supported flags:
    - Ensure `bones/archive/cleanup-backups/` and `bones/logs/` exist.
    - Process `--dry-run`, `--verbose`, and `--days`.
    - Prompts for confirmation unless overridden.
+   - All environment paths are sourced via `rc-utils.sh`.
 
 2. **Backup**
-   - Create a tar.gz of the entire `bones/` directory (excluding its own backups folder) into `bones/backups/`.
+   - Create a tar.gz of the entire `bones/` directory (excluding backups and existing archives) into `bones/archive/`.
 
 3. **Prune Old Backups**
    - Delete backup archives older than `N` days.
@@ -60,6 +61,7 @@ Supported flags:
 
 5. **Summary**
    - Log completion message indicating backup and prune results.
+   - Honors DRY_RUN for all destructive actions and archive creation.
 
 ## Examples
 

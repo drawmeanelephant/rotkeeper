@@ -44,7 +44,6 @@ This is the internal documentation hub for all Rotkeeper rituals, scripts, forma
 - [`rc-pack.sh`](bones/scripts/rc-pack.md)
 - [`rc-scan.sh`](bones/scripts/rc-scan.md)
 - [`rc-assets.sh`](bones/scripts/rc-assets.md)
-- [`rc-record.sh`](bones/scripts/rc-record.md)
 - [`rc-status.sh`](bones/scripts/rc-status.md)
 - [`rc-reseed.sh`](bones/scripts/rc-reseed.md)
 - [`rc-webbook.sh`](bones/scripts/rc-webbook.md)

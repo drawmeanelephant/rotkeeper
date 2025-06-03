@@ -3,8 +3,8 @@ title: "rc-status.sh"
 slug: rc-status
 template: rotkeeper-doc.html
 subtitle: "Reports the current rotkeeper project state, including logs, active version, and tomb status."
-version: "v0.2.3-pre"
-updated: "2025-06-01"
+version: "v0.2.5"
+updated: "2025-06-03"
 description: "Provides a snapshot of the rotkeeper environment including changelog info, log count, manifest state, and current archive status."
 tags:
   - rotkeeper
@@ -15,7 +15,7 @@ tags:
   - script
 asset_meta:
   name: "rc-status.md"
-  version: "v0.2.3-pre"
+  version: "v0.2.5"
   author: "Filed Systems"
   project: "Rotkeeper"
   type: "script-doc"

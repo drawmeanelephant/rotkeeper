@@ -10,11 +10,11 @@ set -euo pipefail
 VERBOSE=false
 DRY_RUN=false
 FIX_MODE=false
-REPORT_DIR="bones/reports"
+REPORT_DIR="$REPORT_DIR"
 REPORT_JSON="$REPORT_DIR/asset-audit.json"
 REPORT_MD="$REPORT_DIR/asset-audit.md"
-MANIFEST="bones/asset-manifest.yaml"
-LOG_FILE="bones/logs/rc-audit-$(date +%Y-%m-%d_%H%M).log"
+MANIFEST="$CONFIG_DIR/asset-manifest.yaml"
+LOG_FILE="$LOG_DIR/rc-audit-$(date +%Y-%m-%d_%H%M).log"
 mkdir -p "$(dirname "$LOG_FILE")" "$REPORT_DIR"
 IFS=$'\n\t'
 
@@ -81,7 +81,7 @@ mapfile -t FILE_LIST < <(yq e '.[].path' "$MANIFEST" | grep -v '^null$')
 log "INFO" "Loaded ${#FILE_LIST[@]} files from manifest."
 
   # --- Step 3: Iterate Over Files ---
-  TEMPLATE_CONFIG="bones/config/audit-meta.yaml"
+  TEMPLATE_CONFIG="$CONFIG_DIR/audit-meta.yaml"
   TODAY=$(date +%F)
 
   # Load the YAML stub block using yq and convert it to a string
@@ -98,37 +98,38 @@ log "INFO" "Loaded ${#FILE_LIST[@]} files from manifest."
   SKIPPED=0
   MISSING=0
 
-  for FILE in "${FILE_LIST[@]}"; do
+  for REL_PATH in "${FILE_LIST[@]}"; do
+    FILE="$ASSETS_DIR/$REL_PATH"
     if [[ ! -f "$FILE" ]]; then
-      log "ERROR" "Missing file: $FILE"
+      log "ERROR" "Missing file: $REL_PATH"
       ((MISSING++))
       continue
     fi
 
     if [[ "$FILE" != *.md ]]; then
-      log "SKIP" "Not a markdown file: $FILE"
+      log "SKIP" "Not a markdown file: $REL_PATH"
       continue
     fi
 
     if ! grep -q '^---' "$FILE"; then
-      log "ERROR" "No frontmatter in $FILE"
+      log "ERROR" "No frontmatter in $REL_PATH"
       if [[ "$FIX_MODE" == true ]]; then
-        log "FIX" "Injecting stub frontmatter into $FILE"
+        log "FIX" "Injecting stub frontmatter into $REL_PATH"
         echo -e "---\n$STUB_FRONTMATTER\n---\n$(cat "$FILE")" > "$FILE"
       fi
       continue
     fi
 
     if ! yq e '.asset-meta' "$FILE" &>/dev/null; then
-      log "ERROR" "Missing asset-meta block in $FILE"
+      log "ERROR" "Missing asset-meta block in $REL_PATH"
       if [[ "$FIX_MODE" == true ]]; then
-        log "FIX" "Adding asset-meta to frontmatter in $FILE"
+        log "FIX" "Adding asset-meta to frontmatter in $REL_PATH"
         TMPFILE=$(mktemp)
         awk '/^---$/ && ++c==2 { print "---\n'"$STUB_FRONTMATTER"'\n---"; next } 1' "$FILE" > "$TMPFILE"
         mv "$TMPFILE" "$FILE"
       fi
     else
-      log "PASS" "Valid asset-meta in $FILE"
+      log "PASS" "Valid asset-meta in $REL_PATH"
     fi
   done
 

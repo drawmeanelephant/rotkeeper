@@ -27,7 +27,6 @@ asset_meta:
 | changelog           | Combined ritual violation history        | [changelog](logs/changelog.html)     | Ready    |
 | scan                | Logs from `rc-scan.sh` runs              | [scan](logs/scan.html)               | Ready    |
 | assets              | Logs from `rc-assets.sh` manifests       | [assets](logs/assets.html)           | Ready    |
-| record              | Session record logs from `rc-record.sh`  | [record](logs/record.html)           | Ready    |
 | verify              | Digest verification logs from `rc-verify.sh` | [verify](logs/verify.html)        | Ready    |
 | render              | HTML render process logs from `rc-render.sh` | [render](logs/render.html)        | Stub     |
 | audit               | Frontmatter enforcement logs from `rc-audit.sh` | [audit](logs/audit.html)        | Ready    |

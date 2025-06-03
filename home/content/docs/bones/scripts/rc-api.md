@@ -2,8 +2,8 @@
 title: "📡 rc-api.sh Reference"
 slug: rc-api
 template: rotkeeper-doc.html
-version: "v0.2.3-pre"
-updated: "2025-06-01"
+version: "v0.2.5"
+updated: "2025-06-03"
 description: "Experimental API utility for extracting or submitting Rotkeeper data between sessions. Not part of core ritual set."
 tags:
   - rotkeeper
@@ -12,7 +12,7 @@ tags:
   - api
 asset_meta:
   name: "rc-api.md"
-  version: "v0.2.3-pre"
+  version: "v0.2.5"
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
@@ -53,7 +53,7 @@ This script is designed to:
 
 ## 📎 Notes
 
-- This script is implemented and active in `v0.2.2`
+- This script is implemented and maintained through `v0.2.5`
 - Useful for:
   - Fetching mascot bios from a remote repo
   - Pulling changelogs from GitHub APIs
@@ -64,7 +64,6 @@ This script is designed to:
 ## 📌 Related
 
 - `rc-expand.sh` — Generates Markdown from BOM locally
-- `rc-record.sh` — Tracks commit + system state
 - `bones/logs/api-*` — Future location of fetch logs
 - `remote-sources.yaml` — Defines the assets fetched by this script
 

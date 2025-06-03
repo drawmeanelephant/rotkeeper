@@ -3,9 +3,9 @@
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 # ░▒▓█ ROTKEEPER SCRIPT █▓▒░
 # Script: rc-render.sh
-# Purpose: Renders markdown into HTML tombs using templates and config
-# Version: 0.2.1
-# Updated: 2025-05-29
+# Purpose: Render markdown tombs into HTML using Pandoc and templates
+# Version: 0.2.5
+# Updated: 2025-06-03
 # -----------------------------------------
 # =============================================================================
 # rc-render.sh — Pandoc-based renderer for Rotkeeper tombs
@@ -73,6 +73,9 @@ log() {
   local level="$1"; shift
   local ts
   ts=$(date '+%Y-%m-%d %H:%M:%S')
+  if [[ "$level" == "DEBUG" && "$VERBOSE" != true ]]; then
+    return
+  fi
   printf '[%s] [%s] %s\n' "$ts" "$level" "$*" | tee -a "$LOG_FILE"
 }
 
@@ -96,13 +99,13 @@ main() {
     pages_rendered=0
     start_ts=$(date +%s)
 
-    # Resolve project root (two levels up from script directory)
-    PROJ_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+    # Use ROOT_DIR from environment instead of recomputing
+    PROJ_ROOT="$ROOT_DIR"
 
     # --- Paths ---
-    CONFIG_FILE="$SCRIPTDIR/../config/render-flags.yaml"
-    MANIFEST="$SCRIPTDIR/../manifest.txt"
-    TEMPLATE_DIR="$PROJ_ROOT/bones/templates"
+    CONFIG_FILE="$CONFIG_DIR/render-flags.yaml"
+    MANIFEST="$BONES_DIR/manifest.txt"
+    TEMPLATE_DIR="$TEMPLATE_DIR"
 
     log "INFO" "SCRIPTDIR=$SCRIPTDIR"
     log "INFO" "CONFIG_FILE=$CONFIG_FILE"
@@ -174,7 +177,7 @@ main() {
       exit 1
     fi
 
-    echo "🖋 Rendering tombs..." >&2
+    [[ "$VERBOSE" == true ]] && echo "🖋 Rendering tombs..." >&2
 
     # Iterate over all markdown files in content_dirs and convert to HTML
     for SRC in "${CONTENT_DIRS[@]}"; do
@@ -221,14 +224,14 @@ main() {
         outfile="$outdir/${base}.html"
         rel_md="${mdpath#$PROJ_ROOT/}"
         rel_out="${outfile#$PROJ_ROOT/}"
-        echo "📄 Rendering $rel_md → $rel_out"
+        [[ "$VERBOSE" == true ]] && echo "📄 Rendering $rel_md → $rel_out"
         TEMPLATE=""
         if grep -q '^template:' "$mdfile"; then
           TEMPLATE=$(awk '/^template:/ { print $2 }' "$mdfile")
         fi
         [[ -z "$TEMPLATE" ]] && TEMPLATE="$DEFAULT_TEMPLATE"
 
-        log "INFO" "Using template: $TEMPLATE"
+        log "INFO" "Rendering $rel_md with template: $TEMPLATE"
 
         if [ ! -f "$TEMPLATE_DIR/$TEMPLATE" ]; then
           echo "❌ ERROR: Template not found: $TEMPLATE_DIR/$TEMPLATE"
@@ -240,14 +243,14 @@ main() {
         log_manifest "$outfile"
       done < <(find "$SRC" -type f -name "*.md")
     done
-    echo "✅ Render complete." >&2
+    [[ "$VERBOSE" == true ]] && echo "✅ Render complete." >&2
 
     # 📦 Archive the rendered output into a timestamped tar.gz tomb
-    ARCHIVE_DIR="$PROJ_ROOT/bones/archive"
+    ARCHIVE_DIR="$ARCHIVE_DIR"
     mkdir -p "$ARCHIVE_DIR"
     TOMB="tomb-$(date +%Y-%m-%d_%H%M).tar.gz"
     run tar -czf "$ARCHIVE_DIR/$TOMB" -C "$PROJ_ROOT" "$OUTPUT_DIR_REL"
-    echo "📦 Archived rendered output to bones/archive/$TOMB" >&2
+    [[ "$VERBOSE" == true ]] && echo "📦 Archived rendered output to bones/archive/$TOMB" >&2
     log "INFO" "Archived output as bones/archive/$TOMB"
 
     # Compute and log summary

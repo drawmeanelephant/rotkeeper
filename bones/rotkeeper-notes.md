@@ -24,7 +24,6 @@ Version: 0.2.0-pre
 ***
 
 🔨 Current Patch Goals
-- `rc-record.sh` → stamp `git rev-parse` + timestamp
 - `rc-assets.sh` → emit YAML manifest of `home/assets/`
 - `rc-verify.sh` → check file SHA256s from manifest
 - `rc-audit.sh` → enforce frontmatter metadata (`asset-meta:`)
