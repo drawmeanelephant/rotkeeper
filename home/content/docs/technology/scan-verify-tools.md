@@ -2,8 +2,8 @@
 title: "🔍 Scan & Verify Tools"
 slug: scan-verify-tools
 template: rotkeeper-doc.html
-version: "0.2.3-pre"
-updated: "2025-06-01"
+version: "0.2.5-pre"
+updated: "2025-06-02"
 description: "Reference for rc-scan.sh and rc-verify.sh, tools used to inspect rot states, file hashes, and archived tomb metadata."
 tags:
   - rotkeeper
@@ -12,7 +12,7 @@ tags:
   - tools
 asset_meta:
   name: "scan-verify-tools.md"
-  version: "0.2.3-pre"
+  version: "0.2.5-pre"
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
@@ -21,7 +21,7 @@ asset_meta:
 
 # 🔍 Scan & Verify Tools
 
-Rotkeeper includes tooling to audit file rot, detect drift, and confirm tomb integrity before archiving. These tools are designed for paranoid deployments, CI pipelines, and changelog enforcement rituals.
+These are the paranoid instruments of the archive cult. `rc-scan.sh` and `rc-verify.sh` form the dual-eyes of the Rotkeeper—one staring into the live filesystem, the other probing the sealed tombs. They exist to catch decay before it becomes doctrine.
 
 They complement one another: `rc-scan.sh` surfaces issues **in the current filesystem**, while `rc-verify.sh` inspects **archived tombs** and ensures SHA integrity against manifests.
 
@@ -94,7 +94,7 @@ Flags:
 
 ## 🧠 Tips for Verification Workflows
 
-- Run `rc-scan.sh` before every `rc-bless.sh` invocation
+- Run `rc-scan.sh` before every `rc-pack.sh` to catch uncommitted decay
 - Automate `rc-verify.sh` in your CI to validate `.tar.gz` outputs
 - Consider writing diffs between manifest versions to surface unexpected drift
 
@@ -105,6 +105,7 @@ bash rc-render.sh
 bash rc-pack.sh
 bash rc-scan.sh --json-only
 bash rc-verify.sh --quiet
+# Full scan/verify loop before archival
 ```
 
 Exit codes:
@@ -112,10 +113,11 @@ Exit codes:
 - `1`: warnings or mismatches (non-fatal)
 - `2`: missing dependencies, unreadable manifests, or structural failures
 
+Trust no tomb that hasn’t been scanned.
+
 ***
 
 Back to [Documentation Index](index.md)
-Continue to [Changelog & Version Blessing](changelog-blessing.md)
 
 <!--
 LIMERICK

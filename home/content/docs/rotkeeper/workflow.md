@@ -88,20 +88,7 @@ This document outlines the full sequence of Rotkeeper rituals, from initializing
   ```
 - **Result**: Exit code `0` if no mismatches (or warnings), `1` if issues found.
 
-## 6. Bless Release (`rc-bless.sh`)
-
-- **Purpose**: Finalize a new release or tomb blessing.
-- **Actions**:
-  1. Bump the global `version:` in `RESEED.md`.
-  2. Append a new entry to `CHANGELOG.md`.
-  3. Optionally create a Git tag.
-- **Usage**:
-  ```bash
-  ./bones/scripts/rc-bless.sh --version <new-version> [--help]
-  ```
-- **Result**: Project version updated, changelog entry created, ready for distribution.
-
-## 7. Record Assets (`rc-record.sh`)
+## 6. Record Assets (`rc-record.sh`)
 
 - **Purpose**: Update manifests for rendered assets and tomb archives.
 - **Actions**:
@@ -113,7 +100,7 @@ This document outlines the full sequence of Rotkeeper rituals, from initializing
   ```
 - **Result**: Centralized manifest and asset‐manifest reflect current project state.
 
-## 8. Reseed Project (`rc-reseed.sh`)
+## 7. Reseed Project (`rc-reseed.sh`)
 
 - **Purpose**: Refresh the project’s reseed ritual document with current state.
 - **Actions**:
@@ -126,7 +113,7 @@ This document outlines the full sequence of Rotkeeper rituals, from initializing
   ```
 - **Result**: `RESEED.md` is up-to-date, reflecting all current versions and pending tasks.
 
-## 9. Help Aggregator (`rc-help.sh`)
+## 8. Help Aggregator (`rc-help.sh`)
 
 - **Purpose**: Consolidate all script `--help` outputs into a single reference.
 - **Actions**:

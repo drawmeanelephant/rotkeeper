@@ -1,5 +1,3 @@
-
-
 # 🔮 rotkeeper.yaml — canonical configuration for all CLI rituals
 # This file replaces scattered config fragments (render-flags.yaml, template-index.yaml, etc.)
 # It is parsed by all rc-*.sh modules for consistent behavior and flag normalization.
@@ -55,8 +53,6 @@ remote:
   sources:
     - url: "https://assets.rotkeeper.com/templates/plainstone.html"
       filename: "plainstone.html"
-    - url: "https://assets.rotkeeper.com/scripts/rc-bless.sh"
-      filename: "rc-bless.sh"
 
 # 🧾 Logging + Output Settings
 log:
@@ -68,5 +64,4 @@ log:
 flags:
   dry_run: false
   strict_mode: false
-  auto_bless: false
   pack_full_on_render: false

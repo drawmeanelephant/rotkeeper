@@ -2,8 +2,8 @@
 title: "Rotkeeper Script Index"
 slug: scripts-index
 template: rotkeeper-doc.html
-version: "v0.2.3-pre"
-updated: 2025-06-01
+version: "v0.2.5-pre"
+updated: 2025-06-03
 description: "Index of all rc-*.sh ritual scripts with status and links"
 tags:
   - rotkeeper
@@ -11,7 +11,7 @@ tags:
   - cli
 asset_meta:
   name: "scripts-index.md"
-  version: "v0.2.3-pre"
+  version: "v0.2.5-pre"
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
@@ -39,7 +39,6 @@ bones/scripts/
 | rc-render.sh        | Convert markdown to HTML                       | [rc-render.sh](rc-render.html)  | Ready    |
 | rc-pack.sh          | Archive `/output/`, export JSON                | [rc-pack.sh](rc-pack.html)      | Ready    |
 | rc-scan.sh          | Detect orphan/missing files, create digests    | [rc-scan.sh](rc-scan.html)      | Ready    |
-| rc-bless.sh         | Append changelog entries                       | [rc-bless.sh](rc-bless.html)    | Ready    |
 | rc-assets.sh        | Manifest static assets in YAML                 | [rc-assets.sh](rc-assets.html)  | Ready    |
 | rc-record.sh        | Log Git hash and timestamp snapshot            | [rc-record.sh](rc-record.html)  | Ready    |
 | rc-verify.sh        | Compare digests with current state             | [rc-verify.sh](rc-verify.html)  | Ready    |
@@ -53,7 +52,6 @@ bones/scripts/
 ## 🛣️ Navigation
 
 <!-- Quick navigation to scripts -->
-- [rc-bless.sh](rc-bless.html)
 - [rc-record.sh](rc-record.html)
 - [rc-assets.sh](rc-assets.html)
 - [rc-verify.sh](rc-verify.html)

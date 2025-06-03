@@ -3,17 +3,19 @@ title: "Common Errors & Ritual Interruptions"
 template: rotkeeper-doc.html
 subtitle: "Troubleshooting and decay recovery procedures"
 tags: [rotkeeper, errors, help, rituals, troubleshooting]
-version: "0.2.0"
+version: "0.2.5-pre"
+updated: "2025-06-03"
 asset-meta:
   author: "Filed Systems"
   project: "Rotkeeper"
   type: "help-doc"
   tracked: true
+  version: "0.2.5-pre"
 ---
 
 # ❌ Common Errors & Ritual Interruptions
 
-Even in blessed environments, the rot may resist. This page collects common problems encountered during render, bless, or verify phases, and how to exorcise them.
+Even in sealed environments, the rot may resist. This page collects common problems encountered during render, verify, or pack phases, and how to exorcise them.
 
 ***
 
@@ -79,4 +81,16 @@ Ensure all `rc-*.sh` scripts are updated to write logs to `bones/logs/`.
 
 ***
 
+## 🧪 Unknown Flag or Option
+
+**Symptom:**
+A script exits immediately with a usage summary or `unrecognized option` error.
+
+**Fix:**
+Double-check spelling of flags like `--dry-run`, `--debug`, `--help`. Most `rc-*.sh` scripts follow consistent GNU-style argument patterns.
+
+***
+
 > *“Every failed ritual is a lesson. Every log a confession.”*
+
+> 🧼 *If you keep hitting the same error, try running `rotkeeper.sh audit` to diagnose deeper rot.*

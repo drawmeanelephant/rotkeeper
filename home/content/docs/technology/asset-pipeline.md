@@ -2,8 +2,8 @@
 title: "📦 Asset Pipeline"
 slug: asset-pipeline
 template: rotkeeper-doc.html
-version: "0.2.3-pre"
-updated: "2025-06-01"
+version: "0.2.5-pre"
+updated: "2025-06-03"
 description: "Explains how assets like CSS, images, and JS are discovered, linked, and verified in the Rotkeeper system."
 tags:
   - rotkeeper
@@ -12,7 +12,7 @@ tags:
   - rendering
 asset_meta:
   name: "asset-pipeline.md"
-  version: "0.2.3-pre"
+  version: "0.2.5-pre"
   author: "Filed Systems"
   project: "Rotkeeper"
   tracked: true
@@ -76,7 +76,7 @@ Every tracked script, template, or asset should include an `asset-meta:` header 
 # --- end-meta ---
 ```
 
-These tags allow `rc-scan.sh` and `rc-bless.sh` to:
+These tags allow `rc-scan.sh` and `rc-pack.sh` to:
 
 - Detect stale, duplicated, or unversioned assets
 - Validate integrity during packing
@@ -99,7 +99,7 @@ These tags allow `rc-scan.sh` and `rc-bless.sh` to:
 ## ⚠️ Notes on Pipeline Behavior
 
 - The pipeline **does not** deduplicate—it's your job to manage redundant files
-- Files without `asset-meta` may be ignored by `rc-bless.sh`
+- Files without `asset-meta` may be skipped during archive verification
 - If a file is missing from `bones/manifest.txt`, it won’t be packed
 - Use `rc-scan.sh` to validate what’s missing or untracked
 

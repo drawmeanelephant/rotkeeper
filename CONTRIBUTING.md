@@ -50,7 +50,6 @@ Rotkeeper is a shell-based ritual CLI for decaying flat-file systems. If you’d
 - Run each render step and verify output:
   ```bash
   ./rotkeeper.sh render
-  ./rotkeeper.sh bless
   ./rotkeeper.sh verify
   ./rotkeeper.sh record
   ./rotkeeper.sh pack
@@ -61,4 +60,4 @@ Rotkeeper is a shell-based ritual CLI for decaying flat-file systems. If you’d
 
 ***
 
-✎ *All contributions are presumed final. Revisions discouraged unless blessed.*
+✎ *All contributions are presumed final. Revisions discouraged unless unearthed by necessity.*

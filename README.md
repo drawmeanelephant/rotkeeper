@@ -16,7 +16,6 @@ Every script is annotated for post-apocalyptic readability. No network required.
 
 - Renders Markdown to HTML using Pandoc and custom templates
 - Tracks file digests and generates asset manifests
-- Blesses commits with changelogs and metadata
 - Packs full tomb archives for portable decay
 - Supports `--dry-run` logic and offline use
 - Expands YAML-defined tombs into structured markdown pages

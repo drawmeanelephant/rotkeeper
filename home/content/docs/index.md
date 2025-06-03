@@ -23,7 +23,7 @@ asset_meta:
 
 Welcome to Rotkeeper, the command-line necropolis for static site decay rituals.
 
-This suite of shell scripts helps you manage dead markdown, render tombs as HTML, bless changelogs, and archive your rot with dignity.
+This suite of shell scripts helps you manage dead markdown, render tombs as HTML, and archive your rot with dignity.
 Whether you're new to file decay or just looking to automate your afterlife pipeline, you're in the right place.
 
 Ritual types include:
@@ -31,7 +31,6 @@ Ritual types include:
 - **Expand** – Generate Markdown stubs and configs
 - **Render** – Convert Markdown into static HTML tombs
 - **Scan** – Detect decay, missing metadata, or corruption
-- **Bless** – Stamp versions and log changelog updates
 - **Pack** – Archive a versioned tomb for long-term storage
 - **Record** – Commit the state of a ritual into Git & logs
 
@@ -55,7 +54,6 @@ Ritual types include:
 - [`rc-render.sh`](bones/scripts/rc-render.md)
 - [`rc-pack.sh`](bones/scripts/rc-pack.md)
 - [`rc-scan.sh`](bones/scripts/rc-scan.md)
-- [`rc-bless.sh`](bones/scripts/rc-bless.md)
 - [`rc-assets.sh`](bones/scripts/rc-assets.md)
 - [`rc-record.sh`](bones/scripts/rc-record.md)
 - [`rc-status.sh`](bones/scripts/rc-status.md)
@@ -68,7 +66,6 @@ Ritual types include:
 
 ### 5. 🪵 Logs, Echoes & Reports
 - [Log Outputs](bones/logs/index.md)
-- [Bless Logs & Changelogs](bones/logs/changelog.md)
 - [Archive Reports](bones/archive/index.md)
 
 ### 6. 🌀 Advanced Flags & Edge Cases

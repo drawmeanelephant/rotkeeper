@@ -89,7 +89,6 @@ Scripts seeded during init—should match your `rc-` naming convention.
 scripts:
   - scripts/rc-render.sh
   - scripts/rc-pack.sh
-  - scripts/rc-bless.sh
 ```
 
 ***
@@ -108,7 +107,7 @@ All config files should include an embedded asset-meta block like:
 # --- end-meta ---
 ```
 
-These fields are used by `rotkeeper`, `rc-bless.sh`, and `rc-scan.sh` to track decay, update status, and log file lifecycle changes.
+These fields are used by `rotkeeper` and `rc-scan.sh` to track decay, update status, and log file lifecycle changes.
 
 ***
 
@@ -137,7 +136,6 @@ yamls:
 scripts:
   - scripts/rc-render.sh
   - scripts/rc-pack.sh
-  - scripts/rc-bless.sh
 ```
 
 ***

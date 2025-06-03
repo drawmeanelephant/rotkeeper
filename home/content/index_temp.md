@@ -31,7 +31,7 @@ asset_meta:
 
 Rotkeeper is a terminal-based toolkit for rendering, archiving, and preserving the remains of Markdown-driven projects.
 
-Build static sites. Bless versions. Seal tombs.
+Build static sites. Seal tombs.
 
 No frameworks. No hydration. Just bones.
 

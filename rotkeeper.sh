@@ -55,28 +55,21 @@ VERSION="0.2.1"
 #    No phantom domains,
 #    Each file by its path was correct.
 #    - Use rc-scan.sh to check manifest entries against actual files.
-# 6. Generate changelog:
-#    A bless script would jot down the date,
-#    Logging each shift in the slate.
-#    With diffs to rehearse,
-#    It chronicled terse,
-#    Every change sealed the tomb’s fate.
-#    - Run rc-bless.sh to append changes to bones/logs/changelog.md.
-# 7. Asset manifest:
+# 6. Asset manifest:
 #    Assets were gathered in YAML lines,
 #    From icons to fonts in confines.
 #    The manifest grew,
 #    With paths that were true,
 #    A record of all design signs.
 #    - Execute rc-assets.sh to catalog home/assets into bones/asset-manifest.yaml.
-# 8. Record state:
+# 7. Record state:
 #    A recorder inscribed commit’s name,
 #    With timestamp it joined the game.
 #    Each hash was preserved,
 #    So history served,
 #    As proof of the ritual’s claim.
 #    - Use rc-record.sh to log current git commit and timestamp.
-# 9. Help and usage:
+# 8. Help and usage:
 #    And help was a guide in the dark,
 #    A beacon, a bright little spark.
 #    With usage in hand,
@@ -84,7 +77,7 @@ VERSION="0.2.1"
 #    To perform any command or mark.
 #    - Display usage message for available commands.
 ## Usage:
-#   rotkeeper.sh {init|expand|render|pack|scan|bless|assets|record|help}
+#   rotkeeper.sh {init|expand|render|pack|scan|assets|record|help}
 
 # --- ENTRY CHECK ---
 # Capture the subcommand or default to empty.
@@ -154,16 +147,6 @@ if [[ "$command" == "scan" ]]; then
   bash "$SCRIPT_DIR/bones/scripts/rc-scan.sh" && exit 0
 fi
 # === SCAN SECTION END ===
-
- # --- BLESS SECTION ---
- # Record version diffs in CHANGELOG and update manifest snapshot.
-# === BLESS SECTION START ===
-if [[ "$command" == "bless" ]]; then
-  echo "✨ Generating changelog..."
-  bash ./bones/scripts/rc-bless.sh
-  exit 0
-fi
-# === BLESS SECTION END ===
 
  # --- ASSETS SECTION ---
  # Catalog static assets into the YAML asset manifest.
@@ -254,8 +237,6 @@ Commands:
   pack       Archive rendered HTML into a timestamped tarball
 
   scan       Verify manifest entries against actual files
-
-  bless      Append changes to the changelog in bones/logs/changelog.md
 
   assets     Generate asset manifest from home/assets into bones/asset-manifest.yaml
 

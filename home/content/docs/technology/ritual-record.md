@@ -76,7 +76,6 @@ bash tomb-replay.sh
 
 ***
 
-Back to [Changelog & Version Blessing](changelog-blessing.md)
 Return to [Documentation Index](index.md)
 
 <!--

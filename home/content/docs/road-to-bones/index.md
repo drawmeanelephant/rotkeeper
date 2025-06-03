@@ -3,8 +3,8 @@ title: "The Road to Bones"
 slug: road-to-bones
 subtitle: "Rotkeeper Buildlog & Resurrection Notes"
 template: rotkeeper-doc.html
-version: "0.2.3-pre"
-updated: "2025-06-01"
+version: "0.2.5-pre"
+updated: "2025-06-03"
 description: "Buildlog, audit summary, and resurrection notes for Rotkeeper version 0.2.0-pre through 0.2.3-pre."
 tags:
   - rotkeeper
@@ -14,7 +14,7 @@ tags:
   - logs
 asset_meta:
   name: "index.md"
-  version: "0.2.3-pre"
+  version: "0.2.5-pre"
   author: "Filed Systems"
   project: "Rotkeeper"
   tracked: true
@@ -30,7 +30,7 @@ This is your consolidated status snapshot: what’s working, what’s stubbed, a
 ### ✅ Core Scripts Verified & Functional
 
 * ✅ `rotkeeper.sh` — version bumped, full dispatch implemented
-* ✅ `rc-bless.sh`, `rc-record.sh`, `rc-verify.sh` — log-rich, working
+* ✅ `rc-record.sh`, `rc-verify.sh` — log-rich, working
 * ✅ `rc-render.sh` — output archive fixed, now logs + compresses safely
 * ✅ `rc-expand.sh` — reseeds markdown + templates from BOM
 * ✅ `rc-pack.sh` — respects `--self`, packs full tombkits correctly
@@ -75,7 +75,7 @@ A prompt flashes once, then fades:
 
 * `rc-expand.sh` could integrate mascot generation
 * Add `--dry-run` and `--explain` flags to all scripts
-* Add git pre-commit hook for automatic `scan + bless`
+* Add git pre-commit hook for automatic `scan + pack`
 * Create a `bones/status.md` as a rotkeeper dashboard
 
 ***
@@ -241,7 +241,6 @@ The following practices are heresy, and will be purged without ceremony:
 Standardize your logs for both clarity and drama:
 
 ```bash
-log "INFO" "Blessing completed."
 log "WARN" "Missing metadata key: 'template'"
 log "☠️ ERROR" "Missing --target argument. Cannot proceed."
 ```
@@ -252,7 +251,7 @@ All log output should be timestamped and traceable. If a script fails silently, 
 
 🏗 Bootstrap Template (rc-bootstrap.sh)
 
-All new scripts should begin from a blessed scaffold. Create and maintain a rc-bootstrap.sh with:
+All new scripts should begin from a standardized scaffold. Create and maintain a rc-bootstrap.sh with:
 	•	Sourced rc-utils.sh
 	•	Parsed flags (--dry-run, --help)
 	•	Standard main()

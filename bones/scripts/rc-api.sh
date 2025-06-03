@@ -78,8 +78,8 @@ main() {
 #   - url: "https://assets.rotkeeper.com/templates/plainstone.html"
 #     filename: "plainstone.html"
 #
-#   - url: "https://assets.rotkeeper.com/scripts/rc-bless.sh"
-#     filename: "rc-bless.sh"
+#   - url: "https://assets.rotkeeper.com/scripts/rc-docs-fix.sh"
+#     filename: "rc-docs-fix.sh"
 #
 #   - url: "https://assets.rotkeeper.com/packs/openmoji-icons.zip"
 #     filename: "openmoji-icons.zip"

@@ -2,8 +2,8 @@
 title: "📟 Logging & Diagnostics"
 slug: logging-diagnostics
 template: rotkeeper-doc.html
-version: "0.2.3-pre"
-updated: "2025-06-01"
+version: "0.2.5-pre"
+updated: "2025-06-03"
 description: "Explains how logs are generated, stored, and used for debugging in Rotkeeper rituals."
 tags:
   - rotkeeper
@@ -22,6 +22,8 @@ asset_meta:
 # 📉 Logging & Diagnostics
 
 Rotkeeper scripts log everything. Every directory created, file injected, archive built, and ritual run leaves a trail.
+
+Rotkeeper’s logs form a death-rattle ledger—tracking decay, output, and decisions made by every `rc-*` script.
 
 This file explains how Rotkeeper logs work, where to find them, and how to interpret their often deadpan tone.
 
@@ -73,10 +75,16 @@ This file is regenerated (or updated) on every pack cycle and determines what ge
 
 It is used by:
 - `rc-pack.sh`
-- `rc-bless.sh`
+- `rc-record.sh`
 - `rc-verify.sh`
 
 ***
+
+## 🔍 diag.log
+
+This file is a catch-all diagnostics log, often written during `rc-scan.sh`, `rc-verify.sh`, or failed expansion/render phases. It includes stack traces, environment notes, and error reports not suitable for `yougood.brah`.
+
+Use this file to diagnose systemic failures across scripts, especially when one ritual silently fails mid-pipeline.
 
 ## ⚠️ Common Issues
 
@@ -91,6 +99,8 @@ It is used by:
 - Consider including timestamps in your logs using `date +"%Y-%m-%d %H:%M:%S"`
 - Avoid reusing logs between builds unless explicitly comparing
 - You can parse `manifest.txt` to quickly audit content drift between tombs
+
+- `diag.log` is your last resort for when things go deeply sideways—treat it as your postmortem log.
 
 ***
 

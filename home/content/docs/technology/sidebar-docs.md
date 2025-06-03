@@ -38,7 +38,6 @@ asset_meta:
 - [🧨 Advanced Usage](advanced-usage.md)
 - [🧪 Migration Test Walkthrough](migration-test-walkthrough.md)
 - [🔍 Scan & Verify Tools](scan-verify-tools.md)
-- [📓 Changelog & Version Blessing](changelog-blessing.md)
 - [🧃 Ritual Record Generator](ritual-record.md)
 - [📜 CLI & Subroutine Reference](rotkeeper-help.md)
 - [🗺️ Roadmap & Contribution](roadmap-contribution.md)

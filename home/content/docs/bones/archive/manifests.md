@@ -2,8 +2,8 @@
 title: "📋 Manifest Backups"
 slug: manifests
 template: rotkeeper-doc.html
-version: "v0.2.3-pre"
-updated: 2025-06-01
+version: "v0.2.5-pre"
+updated: 2025-06-03
 description: "Backups of asset-manifest.yaml versions"
 tags:
   - rotkeeper
@@ -11,7 +11,7 @@ tags:
   - manifests
 asset_meta:
   name: "manifests.md"
-  version: "v0.2.3-pre"
+  version: "v0.2.5-pre"
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
@@ -22,7 +22,7 @@ asset_meta:
 
 <!-- The council’s ledger of manifest evolution -->
 
-The `manifest-backups` archive holds previous snapshots of `asset-manifest.yaml` captured by `rc-bless.sh`. Each backup reflects a blessed tomb state.
+The `manifest-backups` archive holds previous snapshots of `asset-manifest.yaml` captured during packing or reseed rituals. Each backup reflects a sealed tomb state.
 
 ## Location
 
@@ -31,7 +31,7 @@ The `manifest-backups` archive holds previous snapshots of `asset-manifest.yaml`
 
 ## Contents
 
-- **YAML backups**: full copies of the manifest at each blessing.
+- **YAML backups**: full copies of the manifest created at snapshot time.
 - **Change summaries**: optional `.md` files summarizing key differences.
 
 ## 🧭 Usage

@@ -2,8 +2,8 @@
 title: "Rotkeeper"
 slug: docs-index
 template: rotkeeper-doc.html
-version: "0.2.3-pre"
-updated: "2025-06-01"
+version: "0.2.5-pre"
+updated: "2025-06-03"
 description: "Central index for Rotkeeper documentation, CLI usage, philosophy, and subroutine references."
 tags:
   - rotkeeper
@@ -13,7 +13,7 @@ tags:
   - decay
 asset_meta:
   name: "index.md"
-  version: "0.2.3-pre"
+  version: "0.2.5-pre"
   author: "Filed Systems"
   project: "Rotkeeper"
   tracked: true
@@ -54,7 +54,6 @@ Rotkeeper is composed of a central CLI (`rk`) and sorted subroutines prefixed wi
 - `rc-assets.sh` — Copy static assets into output folder
 - `rc-scan.sh` — Detect unversioned or missing files
 - `rc-pack.sh` — Pack all files into an archive
-- `rc-bless.sh` — Finalize a version and write a changelog
 
 ## 🧱 Project Philosophy
 
@@ -203,18 +202,7 @@ Integrity lives.
 -->
     *Detect rot, validate assets, confirm changelog eligibility.*
 
-16. [📓 Changelog & Version Blessing](changelog-blessing.md)
-<!--
-haiku:
-(changelog)
-
-History entombed,
-Bless each change with sacred ink—
-Freeze the rot in time.
--->
-    *Emit diffs, freeze versions, and record tomb integrity.*
-
-17. [🧃 Ritual Record Generator](ritual-record.md)
+16. [🧃 Ritual Record Generator](ritual-record.md)
 <!--
 haiku:
 (ritual-record)
@@ -225,7 +213,7 @@ Records never die.
 -->
     *Dump reproducible shell scripts from recorded ritual logs.*
 
-18. [📜 CLI & Subroutine Reference](rotkeeper-help.md)
+17. [📜 CLI & Subroutine Reference](rotkeeper-help.md)
 <!--
 haiku:
 (cli)

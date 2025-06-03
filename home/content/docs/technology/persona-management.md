@@ -45,7 +45,7 @@ They may:
 | `asset-meta` | `author: Bricky Goldbricksworth` |
 | Terminal Output | `🔔 [Boily McPlaterton] Injecting rot-scripts...` |
 | Page Footer | “Filed and rendered by Patchy Mx.CLI, 2025” |
-| Logs | `✅ Rot blessed by Council of Mascot Authors` |
+| Logs | `✅ Rot approved by Council of Mascot Authors` |
 
 ***
 

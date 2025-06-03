@@ -23,7 +23,7 @@ asset_meta:
 
 Rotkeeper is a living script graveyard. It survives because people keep feeding it new rituals, bugfixes, and ideas.
 
-This page outlines where the project is headed and how you can get involved—whether you’re adding features, documenting rot, or blessing tombs with better metadata.
+This page outlines where the project is headed and how you can get involved—whether you’re adding features, documenting rot, or embalming tombs with richer metadata.
 
 ***
 
@@ -33,7 +33,6 @@ This page outlines where the project is headed and how you can get involved—wh
 - Stabilizing core `rc-*` subroutines
 - Creating more complete documentation examples and style guides
 - Expanding support for multi-project setups and rot snapshots
-- Formalizing the version bump + changelog ritual (`rc-bless.sh`)
 - Testing and validation tooling (`rc-scan.sh`, `rc-verify.sh`)
 - Building thematic assets and icon sets (HiQ, OpenMoji)
 
@@ -42,7 +41,7 @@ This page outlines where the project is headed and how you can get involved—wh
 ## 💡 Future Ideas
 
 - Web-based rot visualizer (CLI output to HTML)
-- “Blessed version” file generator with cryptographic fingerprinting
+- Signed release manifest generator with cryptographic fingerprinting
 - `.rotstyle` and `.tombignore` for custom project behavior
 - A `rotkeeper record` feature that emits a reproducible build script
 - Script inheritance & theming (persona-driven templates)

@@ -144,7 +144,6 @@ To run every major step in order, use:
 ./rotkeeper render
 ./rotkeeper assets
 ./rotkeeper pack
-./rotkeeper bless
 ./rotkeeper verify
 ./rotkeeper status
 ```
@@ -160,10 +159,10 @@ Continue to [Advanced Usage](advanced-usage.md)
 <!--
 LIMERICK 1
 The pipeline was built out of spite,
-To bless every tomb late at night.
+To render and pack tombs each night.
 It looped through each phase,
 With ritual haze—
-And zipped it all up out of fright.
+And zipped them up sealed, out of fright.
 
 LIMERICK 2
 A cron job awoke at the hour of three,

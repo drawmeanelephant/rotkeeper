@@ -71,7 +71,6 @@ Each subroutine lives in `scripts/` and may be invoked directly.
 | `rc-render.sh` | Converts `content/` Markdown to `output/` HTML |
 | `rc-pack.sh` | Builds `.tar.gz` from `manifest.txt` |
 | `rc-scan.sh` | Checks for missing files, version drift (planned) |
-| `rc-bless.sh` | Writes a changelog and blesses the current version |
 | `rc-inject.sh` | Optional script to copy contents from `inject.d/` |
 | `rc-limerick.sh` | Emits random limericks to `yougood.brah` (planned) |
 | `rc-record.sh` | Generates a shell script to recreate the tomb (planned) |

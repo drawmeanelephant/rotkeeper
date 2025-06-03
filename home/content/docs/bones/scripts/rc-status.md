@@ -50,10 +50,8 @@ No flags required. It operates read-only and emits to STDOUT.
 
 ```
 Rotkeeper Version: 0.2.0
-Last Blessing: 2025-05-28 03:14 UTC
 Latest Tomb: bones/archive/tomb-0.2.0.tar.gz
 Log Count: 37
-Unblessed Files: 0
 Manifest: bones/asset-manifest.yaml (valid)
 ```
 

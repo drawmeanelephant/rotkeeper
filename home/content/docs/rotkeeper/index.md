@@ -27,7 +27,7 @@ This is the main CLI interface for invoking Rotkeeper rituals. It wraps and disp
 
 ## 🧠 Purpose
 
-To provide a unified command for interacting with all parts of the rotkeeper toolchain, including initialization, rendering, blessing, verifying, and packing.
+To provide a unified command for interacting with all parts of the rotkeeper toolchain, including initialization, rendering, verifying, and packing.
 
 ***
 
@@ -46,7 +46,6 @@ To provide a unified command for interacting with all parts of the rotkeeper too
 | `init`      | Create default folders and templates |
 | `assets`    | Copy static files into `output/`     |
 | `render`    | Render markdown into HTML tombs      |
-| `bless`     | Create changelog and version marker  |
 | `verify`    | Check tomb integrity                 |
 | `record`    | Log current git + datetime info      |
 | `pack`      | Create `.tar.gz` of output & logs    |
@@ -60,7 +59,6 @@ To provide a unified command for interacting with all parts of the rotkeeper too
 
 ```bash
 ./rotkeeper.sh render
-./rotkeeper.sh bless
 ./rotkeeper.sh pack
 ./rotkeeper.sh book --all
 ```

@@ -29,7 +29,7 @@ This section documents the internal tech stack, shell-based tools, and output ri
 ## 📚 Pages
 
 1. [⚡ Quickstart Guide](quickstart-guide.md)
-   Get running with minimal ceremony. Setup, first render, pack, and bless.
+   Get running with minimal ceremony. Setup, first render, pack, and index.
 
 2. [🗒️ CLI Commands](cli-commands.md)
    Describes each `rc-*.sh` script: purpose, flags, inputs, outputs.

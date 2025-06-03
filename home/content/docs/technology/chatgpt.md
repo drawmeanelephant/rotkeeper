@@ -535,7 +535,7 @@ Below are advanced and experimental methods in LLM research—some may be far ah
    - Similar to DAPT but focuses on task-specific formatting: run further MLM/CLM on target-format data (like Q&A pairs from issues, PR comments). Improves instruction-following on smaller in-domain datasets.
 
 3. **Benefits**
-   - Project-specific terms (“bless tomb,” “asset-meta”) become native.
+   - Project-specific terms (“tomb manifest,” “asset-meta”) become native.
    - Reduces hallucinations when generating Rotkeeper code or explanations.
 
 #### 13.4 Explainability & Interpretability

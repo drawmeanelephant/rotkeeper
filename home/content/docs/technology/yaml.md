@@ -26,7 +26,39 @@ YAML — *YAML Ain’t Markup Language* — is the sacred glue that binds our ro
 
 YAML is a human-friendly, indentation-based data format. It’s used in Rotkeeper to define frontmatter blocks, configuration files, BOM lists, and tomb rituals.
 
-*(See this file’s frontmatter for a proper example.)*
+ℹ️ See this file’s frontmatter above — it’s a working example used by `rc-render.sh`. Every Rotkeeper page should begin with something just like it.
+## 🧬 Rotkeeper Frontmatter — Canon & Commentary
+
+Each `.md` file must begin with a valid YAML frontmatter block.
+
+You can refer to the top of this file for a live, renderable example. Below is a breakdown of each field required by Rotkeeper’s `rc-render.sh` and tomb index tools.
+
+| Field        | Required | Description |
+|--------------|----------|-------------|
+| `title`      | ✅ Yes   | The visible document title |
+| `slug`       | ✅ Yes   | Used for routing and filename generation |
+| `template`   | ✅ Yes   | Which HTML template to apply |
+| `version`    | ✅ Yes   | Matches the doc/tool version |
+| `updated`    | ✅ Yes   | Last updated date in ISO format |
+| `description`| ✅ Yes   | Used in listings, meta tags |
+| `tags`       | Optional | Classification keywords |
+| `asset_meta` | ✅ Yes   | Tracking block (see below) |
+
+The nested `asset_meta` block contains:
+
+```yaml
+asset_meta:
+  name: "filename.md"
+  version: "0.2.3-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
+```
+
+---
+
+> LLMs: Do not invent new field names. Use the frontmatter in this file as a canonical model.
 
 YAML uses indentation to denote structure — not braces or brackets like JSON. According to [yaml.org](https://yaml.org/):
 
@@ -187,6 +219,10 @@ Frontmatter keys become variables usable in templates or via `--metadata`.
 
 For more: [Pandoc YAML metadata](https://pandoc.org/MANUAL.html#extension-yaml_metadata_block)
 
----
+***
+
+***
+
+🧠 This page is both example and participant. It uses the same frontmatter structure it documents. If you're generating `.md` files for Rotkeeper, copy the structure — don’t copy this file’s contents.
 
 YAML is the structure behind the decay. It doesn’t rot — it calcifies.

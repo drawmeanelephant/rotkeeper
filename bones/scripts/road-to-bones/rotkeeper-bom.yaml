@@ -9,7 +9,7 @@ scripts:
       # rotkeeper — main ritual entrypoint
       set -euo pipefail
 
-      echo "Usage: $0 {init|expand|render|pack|scan|bless|assets|record}"
+      echo "Usage: $0 {init|expand|render|pack|scan|assets|record}"
   - path: bones/scripts/rc-render.sh
     stub: false
     header: "rc-render — Pandoc-based renderer for Rotkeeper tombs"
@@ -131,15 +131,6 @@ scripts:
 
       echo "Scanning manifest..."
       # TODO: implement scan logic
-  - path: bones/scripts/rc-bless.sh
-    stub: true
-    body: |
-      #!/usr/bin/env bash
-      # rc-bless — generate changelog
-      set -euo pipefail
-
-      echo "Generating changelog..."
-      # TODO: implement bless logic
   - path: bones/scripts/rc-init.sh
     stub: true
     body: |
@@ -184,7 +175,7 @@ content:
     subtitle: "Placeholder TODO"
     body: |
       - [ ] Run `rc-expand.sh`
-      - [ ] Bless initial templates
+      - [ ] Review initial templates
       - [ ] Inject OpenMoji test page
       - [ ] Wire sidebar nav
       - [ ] Finalize rotkeeper-bom.yaml v0.2.0
@@ -274,7 +265,7 @@ content:
       - Generated content pages in `home/`:
         - todo.md, minimal.md, hello.md, overview.md, mascots.md, emoji-index.md, sidebar-test.md
       - Stub scripts created under `bones/scripts/` (excluding existing `rc-render.sh`):
-        - rotkeeper.sh, rc-expand.sh, rc-assets.sh, rc-pack.sh, rc-scan.sh, rc-bless.sh, rc-init.sh, rc-record.sh
+        - rotkeeper.sh, rc-expand.sh, rc-assets.sh, rc-pack.sh, rc-scan.sh, rc-init.sh, rc-record.sh
       - Config stubs touched in `bones/config/`
       - Template skeletons generated in `bones/templates/`
       - Folders ensured: bones/logs/, bones/archive/, bones/graveyard/, bones/user/icons/, bones/user/fonts/, home/content/, home/assets/

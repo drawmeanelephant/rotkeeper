@@ -56,7 +56,7 @@ font_family: "Rounded Sans Serif"
 icon_style: "simple line-art with rounded corners and subtle drop shadows"
 
 title: "Rotkeeper Core Script Workflow"
-subtitle: "From expand → render → scan → bless (in pastel tones)"
+subtitle: "From expand → render → scan (in pastel tones)"
 
 layout:
   orientation: vertical
@@ -88,18 +88,10 @@ layout:
       icon: "magnifier"
       icon_color: "#AED6F1"
       caption: "# audit + compare against manifest"
-    - id: "rc-bless.sh"
-      label: "rc-bless.sh"
-      shape: rounded_rectangle
-      fill_color: "#F5B7B1"
-      icon: "heart"
-      icon_color: "#A3E4D7"
-      caption: "# log changelog + mark commit blessed"
   edges:
     - from: "rotkeeper.sh" to: "rc-expand.sh"
     - from: "rc-expand.sh" to: "rc-render.sh"
     - from: "rc-render.sh" to: "rc-scan.sh"
-    - from: "rc-scan.sh" to: "rc-bless.sh"
 
 background_texture: "light_paper_grain"
 drop_shadow: true

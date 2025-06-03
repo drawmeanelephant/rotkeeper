@@ -29,7 +29,6 @@ asset_meta:
 <!-- Core validation objectives -->
 
 - Enforce file integrity by recomputing SHA256 checksums for each file listed in `asset-manifest.yaml` and comparing them to recorded values.
-- Prevent unblessed or tampered files from persisting by failing on any mismatch.
 
 ## CLI Interface
 <!-- How to invoke the validation ceremony -->

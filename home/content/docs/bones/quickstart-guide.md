@@ -2,8 +2,8 @@
 title: "🚀 Quickstart Guide"
 slug: quickstart-guide
 template: rotkeeper-doc.html
-version: "0.2.3-pre"
-updated: "2025-06-01"
+version: "0.2.5-pre"
+updated: "2025-06-03"
 description: "A rapid onboarding guide for using Rotkeeper, setting up tombs, and rendering documentation."
 tags:
   - rotkeeper
@@ -12,7 +12,7 @@ tags:
   - onboarding
 asset_meta:
   name: "quickstart-guide.md"
-  version: "0.2.3-pre"
+  version: "0.2.5-pre"
   author: "Filed Systems"
   project: "Rotkeeper"
   tracked: true
@@ -55,10 +55,9 @@ Welcome, ritual novice. This document will walk you through your first decay cyc
    ./rc-scan.sh --input tombs/my-first-tomb/
    ```
 
-5. **Bless and pack it for archival:**
+5. **Pack** it for archival:
 
    ```bash
-   ./rc-bless.sh --input tombs/my-first-tomb/
    ./rc-pack.sh --input tombs/my-first-tomb/ --output my-first-tomb.tar.gz
    ```
 

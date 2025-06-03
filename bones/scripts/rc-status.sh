@@ -31,13 +31,6 @@ else
   echo "🧾 No record log found."
 fi
 
-# Last changelog bless
-if [[ -f bones/logs/changelog.md ]]; then
-  echo -e "\n📜 Last Blessing:"
-  grep -m1 '^## ' bones/logs/changelog.md | sed 's/^/   /'
-else
-  echo -e "\n📜 No changelog found."
-fi
 
 # Last pack artifact
 if ls bones/archive/*.tar.gz 1> /dev/null 2>&1; then

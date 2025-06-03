@@ -24,7 +24,6 @@ Version: 0.2.0-pre
 ***
 
 🔨 Current Patch Goals
-- `rc-bless.sh` → write real git changelogs to `bones/logs/changelog.md`
 - `rc-record.sh` → stamp `git rev-parse` + timestamp
 - `rc-assets.sh` → emit YAML manifest of `home/assets/`
 - `rc-verify.sh` → check file SHA256s from manifest
