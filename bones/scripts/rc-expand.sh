@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Source shared Rotkeeper helpers
-# Source shared Rotkeeper helpers
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 # Load environment variables from rc-env.sh if available
 ENV_PATH="$(dirname "${BASH_SOURCE[0]}")/rc-env.sh"
@@ -30,6 +29,7 @@ fi
 
 main() {
     require_bins yq
+    require_yq_version
     log "INFO" "Running rc-expand.sh."
 
     # Lint tomb manifests and content frontmatter

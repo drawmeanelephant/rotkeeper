@@ -46,6 +46,7 @@ This document outlines the full sequence of Rotkeeper rituals, from initializing
   ```
 - **Result**: Stub files in `home/content/` representing each content entry.
 
+
 ## 3. Render Pages (`rc-render.sh`)
 
 - **Purpose**: Convert `home/content/*.md` into HTML using Pandoc.
@@ -60,7 +61,25 @@ This document outlines the full sequence of Rotkeeper rituals, from initializing
   ```
 - **Result**: HTML files under `output/`, ready for packaging.
 
-## 4. Pack Archive (`rc-pack.sh`)
+## 4. Bind Documentation (`rc-book.sh`)
+
+- **Purpose**: Aggregate markdown into structured documentation books.
+- **Actions**:
+  1. Parse comments from scripts into the scriptbook.
+  2. Aggregate public documentation into the docbook.
+  3. Collect web-facing guides into the webbook.
+  4. Generate clean docbook version for downstream consumers.
+- **Usage**:
+  ```bash
+  ./bones/scripts/rc-book.sh [--mode <scriptbook|docbook|webbook|clean>] [--help]
+  ```
+- **Result**: Markdown files are generated in `bones/reports/`:
+  - `rotkeeper-scriptbook.md`
+  - `rotkeeper-docbook.md`
+  - `rotkeeper-webbook.md`
+  - `rotkeeper-docbook-clean.md`
+
+## 5. Pack Archive (`rc-pack.sh`)
 
 - **Purpose**: Package rendered HTML into a tomb `.tar.gz` with metadata.
 - **Actions**:
@@ -75,7 +94,7 @@ This document outlines the full sequence of Rotkeeper rituals, from initializing
   ```
 - **Result**: A tomb archive in `bones/archive/` with embedded metadata and checksums.
 
-## 5. Scan Archive (`rc-scan.sh`)
+## 6. Scan Archive (`rc-scan.sh`)
 
 - **Purpose**: Verify integrity of a tomb archive or live directory.
 - **Actions**:
@@ -88,7 +107,7 @@ This document outlines the full sequence of Rotkeeper rituals, from initializing
   ```
 - **Result**: Exit code `0` if no mismatches (or warnings), `1` if issues found.
 
-## 6. Reseed Project (`rc-reseed.sh`)
+## 7. Reseed Project (`rc-reseed.sh`)
 
 - **Purpose**: Refresh the project’s reseed ritual document with current state.
 - **Actions**:
@@ -101,7 +120,7 @@ This document outlines the full sequence of Rotkeeper rituals, from initializing
   ```
 - **Result**: `RESEED.md` is up-to-date, reflecting all current versions and pending tasks.
 
-## 7. Help Aggregator (`rc-help.sh`)
+## 8. Help Aggregator (`rc-help.sh`)
 
 - **Purpose**: Consolidate all script `--help` outputs into a single reference.
 - **Actions**:

@@ -33,17 +33,19 @@ show_help() {
   exit 0
 }
 
-# Logging function: prints timestamped messages
+# Logging function: prints timestamped messages and writes to $LOG_FILE if set
 log() {
   local level="$1"; shift
   local ts
   ts=$(date '+%Y-%m-%d %H:%M:%S')
-  printf '[%s] [%s] %s\n' "$ts" "$level" "$*"
+  local msg="[$ts] [$level] $*"
+  echo "$msg"
+  [[ -n "${LOG_FILE:-}" ]] && echo "$msg" >> "$LOG_FILE"
 }
 
 # Runner: dry-run and verbose wrapper for commands
 run() {
-  if [[ "$DRY_RUN" == true ]]; then
+  if [[ "${DRY_RUN:-false}" == true ]]; then
     log "DRY-RUN" "$*"
   else
     [[ "$VERBOSE" == true ]] && log "INFO" "$*"
@@ -61,9 +63,17 @@ require_bins() {
   done
 }
 
+# Require yq version 4.x or higher (Go-based CLI)
+require_yq_version() {
+  if ! yq eval '.foo' <<< 'foo: bar' >/dev/null 2>&1; then
+    log "ERROR" "yq version 4.x required. Install from https://github.com/mikefarah/yq"
+    exit 2
+  fi
+}
+
 # Error trap: report error line and exit
 trap_err() {
-  log "ERROR" "Error on line $1"
+  log "ERROR" "Error on line ${1:-unknown}"
   exit 2
 }
 
@@ -72,9 +82,10 @@ cleanup() {
   :
 }
 
-# Set traps for errors and exit
-trap 'trap_err $LINENO' ERR
-trap 'cleanup' EXIT INT TERM
+set_traps() {
+  trap 'trap_err $LINENO' ERR
+  trap 'cleanup' EXIT INT TERM
+}
 
 # Load rc-env.sh from script root
 source_rc_env() {

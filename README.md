@@ -8,7 +8,7 @@ Rotkeeper is a haunted CLI suite for Markdown morticians, static site cryptkeepe
 Written in modular Bash, it automates the slow decay and archival rebirth of your flat-file knowledge hoards.
 Every script is annotated for post-apocalyptic readability. No network required. Only reverence.
 
-**Current Version:** `v0.2.4`
+**Current Version:** `v0.2.6-dev`
 
 ***
 
@@ -16,9 +16,10 @@ Every script is annotated for post-apocalyptic readability. No network required.
 
 - Renders Markdown to HTML using Pandoc and custom templates
 - Tracks file digests and generates asset manifests
-- Packs full tomb archives for portable decay
+- Packs and unpacks tomb archives with embedded metadata
 - Supports `--dry-run` logic and offline use
 - Expands YAML-defined tombs into structured markdown pages
+- Aggregates documentation into scriptbook, docbook, and webbook via `rc-book.sh`
 
 ***
 
@@ -36,8 +37,10 @@ Every script is annotated for post-apocalyptic readability. No network required.
 ./rotkeeper.sh init      # Sets up the bones
 ./rotkeeper.sh expand    # Generates config/docs
 ./rotkeeper.sh render    # Converts Markdown to HTML
+./rotkeeper.sh book      # Aggregates Markdown into scriptbook/docbook/webbook
 ./rotkeeper.sh scan      # Checks file SHA256s
 ./rotkeeper.sh verify    # Compares to asset-manifest.yaml
+./rotkeeper.sh test      # Runs utility test suite (Bats)
 ```
 
 For a full ritual, try:
@@ -61,18 +64,20 @@ For a full ritual, try:
 
 ## ✨ Highlights
 
-- Modular scripts in `bones/scripts/rc-*.sh`
+- Modular scripts in `bones/scripts/rc-*.sh` (excluding removed scripts; shared logic centralized in `rc-utils.sh`)
 - Audit-compliant with trap handling, dry-runs, and `main()`
 - No unnecessary dependencies
 - All output can be archived as `.tar.gz` tombs
 
 Supports logging to `bones/logs/`, dry-run execution, and manifest-aware audits
 
+- Includes Bats-based utility test coverage (`rc-utils.bats`)
+
 ***
 
 ## 🚧 Status
 
-This is version `v0.2.4`.
+This is version `v0.2.5`.
 It is **functional but haunted**.
 Most scripts work cleanly. Some logs whisper.
 Frontmatter validation, content expansion, and logging are now stable across core rituals.
@@ -82,10 +87,7 @@ Perfect for archival weirdos, cursed sysadmins, and digital necromancers.
 
 ## 📦 Releasing
 
-See the release archive:
-https://rotkeeper.com/0.2.0.0.tar.gz
-
-GitHub tag: [v0.2.4](https://github.com/drawmeanelephant/rotkeeper/releases/tag/0.2.4)
+GitHub tag: [v0.2.5](https://github.com/drawmeanelephant/rotkeeper/releases/tag/0.2.5)
 
 ***
 
