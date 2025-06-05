@@ -23,17 +23,18 @@ DRY_RUN=false
 
 show_help() {
   cat <<EOF
-Usage: rc-book.sh [--scriptbook|--docbook|--webbook|--all|--collapse|--docbook-clean] [--config file]
+Usage: rc-book.sh [--scriptbook-full|--docbook|--webbook|--all|--collapse|--docbook-clean|--configbook] [--config file]
 
-  --scriptbook   Bind full source + comments into rotkeeper-scriptbook.md
-  --docbook      Bind meta documentation into rotkeeper-docbook.md
-  --webbook      Bind public markdown into rotkeeper-webbook.md
-  --all          Run all 3 binder rituals above
-  --collapse     Collapse all rotkeeper-*.md into collapsed-content.yaml
-  --docbook-clean  Bind meta documentation into rotkeeper-docbook-clean.md (frontmatter stripped)
-  --config FILE  Optional config file for future filtering logic
-  --dry-run      Show what would be done without making changes
-  --help         Show this helpful void
+  --scriptbook-full  Bind full scripts with relative paths and fences into rotkeeper-scriptbook-full.md
+  --docbook          Bind meta documentation into rotkeeper-docbook.md
+  --webbook          Bind public markdown into rotkeeper-webbook.md
+  --all              Run all 3 binder rituals above
+  --collapse         Collapse all rotkeeper-*.md into collapsed-content.yaml
+  --docbook-clean    Bind meta documentation into rotkeeper-docbook-clean.md (frontmatter stripped)
+  --configbook       Bind config + template files into rotkeeper-configbook.md
+  --config FILE      Optional config file for future filtering logic
+  --dry-run          Show what would be done without making changes
+  --help             Show this helpful void
 
 EOF
 }
@@ -41,42 +42,52 @@ EOF
 parse_flags() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --scriptbook) MODE="scriptbook"; shift ;;
-      --docbook)    MODE="docbook"; shift ;;
-      --webbook)    MODE="webbook"; shift ;;
-      --all)        MODE="all"; shift ;;
-      --collapse)   MODE="collapse"; shift ;;
-      --docbook-clean) MODE="docbook_clean"; shift ;;
-      --config)     CONFIG="$2"; shift 2 ;;
-      --dry-run)    DRY_RUN=true; shift ;;
-      --help)       show_help; exit 0 ;;
+      --scriptbook-full) MODE="scriptbook_full"; shift ;;
+      --docbook)         MODE="docbook"; shift ;;
+      --webbook)         MODE="webbook"; shift ;;
+      --all)             MODE="all"; shift ;;
+      --collapse)        MODE="collapse"; shift ;;
+      --docbook-clean)   MODE="docbook_clean"; shift ;;
+      --configbook)      MODE="configbook"; shift ;;
+      --config)          CONFIG="$2"; shift 2 ;;
+      --dry-run)         DRY_RUN=true; shift ;;
+      --help)            show_help; exit 0 ;;
       *) echo "Unknown option: $1"; show_help; exit 1 ;;
     esac
   done
 }
 
-run_scriptbook() {
-  local OUT="$REPORT_DIR/rotkeeper-scriptbook.md"
+run_scriptbook_full() {
+  local OUT="$REPORT_DIR/rotkeeper-scriptbook-full.md"
 
   if [[ "$DRY_RUN" == true ]]; then
-    echo "[DRY-RUN] Would generate scriptbook at: $OUT"
+    echo "[DRY-RUN] Would generate full scriptbook at: $OUT"
+    find "$PROJECT_ROOT"/bones/scripts -type f \( -name 'rc-*.sh' -o -name 'rotkeeper.sh' \) | sort | while read -r script; do
+      rel="${script#$PROJECT_ROOT/}"
+      echo "  - $rel"
+    done
     return 0
   fi
 
   echo "---" > "$OUT"
-  echo "title: \"Rotkeeper Scriptbook\"" >> "$OUT"
-  echo "subtitle: \"Generated from script docblocks\"" >> "$OUT"
+  echo "title: \"Rotkeeper Scriptbook (Full)\"" >> "$OUT"
+  echo "subtitle: \"All \`rc-*.sh\` rituals with relative paths and fences\"" >> "$OUT"
+  echo "generated: \"$(date +'%Y-%m-%d')\"" >> "$OUT"
   echo "---" >> "$OUT"
+  echo "" >> "$OUT"
 
-  for script in "$PROJECT_ROOT"/bones/scripts/rc-*.sh; do
-    echo "## $(basename "$script")" >> "$OUT"
+  find "$PROJECT_ROOT"/bones/scripts -type f \( -name 'rc-*.sh' -o -name 'rotkeeper.sh' \) | sort | while read -r script; do
+    rel="${script#$PROJECT_ROOT/}"
+    echo "<!-- START: $rel -->" >> "$OUT"
+    echo "" >> "$OUT"
     echo '```bash' >> "$OUT"
     cat "$script" >> "$OUT"
     echo '```' >> "$OUT"
+    echo "<!-- END: $rel -->" >> "$OUT"
     echo "" >> "$OUT"
   done
 
-  echo "[✔] Scriptbook written to $OUT"
+  echo "[✔] Full Scriptbook written to $OUT"
 }
 
 run_docbook() {
@@ -88,17 +99,20 @@ run_docbook() {
   fi
 
   echo "---" > "$OUT"
-  echo "title: \"Home Content\"" >> "$OUT"
-  echo "subtitle: \"Structured documentation from meta/\"" >> "$OUT"
+  echo "title: \"Rotkeeper Docbook\"" >> "$OUT"
+  echo "subtitle: \"All markdown documentation in home/content/docs/ with path markers\"" >> "$OUT"
   echo "---" >> "$OUT"
   echo "" >> "$OUT"
 
   mapfile -t doc_files < <(find "$DOCS_DIR" -name '*.md' -type f | sort)
   for file in "${doc_files[@]}"; do
-    # [[ -f "$file" ]] || continue
-    echo "# $(basename "$file")" >> "$OUT"
+    rel="${file#$PROJECT_ROOT/}"
+    echo "<!-- START: $rel -->" >> "$OUT"
     echo "" >> "$OUT"
+    echo '```markdown' >> "$OUT"
     cat "$file" >> "$OUT"
+    echo '```' >> "$OUT"
+    echo "<!-- END: $rel -->" >> "$OUT"
     echo "" >> "$OUT"
   done
 
@@ -146,37 +160,35 @@ run_docbook_clean() {
   echo "[✔] Cleaned Docbook written to $OUT"
 }
 
-run_webbook() {
-  local OUT="$REPORT_DIR/rotkeeper-webbook.md"
+# Main entry
+run_configbook() {
+  local OUT="$REPORT_DIR/rotkeeper-configbook.md"
 
-  if [[ "$DRY_RUN" == true ]]; then
-    echo "[DRY-RUN] Would generate webbook at: $OUT"
-    return 0
-  fi
+  echo "---" > "$OUT"
+  echo "title: \"Rotkeeper Configbook\"" >> "$OUT"
+  echo "subtitle: \"YAML configuration and templates used by rotkeeper\"" >> "$OUT"
+  echo "---" >> "$OUT"
+  echo "" >> "$OUT"
 
-  {
-    echo "---"
-    echo "title: \"Rotkeeper Webbook\""
-    echo "subtitle: \"Compiled from rendered HTML pages in home/content/\""
-    echo "---"
-    echo ""
-  } > "$OUT"
-
-  find "$PROJECT_ROOT/home/content" -name '*.html' -print0 | sort -z |
-  while IFS= read -r -d '' file; do
-    echo "[INFO] Appending: $file"
-    echo "<!-- FILE: ${file} -->" >> "$OUT"
+  find "$PROJECT_ROOT/bones/config" "$PROJECT_ROOT/bones/templates" \
+    -type f \( -name '*.yaml' -o -name '*.yml' -o -name '*.tpl' -o -name '*.html' \) | sort | while read -r file; do
+    rel="${file#$PROJECT_ROOT/}"
+    echo "<!-- START: $rel -->" >> "$OUT"
+    echo "" >> "$OUT"
+    echo '```' >> "$OUT"
     cat "$file" >> "$OUT"
-    echo -e "\n<!-- END: ${file} -->" >> "$OUT"
+    echo '```' >> "$OUT"
+    echo "<!-- END: $rel -->" >> "$OUT"
+    echo "" >> "$OUT"
   done
 
-  echo "[✔] Webbook written to $OUT"
+  echo "[✔] Configbook written to $OUT"
 }
 
 run_mode() {
   case "$MODE" in
-    scriptbook)
-      run_scriptbook
+    scriptbook_full)
+      run_scriptbook_full
       ;;
     docbook)
       run_docbook
@@ -184,18 +196,18 @@ run_mode() {
     docbook_clean)
       run_docbook_clean
       ;;
-    webbook)
-      run_webbook
+    configbook)
+      run_configbook
       ;;
     all)
       if [[ "$DRY_RUN" == true ]]; then
-        echo "[DRY-RUN] Would generate scriptbook at: $REPORT_DIR/rotkeeper-scriptbook.md"
+        echo "[DRY-RUN] Would generate full scriptbook at: $REPORT_DIR/rotkeeper-scriptbook-full.md"
         echo "[DRY-RUN] Would generate docbook at: $REPORT_DIR/rotkeeper-docbook.md"
-        echo "[DRY-RUN] Would generate webbook at: $REPORT_DIR/rotkeeper-webbook.md"
+        echo "[DRY-RUN] Would generate cleaned docbook at: $REPORT_DIR/rotkeeper-docbook-clean.md"
       else
-        run_scriptbook
+        run_scriptbook_full
         run_docbook
-        run_webbook
+        run_docbook_clean
       fi
       ;;
     collapse)

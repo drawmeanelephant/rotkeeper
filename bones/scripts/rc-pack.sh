@@ -16,13 +16,13 @@ IFS=$'\n\t'
 LOG_FILE="$LOG_DIR/rc-pack-$(date +%Y-%m-%d_%H%M).log"
 run() {
   if [[ "$DRY_RUN" == true ]]; then
-    log "DRY-RUN" "$*"
+    log "DRY-RUN" "$(printf '%q ' "$@")"
   else
-    log "INFO" "$*"
-    eval "$*"
+    log "INFO" "$(printf '%q ' "$@")"
+    "$@"
   fi
 }
-run "mkdir -p \"$(dirname "$LOG_FILE")\""
+run mkdir -p "$(dirname "$LOG_FILE")"
 
 log() {
     local level="$1"; shift
@@ -110,8 +110,8 @@ main() {
     TOMB="tomb-$VERSION.tar"
     EXPORT_JSON="$ARCHIVE_DIR/tomb-export-$VERSION.json"
 
-    run "mkdir -p \"$ARCHIVE_DIR\""
-    run "mkdir -p \"$LOG_DIR\""
+    run mkdir -p "$ARCHIVE_DIR"
+    run mkdir -p "$LOG_DIR"
 
     # Ensure the rendered output directory exists before packing.
     if [ ! -d "$OUTPUT_DIR" ]; then
@@ -122,7 +122,7 @@ main() {
     if [[ "$SELF_MODE" == false ]]; then
       if [[ "$DRY_RUN" == false ]]; then
         echo "📦 Packing \"$OUTPUT_DIR\" into \"$TOMB\""
-        run "tar -cf \"$ARCHIVE_DIR/$TOMB\" \"$OUTPUT_DIR\""
+        run tar -cf "$ARCHIVE_DIR/$TOMB" "$OUTPUT_DIR"
         count=$(tar -tf "$ARCHIVE_DIR/$TOMB" | wc -l)
         log "INFO" "Packaged $count files into $TOMB"
         SHA=$(sha256sum "$ARCHIVE_DIR/$TOMB" | cut -d' ' -f1)
@@ -137,8 +137,8 @@ main() {
           --arg mode "default" \
           --arg count "$count" \
           '{name: $name, sha256: $sha, timestamp: $timestamp, mode: $mode, file_count: $count|tonumber}' > "$METADATA_FILE"
-        run "tar --append --file=\"$ARCHIVE_DIR/$TOMB\" -C \"$(dirname "$METADATA_FILE")\" \"$(basename "$METADATA_FILE")\""
-        run "gzip -f \"$ARCHIVE_DIR/$TOMB\""
+        run tar --append --file="$ARCHIVE_DIR/$TOMB" -C "$(dirname "$METADATA_FILE")" "$(basename "$METADATA_FILE")"
+        run gzip -f "$ARCHIVE_DIR/$TOMB"
         rm "$METADATA_FILE"
         TOMB="$TOMB.gz"
         log "INFO" "Embedded metadata.json into $TOMB"
@@ -152,7 +152,7 @@ main() {
     if [[ "$SELF_MODE" == true ]]; then
       SELF_ARCHIVE="tombkit-$VERSION.tar"
       echo "📦 Packing full rotkeeper system into \"$SELF_ARCHIVE\""
-      run "tar --exclude=\"$ARCHIVE_DIR\" -cf \"$ARCHIVE_DIR/$SELF_ARCHIVE\" rotkeeper.sh bones/ home/ output/"
+      run tar --exclude="$ARCHIVE_DIR" -cf "$ARCHIVE_DIR/$SELF_ARCHIVE" rotkeeper.sh bones/ home/ output/
       count=$(tar -tf "$ARCHIVE_DIR/$SELF_ARCHIVE" | wc -l)
       log "INFO" "Packaged $count files into $SELF_ARCHIVE"
       SHA=$(sha256sum "$ARCHIVE_DIR/$SELF_ARCHIVE" | cut -d' ' -f1)
@@ -167,8 +167,8 @@ main() {
         --arg mode "self" \
         --arg count "$count" \
         '{name: $name, sha256: $sha, timestamp: $timestamp, mode: $mode, file_count: $count|tonumber}' > "$METADATA_FILE"
-      run "tar --append --file=\"$ARCHIVE_DIR/$SELF_ARCHIVE\" -C \"$(dirname "$METADATA_FILE")\" \"$(basename "$METADATA_FILE")\""
-      run "gzip -f \"$ARCHIVE_DIR/$SELF_ARCHIVE\""
+      run tar --append --file="$ARCHIVE_DIR/$SELF_ARCHIVE" -C "$(dirname "$METADATA_FILE")" "$(basename "$METADATA_FILE")"
+      run gzip -f "$ARCHIVE_DIR/$SELF_ARCHIVE"
       rm "$METADATA_FILE"
       SELF_ARCHIVE="$SELF_ARCHIVE.gz"
       log "INFO" "Embedded metadata.json into $SELF_ARCHIVE"
@@ -202,7 +202,7 @@ main() {
           echo "$JSON_ENTRY" >> "$TMP_EXPORT"
         done
         echo "]" >> "$TMP_EXPORT"
-        run "mv \"$TMP_EXPORT\" \"$EXPORT_JSON\""
+        run mv "$TMP_EXPORT" "$EXPORT_JSON"
         echo "$EXPORT_JSON" >> "$MANIFEST_FILE"
         echo "✅ Export complete: \"$EXPORT_JSON\""
       else

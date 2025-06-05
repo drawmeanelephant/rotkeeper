@@ -53,10 +53,10 @@ log() {
 
 run() {
   if [[ "$DRY_RUN" == true ]]; then
-    log "DRY-RUN" "$*"
+    log "DRY-RUN" "$(printf '%q ' "$@")"
   else
-    log "INFO" "$*"
-    eval "$*"
+    log "INFO" "$(printf '%q ' "$@")"
+    "$@"
   fi
 }
 
@@ -95,7 +95,7 @@ main() {
     mkdir -p "$OUTPUT_ASSET_DIR" "$ARCHIVE_DIR" "$(dirname "$REPORT")"
 
     if [[ -f "$MANIFEST" ]]; then
-        run "mv \"$MANIFEST\" \"$ARCHIVE_DIR/asset-manifest-$TIMESTAMP.yaml\""
+        run mv "$MANIFEST" "$ARCHIVE_DIR/asset-manifest-$TIMESTAMP.yaml"
         log "INFO" "Archived old manifest"
     fi
 
@@ -116,7 +116,7 @@ main() {
     if [[ -z "${ASSET_PATHS// }" ]]; then
         log "WARN" "No asset references found in rendered HTML files."
         echo "# assets: []" > "$REPORT"
-        cp "$REPORT" "$MANIFEST"
+        run cp "$REPORT" "$MANIFEST"
         log "INFO" "Empty manifest generated at: $MANIFEST"
     else
         echo "$ASSET_PATHS" | while read -r relpath; do
@@ -127,7 +127,7 @@ main() {
             if [[ -f "$src" ]]; then
                 if [[ "$DRY_RUN" == false ]]; then
                     mkdir -p "$(dirname "$dest")"
-                    run "rsync -a \"$src\" \"$dest\""
+                    run rsync -a "$src" "$dest"
                     checksum=$(sha256sum "$src" | awk '{print $1}')
                     log "INFO" "Copied referenced asset: $relpath"
 
@@ -142,7 +142,7 @@ main() {
                 log "WARN" "Referenced but missing asset: $relpath"
             fi
         done
-        [[ "$DRY_RUN" == false ]] && run "cp \"$REPORT\" \"$MANIFEST\""
+        [[ "$DRY_RUN" == false ]] && run cp "$REPORT" "$MANIFEST"
         if [[ "$DRY_RUN" == false ]]; then
             log "INFO" "Selective asset manifest generated at: $MANIFEST"
             log "INFO" "Selective asset copy complete."

@@ -4,7 +4,7 @@ slug: rc-reseed
 template: rotkeeper-doc.html
 version: "v0.2.3-pre"
 updated: "2025-06-01"
-description: "Restores a full Rotkeeper project structure from a packed archive tomb using rc-reseed.sh."
+description: "Rebuilds a full Rotkeeper project structure from markdown ritual books or archive tombs using rc-reseed.sh."
 tags:
   - rotkeeper
   - scripts
@@ -21,41 +21,55 @@ asset_meta:
 
 # `rc-reseed.sh`
 
-This script restores a full project directory from a previously packed `.tar.gz` tomb archive. It can be used to repopulate the `home/`, `bones/`, and `output/` structure from a historical version.
 
 ---
 
 ## 🧠 Purpose
 
-To resurrect an archived site state—useful for regression testing, audits, or timeline divergence. It is the opposite of `rc-pack.sh`.
+`rc-reseed.sh` is a resurrection utility that reconstructs a full Rotkeeper project structure.
+
+It can:
+- Unpack a `.tar.gz` tomb archive (legacy mode)
+- Rehydrate scripts, docs, and configs from structured markdown binders created by `rc-book.sh`
+
+This script is the inverse ritual of `rc-book.sh`, enabling round-trip rebuilds from curated documentation.
 
 ---
 
 ## 🌀 Usage
 
 ```bash
-./scripts/rc-reseed.sh --archive bones/archive/tomb-0.2.0.tar.gz
-```
+# Full reseed from all binders
+./scripts/rc-reseed.sh --all
 
-If no archive is provided, the script may prompt or exit with error.
+# Restore from a specific binder file
+./scripts/rc-reseed.sh --input rotkeeper-docbook.md
+
+# Dry run
+./scripts/rc-reseed.sh --input rotkeeper-configbook.md --dry-run
+```
 
 ---
 
 ## ⚙️ Flags
 
-| Flag          | Description                                               |
-|---------------|-----------------------------------------------------------|
-| `--archive`   | Path to `.tar.gz` archive to unpack                       |
-| `--dry-run`   | Preview actions without extracting files                  |
-| `--verbose`   | Show detailed logs                                        |
-| `--help`, `-h`| Show usage information and exit                           |
+| Flag           | Description                                                                 |
+|----------------|-----------------------------------------------------------------------------|
+| `--all`        | Rehydrate from all known binders (`scriptbook-full`, `docbook`, `configbook`) |
+| `--input FILE` | Restore from a specific markdown binder                                      |
+| `--dry-run`    | Preview actions without writing files                                       |
+| `--help`, `-h` | Show usage information and exit                                             |
 
 ---
 
 ## 📦 Example
 
 ```bash
-./scripts/rc-reseed.sh --archive bones/archive/tomb-0.1.9.tar.gz
+# Restore the full site structure from binder books
+./scripts/rc-reseed.sh --all
+
+# Dry run on a specific binder
+./scripts/rc-reseed.sh --input rotkeeper-configbook.md --dry-run
 ```
 
 <!-- 🎴 Limerick 1:
@@ -72,4 +86,11 @@ this ritual revives each dark mark.
 With tar’s gentle sweep,
 It calls from the deep,
 And lights up the shadows so stark.
+-->
+
+<!-- 🎴 Reseed Ritual:
+From scriptbook to script, from docbook to prose,
+From config to template the resurrection flows.
+No database. No runtime.
+Just bones. Just bash. Just right.
 -->

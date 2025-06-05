@@ -70,7 +70,7 @@ VERSION="0.2.1"
 #    To perform any command or mark.
 #    - Display usage message for available commands.
 ## Usage:
-#   rotkeeper.sh {init|expand|render|pack|scan|assets|help}
+#   rotkeeper.sh {init|render|pack|scan|assets|help}
 
 # --- ENTRY CHECK ---
 # Capture the subcommand or default to empty.
@@ -101,15 +101,6 @@ fi
  # Initialize the Rotkeeper environment: directories, stub files, and initial render.
 # === INIT SECTION END ===
 
- # --- EXPAND SECTION ---
- # Generate markdown tombdocs, configuration stubs, and template skeletons from the BOM.
-# === EXPAND SECTION START ===
-if [[ "$command" == "expand" ]]; then
-  echo "🧬 Expanding content..."
-  bash ./bones/scripts/rc-expand.sh "$@"
-  exit 0
-fi
-# === EXPAND SECTION END ===
 
  # --- RENDER SECTION ---
  # Convert generated markdown into HTML tomb pages using Pandoc.
@@ -212,10 +203,6 @@ Commands:
   init       Initialize everything (expand + render)
     --force      Force rebuild of all files
 
-  expand     Generate markdown tombdocs, config stubs, and templates
-    --verbose    Show detailed steps
-    --dry-run    Preview actions without writing files
-
   render     Convert markdown files into HTML tombs
 
   pack       Archive rendered HTML into a timestamped tarball
@@ -248,7 +235,6 @@ Commands:
 
 Examples:
   rotkeeper.sh init --force
-  rotkeeper.sh expand --verbose
   rotkeeper.sh render
   rotkeeper.sh pack
 

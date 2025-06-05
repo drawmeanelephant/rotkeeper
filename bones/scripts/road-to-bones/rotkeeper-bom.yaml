@@ -154,8 +154,6 @@ templates:
 config:
   - path: bones/config/render-flags.yaml
     stub: true
-  - path: bones/config/ASSETELLA.yaml
-    stub: true
   - path: bones/config/template-index.yaml
     stub: true
 

@@ -20,34 +20,39 @@ asset_meta:
   license: "CC-BY-SA-4.2-unreal"
 ---
 
-`rc-book.sh` is the singular binder ritual for Rotkeeper. It replaces `rc-scriptbook.sh`, `rc-docbook.sh`, and `rc-webbook.sh`, providing a unified interface for compiling or collapsing documentation into canonical reports.
+`rc-book.sh` is the singular binder ritual for Rotkeeper. It replaces all prior book scripts (`rc-scriptbook.sh`, `rc-docbook.sh`, `rc-webbook.sh`) and now produces canonical markdown reports for resurrection, rendering, or collapse.
+
+It supports generation of scriptbooks, docbooks (clean and full), and configbooks, and can output a collapsed YAML form of all content.
 
 ## 🧰 Usage
 
 ```bash
-./bones/scripts/rc-book.sh [--scriptbook|--docbook|--webbook|--all|--collapse] [--config FILE]
+./bones/scripts/rc-book.sh [--scriptbook-full|--docbook|--docbook-clean|--configbook|--collapse|--all] [--dry-run]
 ```
 
 ## 🧾 Flags
 
-- `--scriptbook` — Extract script comments into `rotkeeper-manual.md`
-- `--docbook` — Gather documentation into `rotkeeper-docbook.md`
-- `--webbook` — Bind public content into `rotkeeper-webbook.md`
-- `--all` — Run all three rituals (scriptbook, docbook, webbook)
-- `--collapse` — Convert markdown reports into `collapsed-content.yaml`, with fallback title support
-- `--config FILE` — Optional config for future inclusion/exclusion logic
+- `--scriptbook-full` — Bind full scripts into `rotkeeper-scriptbook-full.md`
+- `--docbook` — Bind all site documentation into `rotkeeper-docbook.md`
+- `--docbook-clean` — Same as docbook but with stripped frontmatter (for collapse)
+- `--configbook` — Bind configuration and template files into `rotkeeper-configbook.md`
+- `--collapse` — Output all binders into a single collapsed YAML file
+- `--all` — Run all binder modes (scriptbook, docbook, docbook-clean, configbook)
+- `--dry-run` — Print what would be generated without writing files
 - `--help` — Show help text
 
 ## 📦 Outputs
 
-Each mode writes to `bones/reports/`:
+All binders are written to `bones/reports/`:
 
-- `rotkeeper-scriptbook.md`
+- `rotkeeper-scriptbook-full.md`
 - `rotkeeper-docbook.md`
-- `rotkeeper-webbook.md`
-- `rotkeeper-docbook-clean.md` (frontmatter-stripped, collapse-friendly)
+- `rotkeeper-docbook-clean.md`
+- `rotkeeper-configbook.md`
+- `collapsed-content.yaml`
 
 ## 🔮 Future Work
 
-- `--collapse` will eventually reverse `.md` output into `rotkeeper-bom.yaml`
-- Support for `book-config.yaml` is planned to guide filtering and section control
+- Support for `book-config.yaml` to define inclusion/exclusion
+- Better collapse metadata (e.g., tags, titles, sections)
+- Potential for binder diffing or validation modes

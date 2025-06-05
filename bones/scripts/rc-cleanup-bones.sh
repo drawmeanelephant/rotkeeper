@@ -34,18 +34,44 @@ if [[ "$HELP" == true ]]; then
 fi
 
 main() {
-  require_bins tar find rm
-  log "INFO" "Running rc-cleanup-bones.sh."
-
-  # Retention window (days)
+  # Initialize flags
+  HELP=false
+  DRY_RUN=false
+  VERBOSE=false
   RETAIN_DAYS=30
-  # Allow override: --days N
+
+  # Parse flags
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --days) RETAIN_DAYS="$2"; shift 2 ;;
-      *) shift ;;
+      --help|-h)
+        HELP=true
+        shift
+        ;;
+      --dry-run)
+        DRY_RUN=true
+        shift
+        ;;
+      --verbose)
+        VERBOSE=true
+        shift
+        ;;
+      --days)
+        RETAIN_DAYS="$2"
+        shift 2
+        ;;
+      *)
+        break
+        ;;
     esac
   done
+
+  # Show help if requested
+  if [[ "$HELP" == true ]]; then
+    show_help
+  fi
+
+  require_bins tar find rm
+  log "INFO" "Running rc-cleanup-bones.sh."
 
   BACKUP_DIR="bones/backups"
   TIMESTAMP=$(date +%Y-%m-%d_%H%M)
@@ -57,6 +83,7 @@ main() {
 
   if [[ "$DRY_RUN" == true ]]; then
     log "INFO" "Dry run enabled — skipping backup verification and deletion steps."
+    find bones -maxdepth 1 -mindepth 1 \( -name "backups" -o -name "logs" \) -prune -o -print | sed 's/^/  - /'
     return 0
   fi
 
@@ -75,6 +102,8 @@ main() {
   LOG_DIR="bones/logs"
   log "INFO" "Pruning logs older than $RETAIN_DAYS days in $LOG_DIR"
   run find "$LOG_DIR" -type f -mtime +"$RETAIN_DAYS" -print -delete
+
+  find bones -maxdepth 1 -mindepth 1 \( -name "backups" -o -name "logs" \) -prune -o -print0 | xargs -0 rm -rf
 
   log "INFO" "✅ Cleanup complete."
 }

@@ -51,9 +51,10 @@ log() {
 
 run() {
   if [[ "$DRY_RUN" == true ]]; then
-    log "DRY-RUN" "$*"
+    log "DRY-RUN" "$(printf '%q ' "$@")"
   else
-    eval "$*"
+    log "INFO" "$(printf '%q ' "$@")"
+    "$@"
   fi
 }
 
@@ -247,18 +248,18 @@ done
 # 5. Write JSON report
 if [[ "$MD_ONLY" == false ]]; then
   json_report="$REPORT_DIR/scan-report-$(date +%Y%m%d_%H%M%S).json"
-  run "cat <<EOF > \"$json_report\"
+  if [[ "$DRY_RUN" != true ]]; then
+    cat > "$json_report" <<EOF
 {
-  \"missing\": [\"$(IFS='\",\"'; echo "${missing[*]}")\"],
-  \"orphans\": [\"$(IFS='\",\"'; echo "${orphans[*]}")\"],
-  \"digests\": {
+  "missing": ["$(IFS='","'; echo "${missing[*]}")"],
+  "orphans": ["$(IFS='","'; echo "${orphans[*]}")"],
+  "digests": {
 $(for f in "${!file_checksums[@]}"; do
   echo "    \"${f}\": \"${file_checksums[$f]}\","
 done)
   }
 }
-EOF"
-  if [[ "$DRY_RUN" != true ]]; then
+EOF
     log "INFO" "JSON report written: $json_report"
   else
     log "DRY-RUN" "Would write JSON report to $json_report"
@@ -272,7 +273,8 @@ fi
 if [[ "$JSON_ONLY" == false ]]; then
   mkdir -p "home/content/rotkeeper"
   md_report="$REPORT_DIR/scan-report-$(date +%Y%m%d_%H%M%S).md"
-  run "cat <<EOF > \"$md_report\"
+  if [[ "$DRY_RUN" != true ]]; then
+    cat > "$md_report" <<EOF
 # Scan Report - $(date)
 ## Missing Files
 $(for f in "${missing[@]}"; do echo "- $f"; done)
@@ -280,8 +282,7 @@ $(for f in "${missing[@]}"; do echo "- $f"; done)
 $(for f in "${orphans[@]}"; do echo "- $f"; done)
 ## File Digests
 $(for f in "${!file_checksums[@]}"; do echo "- \`$f\`: ${file_checksums[$f]}"; done)
-EOF"
-  if [[ "$DRY_RUN" != true ]]; then
+EOF
     log "INFO" "Markdown report written: $md_report"
   else
     log "DRY-RUN" "Would write Markdown report to $md_report"

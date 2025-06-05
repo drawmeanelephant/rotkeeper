@@ -23,20 +23,16 @@ This ledger reflects all tasks known, forgotten, or ghostwritten as of `v0.2.6-d
 - [ ] Clarify policy on tomb versioning: does it invalidate old `.tar.gz` archives?
 - [ ] Fix archive naming collisions — consider fallback to Unix epoch
 - [ ] Add fallback recovery logic if `tar` or `gzip` fail in `rc-pack.sh`
-- [ ] Generate `tomb-replay.sh` during each render for ritual replay support
 
 ---
 
 - [ ] Write `workflow.md` explaining full init → pack cycle
 - [ ] Define and document the full ritual chain in `workflow.md` (`init → expand → render → pack → scan → reseed`)
 - [ ] Add schema docs for: `rotkeeper-bom.yaml`, `render-flags.yaml`, `asset-manifest.yaml`
-- [x] Improve internal linking between all ritual docs, config references, and glossary
 - [ ] Ensure all index and navigation pages include backlinks to the root or documentation overview
-- [x] Ensure rc-*-book.sh emit file inclusion count and warnings on empty
 - [ ] Build rc-pdfbook.sh to generate PDF from merged docbook/webbook
 - [ ] Optionally strip internal frontmatter blocks for clean PDF output
 - [ ] Add config-driven style selector for future PDF themes
-- [ ] Add Mermaid.js diagram to `README.md` or `quickstart-guide.md`
 - [ ] Build a glossary/index from `asset-meta.title`, `slug`, and `template`
 - [ ] Add `--tutorial` support to `rc-init.sh` that scaffolds a mock tomb
 - [ ] Add templated changelog entry support via `rc-scribe.sh` placeholder
@@ -71,7 +67,6 @@ This ledger reflects all tasks known, forgotten, or ghostwritten as of `v0.2.6-d
 ## 🧼 Script Cleanup & Debt Burial
 
 - [ ] Archive `peer-reviews.md` into `bones/meta/peer-review-sarcophagus.md`
-- [ ] Purge legacy `render.sh`, `ASSETELLA.sh`, etc.
 - [ ] Only generate stub scripts if file is empty or has `# TODO`
 - [ ] Enhance ritual metaphors with optional CLI glyphs and epitaphs
 - [ ] Add helper for generating `--help` from a `.help.txt` or frontmatter-driven block per script
@@ -80,7 +75,6 @@ This ledger reflects all tasks known, forgotten, or ghostwritten as of `v0.2.6-d
 
 ## 📎 Template & Asset Work
 
-- [ ] Remove Bootstrap, switch to HiQ
 - [ ] Clean up template footers (add credits, version stamp)
 - [ ] Ensure `asset-meta` block exists in every HTML/CSS/JS file
 - [ ] Add option to inject `asset-meta` JSON into rendered HTML via Pandoc filter
@@ -94,12 +88,9 @@ This ledger reflects all tasks known, forgotten, or ghostwritten as of `v0.2.6-d
 
 - [ ] Auto-generate `docs.rotkeeper.com` from output/
 - [ ] Create `rc-dashboard.sh` to show rot status in a single report
-- [ ] Support rotkeeper personas in rendered footers
 - [ ] Add weird mascot lore footer or 404 page entry
 - [ ] Load `.ritual.yaml` workflows via `rotkeeper.sh perform <ritual>`
-- [ ] Add plugin support via sourced scripts in `plugins.d/`
 - [ ] Formalize directory layout in `README.md` or echo from `rc-init.sh`
-- [ ] Add optional i18n frontmatter fields (`lang`, `translation_of`)
 - [ ] Define CLI documentation standard for optional flags and `--help` output across rituals
 - [ ] Document expectations for creating new `rc-*.sh` rituals
 
