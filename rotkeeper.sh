@@ -2,8 +2,8 @@
 # ░▒▓█ ROTKEEPER SCRIPT █▓▒░
 # Script: rotkeeper.sh
 # Purpose: CLI dispatcher for all Rotkeeper rituals
-# Version: 0.2.1
-# Updated: 2025-05-29
+# Version: 0.2.6-pre
+# Updated: 2025-06-05
 # -----------------------------------------
 
 # --- LOGGING SETUP ---
@@ -16,7 +16,7 @@
 # trap 'echo "🚨 Unexpected error on line $LINENO"; exit 1' ERR
 
 # Update this VERSION string with each release of rotkeeper.sh!
-VERSION="0.2.1"
+VERSION="0.2.6-pre"
 #
 #
 # Workflow overview:
@@ -200,7 +200,7 @@ Usage:
   rotkeeper.sh <command> [options]
 
 Commands:
-  init       Initialize everything (expand + render)
+  init       Initialize everything (reseed + assets + render)
     --force      Force rebuild of all files
 
   render     Convert markdown files into HTML tombs
@@ -212,17 +212,19 @@ Commands:
   assets     Generate asset manifest from home/assets into bones/asset-manifest.yaml
 
 
-  book       Generate documentation outputs (scriptbook, docbook, webbook)
-    --scriptbook     Generate rotkeeper-scriptbook.md
-    --docbook        Generate rotkeeper-docbook.md
-    --docbook-clean  Generate a collapse-friendly docbook variant
-    --webbook        Generate rotkeeper-webbook.md
-    --collapse       Convert reports into collapsed-content.yaml
-    --all            Run all binding rituals
+  book       Generate documentation outputs (scriptbook-full, docbook, docbook-clean, configbook)
+    --scriptbook-full   Generate rotkeeper-scriptbook-full.md
+    --docbook           Generate rotkeeper-docbook.md
+    --docbook-clean     Generate a collapse-friendly docbook variant
+    --configbook        Generate rotkeeper-configbook.md
+    --collapse          Convert reports into collapsed-content.yaml
+    --all               Run all binding rituals
 
   verify     Check all assets match recorded SHA256 values
 
-  reseed     Unpack archive and rehydrate tomb into working directory
+  reseed     Unpack archive or resurrect from a bound markdown file
+    <archive>        Use a .tar.gz archive
+    --input FILE     Use a scriptbook/docbook/configbook as resurrection source
 
   status     Display latest render/log/archive/git state summary
 

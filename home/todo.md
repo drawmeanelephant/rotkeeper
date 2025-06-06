@@ -6,7 +6,6 @@ This ledger reflects all tasks known, forgotten, or ghostwritten as of `v0.2.6-d
 
 ## 🧠 Core Ritual Hardening
 
-- [ ] Remove `eval` from all scripts (done in `rc-render.sh`)
 - [ ] Implement or purge stub: `rc-unpack.sh`
 - [ ] Complete `rc-lint.sh` (currently stub)
 - [ ] Add `--version` flag to all `rc-*.sh` scripts
@@ -27,7 +26,7 @@ This ledger reflects all tasks known, forgotten, or ghostwritten as of `v0.2.6-d
 ---
 
 - [ ] Write `workflow.md` explaining full init → pack cycle
-- [ ] Define and document the full ritual chain in `workflow.md` (`init → expand → render → pack → scan → reseed`)
+- [ ] Define and document the full ritual chain in `workflow.md` (`init → reseed → render → pack → scan`)
 - [ ] Add schema docs for: `rotkeeper-bom.yaml`, `render-flags.yaml`, `asset-manifest.yaml`
 - [ ] Ensure all index and navigation pages include backlinks to the root or documentation overview
 - [ ] Build rc-pdfbook.sh to generate PDF from merged docbook/webbook

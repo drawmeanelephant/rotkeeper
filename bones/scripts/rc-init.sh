@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # ░▒▓█ ROTKEEPER SCRIPT █▓▒░
 # Script: rc-init.sh
-# Purpose: Initialize environment: expand and render
-# Version: 0.2.1
-# Updated: 2025-05-29
+# Purpose: Initialize environment: reseed, bless scripts, render, and validate
+# Version: 0.2.6-dev
+# Updated: 2025-06-05
 # -----------------------------------------
 
 # Source shared Rotkeeper helpers
@@ -33,9 +33,11 @@ exec > >(tee -a "$LOG_FILE") 2>&1
 
 # Resolve script directory for sibling commands
 SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-EXPAND_CMD="$SCRIPTDIR/rc-expand.sh"
-RENDER_CMD="$SCRIPTDIR/rc-render.sh"
+RESEED_CMD="$SCRIPTDIR/rc-reseed.sh"
 
+# Make all rc-*.sh and rc-utils.bats scripts executable
+log "INFO" "🔐 Blessing scripts with +x permissions..."
+find "$SCRIPTDIR" -type f \( -name "rc-*.sh" -o -name "rc-utils.bats" \) -exec chmod +x {} \;
 
 cleanup() {
     log "INFO" "Cleaning up after rc-init.sh."
@@ -56,8 +58,10 @@ main() {
     $VERBOSE && log "INFO" "Dependencies verified."
 
     log "INFO" "🔄 Starting initialization..."
-    run "$EXPAND_CMD" --force
-    run "$RENDER_CMD" --verbose
+    run "$RESEED_CMD" --force
+    run "$SCRIPTDIR/rc-assets.sh"
+    run "$SCRIPTDIR/rc-render.sh" --verbose
+    run "$SCRIPTDIR/rc-scan.sh"
     log "INFO" "✅ Initialization complete."
 }
 

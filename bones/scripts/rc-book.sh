@@ -62,7 +62,7 @@ run_scriptbook_full() {
 
   if [[ "$DRY_RUN" == true ]]; then
     echo "[DRY-RUN] Would generate full scriptbook at: $OUT"
-    find "$PROJECT_ROOT"/bones/scripts -type f \( -name 'rc-*.sh' -o -name 'rotkeeper.sh' \) | sort | while read -r script; do
+    find "$PROJECT_ROOT"/bones/scripts "$PROJECT_ROOT" -maxdepth 1 -type f \( -name 'rc-*.sh' -o -name 'rotkeeper.sh' \) | sort | while read -r script; do
       rel="${script#$PROJECT_ROOT/}"
       echo "  - $rel"
     done
@@ -76,13 +76,15 @@ run_scriptbook_full() {
   echo "---" >> "$OUT"
   echo "" >> "$OUT"
 
-  find "$PROJECT_ROOT"/bones/scripts -type f \( -name 'rc-*.sh' -o -name 'rotkeeper.sh' \) | sort | while read -r script; do
+  find "$PROJECT_ROOT"/bones/scripts "$PROJECT_ROOT" -maxdepth 1 -type f \( -name 'rc-*.sh' -o -name 'rotkeeper.sh' \) | sort | while read -r script; do
     rel="${script#$PROJECT_ROOT/}"
     echo "<!-- START: $rel -->" >> "$OUT"
     echo "" >> "$OUT"
-    echo '```bash' >> "$OUT"
-    cat "$script" >> "$OUT"
-    echo '```' >> "$OUT"
+    # Write script content without markdown code fences to prevent resurrection errors
+    while IFS= read -r line; do
+      [[ "$line" == '```' ]] && continue
+      echo "$line"
+    done < "$script" >> "$OUT"
     echo "<!-- END: $rel -->" >> "$OUT"
     echo "" >> "$OUT"
   done
@@ -109,9 +111,11 @@ run_docbook() {
     rel="${file#$PROJECT_ROOT/}"
     echo "<!-- START: $rel -->" >> "$OUT"
     echo "" >> "$OUT"
-    echo '```markdown' >> "$OUT"
-    cat "$file" >> "$OUT"
-    echo '```' >> "$OUT"
+    # Write markdown content without code fences to ensure clean resurrection
+    while IFS= read -r line; do
+      [[ "$line" == '```' ]] && continue
+      echo "$line"
+    done < "$file" >> "$OUT"
     echo "<!-- END: $rel -->" >> "$OUT"
     echo "" >> "$OUT"
   done
@@ -175,9 +179,11 @@ run_configbook() {
     rel="${file#$PROJECT_ROOT/}"
     echo "<!-- START: $rel -->" >> "$OUT"
     echo "" >> "$OUT"
-    echo '```' >> "$OUT"
-    cat "$file" >> "$OUT"
-    echo '```' >> "$OUT"
+    # Write config content without markdown code fences to ensure clean resurrection
+    while IFS= read -r line; do
+      [[ "$line" == '```' ]] && continue
+      echo "$line"
+    done < "$file" >> "$OUT"
     echo "<!-- END: $rel -->" >> "$OUT"
     echo "" >> "$OUT"
   done

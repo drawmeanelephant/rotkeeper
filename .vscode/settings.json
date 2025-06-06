@@ -1,6 +1,8 @@
 {
   "editor.tabSize": 4,
-  "workbench.colorTheme": "Dracula",
+  "workbench.colorTheme": "Gruvbox Material Light",
+  "editor.fontFamily": "'Fira Code', Menlo, monospace",
+  "editor.fontLigatures": true,
   "files.trimTrailingWhitespace": true,
   // …your other project-specific prefs…
   "terminal.integrated.profiles.osx": {
@@ -10,5 +12,6 @@
       "icon": "terminal-bash"
     }
   },
-  "terminal.integrated.defaultProfile.osx": "bash (brew)"
+  "terminal.integrated.defaultProfile.osx": "bash (brew)",
+  "workbench.iconTheme": "material-icon-theme"
 }

@@ -1,9 +1,23 @@
 {
-    "recommendations": [
-        "redhat.vscode-yaml",
-        "shd101wyy.markdown-preview-enhanced",
-        "yzhang.markdown-all-in-one",
-        "bierner.emojisense",
-        "dracula-theme.theme-dracula"
-    ]
+  "recommendations": [
+    "redhat.vscode-yaml",
+    "shd101wyy.markdown-preview-enhanced",
+    "yzhang.markdown-all-in-one",
+    "bierner.emojisense",
+    "tamasfe.even-better-toml",
+    "bungcip.better-toml",
+    "foxundermoon.shell-format",
+    "dbaeumer.vscode-eslint",
+    "mkhl.direnv",
+    "timonwong.shellcheck",
+    "pkief.material-icon-theme",
+    "sainnhe.gruvbox-material",
+    "zhuangtongfa.material-theme",
+    "vscode-icons-team.vscode-icons",
+    "sdras.night-owl",
+    "hustlahusky.markdown-checkbox",
+    "bierner.markdown-mermaid",
+    "robole.markdown-snippets",
+    "braver.fonts"
+  ]
 }

@@ -8,7 +8,7 @@ Rotkeeper is a haunted CLI suite for Markdown morticians, static site cryptkeepe
 Written in modular Bash, it automates the slow decay and archival rebirth of your flat-file knowledge hoards.
 Every script is annotated for post-apocalyptic readability. No network required. Only reverence.
 
-**Current Version:** `v0.2.6-dev`
+**Current Version:** `v0.2.6-pre`
 
 ***
 
@@ -18,8 +18,8 @@ Every script is annotated for post-apocalyptic readability. No network required.
 - Tracks file digests and generates asset manifests
 - Packs and unpacks tomb archives with embedded metadata
 - Supports `--dry-run` logic and offline use
-- Expands YAML-defined tombs into structured markdown pages
-- Aggregates documentation into scriptbook, docbook, and webbook via `rc-book.sh`
+- Rebuilds entire site structure from markdown binders via `rc-reseed.sh`
+- Aggregates documentation into binders via `rc-book.sh` (scriptbook-full, docbook, docbook-clean, configbook)
 
 ***
 
@@ -35,9 +35,8 @@ Every script is annotated for post-apocalyptic readability. No network required.
 
 ```bash
 ./rotkeeper.sh init      # Sets up the bones
-./rotkeeper.sh expand    # Generates config/docs
 ./rotkeeper.sh render    # Converts Markdown to HTML
-./rotkeeper.sh book      # Aggregates Markdown into scriptbook/docbook/webbook
+./rotkeeper.sh book      # Aggregates Markdown into binders
 ./rotkeeper.sh scan      # Checks file SHA256s
 ./rotkeeper.sh verify    # Compares to asset-manifest.yaml
 ./rotkeeper.sh test      # Runs utility test suite (Bats)
@@ -77,7 +76,7 @@ Supports logging to `bones/logs/`, dry-run execution, and manifest-aware audits
 
 ## 🚧 Status
 
-This is version `v0.2.5`.
+This is version `v0.2.6-pre`.
 It is **functional but haunted**.
 Most scripts work cleanly. Some logs whisper.
 Frontmatter validation, content expansion, and logging are now stable across core rituals.

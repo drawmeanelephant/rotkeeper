@@ -87,6 +87,19 @@ for INPUT in "${DEFAULT_BOOKS[@]}"; do
       continue
     fi
 
+    if [[ "$line" =~ ^\<\!\-\-\ END:\ ([^[:space:]]+)\ \-\-\>$ && "$DRY_RUN" == false && "$outfile" == *".sh" ]]; then
+      if [[ ! -s "$outfile" ]]; then
+        echo "❌ Script is empty or corrupted: $outfile"
+        exit 1
+      fi
+      if ! bash -n "$outfile" 2>/dev/null; then
+        echo "❌ Script failed syntax check: $outfile"
+        tail -n5 "$outfile" | while read -r l; do echo "💀 $l"; done
+        exit 1
+      fi
+      chmod +x "$outfile"
+    fi
+
     if (( skip_next > 0 )); then
       ((skip_next--))
       continue
