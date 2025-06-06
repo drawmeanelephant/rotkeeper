@@ -51,6 +51,8 @@ This ledger reflects all tasks known, forgotten, or ghostwritten as of `v0.2.6-d
 - [ ] Generate Markdown summary after each `pack`
 - [ ] Validate version presence and fallback behavior for `jq`, `pandoc`, `yq`
 - [ ] Define recovery behavior if `tar`/`gzip` fail during `pack`
+- [ ] Add GitHub Action to run `rc-lint.sh` + `rc-test.sh` on push
+- [ ] Validate CI output includes test summary + lint warnings
 
 ---
 
@@ -60,6 +62,8 @@ This ledger reflects all tasks known, forgotten, or ghostwritten as of `v0.2.6-d
 - [ ] Add integration + failure-mode test for init → render → pack flow
 - [ ] Create `tests/` directory for fixtures and mock rituals
 - [ ] Validate Lua filters via snapshot tests or golden fixtures
+- [ ] Add linting logic and CLI entrypoint for `rc-lint.sh`
+- [ ] Hook lint into CI: fail builds if frontmatter/schema invalid
 
 ---
 
@@ -80,6 +84,12 @@ This ledger reflects all tasks known, forgotten, or ghostwritten as of `v0.2.6-d
 - [ ] Add optional Mermaid diagram injection into book outputs via `rc-book.sh` or frontmatter flag
 - [ ] Create reusable Pandoc Lua filters to inject frontmatter fields (e.g. author, template, slug) into rendered documents
 - [ ] Extract safe_tar_gz() into rc-utils.sh and standardize archive logic
+
+- [ ] Build `rc-inbox.sh` to process and route loose `.md` files based on frontmatter
+- [ ] Allow optional `--lint`, `--report`, and `--dry-run` modes for inbox processing
+- [ ] Support routing rules via YAML: template/status determine destination
+- [ ] Future: allow inbox to split long files into renderable multi-page tombs
+- [ ] Add `rc-convert-*.sh` helpers (e.g. HTML, CSV, DOCX → Markdown) that feed into inbox
 
 ---
 
