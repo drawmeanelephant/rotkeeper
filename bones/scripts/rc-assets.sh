@@ -106,7 +106,7 @@ main() {
     fi
 
     ASSET_PATHS=$(grep -rhoE '(src|href)="\/?assets/[^"]+"' "$OUTPUT_DIR"/*.html 2>/dev/null | \
-        sed -E 's/(src|href)="\/?assets\/([^"]+)"/\2/' | sort | uniq)
+        sed -E 's/(src|href)="\/?assets\/([^"]+)"/\2/' | sort | uniq || true)
 
     asset_count=$(echo "$ASSET_PATHS" | grep -c . || true)
     log "INFO" "Found $asset_count asset references."
