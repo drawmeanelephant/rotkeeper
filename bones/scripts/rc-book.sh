@@ -9,29 +9,30 @@
 set -euo pipefail
 trap 'echo "Error on line $LINENO"; exit 1' ERR
 
-# Source shared environment variables
-source "$(dirname "${BASH_SOURCE[0]}")/rc-env.sh"
+# Source utility functions, which includes require_gawk_version and sources rc-env.sh via source_rc_env()
+source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-REPORT_DIR="$PROJECT_ROOT/bones/reports"
+# Ensure GNU Awk is available before any awk-based operations
+require_gawk_version
 
 # Defaults
 MODE=""
 CONFIG=""
 DRY_RUN=false
+STRIP_MODE=false
 
 show_help() {
   cat <<EOF
-Usage: rc-book.sh [--scriptbook-full|--docbook|--webbook|--all|--collapse|--docbook-clean|--configbook] [--config file]
+Usage: rc-book.sh [--scriptbook-full|--docbook|--all|--collapse|--docbook-clean|--configbook|--contentbook|--contentmeta] [--config file]
 
   --scriptbook-full  Bind full scripts with relative paths and fences into rotkeeper-scriptbook-full.md
   --docbook          Bind meta documentation into rotkeeper-docbook.md
-  --webbook          Bind public markdown into rotkeeper-webbook.md
   --all              Run all 3 binder rituals above
-  --collapse         Collapse all rotkeeper-*.md into collapsed-content.yaml
+  --collapse         Summarize all rotkeeper-*.md files into collapsed-content.yaml (YAML structure for tools or downstream pipelines)
   --docbook-clean    Bind meta documentation into rotkeeper-docbook-clean.md (frontmatter stripped)
   --configbook       Bind config + template files into rotkeeper-configbook.md
+  --contentbook      Bind all markdown in home/content/ into rotkeeper-contentbook.md
+  --contentmeta      Extract frontmatter YAML metadata from content markdown files into rotkeeper-contentmeta.yaml
   --config FILE      Optional config file for future filtering logic
   --dry-run          Show what would be done without making changes
   --help             Show this helpful void
@@ -44,13 +45,15 @@ parse_flags() {
     case "$1" in
       --scriptbook-full) MODE="scriptbook_full"; shift ;;
       --docbook)         MODE="docbook"; shift ;;
-      --webbook)         MODE="webbook"; shift ;;
       --all)             MODE="all"; shift ;;
       --collapse)        MODE="collapse"; shift ;;
       --docbook-clean)   MODE="docbook_clean"; shift ;;
       --configbook)      MODE="configbook"; shift ;;
+      --contentbook)     MODE="contentbook"; shift ;;
+      --contentmeta)     MODE="contentmeta"; shift ;;
       --config)          CONFIG="$2"; shift 2 ;;
       --dry-run)         DRY_RUN=true; shift ;;
+      --strip-frontmatter) STRIP_MODE=true; shift ;;
       --help)            show_help; exit 0 ;;
       *) echo "Unknown option: $1"; show_help; exit 1 ;;
     esac
@@ -62,8 +65,8 @@ run_scriptbook_full() {
 
   if [[ "$DRY_RUN" == true ]]; then
     echo "[DRY-RUN] Would generate full scriptbook at: $OUT"
-    find "$PROJECT_ROOT"/bones/scripts "$PROJECT_ROOT" -maxdepth 1 -type f \( -name 'rc-*.sh' -o -name 'rotkeeper.sh' \) | sort | while read -r script; do
-      rel="${script#$PROJECT_ROOT/}"
+    find "$ROOT_DIR"/bones/scripts "$ROOT_DIR" -maxdepth 1 -type f \( -name 'rc-*.sh' -o -name 'rotkeeper.sh' \) | sort | while read -r script; do
+      rel="${script#$ROOT_DIR/}"
       echo "  - $rel"
     done
     return 0
@@ -76,8 +79,8 @@ run_scriptbook_full() {
   echo "---" >> "$OUT"
   echo "" >> "$OUT"
 
-  find "$PROJECT_ROOT"/bones/scripts "$PROJECT_ROOT" -maxdepth 1 -type f \( -name 'rc-*.sh' -o -name 'rotkeeper.sh' \) | sort | while read -r script; do
-    rel="${script#$PROJECT_ROOT/}"
+  find "$ROOT_DIR"/bones/scripts "$ROOT_DIR" -maxdepth 1 -type f \( -name 'rc-*.sh' -o -name 'rotkeeper.sh' \) | sort | while read -r script; do
+    rel="${script#$ROOT_DIR/}"
     echo "<!-- START: $rel -->" >> "$OUT"
     echo "" >> "$OUT"
     # Write script content without markdown code fences to prevent resurrection errors
@@ -108,14 +111,23 @@ run_docbook() {
 
   mapfile -t doc_files < <(find "$DOCS_DIR" -name '*.md' -type f | sort)
   for file in "${doc_files[@]}"; do
-    rel="${file#$PROJECT_ROOT/}"
+    rel="${file#$ROOT_DIR/}"
     echo "<!-- START: $rel -->" >> "$OUT"
     echo "" >> "$OUT"
-    # Write markdown content without code fences to ensure clean resurrection
-    while IFS= read -r line; do
-      [[ "$line" == '```' ]] && continue
-      echo "$line"
-    done < "$file" >> "$OUT"
+    # Write markdown content with optional frontmatter handling
+    awk -v do_strip="$STRIP_MODE" '
+      BEGIN { in_yaml = 0 }
+      {
+        if ($0 ~ /^---$/) {
+          in_yaml++
+          if (do_strip == "true") next
+          print
+          next
+        }
+        if (do_strip == "true" && in_yaml < 2) next
+        print
+      }
+    ' "$file" >> "$OUT"
     echo "<!-- END: $rel -->" >> "$OUT"
     echo "" >> "$OUT"
   done
@@ -123,6 +135,7 @@ run_docbook() {
   echo "[✔] Docbook written to $OUT"
 }
 
+# TODO: Consider merging this into docbook with a --strip-frontmatter flag for cleaner maintenance
 run_docbook_clean() {
   local OUT="$REPORT_DIR/rotkeeper-docbook-clean.md"
 
@@ -174,9 +187,9 @@ run_configbook() {
   echo "---" >> "$OUT"
   echo "" >> "$OUT"
 
-  find "$PROJECT_ROOT/bones/config" "$PROJECT_ROOT/bones/templates" \
+  find "$ROOT_DIR/bones/config" "$ROOT_DIR/bones/templates" \
     -type f \( -name '*.yaml' -o -name '*.yml' -o -name '*.tpl' -o -name '*.html' \) | sort | while read -r file; do
-    rel="${file#$PROJECT_ROOT/}"
+    rel="${file#$ROOT_DIR/}"
     echo "<!-- START: $rel -->" >> "$OUT"
     echo "" >> "$OUT"
     # Write config content without markdown code fences to ensure clean resurrection
@@ -189,6 +202,75 @@ run_configbook() {
   done
 
   echo "[✔] Configbook written to $OUT"
+}
+
+run_contentbook() {
+  local OUT="$REPORT_DIR/rotkeeper-contentbook.md"
+
+  if [[ "$DRY_RUN" == true ]]; then
+    echo "[DRY-RUN] Would generate full contentbook at: $OUT"
+    return 0
+  fi
+
+  echo "---" > "$OUT"
+  echo "title: \"Rotkeeper Contentbook\"" >> "$OUT"
+  echo "subtitle: \"All markdown in home/content/ with path markers\"" >> "$OUT"
+  echo "---" >> "$OUT"
+  echo "" >> "$OUT"
+
+  mapfile -t content_files < <(find "$CONTENT_DIR" -name '*.md' -type f | sort)
+  for file in "${content_files[@]}"; do
+    rel="${file#$ROOT_DIR/}"
+    echo "<!-- START: $rel -->" >> "$OUT"
+    echo "" >> "$OUT"
+    awk -v do_strip="$STRIP_MODE" '
+      BEGIN { in_yaml = 0; yaml_complete = 0; line_number = 0 }
+      {
+        line_number++
+        if (line_number == 1 && $0 ~ /^---$/) {
+          in_yaml = 1
+          if (do_strip == "true") next
+          print
+          next
+        }
+        if (in_yaml == 1 && $0 ~ /^---$/) {
+          in_yaml = 2
+          if (do_strip == "true") { yaml_complete = 1; next }
+          print
+          next
+        }
+        if (do_strip == "true" && in_yaml == 1) next
+        if (do_strip == "true" && in_yaml == 2 && yaml_complete == 0) next
+        print
+      }
+    ' "$file" >> "$OUT"
+    echo "<!-- END: $rel -->" >> "$OUT"
+    echo "" >> "$OUT"
+  done
+
+  echo "[✔] Contentbook written to $OUT"
+}
+
+run_contentmeta() {
+  local OUT="$REPORT_DIR/rotkeeper-contentmeta.yaml"
+
+  echo "[INFO] Extracting frontmatter YAML from content files..."
+  echo "" > "$OUT"
+
+  find "$CONTENT_DIR" -name '*.md' -type f | sort | while read -r file; do
+    rel="${file#$ROOT_DIR/}"
+
+    awk -v path="$rel" '
+      BEGIN { in_yaml=0; print "- path: \"" path "\"" }
+      /^---$/ { in_yaml++; next }
+      in_yaml==1 { print "  " $0 }
+      /^---$/ && in_yaml==2 { exit }
+    ' "$file" >> "$OUT"
+
+    echo "" >> "$OUT"
+  done
+
+  echo "[✔] Content metadata written to $OUT"
 }
 
 run_mode() {
@@ -204,6 +286,12 @@ run_mode() {
       ;;
     configbook)
       run_configbook
+      ;;
+    contentbook)
+      run_contentbook
+      ;;
+    contentmeta)
+      run_contentmeta
       ;;
     all)
       if [[ "$DRY_RUN" == true ]]; then

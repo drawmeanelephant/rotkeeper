@@ -38,8 +38,6 @@ done
 
 # Optional: dependency check via rc-utils.sh
 log "INFO" "Verifying known dependencies..."
-require_bins bash awk grep sed tar date yq htmlq pandoc || {
-  log "WARN" "One or more recommended tools are missing"
-}
+check_dependencies
 
 log "INFO" "Environment setup complete."

@@ -21,7 +21,7 @@ IFS=$'\n\t'
 init_log "rc-audit"
 
 main() {
-    require_bins git rsync ssh pandoc date
+    check_dependencies
     log "INFO" "Running rc-audit.sh."
 # rc-audit.sh — Rotkeeper Asset-Meta Audit
 #

@@ -28,7 +28,6 @@ Rotkeeper is a modular, undead-friendly project. We welcome contributions from o
 Core features we’re tracking:
 
 - `rc-pack.sh` → embed full tomb metadata inside `.tar.gz`
-- `rc-unpack.sh` → verify archive contents & restore to correct path
 - `rc-expand.sh` → support multiple tombs per config
 - `rc-render.sh` → validate frontmatter, purge bad metadata
 - `rc-help.sh` → centralized help dispatcher across scripts

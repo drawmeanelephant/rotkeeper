@@ -24,7 +24,7 @@ main() {
         ./bones/scripts/rc-assets.sh
     fi
 
-    require_bins sha256sum yq date awk
+    check_dependencies
 
     MANIFEST="bones/asset-manifest.yaml"
     if [[ ! -f "$MANIFEST" ]]; then

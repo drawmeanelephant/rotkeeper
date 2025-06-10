@@ -54,7 +54,7 @@ trap 'trap_err $LINENO' ERR
 
 main() {
     # Verify required tools
-    require_bins git rsync ssh pandoc date
+    check_dependencies
     $VERBOSE && log "INFO" "Dependencies verified."
 
     log "INFO" "🔄 Starting initialization..."

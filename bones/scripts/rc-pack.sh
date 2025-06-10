@@ -97,7 +97,7 @@ main() {
       show_help
     fi
 
-    require_bins tar jq pandoc
+    check_dependencies
     $VERBOSE && log "DEBUG" "Dependencies verified."
 
     # --- Shared Configuration ---

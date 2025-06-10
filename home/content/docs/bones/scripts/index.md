@@ -46,7 +46,7 @@ bones/scripts/
 | rc-cleanup-bones.sh | Backup and prune bones/ archives and logs      | [rc-cleanup-bones.sh](rc-cleanup-bones.html) | Ready    |
 | rc-docs-fix.sh      | Patch frontmatter on Markdown docs             | [rc-docs-fix.sh](rc-docs-fix.html) | Ready    |
 | rc-api.sh           | Fetch data from remote APIs                    | [rc-api.sh](rc-api.html)        | Stub     |
-| rc-unpack.sh        | *Planned* — restore output from archive        | [rc-unpack.sh](rc-unpack.html)  | Planned  |
+
 
 ## 🛣️ Navigation
 

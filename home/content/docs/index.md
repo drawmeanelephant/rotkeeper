@@ -17,6 +17,7 @@ asset_meta:
   project: "Rotkeeper"
   tracked: true
   license: "CC-BY-SA-4.2-unreal"
+status: published
 ---
 
 # 📖 Rotkeeper Documentation Index

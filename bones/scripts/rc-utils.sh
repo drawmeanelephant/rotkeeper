@@ -63,10 +63,25 @@ require_bins() {
   done
 }
 
+# Check all core binary dependencies used by Rotkeeper scripts
+check_dependencies() {
+  require_bins bash pandoc sha256sum
+  require_yq_version
+  require_gawk_version
+}
+
 # Require yq version 4.x or higher (Go-based CLI)
 require_yq_version() {
   if ! yq eval '.foo' <<< 'foo: bar' >/dev/null 2>&1; then
     log "ERROR" "yq version 4.x required. Install from https://github.com/mikefarah/yq"
+    exit 2
+  fi
+}
+
+# Require GNU awk (gawk) instead of macOS/BSD awk
+require_gawk_version() {
+  if ! awk --version 2>&1 | grep -qi 'GNU Awk'; then
+    log "ERROR" "GNU Awk required. Install it via: brew install gawk"
     exit 2
   fi
 }

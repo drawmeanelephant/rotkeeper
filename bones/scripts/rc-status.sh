@@ -19,7 +19,7 @@ log() {
 }
 
 log "INFO" "Running rc-status.sh"
-require_bins git find wc xargs ls grep sed date
+check_dependencies
 
 echo "🩺 Rotkeeper Status Report"
 echo "=========================="

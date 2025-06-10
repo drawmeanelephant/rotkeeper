@@ -6,8 +6,7 @@ This ledger reflects all tasks known, forgotten, or ghostwritten as of `v0.2.6-d
 
 ## 🧠 Core Ritual Hardening
 
-- [ ] Implement or purge stub: `rc-unpack.sh`
-- [ ] Complete `rc-lint.sh` (currently stub)
+# - [ ] Complete `rc-lint.sh` (currently stub)
 - [ ] Add `--version` flag to all `rc-*.sh` scripts
 - [ ] Replace all HTML regex parsing in `rc-assets.sh` with a proper parser (`pup`, `htmlq`, or awk)
 - [ ] Write rc-audit.sh based on rc-frontmatter-audit.sh core logic
@@ -51,8 +50,8 @@ This ledger reflects all tasks known, forgotten, or ghostwritten as of `v0.2.6-d
 - [ ] Generate Markdown summary after each `pack`
 - [ ] Validate version presence and fallback behavior for `jq`, `pandoc`, `yq`
 - [ ] Define recovery behavior if `tar`/`gzip` fail during `pack`
-- [ ] Add GitHub Action to run `rc-lint.sh` + `rc-test.sh` on push
-- [ ] Validate CI output includes test summary + lint warnings
+# - [ ] Add GitHub Action to run `rc-lint.sh` + `rc-test.sh` on push
+# - [ ] Validate CI output includes test summary + lint warnings
 
 ---
 
@@ -62,8 +61,8 @@ This ledger reflects all tasks known, forgotten, or ghostwritten as of `v0.2.6-d
 - [ ] Add integration + failure-mode test for init → render → pack flow
 - [ ] Create `tests/` directory for fixtures and mock rituals
 - [ ] Validate Lua filters via snapshot tests or golden fixtures
-- [ ] Add linting logic and CLI entrypoint for `rc-lint.sh`
-- [ ] Hook lint into CI: fail builds if frontmatter/schema invalid
+# - [ ] Add linting logic and CLI entrypoint for `rc-lint.sh`
+# - [ ] Hook lint into CI: fail builds if frontmatter/schema invalid
 
 ---
 
@@ -88,7 +87,7 @@ This ledger reflects all tasks known, forgotten, or ghostwritten as of `v0.2.6-d
 - [ ] Build `rc-inbox.sh` to process and route loose `.md` files based on frontmatter
 - [ ] Allow optional `--lint`, `--report`, and `--dry-run` modes for inbox processing
 - [ ] Support routing rules via YAML: template/status determine destination
-- [ ] Future: allow inbox to split long files into renderable multi-page tombs
+# - [ ] Future: allow inbox to split long files into renderable multi-page tombs
 - [ ] Add `rc-convert-*.sh` helpers (e.g. HTML, CSV, DOCX → Markdown) that feed into inbox
 
 ---
@@ -109,4 +108,4 @@ This ledger reflects all tasks known, forgotten, or ghostwritten as of `v0.2.6-d
 
 ---
 
-_Last updated by tombkeeper: 2025-06-04 — current branch: dev-v0.2.6_
+_Last updated by tombkeeper: 2025-06-06 — current branch: dev-v0.2.7_

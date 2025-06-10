@@ -78,7 +78,7 @@ trap cleanup EXIT INT TERM
 
 
 main() {
-    require_bins sha256sum rsync grep sed find sort uniq
+    check_dependencies
     $VERBOSE && log "INFO" "Dependencies verified."
 
     : "${ASSETS_DIR:?Missing ASSETS_DIR from rc-env.sh}"

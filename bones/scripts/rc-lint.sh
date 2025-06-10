@@ -8,6 +8,8 @@
 STRICT=0
 INCLUDE_DRAFTS=0
 SCAN_DIR="."
+SUMMARY_MODE=""
+SUMMARY_FILE="bones/reports/lint-report.md"
 
 #── Parse flags
 while [[ $# -gt 0 ]]; do
@@ -15,11 +17,16 @@ while [[ $# -gt 0 ]]; do
     --strict) STRICT=1 ;;
     --include-drafts) INCLUDE_DRAFTS=1 ;;
     --dir) SCAN_DIR="$2"; shift ;;
+    --summary)
+      SUMMARY_MODE="$2"
+      shift
+      ;;
     --help)
-      echo "Usage: rc-lint.sh [--strict] [--include-drafts] [--dir path]"
+      echo "Usage: rc-lint.sh [--strict] [--include-drafts] [--dir path] [--summary markdown]"
       echo "  --strict           Treat missing optional keys as errors"
       echo "  --include-drafts   Include files marked with 'status: draft'"
       echo "  --dir              Directory to scan (default: .)"
+      echo "  --summary markdown      Output results to bones/reports/lint-report.md"
       echo "  --help             Show this help message"
       exit 0
       ;;
@@ -36,6 +43,14 @@ declare -a ALLOWED_KEYS=(title slug template version updated status description 
 
 error_count=0
 
+if [[ "$SUMMARY_MODE" == "markdown" ]]; then
+  mkdir -p bones/reports/
+  : > "$SUMMARY_FILE"
+  echo "# 🧪 Rotkeeper Lint Report" >> "$SUMMARY_FILE"
+  echo "_Generated: $(date)_" >> "$SUMMARY_FILE"
+  echo >> "$SUMMARY_FILE"
+fi
+
 #── Check frontmatter keys in Markdown
 lint_frontmatter() {
   local file="$1"
@@ -44,6 +59,7 @@ lint_frontmatter() {
   status=$(yq e '.status // ""' "$file" 2>/dev/null || echo "")
   if [[ "$status" == "draft" && "$INCLUDE_DRAFTS" -ne 1 ]]; then
     echo "⚠️  [$file] Skipping draft file"
+    [[ "$SUMMARY_MODE" == "markdown" ]] && echo "- ⚠️  \`$file\`: Skipping draft file" >> "$SUMMARY_FILE"
     return
   fi
 
@@ -57,6 +73,7 @@ lint_frontmatter() {
   done
   if [[ "${#missing[@]}" -gt 0 ]]; then
     echo "❌ [$file] Missing frontmatter keys: ${missing[*]}"
+    [[ "$SUMMARY_MODE" == "markdown" ]] && echo "- ❌ \`$file\`: Missing keys → ${missing[*]}" >> "$SUMMARY_FILE"
     ((error_count++))
   fi
 
@@ -67,6 +84,7 @@ lint_frontmatter() {
       val=$(yq e ".$key // \"\"" "$file" 2>/dev/null || echo "")
       if [[ -z "$val" ]]; then
         echo "❌ [$file] (strict) Missing key: $key"
+        [[ "$SUMMARY_MODE" == "markdown" ]] && echo "- ❌ \`$file\`: (strict) Missing key → $key" >> "$SUMMARY_FILE"
         ((error_count++))
       fi
     done
@@ -78,6 +96,7 @@ lint_frontmatter() {
   for k in $keys; do
     if [[ ! " ${ALLOWED_KEYS[*]} " =~ " $k " ]]; then
       echo "⚠️  [$file] Unknown frontmatter key: $k"
+      [[ "$SUMMARY_MODE" == "markdown" ]] && echo "- ⚠️  \`$file\`: Unknown frontmatter key → $k" >> "$SUMMARY_FILE"
       # Not necessarily fatal
     fi
   done
@@ -88,10 +107,12 @@ lint_shell_prelude() {
   local file="$1"
   if ! grep -q 'set -euo pipefail' "$file"; then
     echo "❌ [$file] Missing 'set -euo pipefail'"
+    [[ "$SUMMARY_MODE" == "markdown" ]] && echo "- ❌ \`$file\`: Missing 'set -euo pipefail'" >> "$SUMMARY_FILE"
     ((error_count++))
   fi
   if ! grep -q '^trap .* ERR' "$file"; then
     echo "⚠️  [$file] No 'trap ... ERR' found (recommended)"
+    [[ "$SUMMARY_MODE" == "markdown" ]] && echo "- ⚠️  \`$file\`: No 'trap ... ERR' found (recommended)" >> "$SUMMARY_FILE"
   fi
 }
 
@@ -103,6 +124,7 @@ lint_md_links() {
     target=$(echo "$link" | sed -E 's/.*\(([^)]*)\).*/\1/')
     if [[ ! -f "$(dirname "$file")/$target" ]]; then
       echo "❌ [$file] Broken Markdown link → $target"
+      [[ "$SUMMARY_MODE" == "markdown" ]] && echo "- ❌ \`$file\`: Broken Markdown link → $target" >> "$SUMMARY_FILE"
       ((error_count++))
     fi
   done
@@ -122,8 +144,16 @@ done
 #── Summary
 if [[ "$error_count" -gt 0 ]]; then
   echo "❗ Linting finished: $error_count error(s) found."
+  if [[ "$SUMMARY_MODE" == "markdown" ]]; then
+    echo >> "$SUMMARY_FILE"
+    echo "**Total errors**: $error_count" >> "$SUMMARY_FILE"
+  fi
   exit 1
 else
   echo "✅ Linting passed: No missing required frontmatter or shell prelude errors."
+  if [[ "$SUMMARY_MODE" == "markdown" ]]; then
+    echo >> "$SUMMARY_FILE"
+    echo "**Total errors**: $error_count" >> "$SUMMARY_FILE"
+  fi
   exit 0
 fi

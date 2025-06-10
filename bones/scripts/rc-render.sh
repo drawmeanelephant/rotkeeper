@@ -92,7 +92,7 @@ trap_err() {
 trap 'trap_err $LINENO' ERR
 
 main() {
-    require_bins git rsync ssh pandoc date awk grep find tar
+    check_dependencies
     log "INFO" "Running rc-render.sh."
 
     # Initialize page counter and start time

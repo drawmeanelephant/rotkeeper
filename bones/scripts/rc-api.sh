@@ -18,7 +18,7 @@ init_log "rc-api"
 
 
 main() {
-    require_bins git rsync ssh pandoc date
+    check_dependencies
     log "INFO" "Running rc-api.sh."
 
     CONFIG_FILE="$CONFIG_DIR/remote-sources.yaml"

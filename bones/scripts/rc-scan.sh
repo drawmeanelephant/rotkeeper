@@ -80,7 +80,7 @@ trap cleanup EXIT INT TERM
 
 
 main() {
-    require_bins git rsync ssh pandoc date
+    check_dependencies
     log "INFO" "Running rc-scan.sh."
     # Use plain arrays for manifest and disk lists
     manifest_list=()

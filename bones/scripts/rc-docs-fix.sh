@@ -68,7 +68,7 @@ init_log "rc-docs-fix"
 
 main() {
     require_env_vars DOCS_DIR ARCHIVE_DIR LOG_DIR
-    require_bins git rsync ssh pandoc date
+    check_dependencies
     log "INFO" "Running rc-docs-fix.sh."
     parse_flags "$@"
 

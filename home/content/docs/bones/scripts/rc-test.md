@@ -43,7 +43,7 @@ Supported flags:
    - Initialize a log file under `bones/logs/rc-test-<timestamp>.log`.
 
 2. **Test Loop**
-   - Iterate over each `rc-*.sh` in `bones/scripts/`, skipping `rc-api.sh`, `rc-unpack.sh`, and `rc-test.sh` itself.
+   - Iterate over each `rc-*.sh` in `bones/scripts/`, skipping `rc-api.sh` and `rc-test.sh` itself.
    - For each script, run `bash <script> --dry-run`; capture exit status.
    - Log `PASS` or `FAIL` per script in both console and log file.
 
