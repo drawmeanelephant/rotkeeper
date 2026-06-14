@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-assets.sh
 #  Purpose : Generate a selective YAML manifest of referenced assets
-#  Version : 0.2.8
+#  Version : 0.3.0
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -141,13 +141,13 @@ generate_sitemap() {
       echo "title: \"${PROJECT} Sitemap\""
       echo "slug: sitemap"
       echo "template: rotkeeper-doc.html"
-      echo "version: \"0.2.8\""
+      echo "version: \"0.3.0\""
       echo "updated: $(date +%Y-%m-%d)"
       echo "description: \"Rendered output paths and resolved markdown equivalents.\""
       echo "tags: [report, sitemap]"
       echo "asset_meta:"
       echo "  name: \"rotkeeper-sitemap.md\""
-      echo "  version: \"0.2.8\""
+      echo "  version: \"0.3.0\""
       echo "  author: \"${AUTHOR}\""
       echo "  project: \"${PROJECT}\""
       echo "  tracked: true"

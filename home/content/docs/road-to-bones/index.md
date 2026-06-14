@@ -40,7 +40,6 @@ This is your consolidated status snapshot: what’s working, what’s stubbed, a
 
 ### 🧪 Partial & Stubbed Tools
 
-* 🧪 `rc-docs-fix.sh`, `rc-audit.sh`, `rc-api.sh` — present and partially operational or stubs
 
 ***
 

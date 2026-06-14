@@ -4,7 +4,7 @@ slug: rc-render
 template: rotkeeper-doc.html
 version: "0.2.5-pre"
 updated: "2025-06-02"
-description: "Main rendering engine for converting Markdown tombs into HTML using Pandoc and custom templates. Now invokes rc-lint.sh to validate frontmatter and skips any Markdown with `status: draft`."
+description: "Main rendering engine for converting Markdown tombs into HTML using Pandoc and custom templates. Skips any Markdown with `status: draft`."
 tags:
   - rotkeeper
   - scripts
@@ -60,11 +60,10 @@ Supported options:
 
 ## Workflow Steps
 <!-- Sequential rites performed by the script -->
-0. **Lint Frontmatter and Filter Drafts**
-   - Invoke `rc-lint.sh` to verify required frontmatter keys and shell prelude.
+0. **Filter Drafts**
    - Any Markdown file with `status: draft` is skipped with a log entry.
 1. **Check Dependencies**
-   - Ensure `pandoc`, `find`, `xargs`, `date`, `yq`, and `rc-lint.sh` are available.
+   - Ensure `pandoc`, `find`, `xargs`, `date`, and `yq` are available.
 2. **Initialize Logging**
    - Write to `bones/logs/rc-render.log`. All stdout and stderr are captured.
 3. **Discover Markdown Files**

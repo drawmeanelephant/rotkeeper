@@ -29,7 +29,6 @@ asset_meta:
 | assets              | Logs from `rc-assets.sh` manifests       | [assets](logs/assets.html)           | Ready    |
 | verify              | Digest verification logs from `rc-verify.sh` | [verify](logs/verify.html)        | Ready    |
 | render              | HTML render process logs from `rc-render.sh` | [render](logs/render.html)        | Stub     |
-| audit               | Frontmatter enforcement logs from `rc-audit.sh` | [audit](logs/audit.html)        | Ready    |
 | other logs…         | Miscellaneous or future log types        | [other](logs/index.html)             | Missing  |
 
 ## 🛣️ Navigation

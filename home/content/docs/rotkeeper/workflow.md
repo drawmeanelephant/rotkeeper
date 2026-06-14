@@ -37,7 +37,6 @@ This document outlines the full sequence of Rotkeeper rituals, from initializing
 
 - **Purpose**: Generate Markdown stub files from `rotkeeper-bom.yaml`.
 - **Actions**:
-  1. Lint frontmatter of BOM entries via `rc-lint.sh`.
   2. Skip any items with `status: draft`.
   3. Create directories and write stub `.md` files under `home/content/`.
 - **Usage**:
@@ -51,7 +50,6 @@ This document outlines the full sequence of Rotkeeper rituals, from initializing
 
 - **Purpose**: Convert `home/content/*.md` into HTML using Pandoc.
 - **Actions**:
-  1. Run `rc-lint.sh` to validate frontmatter in `.md` files.
   2. Read `render-flags.yaml` for `content_dirs` and `output_dir`.
   3. For each `.md` (skipping drafts/logical recursion), run Pandoc with the appropriate template.
   4. Append rendered file paths to `bones/manifest.txt`.

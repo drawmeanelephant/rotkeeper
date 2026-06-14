@@ -2,7 +2,6 @@
 
 ### Added
 - `rc-reseed.sh` now supports resurrection from scriptbook, docbook, and configbook
-- `rc-configbook` and `rc-frontmatter-audit.sh` rituals added
 - `rc-book.sh` now supports `--all` mode and YAML collapse output
 
 ### Changed
@@ -22,7 +21,6 @@
 
 ## v0.2.6-dev
 
-- WIP: stub rc-lint.sh improvements
 - WIP: begin rc-help.sh smart indexing
 - Added `rc-utils.bats`: Bats test suite for utility helpers (`log`, `run`, `trap_err`, `require_bins`)
 - Updated `rc-utils.sh` to:
