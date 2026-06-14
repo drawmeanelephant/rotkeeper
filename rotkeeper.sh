@@ -66,8 +66,6 @@ Commands:
 
   verify      Check all assets match recorded SHA256 values
 
-  audit       Audit markdown files for valid asset-meta frontmatter blocks
-
   meta        Extract frontmatter YAML from content tombs
 
   cleanup     Backup and prune bones/ archives and logs
@@ -151,11 +149,6 @@ case "$command" in
   verify)
     echo "Verifying asset manifest..."
     bash "$BONES/rc-verify.sh" "$@"
-    ;;
-
-  audit)
-    echo "Auditing asset-meta frontmatter..."
-    bash "$BONES/rc-audit.sh" "$@"
     ;;
 
   meta)

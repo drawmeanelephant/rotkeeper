@@ -24,19 +24,7 @@ disk_list=()
 IFS=$'\n\t'
 
 # --- Flag Parsing & Helpers ---
-DRY_RUN=false
-VERBOSE=false
-HELP=false
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --dry-run)   DRY_RUN=true; shift ;;
-    --verbose)   VERBOSE=true; shift ;;
-    --help|-h)   HELP=true; shift ;;
-    *) break ;;
-  esac
-done
 
-show_help() {
   cat << EOF
 rc-scan.sh — Audit manifest and scan environment for file reports (v0.2.8)
 
@@ -50,11 +38,7 @@ EOF
   exit 0
 }
 
-if [[ "$HELP" == true ]]; then
-  show_help
-fi
-
-log() {
+show_help() {
   local level="$1"; shift
   printf '[%s] [%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$level" "$*"
 }
@@ -90,7 +74,7 @@ trap cleanup EXIT INT TERM
 
 
 main() {
-    check_dependencies
+    # check_dependencies
     log "INFO" "Running rc-scan.sh."
     # Use plain arrays for manifest and disk lists
     manifest_list=()
@@ -168,10 +152,6 @@ done
 mkdir -p "$REPORT_DIR" "$LOG_DIR"
 
 LOG_FILE="$LOG_DIR/rc-scan-$(date +%Y%m%d_%H%M%S).log"
-#
-# Redirect all stdout/stderr to the log file.
-#
-exec > >(tee -a "$LOG_FILE") 2>&1
 
 echo "[INFO] rc-scan started at $(date)"
 

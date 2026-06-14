@@ -119,7 +119,7 @@ parseflags() {
 }
 
 cleanup() {
-  [[ "$VERBOSE" == "true" ]] && log "INFO" "Cleaning up after rc-unbook.sh."
+  [[ "$VERBOSE" == "true" ]] && log "INFO" "Cleaning up after rc-unbook.sh." || true
 }
 
 extract_with_awk() {
@@ -253,11 +253,11 @@ main() {
     exit 0
   fi
 
-  initlog rc-unbook
+  init_log rc-unbook
   trap cleanup EXIT INT TERM
-  trap 'traperr ${LINENO}' ERR
+  trap 'trap_err ${LINENO}' ERR
 
-  requirebins awk mkdir date
+  require_bins awk mkdir date
 
   if [[ -z "$INPUT" ]]; then
     log "ERROR" "Missing required --input FILE"
@@ -266,8 +266,13 @@ main() {
   fi
 
   if [[ ! -f "$INPUT" ]]; then
-    log "ERROR" "Input file not found: $INPUT"
-    exit 1
+    if [[ "$DRYRUN" == "true" ]]; then
+      log "DRYRUN" "Input file not found: $INPUT (skipping extraction)"
+      exit 0
+    else
+      log "ERROR" "Input file not found: $INPUT"
+      exit 1
+    fi
   fi
 
   log "INFO" "Running rc-unbook.sh."

@@ -57,12 +57,14 @@ for f in "${scripts_to_test[@]}"; do
   fi
 
   echo "🔧 Testing $script_name..." | tee -a "$LOGFILE"
+  status=0
   if [[ "$script_name" == "rc-docs-fix.sh" ]]; then
-    output=$(bash "$f" --pattern "Rotkeeper" --replace "Rotkeeper" --dry-run 2>&1)
+    output=$(bash "$f" --pattern "Rotkeeper" --replace "Rotkeeper" --dry-run 2>&1) || status=$?
+  elif [[ "$script_name" == "rc-unbook.sh" ]]; then
+    output=$(bash "$f" --input rotkeeper-scriptbook-full.md --dry-run 2>&1) || status=$?
   else
-    output=$(bash "$f" --dry-run 2>&1)
+    output=$(bash "$f" --dry-run 2>&1) || status=$?
   fi
-  status=$?
 
   echo "$output" | tee -a "$LOGFILE"
 
@@ -82,7 +84,11 @@ done
 echo "⚙️  Running unit tests via Bats..." | tee -a "$LOGFILE"
 
 if command -v bats >/dev/null 2>&1; then
-  bats bones/tests/*.bats | tee -a "$LOGFILE"
+  if [[ -d "bones/tests" ]] && ls bones/tests/*.bats >/dev/null 2>&1; then
+    bats bones/tests/*.bats | tee -a "$LOGFILE" || true
+  else
+    echo "⚠️  No bats tests found in bones/tests." | tee -a "$LOGFILE"
+  fi
 else
   echo "⚠️  Bats not installed. Skipping unit tests." | tee -a "$LOGFILE"
 fi

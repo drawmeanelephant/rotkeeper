@@ -41,8 +41,9 @@ parse_flags() {
       --contentmeta) MODE="contentmeta"; shift ;;
       --verbose) VERBOSE=true; shift ;;
       --debug) DEBUG=true; shift ;;
+      --dry-run) DRY_RUN=true; shift ;;
       --help)
-        echo "Usage: rc-meta.sh [--contentmeta] [--verbose] [--debug]"
+        echo "Usage: rc-meta.sh [--contentmeta] [--verbose] [--debug] [--dry-run]"
         echo "  --contentmeta   Extract frontmatter YAML from content tombs"
         echo "  --verbose       Print file-by-file extraction details"
         echo "  --debug         Print extracted frontmatter blocks before parsing"
@@ -57,6 +58,10 @@ parse_flags() {
 }
 
 run_contentmeta() {
+  if [[ "${DRY_RUN:-false}" == true ]]; then
+    echo "[INFO] Dry run enabled. Skipping extraction."
+    return 0
+  fi
   local OUT="$REPORT_DIR/rotkeeper-contentmeta.yaml"
   local TMP="$(mktemp)"
   echo "[INFO] Extracting content metadata to $OUT"
@@ -93,11 +98,11 @@ main() {
   check_dependencies yq
 
   case "$MODE" in
-    contentmeta)
+    contentmeta|"")
       run_contentmeta
       ;;
     *)
-      echo "[ERROR] No mode specified. Use --contentmeta"
+      echo "[ERROR] Unknown mode: $MODE"
       exit 2
       ;;
   esac

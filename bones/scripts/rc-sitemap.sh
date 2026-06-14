@@ -36,13 +36,25 @@ DRY_RUN=""
 HELP=""
 
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --dry-run) DRY_RUN=true; shift ;;
+    --verbose) VERBOSE=true; shift ;;
+    --help|-h) HELP=true; shift ;;
+    *) break ;;
+  esac
+done
 
 # Locate latest render log
 RENDER_LOG="${1:-$(ls -t "$LOG_DIR"/rc-render-*.log 2>/dev/null | head -n 1)}"
 
 if [[ -z "$RENDER_LOG" || ! -f "$RENDER_LOG" ]]; then
-  log "ERROR" "No render log found in $LOG_DIR."
-  exit 1
+  if [[ "$DRY_RUN" == true ]]; then
+    log "DRYRUN" "No render log found in $LOG_DIR (skipping exit)"
+  else
+    log "ERROR" "No render log found in $LOG_DIR."
+    exit 1
+  fi
 fi
 
 log "INFO" "Using render log: $RENDER_LOG"
@@ -75,4 +87,4 @@ echo "[DEBUG] Final YAML output contents:"
 cat "$TMP_YAML"
 
 mv "$TMP_YAML" "$OUTPUT_YAML"
-log "INFO" "Sitemap written to: $OUTPUT_YAML"```
+log "INFO" "Sitemap written to: $OUTPUT_YAML"

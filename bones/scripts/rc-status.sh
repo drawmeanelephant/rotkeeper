@@ -54,9 +54,14 @@ else
 fi
 
 # Last render output
-rendered=$(find "$OUTPUT_DIR" -type f -name '*.html' | wc -l | xargs)
-echo -e "\n🖋 Rendered HTML Files:"
-echo "   $rendered file(s) in $OUTPUT_DIR/"
+if [[ -d "$OUTPUT_DIR" ]]; then
+  rendered=$(find "$OUTPUT_DIR" -type f -name '*.html' | wc -l | xargs)
+  echo -e "\n🖋 Rendered HTML Files:"
+  echo "   $rendered file(s) in $OUTPUT_DIR/"
+else
+  echo -e "\n🖋 Rendered HTML Files:"
+  echo "   No $OUTPUT_DIR/ found."
+fi
 
 # Git status
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
@@ -69,4 +74,4 @@ else
   echo -e "\n🌱 Git: Not a repo"
 fi
 
-log "INFO" "rc-status.sh completed"```
+log "INFO" "rc-status.sh completed"

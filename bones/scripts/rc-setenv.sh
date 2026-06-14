@@ -50,4 +50,4 @@ done
 log "INFO" "Verifying known dependencies..."
 check_dependencies
 
-log "INFO" "Environment setup complete."```
+log "INFO" "Environment setup complete."

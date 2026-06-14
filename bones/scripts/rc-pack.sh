@@ -99,8 +99,12 @@ main() {
 
     # Ensure the rendered output directory exists before packing.
     if [ ! -d "$OUTPUT_DIR" ]; then
-      echo "❌ No output directory to pack: $OUTPUT_DIR"
-      exit 1
+      if [[ "$DRY_RUN" == true ]]; then
+        log "DRYRUN" "No output directory to pack: $OUTPUT_DIR (skipping exit)"
+      else
+        echo "❌ No output directory to pack: $OUTPUT_DIR"
+        exit 1
+      fi
     fi
 
     if [[ "$SELF_MODE" == false ]]; then
