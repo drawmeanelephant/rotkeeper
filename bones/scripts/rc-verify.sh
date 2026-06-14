@@ -1,11 +1,22 @@
 #!/usr/bin/env bash
+# ============================================================
+#  ██████╗  ██████╗ ████████╗██╗  ██╗███████╗███████╗██████╗
+#  ██╔══██╗██╔═══██╗╚══██╔══╝██║ ██╔╝██╔════╝██╔════╝██╔══██╗
+#  ██████╔╝██║   ██║   ██║   █████╔╝ █████╗  █████╗  ██████╔╝
+#  ██╔══██╗██║   ██║   ██║   ██╔═██╗ ██╔══╝  ██╔══╝  ██╔═══╝
+#  ██║  ██║╚██████╔╝   ██║   ██║  ██╗███████╗███████╗██║
+#  ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝
+# ============================================================
+#  Project : Rotkeeper
+#  Repo    : https://github.com/drawmeanelephant/rotkeeper
+#  Script  : rc-verify.sh
+#  Purpose : Verify files against manifest SHA256 hashes
+#  Version : 0.2.8
+#  Updated : 2026-03-23
+# ------------------------------------------------------------
+#  Part of the Rotkeeper ritual system — bones, scripts, tombs.
+# ============================================================
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
-# ░▒▓█ ROTKEEPER SCRIPT █▓▒░
-# Script: rc-verify.sh
-# Purpose: Verify file integrity using asset-manifest.yaml and SHA256 digests
-# Version: 0.2.5-pre
-# Updated: 2025-06-03
-# -----------------------------------------
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -24,7 +35,7 @@ main() {
         ./bones/scripts/rc-assets.sh
     fi
 
-    require_bins sha256sum yq date awk
+    check_dependencies
 
     MANIFEST="bones/asset-manifest.yaml"
     if [[ ! -f "$MANIFEST" ]]; then

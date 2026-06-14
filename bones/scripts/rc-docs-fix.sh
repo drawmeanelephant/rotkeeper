@@ -1,13 +1,30 @@
 #!/usr/bin/env bash
-source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
-# ░▒▓█ ROTKEEPER SCRIPT █▓▒░
-# Script: rc-docs-fix.sh
-# Purpose: Search, replace, and backup doc files based on given pattern
-# Version: 0.1.9.9
-# Updated: 2025-05-27
-# -----------------------------------------
+# ============================================================
+#  ██████╗  ██████╗ ████████╗██╗  ██╗███████╗███████╗██████╗
+#  ██╔══██╗██╔═══██╗╚══██╔══╝██║ ██╔╝██╔════╝██╔════╝██╔══██╗
+#  ██████╔╝██║   ██║   ██║   █████╔╝ █████╗  █████╗  ██████╔╝
+#  ██╔══██╗██║   ██║   ██║   ██╔═██╗ ██╔══╝  ██╔══╝  ██╔═══╝
+#  ██║  ██║╚██████╔╝   ██║   ██║  ██╗███████╗███████╗██║
+#  ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝
+# ============================================================
+#  Project : Rotkeeper
+#  Repo    : https://github.com/drawmeanelephant/rotkeeper
+#  Script  : rc-docs-fix.sh
+#  Purpose : Search, replace, and backup doc files based on given pattern
+#  Version : 0.2.8
+#  Updated : 2026-03-23
+# ------------------------------------------------------------
+#  Part of the Rotkeeper ritual system — bones, scripts, tombs.
+# ============================================================
+
+
 set -euo pipefail
 IFS=$'\n\t'
+
+# Source shared utilities (required for init_log, log, etc.)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/rc-utils.sh"
+
 
 # rc-docs-fix.sh — grep & fix your docs with automatic backup
 # Usage: ./rc-docs-fix.sh --pattern PATTERN --replace REPLACEMENT [--dry-run]
@@ -64,15 +81,15 @@ parse_flags() {
   done
 }
 
-init_log "rc-docs-fix"
 
 main() {
+    init_log "rc-docs-fix"
     require_env_vars DOCS_DIR ARCHIVE_DIR LOG_DIR
-    require_bins git rsync ssh pandoc date
+    check_dependencies
     log "INFO" "Running rc-docs-fix.sh."
     parse_flags "$@"
 
-    if [[ -z "$PATTERN" || -z "$REPLACEMENT" ]]; then
+    if [[ -z "${PATTERN:-}" || -z "${REPLACEMENT:-}" ]]; then
       echo "Error: --pattern and --replace are required"
       print_usage
       exit 1
@@ -113,13 +130,13 @@ main() {
       exit 0
     fi
 
-    echo "🔍 Searching for “$PATTERN”…"
+    echo "🔍 Searching for \"$PATTERN\"..."
     grep -RIn --exclude-dir=".git" "$PATTERN" "$DOCS_DIR" || echo "(no matches)"
 
     if $DRY_RUN; then
       echo "⚠️ Dry run: showing diffs only"
-      MATCHES=$(grep -RIl --exclude-dir=".git" "$PATTERN" "$DOCS_DIR")
-      if [[ -z "$MATCHES" ]]; then
+      MATCHES="$(grep -RIl --exclude-dir=".git" "$PATTERN" "$DOCS_DIR" || true)"
+      if [[ -z "${MATCHES:-}" ]]; then
         echo "(no matches)"
       else
         echo "$MATCHES" | xargs sed -n "s/$PATTERN/$REPLACEMENT/gp"

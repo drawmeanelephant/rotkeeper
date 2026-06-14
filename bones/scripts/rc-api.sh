@@ -1,11 +1,23 @@
 #!/usr/bin/env bash
+# ============================================================
+#  ██████╗  ██████╗ ████████╗██╗  ██╗███████╗███████╗██████╗
+#  ██╔══██╗██╔═══██╗╚══██╔══╝██║ ██╔╝██╔════╝██╔════╝██╔══██╗
+#  ██████╔╝██║   ██║   ██║   █████╔╝ █████╗  █████╗  ██████╔╝
+#  ██╔══██╗██║   ██║   ██║   ██╔═██╗ ██╔══╝  ██╔══╝  ██╔═══╝
+#  ██║  ██║╚██████╔╝   ██║   ██║  ██╗███████╗███████╗██║
+#  ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝
+# ============================================================
+#  Project : Rotkeeper
+#  Repo    : https://github.com/drawmeanelephant/rotkeeper
+#  Script  : rc-api.sh
+#  Purpose : Fetch and ingest remote content (templates, assets, packs)
+#  Version : 0.2.8
+#  Updated : 2026-03-23
+# ------------------------------------------------------------
+#  Part of the Rotkeeper ritual system — bones, scripts, tombs.
+# ============================================================
+
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
-# ░▒▓█ ROTKEEPER SCRIPT █▓▒░
-# Script: rc-api.sh
-# Purpose: Fetch and ingest remote content (templates, assets, packs)
-# Version: 0.2.5
-# Updated: 2025-06-03
-# -----------------------------------------
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -18,7 +30,7 @@ init_log "rc-api"
 
 
 main() {
-    require_bins git rsync ssh pandoc date
+    check_dependencies
     log "INFO" "Running rc-api.sh."
 
     CONFIG_FILE="$CONFIG_DIR/remote-sources.yaml"

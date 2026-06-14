@@ -1,8 +1,21 @@
 #!/usr/bin/env bash
-# ░▒▓█ ROTKEEPER HELP AGGREGATOR █▓▒░
-# Purpose: Aggregate and display help texts for all rc-*.sh scripts.
-# Version: 0.2.5-pre
-# Updated: 2025-06-03
+# ============================================================
+#  ██████╗  ██████╗ ████████╗██╗  ██╗███████╗███████╗██████╗
+#  ██╔══██╗██╔═══██╗╚══██╔══╝██║ ██╔╝██╔════╝██╔════╝██╔══██╗
+#  ██████╔╝██║   ██║   ██║   █████╔╝ █████╗  █████╗  ██████╔╝
+#  ██╔══██╗██║   ██║   ██║   ██╔═██╗ ██╔══╝  ██╔══╝  ██╔═══╝
+#  ██║  ██║╚██████╔╝   ██║   ██║  ██╗███████╗███████╗██║
+#  ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝
+# ============================================================
+#  Project : Rotkeeper
+#  Repo    : https://github.com/drawmeanelephant/rotkeeper
+#  Script  : rc-help.sh
+#  Purpose : Aggregate and display help texts for all rc-*.sh scripts
+#  Version : 0.2.8
+#  Updated : 2026-03-23
+# ------------------------------------------------------------
+#  Part of the Rotkeeper ritual system — bones, scripts, tombs.
+# ============================================================
 
 # TODO:
 # - Add --verbose to show full internal script paths
@@ -16,7 +29,7 @@ show_header() {
   echo
   echo "======================================="
   echo " Rotkeeper: Comprehensive Help Index"
-  echo " Version: 0.2.5-pre (Generated on 2025-06-03)"
+  echo " Version: 0.2.8 (Generated on 2026-03-23)"
   echo "======================================="
   echo
 }
@@ -38,6 +51,13 @@ show_help() {
   done
 }
 
+# If --dry-run is passed, exit successfully.
+for arg in "$@"; do
+  if [[ "$arg" == "--dry-run" ]]; then
+    exit 0
+  fi
+done
+
 # If no arguments are provided, display aggregated help.
 if [[ $# -eq 0 ]]; then
   show_help
@@ -51,3 +71,4 @@ Usage: rc-help.sh [no arguments]
 Aggregates and displays help text from all Rotkeeper scripts.
 EOF
 exit 1
+

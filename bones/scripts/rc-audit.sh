@@ -1,11 +1,22 @@
 #!/usr/bin/env bash
+# ============================================================
+#  ██████╗  ██████╗ ████████╗██╗  ██╗███████╗███████╗██████╗
+#  ██╔══██╗██╔═══██╗╚══██╔══╝██║ ██╔╝██╔════╝██╔════╝██╔══██╗
+#  ██████╔╝██║   ██║   ██║   █████╔╝ █████╗  █████╗  ██████╔╝
+#  ██╔══██╗██║   ██║   ██║   ██╔═██╗ ██╔══╝  ██╔══╝  ██╔═══╝
+#  ██║  ██║╚██████╔╝   ██║   ██║  ██╗███████╗███████╗██║
+#  ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝
+# ============================================================
+#  Project : Rotkeeper
+#  Repo    : https://github.com/drawmeanelephant/rotkeeper
+#  Script  : rc-audit.sh
+#  Purpose : Audit markdown files for valid asset-meta frontmatter blocks
+#  Version : 0.2.8
+#  Updated : 2026-03-23
+# ------------------------------------------------------------
+#  Part of the Rotkeeper ritual system — bones, scripts, tombs.
+# ============================================================
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
-# ░▒▓█ ROTKEEPER SCRIPT █▓▒░
-# Script: rc-audit.sh
-# Purpose: Audit markdown files for valid asset-meta frontmatter blocks from manifest list
-# Version: 0.1.9.9
-# Updated: 2025-05-27
-# -----------------------------------------
 set -euo pipefail
 VERBOSE=false
 DRY_RUN=false
@@ -21,7 +32,7 @@ IFS=$'\n\t'
 init_log "rc-audit"
 
 main() {
-    require_bins git rsync ssh pandoc date
+    check_dependencies
     log "INFO" "Running rc-audit.sh."
 # rc-audit.sh — Rotkeeper Asset-Meta Audit
 #

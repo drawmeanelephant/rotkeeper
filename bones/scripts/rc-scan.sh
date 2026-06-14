@@ -1,12 +1,22 @@
 #!/usr/bin/env bash
-# Source shared Rotkeeper helpers
-source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
-# ░▒▓█ ROTKEEPER SCRIPT █▓▒░
-# Script: rc-scan.sh
-# Purpose: Audit files vs manifest, classify orphans, and write digest reports
-# Version: 0.2.1
-# Updated: 2025-05-29
-# -----------------------------------------
+# ============================================================
+#  ██████╗  ██████╗ ████████╗██╗  ██╗███████╗███████╗██████╗
+#  ██╔══██╗██╔═══██╗╚══██╔══╝██║ ██╔╝██╔════╝██╔════╝██╔══██╗
+#  ██████╔╝██║   ██║   ██║   █████╔╝ █████╗  █████╗  ██████╔╝
+#  ██╔══██╗██║   ██║   ██║   ██╔═██╗ ██╔══╝  ██╔══╝  ██╔═══╝
+#  ██║  ██║╚██████╔╝   ██║   ██║  ██╗███████╗███████╗██║
+#  ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝
+# ============================================================
+#  Project : Rotkeeper
+#  Repo    : https://github.com/drawmeanelephant/rotkeeper
+#  Script  : rc-scan.sh
+#  Purpose : Audit files vs manifest, classify orphans, and write digest reports
+#  Version : 0.2.8
+#  Updated : 2026-03-23
+# ------------------------------------------------------------
+#  Part of the Rotkeeper ritual system — bones, scripts, tombs.
+# ============================================================
+
 set -euo pipefail
 # Initialize arrays for manifest and disk entries to avoid unbound variable under set -u
 manifest_list=()
@@ -28,7 +38,7 @@ done
 
 show_help() {
   cat << EOF
-rc-scan.sh — Audit manifest and scan environment for file reports (v0.2.1)
+rc-scan.sh — Audit manifest and scan environment for file reports (v0.2.8)
 
 Usage: rc-scan.sh [options]
 
@@ -80,7 +90,7 @@ trap cleanup EXIT INT TERM
 
 
 main() {
-    require_bins git rsync ssh pandoc date
+    check_dependencies
     log "INFO" "Running rc-scan.sh."
     # Use plain arrays for manifest and disk lists
     manifest_list=()

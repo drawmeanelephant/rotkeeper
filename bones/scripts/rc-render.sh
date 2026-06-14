@@ -1,25 +1,22 @@
 #!/usr/bin/env bash
-# Source shared Rotkeeper helpers
+# ============================================================
+#  ██████╗  ██████╗ ████████╗██╗  ██╗███████╗███████╗██████╗
+#  ██╔══██╗██╔═══██╗╚══██╔══╝██║ ██╔╝██╔════╝██╔════╝██╔══██╗
+#  ██████╔╝██║   ██║   ██║   █████╔╝ █████╗  █████╗  ██████╔╝
+#  ██╔══██╗██║   ██║   ██║   ██╔═██╗ ██╔══╝  ██╔══╝  ██╔═══╝
+#  ██║  ██║╚██████╔╝   ██║   ██║  ██╗███████╗███████╗██║
+#  ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝
+# ============================================================
+#  Project : Rotkeeper
+#  Repo    : https://github.com/drawmeanelephant/rotkeeper
+#  Script  : rc-render.sh
+#  Purpose : Render markdown tombs into HTML using Pandoc and templates
+#  Version : 0.2.8
+#  Updated : 2026-03-23
+# ------------------------------------------------------------
+#  Part of the Rotkeeper ritual system — bones, scripts, tombs.
+# ============================================================
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
-# ░▒▓█ ROTKEEPER SCRIPT █▓▒░
-# Script: rc-render.sh
-# Purpose: Render markdown tombs into HTML using Pandoc and templates
-# Version: 0.2.5
-# Updated: 2025-06-03
-# -----------------------------------------
-# =============================================================================
-# rc-render.sh — Pandoc-based renderer for Rotkeeper tombs
-#
-#   Markdown bones from content rise,
-#   Styled by glyphs that archivists prize.
-#   Pandoc breathes life into each ghostly frame,
-#   HTML tombs now bear their name.
-#
-#   This script:
-#   - Renders markdown into HTML using a configured template
-#   - Uses render-flags.yaml to guide which content_dirs to process
-#   - Automatically archives the rendered output into bones/archive/
-# =============================================================================
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -64,35 +61,17 @@ run() {
   fi
 }
 
-# --- Log File Setup ---
-SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOG_FILE="$SCRIPTDIR/../logs/rc-render-$(date '+%Y-%m-%d_%H%M%S').log"
-mkdir -p "$(dirname "$LOG_FILE")"
-
-log() {
-  local level="$1"; shift
-  local ts
-  ts=$(date '+%Y-%m-%d %H:%M:%S')
-  if [[ "$level" == "DEBUG" && "$VERBOSE" != true ]]; then
-    return
-  fi
-  printf '[%s] [%s] %s\n' "$ts" "$level" "$*" | tee -a "$LOG_FILE"
-}
+init_log "rc-render"
 
 cleanup() {
     log "INFO" "Cleaning up after rc-render.sh."
     # Add cleanup commands here
 }
 trap cleanup EXIT INT TERM
-
-trap_err() {
-  log "ERROR" "Unhandled error in ${BASH_SOURCE[1]} at line $1"
-  exit 1
-}
 trap 'trap_err $LINENO' ERR
 
 main() {
-    require_bins git rsync ssh pandoc date awk grep find tar
+    check_dependencies
     log "INFO" "Running rc-render.sh."
 
     # Initialize page counter and start time
@@ -107,7 +86,6 @@ main() {
     MANIFEST="$BONES_DIR/manifest.txt"
     TEMPLATE_DIR="$TEMPLATE_DIR"
 
-    log "INFO" "SCRIPTDIR=$SCRIPTDIR"
     log "INFO" "CONFIG_FILE=$CONFIG_FILE"
     log "INFO" "MANIFEST=$MANIFEST"
     log "INFO" "TEMPLATE_DIR=$TEMPLATE_DIR"

@@ -1,7 +1,21 @@
 #!/usr/bin/env bash
-# 🧱 rc-env.sh — Environment Bootstrap for Rotkeeper
-# Provides canonical path variables for all rc-*.sh rituals.
-# Source this at the top of every script to avoid hardcoded paths.
+# ============================================================
+#  ██████╗  ██████╗ ████████╗██╗  ██╗███████╗███████╗██████╗
+#  ██╔══██╗██╔═══██╗╚══██╔══╝██║ ██╔╝██╔════╝██╔════╝██╔══██╗
+#  ██████╔╝██║   ██║   ██║   █████╔╝ █████╗  █████╗  ██████╔╝
+#  ██╔══██╗██║   ██║   ██║   ██╔═██╗ ██╔══╝  ██╔══╝  ██╔═══╝
+#  ██║  ██║╚██████╔╝   ██║   ██║  ██╗███████╗███████╗██║
+#  ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝
+# ============================================================
+#  Project : Rotkeeper
+#  Repo    : https://github.com/drawmeanelephant/rotkeeper
+#  Script  : rc-env.sh
+#  Purpose : Environment bootstrap — canonical path variables for all rc-*.sh rituals
+#  Version : 0.2.8
+#  Updated : 2026-03-23
+# ------------------------------------------------------------
+#  Part of the Rotkeeper ritual system — bones, scripts, tombs.
+# ============================================================
 
 # Fail fast if sourced in a non-Bash shell
 [[ -n "$BASH_VERSION" ]] || {
@@ -38,3 +52,4 @@ WEB_DIR="$OUTPUT_DIR"
 export ROOT_DIR BONES_DIR OUTPUT_DIR CONTENT_DIR ASSETS_DIR DOCS_DIR HELP_DIR
 export LOG_DIR TMP_DIR CONFIG_DIR ARCHIVE_DIR REPORT_DIR SCRIPT_DIR TEMPLATE_DIR META_DIR
 export WEB_DIR
+

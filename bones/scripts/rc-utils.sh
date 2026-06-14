@@ -1,11 +1,21 @@
 #!/usr/bin/env bash
-# ░▒▓█ ROTKEEPER SCRIPT █▓▒░
-# Script: rc-utils.sh
-# Purpose: Shared Rotkeeper helper functions and runtime sanity wrappers
-# Version: 0.2.4-dev
-# Updated: 2025-05-31
-# -----------------------------------------
-
+# ============================================================
+#  ██████╗  ██████╗ ████████╗██╗  ██╗███████╗███████╗██████╗
+#  ██╔══██╗██╔═══██╗╚══██╔══╝██║ ██╔╝██╔════╝██╔════╝██╔══██╗
+#  ██████╔╝██║   ██║   ██║   █████╔╝ █████╗  █████╗  ██████╔╝
+#  ██╔══██╗██║   ██║   ██║   ██╔═██╗ ██╔══╝  ██╔══╝  ██╔═══╝
+#  ██║  ██║╚██████╔╝   ██║   ██║  ██╗███████╗███████╗██║
+#  ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝
+# ============================================================
+#  Project : Rotkeeper
+#  Repo    : https://github.com/drawmeanelephant/rotkeeper
+#  Script  : rc-utils.sh
+#  Purpose : Shared Rotkeeper helper functions and runtime sanity wrappers
+#  Version : 0.2.8
+#  Updated : 2026-03-23
+# ------------------------------------------------------------
+#  Part of the Rotkeeper ritual system — bones, scripts, tombs.
+# ============================================================
 
 set -euo pipefail
 IFS=$'\n\t'
@@ -40,7 +50,9 @@ log() {
   ts=$(date '+%Y-%m-%d %H:%M:%S')
   local msg="[$ts] [$level] $*"
   echo "$msg"
-  [[ -n "${LOG_FILE:-}" ]] && echo "$msg" >> "$LOG_FILE"
+  if [[ -n "${LOG_FILE:-}" ]]; then
+    echo "$msg" >> "$LOG_FILE"
+  fi
 }
 
 # Runner: dry-run and verbose wrapper for commands
@@ -63,10 +75,25 @@ require_bins() {
   done
 }
 
+# Check all core binary dependencies used by Rotkeeper scripts
+check_dependencies() {
+  require_bins bash pandoc sha256sum
+  require_yq_version
+  require_gawk_version
+}
+
 # Require yq version 4.x or higher (Go-based CLI)
 require_yq_version() {
   if ! yq eval '.foo' <<< 'foo: bar' >/dev/null 2>&1; then
     log "ERROR" "yq version 4.x required. Install from https://github.com/mikefarah/yq"
+    exit 2
+  fi
+}
+
+# Require GNU awk (gawk) instead of macOS/BSD awk
+require_gawk_version() {
+  if ! awk --version 2>&1 | grep -qi 'GNU Awk'; then
+    log "ERROR" "GNU Awk required. Install it via: brew install gawk"
     exit 2
   fi
 }
@@ -141,4 +168,13 @@ require_env_vars() {
 : "${ROT_SKIP_ENV:=false}"
 if [[ "$ROT_SKIP_ENV" != true ]]; then
   source_rc_env
+fi
+
+# Run main only if script is executed directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main() {
+        # placeholder main logic for rc-utils.sh
+        :
+    }
+    main "$@"
 fi

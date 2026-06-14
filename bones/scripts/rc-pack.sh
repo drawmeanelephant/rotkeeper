@@ -1,49 +1,33 @@
 #!/usr/bin/env bash
-# [✓] Bash-hardened for rotkeeper v0.2.4
-# Source shared Rotkeeper helpers
+# ============================================================
+#  ██████╗  ██████╗ ████████╗██╗  ██╗███████╗███████╗██████╗
+#  ██╔══██╗██╔═══██╗╚══██╔══╝██║ ██╔╝██╔════╝██╔════╝██╔══██╗
+#  ██████╔╝██║   ██║   ██║   █████╔╝ █████╗  █████╗  ██████╔╝
+#  ██╔══██╗██║   ██║   ██║   ██╔═██╗ ██╔══╝  ██╔══╝  ██╔═══╝
+#  ██║  ██║╚██████╔╝   ██║   ██║  ██╗███████╗███████╗██║
+#  ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝
+# ============================================================
+#  Project : Rotkeeper
+#  Repo    : https://github.com/drawmeanelephant/rotkeeper
+#  Script  : rc-pack.sh
+#  Purpose : Bundle rendered output into versioned .tar.gz archive and export markdown to JSON
+#  Version : 0.2.8
+#  Updated : 2026-03-23
+# ------------------------------------------------------------
+#  Part of the Rotkeeper ritual system — bones, scripts, tombs.
+# ============================================================
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
-# Source environment variables (paths)
-source "$(dirname "${BASH_SOURCE[0]}")/rc-env.sh"
-# ░▒▓█ ROTKEEPER SCRIPT █▓▒░
-# Script: rc-pack.sh
-# Purpose: Bundle the rendered output into a versioned .tar.gz archive and export markdown content to JSON.
-# Version: 0.2.0
-# Updated: 2025-05-27
-# -----------------------------------------
 set -euo pipefail
 IFS=$'\n\t'
 
-LOG_FILE="$LOG_DIR/rc-pack-$(date +%Y-%m-%d_%H%M).log"
-run() {
-  if [[ "$DRY_RUN" == true ]]; then
-    log "DRY-RUN" "$(printf '%q ' "$@")"
-  else
-    log "INFO" "$(printf '%q ' "$@")"
-    "$@"
-  fi
-}
-run mkdir -p "$(dirname "$LOG_FILE")"
+init_log "rc-pack"
 
-log() {
-    local level="$1"; shift
-    printf '%s [%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$level" "$*" | tee -a "$LOG_FILE"
-}
-
-cleanup() {
-    log "INFO" "Cleaning up after rc-pack.sh."
-    # Add cleanup commands here
-}
 trap cleanup EXIT INT TERM
-
-trap_err() {
-  log "ERROR" "Unhandled error in ${BASH_SOURCE[1]} at line $1"
-  exit 1
-}
 trap 'trap_err $LINENO' ERR
 
 show_help() {
   cat << EOF
-rc-pack.sh — Ritual Compression Packager (v0.2.0)
+rc-pack.sh — Ritual Compression Packager (v0.2.8)
 
 Usage: rc-pack.sh [options]
 
@@ -97,7 +81,7 @@ main() {
       show_help
     fi
 
-    require_bins tar jq pandoc
+    check_dependencies
     $VERBOSE && log "DEBUG" "Dependencies verified."
 
     # --- Shared Configuration ---

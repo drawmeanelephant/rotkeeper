@@ -1,17 +1,27 @@
 #!/usr/bin/env bash
-# ░▒▓█ ROTKEEPER SCRIPT █▓▒░
-# Script: rc-setenv.sh
-# Purpose: Setup and validate all environment paths and dependencies
-# Version: 0.2.5-pre
-# Updated: 2025-06-03
-# -----------------------------------------
+# ============================================================
+#  ██████╗  ██████╗ ████████╗██╗  ██╗███████╗███████╗██████╗
+#  ██╔══██╗██╔═══██╗╚══██╔══╝██║ ██╔╝██╔════╝██╔════╝██╔══██╗
+#  ██████╔╝██║   ██║   ██║   █████╔╝ █████╗  █████╗  ██████╔╝
+#  ██╔══██╗██║   ██║   ██║   ██╔═██╗ ██╔══╝  ██╔══╝  ██╔═══╝
+#  ██║  ██║╚██████╔╝   ██║   ██║  ██╗███████╗███████╗██║
+#  ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝
+# ============================================================
+#  Project : Rotkeeper
+#  Repo    : https://github.com/drawmeanelephant/rotkeeper
+#  Script  : rc-setenv.sh
+#  Purpose : Set and verify runtime environment variables for Rotkeeper rituals
+#  Version : 0.2.8
+#  Updated : 2026-03-23
+# ------------------------------------------------------------
+#  Part of the Rotkeeper ritual system — bones, scripts, tombs.
+# ============================================================
+
 # TODO:
 # - Optionally dump created dirs to a tempfile for downstream inspection
 # - Allow filtering which dirs to create via CLI args
 set -euo pipefail
 
-# Source rc-env.sh to get all required environment variables
-source "$(dirname "${BASH_SOURCE[0]}")/rc-env.sh"
 UTILS_PATH="$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 if [[ ! -f "$UTILS_PATH" ]]; then
   echo "[FATAL] rc-utils.sh not found at $UTILS_PATH"
@@ -38,8 +48,6 @@ done
 
 # Optional: dependency check via rc-utils.sh
 log "INFO" "Verifying known dependencies..."
-require_bins bash awk grep sed tar date yq htmlq pandoc || {
-  log "WARN" "One or more recommended tools are missing"
-}
+check_dependencies
 
-log "INFO" "Environment setup complete."
+log "INFO" "Environment setup complete."```
