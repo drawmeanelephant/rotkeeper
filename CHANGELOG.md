@@ -32,3 +32,6 @@
 
 ## [0.3.0.2] - 2026-06-14
 - test
+
+## [0.3.0.3] - 2026-06-14
+- Implemented automated sticky bump ritual to keep roadmaps from rotting

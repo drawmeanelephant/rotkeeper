@@ -11,11 +11,12 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-bump.sh
 #  Purpose : Automated microbump logging and version bumping workflow
-#  Version : 0.3.0.2
+#  Version : 0.3.0.3
 # ------------------------------------------------------------
 
 set -euo pipefail
 IFS=$'\n\t'
+export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"

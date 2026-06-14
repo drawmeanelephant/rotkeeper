@@ -3,7 +3,7 @@
 # Repo: https://github.com/drawmeanelephant/rotkeeper
 # Script: rc-unbook.sh
 # Purpose: Extract fenced scriptbook sections back into files
-# Version: 0.3.0.2
+# Version: 0.3.0.3
 # Updated: 2026-04-02
 # ------------------------------------------------------------
 # Part of the Rotkeeper ritual system: bones, scripts, tombs.
