@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-pack.sh
 #  Purpose : Bundle rendered output into versioned .tar.gz archive and export markdown to JSON
-#  Version : 0.3.0
+#  Version : 0.3.0.2
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -27,7 +27,7 @@ trap 'trap_err $LINENO' ERR
 
 show_help() {
   cat << EOF
-rc-pack.sh — Ritual Compression Packager (v0.3.0)
+rc-pack.sh — Ritual Compression Packager (v0.3.0.2.1)
 
 Usage: rc-pack.sh [options]
 

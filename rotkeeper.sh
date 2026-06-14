@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rotkeeper.sh
 #  Purpose : CLI dispatcher for all Rotkeeper rituals
-#  Version : 0.3.0
+#  Version : 0.3.0.2
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -20,7 +20,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-VERSION="0.2.6-pre"
+VERSION="0.3.0.2"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BONES="$SCRIPT_DIR/bones/scripts"
 
@@ -76,6 +76,8 @@ Commands:
                 --input FILE     Use a scriptbook/docbook/configbook
 
   status      Display latest render/log/archive/git state summary
+
+  bump        Log a micro-update, bump the version, and commit changes
 
   test        Run the full rc-*.sh test suite
 
@@ -175,6 +177,11 @@ case "$command" in
   status)
     echo "Summoning rotkeeper status..."
     bash "$BONES/rc-status.sh" "$@"
+    ;;
+
+  bump)
+    echo "Logging microupdate and bumping version..."
+    bash "$BONES/rc-bump.sh" "$@"
     ;;
 
   test)

@@ -29,3 +29,6 @@
   - Make `trap_err` shell-safe for test invocation
 - Modified `README.md` to reflect testing support and current dev version
 - Added new audit tasks and 4.5-import stubs to `todo.md`
+
+## [0.3.0.2] - 2026-06-14
+- test
