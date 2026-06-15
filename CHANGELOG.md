@@ -56,3 +56,6 @@
 
 ## [0.3.0.10] - 2026-06-15
 - fix: exclude bones/archive from release zip files to reduce bloat
+
+## [0.3.0.11] - 2026-06-15
+- fix: resolve reseed regex parsing bug and index post-increment strict mode crash

@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-test.sh
 #  Purpose : Run dry-run tests on all rc-*.sh scripts and log their results
-#  Version : 0.3.0.10
+#  Version : 0.3.0.11
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.

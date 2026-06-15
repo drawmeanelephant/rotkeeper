@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-index.sh
 #  Purpose : Index all HTML output docs, binder ritual style
-#  Version : 0.3.0.10
+#  Version : 0.3.0.11
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -112,7 +112,7 @@ echo "[INFO] Creating HTML index at: $INDEX_HTML"
 total_pages=0
 
 for file in "${html_files[@]}"; do
-  ((total_pages++))
+  total_pages=$((total_pages + 1))
   rel_path="${file#$OUTPUT_DIR/}"
   echo "[INFO] Processing: $rel_path"
 

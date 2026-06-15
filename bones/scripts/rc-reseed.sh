@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-reseed.sh
 #  Purpose : Reverse ritual — unbind aggregated markdown back into original files
-#  Version : 0.3.0.10
+#  Version : 0.3.0.11
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -88,7 +88,7 @@ for INPUT in "${DEFAULT_BOOKS[@]}"; do
   skip_next=0
 
   while IFS= read -r line || [[ -n "$line" ]]; do
-    if [[ "$line" =~ ^\<\!\-\-\ START:\ ([^[:space:]]+)\ \-\-\>$ ]]; then
+    if [[ "$line" =~ ^\<\!\-\-\ START:?\ ([^[:space:]]+)\ \-\-\>$ ]]; then
       relpath="road-to-bones/${BASH_REMATCH[1]}"
       outfile="$ROOT_DIR/$relpath"
       mkdir -p "$(dirname "$outfile")"
