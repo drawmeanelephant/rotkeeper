@@ -99,6 +99,10 @@ main() {
       TMP_EXTRACT=$(mktemp -d)
       run tar -xzf "$archive" -C "$TMP_EXTRACT"
       
+      # Retroactive cleanup: remove redundant docs from older payloads
+      rm -rf "$TMP_EXTRACT/home/content/docs" "$TMP_EXTRACT/home/content/help" 2>/dev/null || true
+      rm -f "$TMP_EXTRACT/home/content/"*_temp.md 2>/dev/null || true
+      
       # Identify if the archive has a home/content directory structure
       if [[ -d "$TMP_EXTRACT/home/content" ]]; then
         # Move everything from home/content into the safe destination

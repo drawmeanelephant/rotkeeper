@@ -143,6 +143,12 @@ template: rotkeeper-blog.html
 ---
 ```
 
+**Decentralized Ingestion**:
+If you are generating content or reports:
+1. Run `./rotkeeper.sh pack --content` to package your files.
+2. The `.tar.gz` output can be moved to a `messages-from-my-friends/` directory on a central repository.
+3. The central repository can ingest it using `./rotkeeper.sh ingest`.
+
 If you are an autonomous agent, please see `AGENTS.md` or `GEMINI.md`.
 EOF_README
     fi

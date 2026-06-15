@@ -117,7 +117,10 @@ main() {
       CONTENT_ARCHIVE="tomb-content-$VERSION.tar"
       if [[ "$DRY_RUN" == false ]]; then
         echo "📦 Packing \"$SOURCE_DIR\" into \"$CONTENT_ARCHIVE\""
-        run tar -cf "$ARCHIVE_DIR/$CONTENT_ARCHIVE" "home/content"
+        run tar --exclude="home/content/docs" \
+                --exclude="home/content/help" \
+                --exclude="*_temp.md" \
+                -cf "$ARCHIVE_DIR/$CONTENT_ARCHIVE" "home/content"
         count=$(tar -tf "$ARCHIVE_DIR/$CONTENT_ARCHIVE" | wc -l)
         log "INFO" "Packaged $count files into $CONTENT_ARCHIVE"
         SHA=$(sha256sum "$ARCHIVE_DIR/$CONTENT_ARCHIVE" | cut -d' ' -f1)
