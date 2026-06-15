@@ -62,3 +62,6 @@
 
 ## [0.3.0.12] - 2026-06-15
 - fix: cleaned up vendor bloat and excluded local inbox, messages, and reports from distribution payload
+
+## [0.3.0.13] - 2026-06-15
+- Add nice clean light and dark themes, set light as default

@@ -11,7 +11,7 @@ content:
   dirs:
     - home/content/rotkeeper
     - home/content/mascots
-  default_template: rotkeeper-bones.html
+  default_template: theme-light.html
   archive_after_render: true  # Toggle automatic tar.gz of output after render
 
 # 🎭 Template Registry
@@ -51,8 +51,8 @@ audit:
 # 🌐 Remote Sources
 remote:
   sources:
-    - url: "https://assets.rotkeeper.com/templates/plainstone.html"
-      filename: "plainstone.html"
+    - url: "https://assets.rotkeeper.com/templates/theme-light.html"
+      filename: "theme-light.html"
 
 # 🧾 Logging + Output Settings
 log:

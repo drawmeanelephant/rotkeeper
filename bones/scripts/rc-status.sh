@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-status.sh
 #  Purpose : Output a high-level status report on recent rituals and artifacts
-#  Version : 0.3.0.12
+#  Version : 0.3.0.13
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.

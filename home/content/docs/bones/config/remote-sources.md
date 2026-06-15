@@ -41,8 +41,8 @@ Example:
 
 ```yaml
 sources:
-  - url: "https://assets.rotkeeper.com/templates/plainstone.html"
-    filename: "plainstone.html"
+  - url: "https://assets.rotkeeper.com/templates/theme-light.html"
+    filename: "theme-light.html"
   - url: "https://assets.rotkeeper.com/scripts/rc-docs-fix.sh"
     filename: "rc-docs-fix.sh"
 ```

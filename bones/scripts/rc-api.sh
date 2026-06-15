@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-api.sh
 #  Purpose : Fetch and ingest remote content (templates, assets, packs)
-#  Version : 0.3.0.12
+#  Version : 0.3.0.13
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -87,8 +87,8 @@ main() {
 # Example sources:
 #
 # sources:
-#   - url: "https://assets.rotkeeper.com/templates/plainstone.html"
-#     filename: "plainstone.html"
+#   - url: "https://assets.rotkeeper.com/templates/theme-light.html"
+#     filename: "theme-light.html"
 #
 #   - url: "https://assets.rotkeeper.com/scripts/rc-docs-fix.sh"
 #     filename: "rc-docs-fix.sh"

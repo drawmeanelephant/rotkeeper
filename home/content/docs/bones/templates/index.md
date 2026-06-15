@@ -34,7 +34,8 @@ bones/templates/
 |---------------------------|------------------------------------------|---------------|
 | `rotkeeper-doc.html`      | Maximalist aesthetic / Sora-centric docs | Glitchy       |
 | `rotkeeper-blog.html`     | Clean Bootstrap with metadata block      | Readable      |
-| `rotkeeper-bones.html`    | Raw Pandoc passthrough (no layout)       | Skeleton only |
+| `theme-dark.html`         | Clean, flat dark theme layout            | Readable      |
+| `theme-light.html`        | Clean, flat light theme layout           | Default       |
 | `rotkeeper-tech.html`     | *[planned]* For manuals, scripts, flags  | CLI-friendly  |
 
 ## ⚙️ How Rendering Works

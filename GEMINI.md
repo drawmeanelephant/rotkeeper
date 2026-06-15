@@ -59,9 +59,8 @@ Use in frontmatter as `template: <name>`:
 
 - `rotkeeper-blog.html` — Blog-style layout
 - `rotkeeper-doc.html` — Documentation with navigation
-- `rotkeeper-doc-navless.html` — Documentation without navigation
-- `rotkeeper-bones.html` — Minimal ritual layout (default)
-- `plainstone.html` — Bare-bones unstyled
+- `theme-dark.html` — Clean, flat dark theme layout
+- `theme-light.html` — Clean, flat light theme layout (default)
 
 ## Decentralized Content Pipeline
 

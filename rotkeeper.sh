@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rotkeeper.sh
 #  Purpose : CLI dispatcher for all Rotkeeper rituals
-#  Version : 0.3.0.12
+#  Version : 0.3.0.13
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -20,7 +20,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-VERSION="0.3.0.12"
+VERSION="0.3.0.13"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BONES="$SCRIPT_DIR/bones/scripts"
 
@@ -43,6 +43,8 @@ Usage:
 Commands:
   init        Initialize environment (reseed + assets + render)
                 --force    Force rebuild of all files
+
+  new <file>  Scaffold a new markdown file with required YAML frontmatter
 
   render      Convert markdown files (from home/content/) into HTML tombs (in output/)
               (Note: This also creates a timestamped backup archive in bones/archive/)
@@ -123,6 +125,11 @@ case "$command" in
   init)
     echo "Starting full initialization..."
     bash "$BONES/rc-init.sh" --force "$@"
+    ;;
+
+  new)
+    echo "Scaffolding new file..."
+    bash "$BONES/rc-new.sh" "$@"
     ;;
 
   render)

@@ -128,6 +128,25 @@ main() {
         rm -rf "$LITE_DIR/home/content/help"
         rm -rf "$LITE_DIR/home/content/rotkeeper"
         
+        # Overwrite index.md for lite distribution to avoid broken links
+        cat << 'EOF_LITE_INDEX' > "$LITE_DIR/home/content/index.md"
+---
+title: "Welcome to Rotkeeper (Lite)"
+slug: home
+template: rotkeeper-blog.html
+description: "Rotkeeper CLI landing page for the Lite distribution."
+---
+
+# Rotkeeper: A Ritual CLI for Flat‑File Decay
+
+Welcome to the Lite distribution of Rotkeeper.
+
+To start rendering tombs, run:
+`./rotkeeper.sh render`
+
+*Note: Documentation and sample blogs have been stripped from this lite version.*
+EOF_LITE_INDEX
+
         # Inject micro-README for agents/users in lite
         cat << 'EOF_README' > "$LITE_DIR/README.md"
 # Welcome to Rotkeeper (Lite Distribution)

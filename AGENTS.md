@@ -76,9 +76,8 @@ Use the `template:` key in your YAML frontmatter. Run `./rotkeeper.sh templates`
 |----------|---------|
 | `rotkeeper-blog.html` | Blog-style layout with full styling |
 | `rotkeeper-doc.html` | Documentation layout with navigation |
-| `rotkeeper-doc-navless.html` | Documentation layout without navigation |
-| `rotkeeper-bones.html` | Minimal ritual layout (system default) |
-| `plainstone.html` | Bare-bones unstyled template |
+| `theme-dark.html` | Clean, flat dark theme layout |
+| `theme-light.html` | Clean, flat light theme layout (system default) |
 
 ## 🚀 Quickstart for Agents
 

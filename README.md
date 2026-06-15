@@ -120,9 +120,8 @@ Use these in your Markdown frontmatter's `template:` field. Run `./rotkeeper.sh 
 |----------|---------|
 | `rotkeeper-blog.html` | Blog-style layout with full styling |
 | `rotkeeper-doc.html` | Documentation layout with navigation |
-| `rotkeeper-doc-navless.html` | Documentation layout without navigation |
-| `rotkeeper-bones.html` | Minimal ritual layout (default) |
-| `plainstone.html` | Bare-bones unstyled template |
+| `theme-dark.html` | Clean, flat dark theme layout |
+| `theme-light.html` | Clean, flat light theme layout (default) |
 
 ***
 

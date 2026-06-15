@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-assets.sh
 #  Purpose : Generate a selective YAML manifest of referenced assets
-#  Version : 0.3.0.12
+#  Version : 0.3.0.13
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.

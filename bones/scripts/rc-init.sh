@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-init.sh
 #  Purpose : Initialize environment: reseed, bless scripts, render, and validate
-#  Version : 0.3.0.12
+#  Version : 0.3.0.13
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -91,6 +91,7 @@ It shows you exactly how to format your Markdown files with the required YAML fr
 To render this page into HTML, run:
 `./rotkeeper.sh render`
 EOF_HELLO
+    log "INFO" "📄 Generated starter content at home/content/hello-world.md"
 
     run "$SCRIPTDIR/rc-assets.sh"
     run "$SCRIPTDIR/rc-render.sh" --verbose
