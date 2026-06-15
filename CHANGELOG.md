@@ -50,3 +50,6 @@
 
 ## [0.3.0.8] - 2026-06-15
 - docs: documented architecture pillars and new rc rituals
+
+## [0.3.0.9] - 2026-06-15
+- fix: updated rc-glue.sh to support non-destructive overwriting using rotkeeper_glued frontmatter

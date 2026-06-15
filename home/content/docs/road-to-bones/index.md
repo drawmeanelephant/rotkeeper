@@ -29,6 +29,7 @@ This is your consolidated status snapshot: what’s working, what’s stubbed, a
 
 ## 📡 Living Buildlog (Micro Updates)
 <!-- LIVING_BUILDLOG_START -->
+* `v0.3.0.9` - (2026-06-15 15:22) - fix: updated rc-glue.sh to support non-destructive overwriting using rotkeeper_glued frontmatter
 * `v0.3.0.8` - (2026-06-15 15:06) - docs: documented architecture pillars and new rc rituals
 * `v0.3.0.7` - (2026-06-15 15:02) - feat: added autoindex glue ritual to connect unindexed tombs
 * `v0.3.0.6` - (2026-06-15 14:26) - UX: added init warning to render and YAML syntax example to templates CLI
