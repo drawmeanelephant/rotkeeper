@@ -38,3 +38,6 @@
 
 ## [0.3.0.4] - 2026-06-15
 - Integrate decentralized ingestion pipeline, CLI UX improvements, and Opus doc synchronization.
+
+## [0.3.0.5] - 2026-06-15
+- Presentation layer refactor: token-based CSS and Golden Path template

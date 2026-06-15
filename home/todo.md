@@ -1,6 +1,6 @@
 # ✅ Rotkeeper Task Ledger
 
-This ledger reflects all tasks known, forgotten, or ghostwritten as of `v0.2.6-dev`.
+This ledger reflects all tasks known, forgotten, or ghostwritten as of `v0.3.0.4`.
 
 ---
 
@@ -97,4 +97,4 @@ This ledger reflects all tasks known, forgotten, or ghostwritten as of `v0.2.6-d
 
 ---
 
-_Last updated by tombkeeper: 2025-06-04 — current branch: dev-v0.2.6_
+_Last updated by tombkeeper: 2026-06-15 — current branch: main_

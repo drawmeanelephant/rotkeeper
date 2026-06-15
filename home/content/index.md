@@ -2,8 +2,8 @@
 title: "Welcome to Rotkeeper"
 slug: home
 template: rotkeeper-blog.html
-version: "0.2.3-pre"
-updated: "2025-06-01"
+version: "0.3.0.4"
+updated: "2026-06-15"
 description: "Rotkeeper CLI landing page. Get started with decay rituals, rendering tombs, and exploring archival output."
 tags:
   - rotkeeper
@@ -12,7 +12,7 @@ tags:
   - decay
 asset_meta:
   name: "index.md"
-  version: "0.2.3-pre"
+  version: "0.3.0.4"
   author: "Filed Systems"
   project: "Rotkeeper"
   tracked: true
@@ -38,29 +38,29 @@ See the [Quickstart Guide](/docs/quickstart-guide.md) to begin your first decay 
 
 ***
 
-## 🗺️ Subdomain Index
+## 🗺️ Index
 
-### 🧾 [docs.rotkeeper.com](/docs/)
+### 🧾 [Docs](/docs/)
 > Learn how to use the CLI, configure tombs, run audit rituals, and understand the philosophy behind decay tracking.
 
-### 📦 [archive.rotkeeper.com](/archive/)
+### 📦 [Archive](/archive/)
 > Browse or download `.tar.gz` tombs of past versions. Explore manifests, changelogs, and tomb metadata.
 
-### 📜 [blog.rotkeeper.com](/blog/)
+### 📜 [Blog](/blog/)
 > Announcements, roadmap notes, and case studies from real decay rituals.
 
-### 🧪 [playground.rotkeeper.com](/playground/)
+### 🧪 [Playground](/playground/)
 > Try Rotkeeper tools live in your browser. Scan markdown, preview templates, and mutate logs.
 
-### 📡 [api.rotkeeper.com](/api/)
+### 📡 [API](/api/)
 > Query tomb metadata via JSON. Hook into scan endpoints or browse file-level decay attributes.
 
-### 🛠️ [tools.rotkeeper.com](/tools/)
+### 🛠️ [Tools](/tools/)
 > Experimental GUI helpers. Generate manifests, edit render-flags, and tail live log output.
 
 ***
 
-## 🔖 Version: 0.2.0
+## 🔖 Version: 0.3.0.4
 
 - [Changelog](/changelog/)
 - [How to Contribute](/contributing/)
