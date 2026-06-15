@@ -102,6 +102,8 @@ main() {
             --exclude='bones/archives' \
             --exclude='.DS_Store' \
             --exclude='.vscode' \
+            --exclude='todo.md' \
+            --exclude='*_temp.md' \
             "$PROJECT_ROOT/" "$FULL_DIR/"
     fi
 
@@ -128,8 +130,18 @@ main() {
 This is the lean, documentation-free distribution of Rotkeeper.
 
 **Quickstart:**
-1. Source files live in `home/content/`.
-2. To see available commands, run: `./rotkeeper.sh help`
+1. Initialize the workspace: `./rotkeeper.sh init`
+2. Create your markdown files in `home/content/`.
+3. Render your output: `./rotkeeper.sh render`
+
+**Important**: Your markdown files MUST have YAML frontmatter at the very top. For example:
+```yaml
+---
+title: "My Page"
+slug: my-page
+template: rotkeeper-blog.html
+---
+```
 
 If you are an autonomous agent, please see `AGENTS.md` or `GEMINI.md`.
 EOF_README

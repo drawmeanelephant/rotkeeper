@@ -21,8 +21,9 @@ Rotkeeper is a terminal-based toolkit for rendering, archiving, and preserving t
 
 ## 🚀 Quickstart for Agents
 If you are tasked with creating a page or testing the framework:
-1. **Create a Markdown file** in `home/content/` (e.g., `home/content/test.md`).
-2. **Add YAML frontmatter** at the very top (must start with `---`). Example:
+1. **Initialize the workspace** by running: `./rotkeeper.sh init`
+2. **Create a Markdown file** in `home/content/` (e.g., `home/content/test.md`).
+3. **Add YAML frontmatter** at the very top (must start with `---`). Example:
    ```yaml
    ---
    title: "Test Page"
