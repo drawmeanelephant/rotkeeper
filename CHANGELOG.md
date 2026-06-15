@@ -41,3 +41,6 @@
 
 ## [0.3.0.5] - 2026-06-15
 - Presentation layer refactor: token-based CSS and Golden Path template
+
+## [0.3.0.6] - 2026-06-15
+- UX: added init warning to render and YAML syntax example to templates CLI

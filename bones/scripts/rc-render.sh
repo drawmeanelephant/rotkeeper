@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-render.sh
 #  Purpose : Render markdown tombs into HTML using Pandoc and templates
-#  Version : 0.3.0.5
+#  Version : 0.3.0.6
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -73,6 +73,11 @@ trap 'trap_err $LINENO' ERR
 main() {
     check_dependencies
     log "INFO" "Running rc-render.sh."
+
+    if [[ ! -d "$ROOT_DIR/output" ]] || [[ ! -f "$ROOT_DIR/bones/asset-manifest.yaml" ]]; then
+      log "WARN" "Workspace may not be initialized. Run ./rotkeeper.sh init first if assets are missing."
+      echo -e "\n⚠️  Warning: Workspace not initialized or missing core assets. Run './rotkeeper.sh init' first to avoid rendering issues.\n" >&2
+    fi
 
     # Initialize page counter and start time
     pages_rendered=0

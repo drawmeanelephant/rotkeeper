@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rotkeeper.sh
 #  Purpose : CLI dispatcher for all Rotkeeper rituals
-#  Version : 0.3.0.5
+#  Version : 0.3.0.6
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -20,7 +20,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-VERSION="0.3.0.5"
+VERSION="0.3.0.6"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BONES="$SCRIPT_DIR/bones/scripts"
 
@@ -165,7 +165,12 @@ case "$command" in
 
   templates)
     echo "🎨 Available Templates:"
-    echo "   (Declare your chosen template in your markdown YAML frontmatter: 'template: name.html')"
+    echo "   (Declare your chosen template in your markdown YAML frontmatter)"
+    echo "   Example:"
+    echo "   ---"
+    echo "   template: rotkeeper-blog.html"
+    echo "   ---"
+    echo ""
     if [[ -d "$SCRIPT_DIR/bones/templates" ]]; then
       for t in "$SCRIPT_DIR/bones/templates"/*.html; do
         [[ -f "$t" ]] && echo "   - $(basename "$t")"

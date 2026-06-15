@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-verify.sh
 #  Purpose : Verify files against manifest SHA256 hashes
-#  Version : 0.3.0.5
+#  Version : 0.3.0.6
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
