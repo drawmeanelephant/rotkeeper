@@ -1,7 +1,6 @@
 ---
 title: "📥 rc-ingest.sh Reference"
 slug: rc-ingest
-template: rotkeeper-doc.html
 version: "0.3.0"
 updated: "2026-06-15"
 description: "Unpacks decentralized payloads from the inbox and safely merges them into the content tree."

@@ -1,6 +1,5 @@
 ---
 title: "Index of tests"
-template: rotkeeper-blog.html
 rotkeeper_glued: true
 ---
 

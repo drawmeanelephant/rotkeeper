@@ -1,7 +1,6 @@
 ---
 title: "🧪 rc-test.sh Reference"
 slug: rc-test
-template: rotkeeper-doc.html
 version: "0.2.3-pre"
 updated: "2025-06-01"
 description: "Reference for testing and experimental rituals. May be unstable or used for staging edge-case logic."

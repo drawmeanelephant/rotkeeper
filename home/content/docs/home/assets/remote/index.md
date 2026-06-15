@@ -1,7 +1,6 @@
 ---
 title: "Remote Assets"
 slug: remote-assets
-template: rotkeeper-doc.html
 version: "0.2.3-pre"
 updated: "2025-06-01"
 description: "Explains the remote assets directory and how rc-api.sh populates it based on remote-sources.yaml."

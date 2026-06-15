@@ -1,6 +1,5 @@
 title: rc-utils.bats
 description: Bats test suite for utility functions in rc-utils.sh
-template: rotkeeper-doc.html
 updated: 2025-06-04
 version: "0.2.6-dev"
 status: stable

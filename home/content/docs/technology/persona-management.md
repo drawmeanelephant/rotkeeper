@@ -1,7 +1,6 @@
 ---
 title: "🧑‍🎤 Persona Management"
 slug: persona-management
-template: rotkeeper-doc.html
 version: "0.2.3-pre"
 updated: "2025-06-01"
 description: "Details the persona system used to shape LLM outputs and steer agent behavior in the Rotkeeper ecosystem."

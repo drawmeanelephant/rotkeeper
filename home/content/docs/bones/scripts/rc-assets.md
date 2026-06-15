@@ -1,7 +1,6 @@
 ---
 title: "🧾 rc-assets.sh Reference"
 slug: rc-assets
-template: rotkeeper-doc.html
 version: "0.2.5"
 updated: "2025-06-03"
 description: "Documents and explains the behavior of rc-assets.sh, which scans HTML for asset links and generates a manifest."

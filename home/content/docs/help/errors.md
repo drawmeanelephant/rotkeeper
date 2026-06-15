@@ -1,6 +1,5 @@
 ---
 title: "Common Errors & Ritual Interruptions"
-template: rotkeeper-doc.html
 subtitle: "Troubleshooting and decay recovery procedures"
 tags: [rotkeeper, errors, help, rituals, troubleshooting]
 version: "0.2.5-pre"

@@ -1,7 +1,6 @@
 ---
 title: "📡 rc-api.sh Reference"
 slug: rc-api
-template: rotkeeper-doc.html
 version: "v0.2.5"
 updated: "2025-06-03"
 description: "Experimental API utility for extracting or submitting Rotkeeper data between sessions. Not part of core ritual set."

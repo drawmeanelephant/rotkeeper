@@ -1,7 +1,6 @@
 ---
 title: "🖨️ rc-render.sh Reference"
 slug: rc-render
-template: rotkeeper-doc.html
 version: "0.2.5-pre"
 updated: "2025-06-02"
 description: "Main rendering engine for converting Markdown tombs into HTML using Pandoc and custom templates. Skips any Markdown with `status: draft`."

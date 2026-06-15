@@ -1,7 +1,6 @@
 ---
 title: "🌐 Rotkeeper Subdomains"
 slug: subdomains
-template: rotkeeper-doc.html
 version: "0.2.5-pre"
 updated: "2025-06-03"
 description: "Lists and explains the various functional subdomains of the Rotkeeper project, including content, config, and rendering layers."

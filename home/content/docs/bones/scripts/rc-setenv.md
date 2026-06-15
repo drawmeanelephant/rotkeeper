@@ -1,7 +1,6 @@
 ---
 title: "🧱 rc-setenv.sh Reference"
 slug: rc-setenv
-template: rotkeeper-doc.html
 version: "v0.2.5-pre"
 updated: "2025-06-02"
 description: "Environment validation and path scaffolding utility for Rotkeeper."

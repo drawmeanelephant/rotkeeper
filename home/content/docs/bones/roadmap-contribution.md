@@ -1,7 +1,6 @@
 ---
 title: "🛤️ Contribution Roadmap"
 slug: roadmap-contribution
-template: rotkeeper-doc.html
 version: "0.2.3-pre"
 updated: "2025-06-01"
 description: "An open roadmap and contribution guide for future Rotkeeper tasks and feature tracking."

@@ -1,7 +1,6 @@
 ---
 title: "🔮 future-config.yaml Reference"
 slug: future-config
-template: rotkeeper-doc.html
 version: "v0.2.3-pre"
 updated: "2025-06-01"
 description: "Draft configuration schema for future-proofing rotkeeper rituals and speculative options."

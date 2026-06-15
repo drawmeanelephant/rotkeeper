@@ -1,7 +1,6 @@
 ---
 title: "rc-status.sh"
 slug: rc-status
-template: rotkeeper-doc.html
 subtitle: "Reports the current rotkeeper project state, including logs, active version, and tomb status."
 version: "v0.2.5"
 updated: "2025-06-03"

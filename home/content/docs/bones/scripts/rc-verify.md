@@ -1,7 +1,6 @@
 ---
 title: "✅ rc-verify.sh Reference"
 slug: rc-verify
-template: rotkeeper-doc.html
 version: "0.2.5"
 updated: "2025-06-03"
 description: "Verifies tomb archives for presence, integrity, and valid embedded metadata. Used post-render or post-pack."

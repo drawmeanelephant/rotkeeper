@@ -1,7 +1,6 @@
 ---
 title: "🧴 rc-glue.sh Reference"
 slug: rc-glue
-template: rotkeeper-doc.html
 version: "0.3.0"
 updated: "2026-06-15"
 description: "Generates missing index.md files for directories in home/content/ to create navigation glue."

@@ -3,7 +3,6 @@
 ---
 title: "💬 ChatGPT – AI-Powered Script and Doc Co-Author"
 slug: chatgpt
-template: rotkeeper-doc.html
 version: "0.2.5-pre"
 updated: "2025-06-02"
 description: "Overview of ChatGPT, its role in crafting Rotkeeper scripts and documentation, and best practices."

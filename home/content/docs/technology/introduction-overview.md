@@ -1,7 +1,6 @@
 ---
 title: "📘 Introduction & Overview"
 slug: introduction-overview
-template: rotkeeper-doc.html
 version: "0.2.3-pre"
 updated: "2025-06-01"
 description: "Welcome overview of Rotkeeper — what it is, why it exists, and what rituals it enables."

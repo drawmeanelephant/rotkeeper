@@ -1,7 +1,6 @@
 ---
 title: "📟 Logging & Diagnostics"
 slug: logging-diagnostics
-template: rotkeeper-doc.html
 version: "0.2.5-pre"
 updated: "2025-06-03"
 description: "Describes how to interpret Rotkeeper logs and use external tools to debug render failures and asset drift."

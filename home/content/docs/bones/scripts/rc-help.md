@@ -1,7 +1,6 @@
 ---
 title: "🆘 rc-help.sh Reference"
 slug: rc-help
-template: rotkeeper-doc.html
 version: "0.2.5-pre"
 updated: "2025-06-02"
 description: "Aggregated help for all Rotkeeper scripts via rc-help.sh."

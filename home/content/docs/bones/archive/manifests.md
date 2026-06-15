@@ -1,7 +1,6 @@
 ---
 title: "📋 Manifest Backups"
 slug: manifests
-template: rotkeeper-doc.html
 version: "v0.2.5-pre"
 updated: 2025-06-03
 description: "Backups of asset-manifest.yaml versions"

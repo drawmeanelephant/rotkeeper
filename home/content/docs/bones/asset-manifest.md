@@ -1,7 +1,6 @@
 ---
 title: "📦 Asset Manifest Spec"
 slug: asset-manifest
-template: rotkeeper-doc.html
 version: "0.2.3-pre"
 updated: "2025-06-01"
 description: "Spec and explanation for asset-manifest.yaml, which tracks file hashes and file paths inside tombs."

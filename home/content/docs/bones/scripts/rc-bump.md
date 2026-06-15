@@ -1,7 +1,6 @@
 ---
 title: "📈 rc-bump.sh Reference"
 slug: rc-bump
-template: rotkeeper-doc.html
 version: "0.3.0"
 updated: "2026-06-15"
 description: "Automated microbump logging and version bumping workflow."

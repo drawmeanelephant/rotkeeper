@@ -1,7 +1,6 @@
 ---
 title: "⚙️ Configuration Reference"
 slug: configuration-reference
-template: rotkeeper-doc.html
 version: "0.2.3-pre"
 updated: "2025-06-01"
 description: "Details every YAML and environment configuration file used by Rotkeeper, including BOM, render-flags, and remote-sources."

@@ -1,7 +1,6 @@
 ---
 title: "📦 rc-pack.sh Reference"
 slug: rc-pack
-template: rotkeeper-doc.html
 version: "v0.2.3-pre"
 updated: "2025-06-01"
 description: "Creates a tar.gz tomb archive from the rendered directory and embeds tomb metadata into the archive."

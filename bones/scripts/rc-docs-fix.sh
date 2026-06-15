@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-docs-fix.sh
 #  Purpose : Search, replace, and backup doc files based on given pattern
-#  Version : 0.3.0.13
+#  Version : 0.3.0.14
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.

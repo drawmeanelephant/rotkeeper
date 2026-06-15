@@ -1,7 +1,6 @@
 ---
 title: "🖥️ Render Logs"
 slug: renders
-template: rotkeeper-doc.html
 version: "v0.2.3-pre"
 updated: 2025-06-01
 description: "Logs from rc-render.sh HTML generation runs"

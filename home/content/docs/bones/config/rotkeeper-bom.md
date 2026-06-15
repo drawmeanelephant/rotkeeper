@@ -1,7 +1,6 @@
 ---
 title: "📦 rotkeeper-bom.yaml Reference"
 slug: rotkeeper-bom
-template: rotkeeper-doc.html
 version: "v0.2.3-pre"
 updated: 2025-06-01
 description: "Bill of Materials config for Rotkeeper asset and directory tracking"

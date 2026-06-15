@@ -1,7 +1,6 @@
 ---
 title: "Architecture & Philosophy"
 slug: architecture
-template: rotkeeper-doc.html
 version: "0.3.0"
 updated: "2026-06-15"
 description: "The Four Pillars of the Bash-Native Necropolis."

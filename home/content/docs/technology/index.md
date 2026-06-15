@@ -2,7 +2,6 @@
 title: "CLI Reference"
 slug: tech-index
 subtitle: "Rotkeeper Technology Overview"
-template: rotkeeper-doc.html
 version: "0.2.3-pre"
 updated: "2025-06-01"
 description: "Overview of Rotkeeper's CLI-based tooling, shell scripts, and static rendering flow."

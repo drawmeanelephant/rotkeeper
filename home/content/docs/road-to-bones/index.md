@@ -2,7 +2,6 @@
 title: "The Road to Bones"
 slug: road-to-bones
 subtitle: "Rotkeeper Buildlog & Resurrection Notes"
-template: rotkeeper-doc.html
 version: "0.2.5-pre"
 updated: "2025-06-03"
 description: "Buildlog, audit summary, and resurrection notes for Rotkeeper version 0.2.0-pre through 0.2.3-pre."
@@ -29,6 +28,7 @@ This is your consolidated status snapshot: what’s working, what’s stubbed, a
 
 ## 📡 Living Buildlog (Micro Updates)
 <!-- LIVING_BUILDLOG_START -->
+* `v0.3.0.14` - (2026-06-15 18:49) - Strip frontmatter overrides and fix rc-render to use rotkeeper.yaml
 * `v0.3.0.13` - (2026-06-15 18:38) - Add nice clean light and dark themes, set light as default
 * `v0.3.0.12` - (2026-06-15 15:51) - fix: cleaned up vendor bloat and excluded local inbox, messages, and reports from distribution payload
 * `v0.3.0.11` - (2026-06-15 15:46) - fix: resolve reseed regex parsing bug and index post-increment strict mode crash

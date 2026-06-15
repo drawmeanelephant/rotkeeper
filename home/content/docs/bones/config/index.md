@@ -1,7 +1,6 @@
 ---
 title: "⚙️ Config Index"
 slug: config-index
-template: rotkeeper-doc.html
 version: "v0.2.3-pre"
 updated: "2025-06-01"
 description: "Index of YAML configuration files used in the Rotkeeper system."

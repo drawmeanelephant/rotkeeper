@@ -1,7 +1,6 @@
 ---
 title: "Script Docs"
 slug: script-docs
-template: rotkeeper-doc.html
 version: "0.2.3-pre"
 updated: "2025-06-01"
 description: "Generated reference pages for all rc-*.sh scripts in the Rotkeeper system. Created by rc-docbook.sh and not edited manually."

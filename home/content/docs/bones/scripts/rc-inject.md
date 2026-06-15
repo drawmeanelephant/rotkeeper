@@ -1,7 +1,6 @@
 ---
 title: "📎 rc-inject.sh Reference"
 slug: rc-inject
-template: rotkeeper-doc.html
 version: "v0.2.3-pre"
 updated: "2025-06-01"
 description: "Placeholder page for the rc-inject utility script used in the rotkeeper documentation system."

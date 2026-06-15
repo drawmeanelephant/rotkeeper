@@ -1,7 +1,6 @@
 ---
 title: "📐 Template Library"
 slug: template-library
-template: rotkeeper-doc.html
 version: "0.2.3-pre"
 updated: "2025-06-01"
 description: "Overview of Pandoc and custom HTML templates used in Rotkeeper for rendering Markdown, index pages, and metadata structures."

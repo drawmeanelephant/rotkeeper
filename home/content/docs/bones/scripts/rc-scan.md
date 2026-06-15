@@ -1,7 +1,6 @@
 ---
 title: "🔍 rc-scan.sh Reference"
 slug: rc-scan
-template: rotkeeper-doc.html
 version: "v0.2.3-pre"
 updated: "2025-06-01"
 description: "Scans the filesystem and rotkeeper manifest for mismatches, orphan files, and missing artifacts. Produces checksums and reports."

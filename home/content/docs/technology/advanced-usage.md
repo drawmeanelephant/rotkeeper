@@ -1,7 +1,6 @@
 ---
 title: "🧠 Advanced Usage"
 slug: advanced-usage
-template: rotkeeper-doc.html
 version: "0.2.3-pre"
 updated: "2025-06-01"
 description: "Collection of power-user techniques and advanced rituals for flexible Rotkeeper integration."

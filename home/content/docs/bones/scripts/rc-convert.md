@@ -1,7 +1,6 @@
 ---
 title: "🔄 rc-convert.sh Reference"
 slug: rc-convert
-template: rotkeeper-doc.html
 version: "v0.2.3-pre"
 updated: "2025-06-01"
 description: "Utility to convert between supported formats (Markdown, JSON, DocBook); preserves metadata and supports multi-step rituals."

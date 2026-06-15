@@ -1,7 +1,6 @@
 ---
 title: "🔁 CI/CD Integration"
 slug: ci-cd-integration
-template: rotkeeper-doc.html
 version: "0.2.3-pre"
 updated: "2025-06-01"
 description: "Outlines how to automate Rotkeeper rituals using cron or external pipelines. Focuses on render scheduling and tomb archiving."

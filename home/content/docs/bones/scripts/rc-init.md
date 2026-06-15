@@ -1,7 +1,6 @@
 ---
 title: "🦴 rc-init.sh Reference"
 slug: rc-init
-template: rotkeeper-doc.html
 version: "v0.2.3-pre"
 updated: "2025-06-01"
 description: "Initializes a new rotkeeper directory structure with all required folders, templates, and seed files."

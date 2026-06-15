@@ -1,7 +1,6 @@
 ---
 title: "📚 Docs Fix Task"
 slug: rc-docs-fix
-template: rotkeeper-doc.html
 version: "0.2.5"
 updated: "2025-06-03"
 description: "Task notes and fix log for the Rotkeeper documentation structure and metadata pass."

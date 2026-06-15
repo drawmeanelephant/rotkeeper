@@ -1,7 +1,6 @@
 ---
 title: "🤖 Sora – Generative Diagram Technology"
 slug: sora
-template: rotkeeper-doc.html
 version: "0.2.5-pre"
 updated: "2025-06-02"
 description: "Overview of Sora, a generative AI technology for creating lightweight infographics via prompts."

@@ -1,7 +1,6 @@
 ---
 title: "🧭 Docs Sidebar Index"
 slug: sidebar-docs
-template: rotkeeper-doc.html
 version: "0.2.3-pre"
 updated: "2025-05-31"
 description: "Sidebar navigation content for Rotkeeper documentation layout."

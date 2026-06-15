@@ -1,7 +1,6 @@
 ---
 title: "🔄 rc-cleanup-bones.sh Reference"
 slug: rc-cleanup-bones
-template: rotkeeper-doc.html
 version: "v0.2.5"
 updated: "2025-06-03"
 description: "Backs up and prunes outdated directories and logs from the bones/ archive system."

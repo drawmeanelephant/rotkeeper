@@ -1,7 +1,6 @@
 ---
 title: "Welcome to Rotkeeper"
 slug: home
-template: rotkeeper-blog.html
 version: "0.3.0.4"
 updated: "2026-06-15"
 description: "Rotkeeper CLI landing page. Get started with decay rituals, rendering tombs, and exploring archival output."

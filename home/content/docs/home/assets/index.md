@@ -1,7 +1,6 @@
 ---
 title: "Assets"
 slug: assets
-template: rotkeeper-doc.html
 version: "0.2.3-pre"
 updated: "2025-06-01"
 description: "Describes the local assets directory used during rendering and archiving, including CSS, images, and remote fetches."

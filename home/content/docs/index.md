@@ -1,7 +1,6 @@
 ---
 title: "Ritual Scripts"
 slug: scripts-index
-template: rotkeeper-doc.html
 version: "0.2.3-pre"
 updated: "2025-06-01"
 description: "Directory index for all rc-*.sh scripts used in Rotkeeper. Includes manual tools, render helpers, and archival commands."

@@ -1,7 +1,6 @@
 ---
 title: "🚀 Quickstart Guide"
 slug: quickstart-guide
-template: rotkeeper-doc.html
 version: "0.2.3-pre"
 updated: "2025-06-01"
 description: "A rapid onboarding guide for using Rotkeeper, setting up tombs, and rendering documentation."

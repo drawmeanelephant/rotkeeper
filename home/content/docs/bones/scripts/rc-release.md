@@ -1,7 +1,6 @@
 ---
 title: "📦 rc-release.sh Reference"
 slug: rc-release
-template: rotkeeper-doc.html
 version: "0.3.0"
 updated: "2026-06-15"
 description: "Packages the project into 'lite' and 'full' distribution zip files."

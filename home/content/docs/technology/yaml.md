@@ -1,7 +1,6 @@
 ---
 title: "YAML and the Ritual of Structure"
 slug: yaml
-template: rotkeeper-doc.html
 version: "v0.2.3-pre"
 updated: 2025-06-01
 subtitle: "A Short Rite on the Nature of Clean Data"

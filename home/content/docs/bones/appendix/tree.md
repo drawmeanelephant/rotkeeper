@@ -3,7 +3,6 @@ title: "File Tree Structure"
 slug: tree
 description: "Directory layout and tomb structure for the Rotkeeper ritual system."
 version: "0.2.3-pre"
-template: rotkeeper-doc.html
 updated: "2025-05-31"
 tags:
   - rotkeeper

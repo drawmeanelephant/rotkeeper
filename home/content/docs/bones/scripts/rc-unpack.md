@@ -1,7 +1,6 @@
 ---
 title: "rc-unpack.sh"
 slug: rc-unpack
-template: rotkeeper-doc.html
 subtitle: "Unpack tomb archives and restore site state"
 version: "v0.2.3-pre"
 updated: "2025-06-01"

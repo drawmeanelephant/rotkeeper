@@ -65,3 +65,6 @@
 
 ## [0.3.0.13] - 2026-06-15
 - Add nice clean light and dark themes, set light as default
+
+## [0.3.0.14] - 2026-06-15
+- Strip frontmatter overrides and fix rc-render to use rotkeeper.yaml

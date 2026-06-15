@@ -2,7 +2,6 @@
 ---
 title: "Alpine.js Examples"
 slug: alpine
-template: rotkeeper-doc.html
 version: "v0.2.3-pre"
 updated: "2025-06-01"
 description: "Collection of Alpine.js usage examples for Rotkeeper project."

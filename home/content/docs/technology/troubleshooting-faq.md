@@ -1,7 +1,6 @@
 ---
 title: "🧯 Troubleshooting & FAQ"
 slug: troubleshooting-faq
-template: rotkeeper-doc.html
 version: "0.2.3-pre"
 updated: "2025-06-01"
 description: "Frequently asked questions and debugging solutions for Rotkeeper rituals, scripts, and rendering behavior."

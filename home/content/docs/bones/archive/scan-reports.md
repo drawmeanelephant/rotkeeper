@@ -1,7 +1,6 @@
 ---
 title: "🔍 Scan Reports"
 slug: scan-reports
-template: rotkeeper-doc.html
 version: "v0.2.3-pre"
 updated: 2025-06-01
 description: "Archive of historical scan outputs and SHA256 digests"

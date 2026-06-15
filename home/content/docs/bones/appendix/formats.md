@@ -2,7 +2,6 @@
 title: "Formats Reference"
 description: "Metadata, manifest, and decay format documentation."
 version: "0.2.3-pre"
-template: rotkeeper-doc.html
 updated: "2025-05-31"
 ---
 

@@ -1,7 +1,6 @@
 ---
 title: "📡 remote-sources.yaml Reference"
 slug: remote-sources
-template: rotkeeper-doc.html
 version: "v0.2.3-pre"
 updated: "2025-06-01"
 description: "Documentation and schema for the remote-sources.yaml configuration file used by rc-fetch and other rituals."

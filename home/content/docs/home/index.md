@@ -1,7 +1,6 @@
 ---
 title: "Home Directory"
 slug: home-folder
-template: rotkeeper-doc.html
 version: "0.2.3-pre"
 updated: "2025-06-01"
 description: "Documentation for the user-controlled 'home/' directory in Rotkeeper. Explains structure, ownership, and managed behaviors."

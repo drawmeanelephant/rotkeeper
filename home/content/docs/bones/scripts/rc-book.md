@@ -1,7 +1,6 @@
 ---
 title: "rc-book — binder ritual for compiling and collapsing Rotkeeper books"
 slug: rc-book
-template: rotkeeper-doc.html
 status: stable
 version: "v0.2.5"
 updated: 2025-06-03

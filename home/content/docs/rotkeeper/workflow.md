@@ -1,7 +1,6 @@
 ---
 title: "🔄 Rotkeeper Workflow"
 slug: workflow
-template: rotkeeper-doc.html
 version: "0.2.5-pre"
 updated: "2025-06-02"
 description: "End-to-end sequence of Rotkeeper CLI rituals from initialization through packing and scanning."

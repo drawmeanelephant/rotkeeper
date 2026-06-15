@@ -1,7 +1,6 @@
 ---
 title: "🧩 rc-utils.sh Reference"
 slug: rc-utils
-template: rotkeeper-doc.html
 version: "v0.2.5"
 updated: "2025-06-03"
 description: "Utility functions sourced by other rc-*.sh scripts, including logging, error handling, and dependency checks."

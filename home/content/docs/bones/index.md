@@ -1,7 +1,6 @@
 ---
 title: "Rotkeeper"
 slug: docs-index
-template: rotkeeper-doc.html
 version: "0.2.5-pre"
 updated: "2025-06-03"
 description: "Central index for Rotkeeper documentation, CLI usage, philosophy, and subroutine references."

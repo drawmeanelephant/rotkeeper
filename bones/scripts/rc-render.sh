@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-render.sh
 #  Purpose : Render markdown tombs into HTML using Pandoc and templates
-#  Version : 0.3.0.13
+#  Version : 0.3.0.14
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -87,7 +87,7 @@ main() {
     PROJ_ROOT="$ROOT_DIR"
 
     # --- Paths ---
-    CONFIG_FILE="$CONFIG_DIR/render-flags.yaml"
+    CONFIG_FILE="$CONFIG_DIR/rotkeeper.yaml"
     MANIFEST="$BONES_DIR/manifest.txt"
     TEMPLATE_DIR="$TEMPLATE_DIR"
 
@@ -114,7 +114,7 @@ main() {
     fi
 
      # If no template is set in config, fallback to the first found in the templates directory
-    DEFAULT_TEMPLATE=$(awk '/^default_template:/ { print $2 }' "$CONFIG_FILE")
+    DEFAULT_TEMPLATE=$(awk '/^[[:space:]]*default_template:/ { print $2 }' "$CONFIG_FILE")
     if [[ -z "${DEFAULT_TEMPLATE:-}" ]]; then
       # No default_template set; fallback to first template in TEMPLATE_DIR
       choices=()
@@ -148,7 +148,7 @@ main() {
       CONTENT_DIRS[$idx]="$PROJ_ROOT/${CONTENT_DIRS[$idx]}"
     done
 
-    OUTPUT_DIR_REL=$(awk '/^output_dir:/ { print $2 }' "$CONFIG_FILE")
+    OUTPUT_DIR_REL=$(awk '/^[[:space:]]*output_dir:/ { print $2 }' "$CONFIG_FILE")
     [[ -z "$OUTPUT_DIR_REL" ]] && OUTPUT_DIR_REL="output"
     OUTPUT_DIR="$PROJ_ROOT/$OUTPUT_DIR_REL"
 

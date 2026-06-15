@@ -1,7 +1,6 @@
 ---
 title: "🧰 Template Index"
 slug: templates-index
-template: rotkeeper-doc.html
 version: "v0.2.3-pre"
 updated: "2025-06-01"
 description: "Index of Pandoc and HTML templates used in Rotkeeper rendering workflows."

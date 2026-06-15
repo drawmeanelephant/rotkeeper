@@ -1,7 +1,6 @@
 ---
 title: "📂 rc-example.sh Reference"
 slug: rc-example
-template: rotkeeper-doc.html
 version: "0.2.3-pre"
 updated: "2025-06-01"
 description: "Reference documentation for a sample or test rc-*.sh script used in Rotkeeper examples and testing."

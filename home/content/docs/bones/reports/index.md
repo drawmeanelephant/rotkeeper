@@ -1,7 +1,6 @@
 ---
 title: "📑 Reports Index"
 slug: reports-index
-template: rotkeeper-doc.html
 version: "v0.2.5-pre"
 updated: 2025-06-03
 description: "Index of all generated report artifacts"

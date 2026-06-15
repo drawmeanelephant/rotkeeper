@@ -1,7 +1,6 @@
 ---
 title: "🧱 rc-env.sh"
 slug: rc-env
-template: rotkeeper-doc.html
 version: "0.2.5"
 updated: "2025-06-03"
 description: "Defines centralized environment variables and directory layout for the Rotkeeper ritual system."

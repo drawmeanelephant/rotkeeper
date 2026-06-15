@@ -1,7 +1,6 @@
 ---
 title: "🧾 render-flags.yaml Reference"
 slug: render-flags
-template: rotkeeper-doc.html
 version: "v0.2.3-pre"
 updated: "2025-06-01"
 description: "Explanation of all supported flags in render-flags.yaml for Pandoc behavior, output selection, and styling control."
