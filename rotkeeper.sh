@@ -60,6 +60,8 @@ Commands:
 
   templates   List all available HTML templates in the bones/templates/ directory
 
+  ingest      Unpack and safely merge .tar.gz payloads from messages-from-my-friends/
+
   book        Generate documentation outputs
                 --scriptbook-full   Generate rotkeeper-scriptbook-full.md
                 --docbook           Generate rotkeeper-docbook.md
@@ -152,6 +154,11 @@ case "$command" in
   sitemap)
     echo "Building sitemap..."
     bash "$BONES/rc-sitemap.sh" "$@"
+    ;;
+
+  ingest)
+    echo "Ingesting new messages..."
+    bash "$BONES/rc-ingest.sh" "$@"
     ;;
 
   templates)
