@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-ingest.sh
 #  Purpose : Ingests .tar.gz archives from an inbox into the local content repository safely
-#  Version : 0.3.0.6
+#  Version : 0.3.0.7
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
@@ -119,7 +119,9 @@ main() {
       echo "✅ Successfully unboxed into home/content/messages/$(basename "$SAFE_DEST")/"
     done
     
-    echo "🎉 Ingestion complete! Run ./rotkeeper.sh render to compile."
+    echo "🎉 Ingestion complete! Applying navigation glue..."
+    bash "$SCRIPT_DIR/rc-glue.sh" || true
+    echo "🎉 Run ./rotkeeper.sh render to compile."
     log "INFO" "rc-ingest.sh completed successfully."
 }
 

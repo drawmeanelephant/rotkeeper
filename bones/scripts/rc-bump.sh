@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-bump.sh
 #  Purpose : Automated microbump logging and version bumping workflow
-#  Version : 0.3.0.6
+#  Version : 0.3.0.7
 # ------------------------------------------------------------
 
 set -euo pipefail

@@ -44,3 +44,6 @@
 
 ## [0.3.0.6] - 2026-06-15
 - UX: added init warning to render and YAML syntax example to templates CLI
+
+## [0.3.0.7] - 2026-06-15
+- feat: added autoindex glue ritual to connect unindexed tombs

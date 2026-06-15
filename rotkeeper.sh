@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rotkeeper.sh
 #  Purpose : CLI dispatcher for all Rotkeeper rituals
-#  Version : 0.3.0.6
+#  Version : 0.3.0.7
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -20,7 +20,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-VERSION="0.3.0.6"
+VERSION="0.3.0.7"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BONES="$SCRIPT_DIR/bones/scripts"
 
@@ -59,6 +59,8 @@ Commands:
   index       Build HTML index and Markdown binder from output/
 
   sitemap     Build sitemap_pipeline.yaml, nav_partial.html, and generated index pages
+
+  glue        Auto-generate index.md navigation glue for unindexed content directories
 
   templates   List all available HTML templates in the bones/templates/ directory
 
@@ -156,6 +158,11 @@ case "$command" in
   sitemap)
     echo "Building sitemap..."
     bash "$BONES/rc-sitemap.sh" "$@"
+    ;;
+
+  glue)
+    echo "Applying navigation glue to unindexed directories..."
+    bash "$BONES/rc-glue.sh" "$@"
     ;;
 
   ingest)

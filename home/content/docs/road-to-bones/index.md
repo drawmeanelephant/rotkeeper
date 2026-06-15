@@ -29,6 +29,7 @@ This is your consolidated status snapshot: what’s working, what’s stubbed, a
 
 ## 📡 Living Buildlog (Micro Updates)
 <!-- LIVING_BUILDLOG_START -->
+* `v0.3.0.7` - (2026-06-15 15:02) - feat: added autoindex glue ritual to connect unindexed tombs
 * `v0.3.0.6` - (2026-06-15 14:26) - UX: added init warning to render and YAML syntax example to templates CLI
 * `v0.3.0.5` - (2026-06-15 13:49) - Presentation layer refactor: token-based CSS and Golden Path template
 * `v0.3.0.4` - (2026-06-15 12:56) - Integrate decentralized ingestion pipeline, CLI UX improvements, and Opus doc synchronization.

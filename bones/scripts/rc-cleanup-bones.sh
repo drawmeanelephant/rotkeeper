@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-cleanup-bones.sh
 #  Purpose : Backup and prune unneeded directories and templates from bones
-#  Version : 0.3.0.6
+#  Version : 0.3.0.7
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -22,7 +22,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 showhelp() {
   cat <<EOF
 rc-cleanup-bones.sh — Backup and prune unneeded directories and templates from bones
-v0.3.0.6
+v0.3.0.7
 
 Usage: rc-cleanup-bones.sh [options]
 
