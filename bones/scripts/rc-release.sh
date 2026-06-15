@@ -100,6 +100,7 @@ main() {
             --exclude='bones/logs' \
             --exclude='bones/tmp' \
             --exclude='bones/releases' \
+            --exclude='bones/archive' \
             --exclude='bones/ingested' \
             --exclude='.DS_Store' \
             --exclude='.vscode' \

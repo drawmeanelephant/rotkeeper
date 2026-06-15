@@ -29,6 +29,7 @@ This is your consolidated status snapshot: what’s working, what’s stubbed, a
 
 ## 📡 Living Buildlog (Micro Updates)
 <!-- LIVING_BUILDLOG_START -->
+* `v0.3.0.10` - (2026-06-15 15:39) - fix: exclude bones/archive from release zip files to reduce bloat
 * `v0.3.0.9` - (2026-06-15 15:22) - fix: updated rc-glue.sh to support non-destructive overwriting using rotkeeper_glued frontmatter
 * `v0.3.0.8` - (2026-06-15 15:06) - docs: documented architecture pillars and new rc rituals
 * `v0.3.0.7` - (2026-06-15 15:02) - feat: added autoindex glue ritual to connect unindexed tombs

@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-env.sh
 #  Purpose : Environment bootstrap — canonical path variables for all rc-*.sh rituals
-#  Version : 0.3.0.9
+#  Version : 0.3.0.10
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.

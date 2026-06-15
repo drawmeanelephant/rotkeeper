@@ -53,3 +53,6 @@
 
 ## [0.3.0.9] - 2026-06-15
 - fix: updated rc-glue.sh to support non-destructive overwriting using rotkeeper_glued frontmatter
+
+## [0.3.0.10] - 2026-06-15
+- fix: exclude bones/archive from release zip files to reduce bloat
