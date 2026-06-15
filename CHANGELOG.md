@@ -47,3 +47,6 @@
 
 ## [0.3.0.7] - 2026-06-15
 - feat: added autoindex glue ritual to connect unindexed tombs
+
+## [0.3.0.8] - 2026-06-15
+- docs: documented architecture pillars and new rc rituals

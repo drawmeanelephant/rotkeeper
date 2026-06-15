@@ -42,6 +42,7 @@ Ritual types include:
 
 ### 1. 🔍 Overview & Lore
 - [What is Rotkeeper?](rotkeeper.md)
+- [Architecture & Philosophy](architecture.md)
 - [Workflow Summary](technology/quickstart-guide.md)
 
 ### 2. 🚀 Getting Started
@@ -57,6 +58,10 @@ Ritual types include:
 - [`rc-assets.sh`](bones/scripts/rc-assets.md)
 - [`rc-status.sh`](bones/scripts/rc-status.md)
 - [`rc-reseed.sh`](bones/scripts/rc-reseed.md)
+- [`rc-glue.sh`](bones/scripts/rc-glue.md)
+- [`rc-ingest.sh`](bones/scripts/rc-ingest.md)
+- [`rc-bump.sh`](bones/scripts/rc-bump.md)
+- [`rc-release.sh`](bones/scripts/rc-release.md)
 
 ### 4. 🔧 Configuration
 - [`render-flags.yaml`](bones/config/render-flags.md)

@@ -45,6 +45,13 @@ bones/scripts/
 | rc-status.sh        | Summarize project health and logs              | [rc-status.sh](rc-status.html)  | Ready    |
 | rc-cleanup-bones.sh | Backup and prune bones/ archives and logs      | [rc-cleanup-bones.sh](rc-cleanup-bones.html) | Ready    |
 | rc-docs-fix.sh      | Patch frontmatter on Markdown docs             | [rc-docs-fix.sh](rc-docs-fix.html) | Ready    |
+| rc-glue.sh          | Generate index.md navigation glue              | [rc-glue.sh](rc-glue.html)      | Ready    |
+| rc-ingest.sh        | Unpack and merge decentralized payloads        | [rc-ingest.sh](rc-ingest.html)  | Ready    |
+| rc-bump.sh          | Log microupdate and bump version               | [rc-bump.sh](rc-bump.html)      | Ready    |
+| rc-release.sh       | Package lite and full distributions            | [rc-release.sh](rc-release.html)| Ready    |
+| rc-sitemap.sh       | Generate sitemap_pipeline.yaml                 | [rc-sitemap.sh](rc-sitemap.html)| Ready    |
+| rc-book.sh          | Generate markdown binders                      | [rc-book.sh](rc-book.html)      | Ready    |
+| rc-index.sh         | Generate output HTML index                     | [rc-index.sh](rc-index.html)    | Ready    |
 | rc-api.sh           | Fetch data from remote APIs                    | [rc-api.sh](rc-api.html)        | Stub     |
 | rc-unpack.sh        | *Planned* — restore output from archive        | [rc-unpack.sh](rc-unpack.html)  | Planned  |
 

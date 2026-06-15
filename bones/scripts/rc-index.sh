@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-index.sh
 #  Purpose : Index all HTML output docs, binder ritual style
-#  Version : 0.3.0.7
+#  Version : 0.3.0.8
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
