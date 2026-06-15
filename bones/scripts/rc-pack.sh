@@ -35,6 +35,7 @@ Options:
   --help, -h       Show this help message and exit
   --dry-run        Preview actions without writing files
   --self           Archive the full Rotkeeper system (rotkeeper.sh, bones/, home/, output/)
+  --content        Archive only the home/content directory to preserve source files
   --verbose        Enable detailed debug logging
 EOF
   exit 0
@@ -51,6 +52,7 @@ EOF
 #   MODES:
 #   - Default: archive only rendered output/
 #   - --self:  full system bundle (rotkeeper.sh, bones/, home/, output/)
+#   - --content: bundle only the home/content/ directory
 #   - --dry-run: preview without writing
 #
 #   FUTURE:
@@ -66,6 +68,7 @@ main() {
     : "${DRY_RUN:=${RK_DRY:-false}}"
     : "${VERBOSE:=${RK_VERBOSE:-false}}"
     SELF_MODE=false
+    CONTENT_MODE=false
     HELP=false
 
     # --- Flag parsing ---
@@ -73,6 +76,7 @@ main() {
       case "$arg" in
         --dry-run)   DRY_RUN=true ;;
         --self)      SELF_MODE=true ;;
+        --content)   CONTENT_MODE=true ;;
         --verbose)   VERBOSE=true ;;
         --help|-h)   HELP=true ;;
       esac
@@ -97,17 +101,38 @@ main() {
     run mkdir -p "$ARCHIVE_DIR"
     run mkdir -p "$LOG_DIR"
 
-    # Ensure the rendered output directory exists before packing.
-    if [ ! -d "$OUTPUT_DIR" ]; then
-      if [[ "$DRY_RUN" == true ]]; then
-        log "DRYRUN" "No output directory to pack: $OUTPUT_DIR (skipping exit)"
-      else
-        echo "❌ No output directory to pack: $OUTPUT_DIR"
-        exit 1
+    # Ensure the rendered output directory exists before packing (only if default mode).
+    if [[ "$SELF_MODE" == false && "$CONTENT_MODE" == false ]]; then
+      if [ ! -d "$OUTPUT_DIR" ]; then
+        if [[ "$DRY_RUN" == true ]]; then
+          log "DRYRUN" "No output directory to pack: $OUTPUT_DIR (skipping exit)"
+        else
+          echo "❌ No output directory to pack: $OUTPUT_DIR"
+          exit 1
+        fi
       fi
     fi
 
-    if [[ "$SELF_MODE" == false ]]; then
+    if [[ "$CONTENT_MODE" == true ]]; then
+      CONTENT_ARCHIVE="tomb-content-$VERSION.tar"
+      if [[ "$DRY_RUN" == false ]]; then
+        echo "📦 Packing \"$SOURCE_DIR\" into \"$CONTENT_ARCHIVE\""
+        run tar -cf "$ARCHIVE_DIR/$CONTENT_ARCHIVE" "home/content"
+        count=$(tar -tf "$ARCHIVE_DIR/$CONTENT_ARCHIVE" | wc -l)
+        log "INFO" "Packaged $count files into $CONTENT_ARCHIVE"
+        SHA=$(sha256sum "$ARCHIVE_DIR/$CONTENT_ARCHIVE" | cut -d' ' -f1)
+        echo "$CONTENT_ARCHIVE  $SHA" >> "$MANIFEST_FILE"
+
+        run gzip -f "$ARCHIVE_DIR/$CONTENT_ARCHIVE"
+        CONTENT_ARCHIVE="$CONTENT_ARCHIVE.gz"
+        log "INFO" "Archived content to $CONTENT_ARCHIVE"
+        echo "🧾 Archived source content to \"$ARCHIVE_DIR/$CONTENT_ARCHIVE\""
+      else
+        log "DRYRUN" "Would pack \"$SOURCE_DIR\" into \"$ARCHIVE_DIR/$CONTENT_ARCHIVE.gz\""
+      fi
+    fi
+
+    if [[ "$SELF_MODE" == false && "$CONTENT_MODE" == false ]]; then
       if [[ "$DRY_RUN" == false ]]; then
         echo "📦 Packing \"$OUTPUT_DIR\" into \"$TOMB\""
         run tar -cf "$ARCHIVE_DIR/$TOMB" "$OUTPUT_DIR"
@@ -164,7 +189,7 @@ main() {
       echo "🧾 Archived full tombkit to \"$ARCHIVE_DIR/$SELF_ARCHIVE\""
     fi
 
-    if [[ "$SELF_MODE" == false ]]; then
+    if [[ "$SELF_MODE" == false && "$CONTENT_MODE" == false ]]; then
       # --- Optional JSON Export ---
       # Export all Markdown files from the source content directory into a single JSON array.
 
