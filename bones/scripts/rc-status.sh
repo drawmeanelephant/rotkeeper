@@ -63,6 +63,14 @@ else
   echo "   No $OUTPUT_DIR/ found."
 fi
 
+# Available templates
+if [[ -d "bones/templates" ]]; then
+  echo -e "\n🎨 Available Templates:"
+  for t in bones/templates/*.html; do
+    [[ -f "$t" ]] && echo "   - $(basename "$t")"
+  done
+fi
+
 # Git status
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   commit=$(git rev-parse --short HEAD)
