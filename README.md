@@ -93,14 +93,14 @@ Most commands support `--dry-run`, `--verbose`, and `--help`.
 ├── bones/                       # Internal system directory
 │   ├── scripts/                 # Bash rituals (rc-*.sh)
 │   ├── config/                  # System config (render-flags.yaml, rotkeeper.yaml, etc.)
-│   ├── templates/               # Pandoc HTML templates
+│   ├── templates/               # HTML templates for rendering
 │   ├── archive/                 # Pack archives (tomb-*.tar.gz)
-│   ├── archives/                # Release zips, ingested archives
-│   │   ├── releases/            # Versioned lite/full distribution zips
-│   │   └── ingested/            # Processed inbox archives
-│   ├── reports/                 # Generated reports, binders, sitemaps
-│   ├── logs/                    # Timestamped ritual logs
-│   └── meta/                    # Extracted frontmatter metadata
+│   ├── releases/                # Release distributions (lite/full .zip)
+│   ├── ingested/                # Processed inbox .tar.gz archives
+│   ├── reports/                 # Generated binders and sitemaps
+│   ├── logs/                    # Timestamped execution logs
+│   ├── tmp/                     # Temporary staging for scripts
+│   └── meta/                    # Extracted content frontmatter
 ├── messages-from-my-friends/    # Decentralized inbox for .tar.gz payloads
 ├── tmp/                         # Temporary staging (release builds, etc.)
 ├── AGENTS.md                    # Guide for autonomous AI agents
@@ -134,9 +134,8 @@ Rotkeeper supports a decentralized content pipeline for federated archival work:
 2. **Remote agent** runs `./rotkeeper.sh pack --content` to bundle `home/content/` into a `.tar.gz`.
 3. **Payload is delivered** — the `.tar.gz` is placed in the central repository's `messages-from-my-friends/` directory.
 4. **Central operator** runs `./rotkeeper.sh ingest` to unpack all payloads safely into `home/content/messages/`.
-5. **Central operator** runs `./rotkeeper.sh render` to compile the ingested content into HTML.
-
-Processed archives are moved to `bones/archives/ingested/` to prevent double-ingestion.
+5. **Central operator** Unpack `.tar.gz` payloads from `messages-from-my-friends/` into `home/content/messages/`. 
+Processed archives are moved to `bones/ingested/` to prevent double-ingestion.
 
 ***
 
@@ -146,10 +145,10 @@ The `release` command produces two distribution flavors:
 
 | Distribution | Contents |
 |-------------|----------|
-| **`full`** | Complete project including all documentation, agent guides, content, templates, and configs. Excludes `.git/`, `tmp/`, `output/`, `bones/logs/`, `bones/archives/`. |
-| **`lite`** | Stripped-down distribution for blind testing. Removes `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `CREDITS.md`, `home/content/docs/`, `home/content/help/`, `home/content/rotkeeper/`. Injects a micro-README with quickstart instructions. |
+| **`full`** | Complete project including all documentation, agent guides, content, templates, and configs. Excludes `.git/`, `output/`, `bones/logs/`, `bones/releases/`, `bones/ingested/`, `bones/tmp/`. |
+| **`lite`** | Same as full, minus all `.md` files in `home/content/docs/` and `home/content/help/`, plus standard `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `CREDITS.md`. A new micro-README is injected to guide users. |
 
-Both are packaged as `.zip` files in `bones/archives/releases/`.
+Both are packaged as `.zip` files in `bones/releases/`.
 
 ***
 

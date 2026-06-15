@@ -67,8 +67,8 @@ check_dependencies
 require_bins rsync zip
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-RELEASE_DIR="$PROJECT_ROOT/bones/archives/releases"
-STAGING_DIR="$PROJECT_ROOT/tmp/release-staging"
+RELEASE_DIR="$PROJECT_ROOT/bones/releases"
+STAGING_DIR="$PROJECT_ROOT/bones/tmp/release-staging"
 
 cleanup() {
     log "INFO" "Cleaning up temporary staging directory..."
@@ -96,10 +96,11 @@ main() {
         # rsync project excluding build outputs, temp files, and git
         rsync -a \
             --exclude='.git' \
-            --exclude='tmp' \
             --exclude='output' \
             --exclude='bones/logs' \
-            --exclude='bones/archives' \
+            --exclude='bones/tmp' \
+            --exclude='bones/releases' \
+            --exclude='bones/ingested' \
             --exclude='.DS_Store' \
             --exclude='.vscode' \
             --exclude='todo.md' \
@@ -172,7 +173,7 @@ EOF_README
         log "INFO" "✅ Releases successfully packaged:"
         log "INFO" "   - $FULL_ZIP"
         log "INFO" "   - $LITE_ZIP"
-        echo "✅ Releases successfully packaged in bones/archives/releases/"
+        echo "✅ Releases successfully packaged in bones/releases/"
     else
         log "DRYRUN" "Would stage and compress $FULL_ZIP and $LITE_ZIP"
     fi

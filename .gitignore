@@ -24,7 +24,8 @@ bones/manifest.txt
 .vscode/
 
 #testing
-tmp
+bones/tmp
 messages-from-my-friends
 home/content/messages
-bones/archives/ingested
+bones/ingested
+bones/releases

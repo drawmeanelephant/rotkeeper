@@ -62,7 +62,7 @@ main() {
     log "INFO" "Running rc-ingest.sh"
     check_dependencies
     
-    INGESTED_ARCHIVE_DIR="bones/archives/ingested"
+    INGESTED_ARCHIVE_DIR="bones/ingested"
     TARGET_CONTENT_DIR="$CONTENT_DIR/messages"
     
     mkdir -p "$INGESTED_ARCHIVE_DIR"

@@ -28,7 +28,6 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 # Top-level
 OUTPUT_DIR="$ROOT_DIR/output"
-TMP_DIR="$ROOT_DIR/tmp"
 
 # Home content
 CONTENT_DIR="$ROOT_DIR/home/content"
@@ -41,6 +40,7 @@ BONES_DIR="$ROOT_DIR/bones"
 SCRIPT_DIR="$BONES_DIR/scripts"
 CONFIG_DIR="$BONES_DIR/config"
 LOG_DIR="$BONES_DIR/logs"
+TMP_DIR="$BONES_DIR/tmp"
 ARCHIVE_DIR="$BONES_DIR/archive"
 REPORT_DIR="$BONES_DIR/reports"
 TEMPLATE_DIR="$BONES_DIR/templates"
