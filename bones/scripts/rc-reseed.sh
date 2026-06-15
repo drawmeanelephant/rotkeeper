@@ -61,6 +61,7 @@ while [[ $# -gt 0 ]]; do
     --dry-run) DRY_RUN=true; shift ;;
     --all) INPUT="__ALL__"; shift ;;
     --help|-h) show_help ;;
+    --force) FORCE=true; shift ;;
     *) echo "Unknown arg: $1"; exit 1 ;;
   esac
 done
