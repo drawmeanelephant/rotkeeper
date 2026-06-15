@@ -48,6 +48,8 @@ Commands:
 
   pack        Archive rendered HTML into a timestamped tarball
 
+  release     Package the project into 'lite' and 'full' distribution zip files
+
   scan        Verify manifest entries against actual files
 
   assets      Generate asset manifest (home/assets → bones/asset-manifest.yaml)
@@ -121,6 +123,11 @@ case "$command" in
   pack)
     echo "Packaging output..."
     bash "$BONES/rc-pack.sh" "$@"
+    ;;
+
+  release)
+    echo "Creating release distributions..."
+    bash "$BONES/rc-release.sh" "$VERSION" "$@"
     ;;
 
   scan)

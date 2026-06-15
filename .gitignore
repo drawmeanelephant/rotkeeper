@@ -22,3 +22,6 @@ bones/manifest.txt
 # Obsidian vault, VSCode configs (optional, remove if used)
 .obsidian/
 .vscode/
+
+#testing
+tmp

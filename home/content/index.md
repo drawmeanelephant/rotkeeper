@@ -1,3 +1,4 @@
+---
 title: "Welcome to Rotkeeper"
 slug: home
 template: rotkeeper-blog.html
