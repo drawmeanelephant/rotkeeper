@@ -59,3 +59,6 @@
 
 ## [0.3.0.11] - 2026-06-15
 - fix: resolve reseed regex parsing bug and index post-increment strict mode crash
+
+## [0.3.0.12] - 2026-06-15
+- fix: cleaned up vendor bloat and excluded local inbox, messages, and reports from distribution payload

@@ -29,6 +29,7 @@ This is your consolidated status snapshot: what’s working, what’s stubbed, a
 
 ## 📡 Living Buildlog (Micro Updates)
 <!-- LIVING_BUILDLOG_START -->
+* `v0.3.0.12` - (2026-06-15 15:51) - fix: cleaned up vendor bloat and excluded local inbox, messages, and reports from distribution payload
 * `v0.3.0.11` - (2026-06-15 15:46) - fix: resolve reseed regex parsing bug and index post-increment strict mode crash
 * `v0.3.0.10` - (2026-06-15 15:39) - fix: exclude bones/archive from release zip files to reduce bloat
 * `v0.3.0.9` - (2026-06-15 15:22) - fix: updated rc-glue.sh to support non-destructive overwriting using rotkeeper_glued frontmatter

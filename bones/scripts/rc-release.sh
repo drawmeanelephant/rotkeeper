@@ -102,6 +102,9 @@ main() {
             --exclude='bones/releases' \
             --exclude='bones/archive' \
             --exclude='bones/ingested' \
+            --exclude='bones/reports' \
+            --exclude='messages-from-my-friends' \
+            --exclude='home/content/messages' \
             --exclude='.DS_Store' \
             --exclude='.vscode' \
             --exclude='todo.md' \
