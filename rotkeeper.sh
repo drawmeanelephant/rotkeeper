@@ -44,9 +44,11 @@ Commands:
   init        Initialize environment (reseed + assets + render)
                 --force    Force rebuild of all files
 
-  render      Convert markdown files into HTML tombs
+  render      Convert markdown files (from home/content/) into HTML tombs (in output/)
+              (Note: This also creates a timestamped backup archive in bones/archive/)
 
-  pack        Archive rendered HTML into a timestamped tarball
+  pack        Archive rendered HTML into a versioned tarball with embedded JSON metadata
+              (Use pack to create shareable tomb releases; render just creates backups)
 
   release     Package the project into 'lite' and 'full' distribution zip files
 
@@ -163,6 +165,7 @@ case "$command" in
 
   templates)
     echo "🎨 Available Templates:"
+    echo "   (Declare your chosen template in your markdown YAML frontmatter: 'template: name.html')"
     if [[ -d "$SCRIPT_DIR/bones/templates" ]]; then
       for t in "$SCRIPT_DIR/bones/templates"/*.html; do
         [[ -f "$t" ]] && echo "   - $(basename "$t")"
