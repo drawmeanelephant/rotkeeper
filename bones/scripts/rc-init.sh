@@ -71,6 +71,27 @@ main() {
 
     log "INFO" "🔄 Starting initialization..."
     run "$RESEED_CMD" --force
+    
+    # Generate a heavily commented hello-world.md as an example for blind users
+    mkdir -p "$SCRIPTDIR/../home/content"
+    cat << 'EOF_HELLO' > "$SCRIPTDIR/../home/content/hello-world.md"
+---
+title: "Hello World"
+slug: hello-world
+template: rotkeeper-blog.html
+# Valid templates can be found by running: ./rotkeeper.sh templates
+description: "A simple starter page to demonstrate YAML frontmatter in Rotkeeper."
+---
+
+# Hello World!
+
+This is a demonstration page created during initialization. 
+It shows you exactly how to format your Markdown files with the required YAML frontmatter at the top.
+
+To render this page into HTML, run:
+`./rotkeeper.sh render`
+EOF_HELLO
+
     run "$SCRIPTDIR/rc-assets.sh"
     run "$SCRIPTDIR/rc-render.sh" --verbose
     run "$SCRIPTDIR/rc-scan.sh"

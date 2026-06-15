@@ -58,6 +58,8 @@ Commands:
 
   sitemap     Build sitemap_pipeline.yaml, nav_partial.html, and generated index pages
 
+  templates   List all available HTML templates in the bones/templates/ directory
+
   book        Generate documentation outputs
                 --scriptbook-full   Generate rotkeeper-scriptbook-full.md
                 --docbook           Generate rotkeeper-docbook.md
@@ -93,6 +95,8 @@ Examples:
   rotkeeper.sh render
   rotkeeper.sh book --all
   rotkeeper.sh cleanup --days 14
+
+Note: The 'bones/' directory is an internal system directory. Do not edit it unless you are familiar with Rotkeeper's internals.
 EOF
 }
 
@@ -148,6 +152,17 @@ case "$command" in
   sitemap)
     echo "Building sitemap..."
     bash "$BONES/rc-sitemap.sh" "$@"
+    ;;
+
+  templates)
+    echo "🎨 Available Templates:"
+    if [[ -d "$SCRIPT_DIR/bones/templates" ]]; then
+      for t in "$SCRIPT_DIR/bones/templates"/*.html; do
+        [[ -f "$t" ]] && echo "   - $(basename "$t")"
+      done
+    else
+      echo "   No templates found."
+    fi
     ;;
 
   book)
