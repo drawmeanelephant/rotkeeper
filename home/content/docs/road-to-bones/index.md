@@ -29,6 +29,7 @@ This is your consolidated status snapshot: what’s working, what’s stubbed, a
 
 ## 📡 Living Buildlog (Micro Updates)
 <!-- LIVING_BUILDLOG_START -->
+* `v0.3.0.4` - (2026-06-15 12:56) - Integrate decentralized ingestion pipeline, CLI UX improvements, and Opus doc synchronization.
 * `v0.3.0.3` - (2026-06-14 16:47) - Implemented automated sticky bump ritual to keep roadmaps from rotting
 * `v0.3.0.2` - (2026-06-14 16:47) - test
 

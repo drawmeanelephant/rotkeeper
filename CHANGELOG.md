@@ -35,3 +35,6 @@
 
 ## [0.3.0.3] - 2026-06-14
 - Implemented automated sticky bump ritual to keep roadmaps from rotting
+
+## [0.3.0.4] - 2026-06-15
+- Integrate decentralized ingestion pipeline, CLI UX improvements, and Opus doc synchronization.
