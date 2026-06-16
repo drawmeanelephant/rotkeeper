@@ -109,7 +109,7 @@ else
         gsub("v" old_ver, "v" new_ver)
         print
       }
-    ' "$f" > "${f}.tmp" && mv "${f}.tmp" "$f"
+    ' "$f" > "${f}.tmp" && mv "${f}.tmp" "$f" && chmod +x "$f"
   done
   log "INFO" "Updated version tags in all scripts."
 fi
