@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-render.sh
 #  Purpose : Render markdown tombs into HTML using Pandoc and templates
-#  Version : 0.3.0.14
+#  Version : 0.3.0.15
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -220,8 +220,7 @@ main() {
           echo "❌ ERROR: Template not found: $TEMPLATE_DIR/$TEMPLATE"
           continue
         fi
-
-        run pandoc "$mdfile" --from markdown --to html --template="$TEMPLATE_DIR/$TEMPLATE" -o "$outfile"
+        run pandoc "$mdfile" --from markdown --to html --template="$TEMPLATE_DIR/$TEMPLATE" --lua-filter="$PROJ_ROOT/bones/scripts/rewrite-links.lua" -o "$outfile"
         pages_rendered=$((pages_rendered + 1))
         log_manifest "$outfile"
       done < <(find "$SRC" -type f -name "*.md")

@@ -68,3 +68,6 @@
 
 ## [0.3.0.14] - 2026-06-15
 - Strip frontmatter overrides and fix rc-render to use rotkeeper.yaml
+
+## [0.3.0.15] - 2026-06-15
+- Cleaned up deprecated AI script bloat and fixed Pandoc markdown link rendering

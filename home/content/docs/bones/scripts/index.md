@@ -34,31 +34,25 @@ bones/scripts/
 | Script              | Purpose                                        | Link                                    | Status   |
 |---------------------|------------------------------------------------|-----------------------------------------|----------|
 | rc-init.sh          | Initialize directory and file layout           | [rc-init.sh](rc-init.html)      | Ready    |
-| rc-expand.sh        | Generate content stubs from BOM                | [rc-expand.sh](rc-expand.html)  | Ready    |
 | rc-render.sh        | Convert markdown to HTML                       | [rc-render.sh](rc-render.html)  | Ready    |
 | rc-pack.sh          | Archive `/output/`, export JSON                | [rc-pack.sh](rc-pack.html)      | Ready    |
 | rc-scan.sh          | Detect orphan/missing files, create digests    | [rc-scan.sh](rc-scan.html)      | Ready    |
 | rc-assets.sh        | Manifest static assets in YAML                 | [rc-assets.sh](rc-assets.html)  | Ready    |
-| rc-verify.sh        | Compare digests with current state             | [rc-verify.sh](rc-verify.html)  | Ready    |
 | rc-reseed.sh        | Restore from `.tar.gz` archive                 | [rc-reseed.sh](rc-reseed.html)  | Ready    |
 | rc-status.sh        | Summarize project health and logs              | [rc-status.sh](rc-status.html)  | Ready    |
 | rc-cleanup-bones.sh | Backup and prune bones/ archives and logs      | [rc-cleanup-bones.sh](rc-cleanup-bones.html) | Ready    |
-| rc-docs-fix.sh      | Patch frontmatter on Markdown docs             | [rc-docs-fix.sh](rc-docs-fix.html) | Ready    |
 | rc-glue.sh          | Generate index.md navigation glue              | [rc-glue.sh](rc-glue.html)      | Ready    |
 | rc-ingest.sh        | Unpack and merge decentralized payloads        | [rc-ingest.sh](rc-ingest.html)  | Ready    |
 | rc-bump.sh          | Log microupdate and bump version               | [rc-bump.sh](rc-bump.html)      | Ready    |
 | rc-release.sh       | Package lite and full distributions            | [rc-release.sh](rc-release.html)| Ready    |
 | rc-sitemap.sh       | Generate sitemap_pipeline.yaml                 | [rc-sitemap.sh](rc-sitemap.html)| Ready    |
 | rc-book.sh          | Generate markdown binders                      | [rc-book.sh](rc-book.html)      | Ready    |
-| rc-index.sh         | Generate output HTML index                     | [rc-index.sh](rc-index.html)    | Ready    |
-| rc-api.sh           | Fetch data from remote APIs                    | [rc-api.sh](rc-api.html)        | Stub     |
 | rc-unpack.sh        | *Planned* — restore output from archive        | [rc-unpack.sh](rc-unpack.html)  | Planned  |
 
 ## 🛣️ Navigation
 
 <!-- Quick navigation to scripts -->
 - [rc-assets.sh](rc-assets.html)
-- [rc-verify.sh](rc-verify.html)
 - [rc-scan.sh](rc-scan.html)
 - [rc-status.sh](rc-status.html)
 - [Other scripts…](index.html)

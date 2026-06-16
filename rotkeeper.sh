@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rotkeeper.sh
 #  Purpose : CLI dispatcher for all Rotkeeper rituals
-#  Version : 0.3.0.14
+#  Version : 0.3.0.15
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -20,7 +20,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-VERSION="0.3.0.14"
+VERSION="0.3.0.15"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BONES="$SCRIPT_DIR/bones/scripts"
 
@@ -58,8 +58,6 @@ Commands:
 
   assets      Generate asset manifest (home/assets → bones/asset-manifest.yaml)
 
-  index       Build HTML index and Markdown binder from output/
-
   sitemap     Build sitemap_pipeline.yaml, nav_partial.html, and generated index pages
 
   glue        Auto-generate index.md navigation glue for unindexed content directories
@@ -76,8 +74,6 @@ Commands:
                 --collapse          Convert reports into collapsed-content.yaml
                 --all               Run all binding rituals
 
-  verify      Check all assets match recorded SHA256 values
-
   meta        Extract frontmatter YAML from content tombs
 
   cleanup     Backup and prune bones/ archives and logs
@@ -90,8 +86,6 @@ Commands:
   status      Display latest render/log/archive/git state summary
 
   bump        Log a micro-update, bump the version, and commit changes
-
-  test        Run the full rc-*.sh test suite
 
   help        Show this help message
 
@@ -157,11 +151,6 @@ case "$command" in
     bash "$BONES/rc-assets.sh" "$@"
     ;;
 
-  index)
-    echo "Building output index and binder..."
-    bash "$BONES/rc-index.sh" "$@"
-    ;;
-
   sitemap)
     echo "Building sitemap..."
     bash "$BONES/rc-sitemap.sh" "$@"
@@ -199,11 +188,6 @@ case "$command" in
     bash "$BONES/rc-book.sh" "$@"
     ;;
 
-  verify)
-    echo "Verifying asset manifest..."
-    bash "$BONES/rc-verify.sh" "$@"
-    ;;
-
   meta)
     echo "Extracting content metadata..."
     bash "$BONES/rc-meta.sh" "$@"
@@ -233,11 +217,6 @@ case "$command" in
   bump)
     echo "Logging microupdate and bumping version..."
     bash "$BONES/rc-bump.sh" "$@"
-    ;;
-
-  test)
-    echo "Running full script test suite..."
-    bash "$BONES/rc-test.sh" "$@"
     ;;
 
   *)

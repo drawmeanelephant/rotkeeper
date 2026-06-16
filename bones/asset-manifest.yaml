@@ -1,5 +1,5 @@
 - path: ".DS_Store"
-  sha256: "24f1b26291b912e7b883728b606ba3609a9eface33f01f026332b67539977e71"
+  sha256: "d9c191cbd7153d525a08379abafa4ff70a49f740f927fc5a6d1244cf8423b448"
 - path: "css/rotkeeper.css"
   sha256: "118d3a662d3d091fa277e7bab2b435bd4d13f4cb50119926a7abd2d69ddc7093"
 - path: "css/theme-dark.css"
@@ -10,5 +10,3 @@
   sha256: "41599e09d27724ad0749cc49b37b7d3e1781d49d65c34ba0564b559dbc5e14d8"
 - path: "images/rotkeeper-splash.png"
   sha256: "3ef1ced52c4829f5fa803115a98afccfee32e2225eb53876934e6b6ace4166a2"
-- path: "remote/rc-docs-fix.sh"
-  sha256: "d5a89e26beae0bc03ad18a0b0d1d3d75f87c32047879d25da11970cb5c4662a3"
