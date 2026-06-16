@@ -28,6 +28,7 @@ This is your consolidated status snapshot: what’s working, what’s stubbed, a
 
 ## 📡 Living Buildlog (Micro Updates)
 <!-- LIVING_BUILDLOG_START -->
+* `v0.3.0.16` - (2026-06-15 20:54) - Purged ghost scripts and perfectly synchronized documentation with active rituals
 * `v0.3.0.15` - (2026-06-15 20:21) - Cleaned up deprecated AI script bloat and fixed Pandoc markdown link rendering
 * `v0.3.0.14` - (2026-06-15 18:49) - Strip frontmatter overrides and fix rc-render to use rotkeeper.yaml
 * `v0.3.0.13` - (2026-06-15 18:38) - Add nice clean light and dark themes, set light as default

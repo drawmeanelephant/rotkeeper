@@ -71,3 +71,6 @@
 
 ## [0.3.0.15] - 2026-06-15
 - Cleaned up deprecated AI script bloat and fixed Pandoc markdown link rendering
+
+## [0.3.0.16] - 2026-06-15
+- Purged ghost scripts and perfectly synchronized documentation with active rituals

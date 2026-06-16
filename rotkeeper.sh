@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rotkeeper.sh
 #  Purpose : CLI dispatcher for all Rotkeeper rituals
-#  Version : 0.3.0.15
+#  Version : 0.3.0.16
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -20,7 +20,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-VERSION="0.3.0.15"
+VERSION="0.3.0.16"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BONES="$SCRIPT_DIR/bones/scripts"
 
@@ -73,8 +73,6 @@ Commands:
                 --configbook        Generate rotkeeper-configbook.md
                 --collapse          Convert reports into collapsed-content.yaml
                 --all               Run all binding rituals
-
-  meta        Extract frontmatter YAML from content tombs
 
   cleanup     Backup and prune bones/ archives and logs
                 --days N   Set retention window in days (default: 30)
@@ -186,11 +184,6 @@ case "$command" in
   book)
     echo "Binding documentation reports..."
     bash "$BONES/rc-book.sh" "$@"
-    ;;
-
-  meta)
-    echo "Extracting content metadata..."
-    bash "$BONES/rc-meta.sh" "$@"
     ;;
 
   cleanup)

@@ -30,7 +30,7 @@ Core features we’re tracking:
 - `rc-unpack.sh` → verify archive contents & restore to correct path
 - `rc-expand.sh` → support multiple tombs per config
 - `rc-render.sh` → validate frontmatter, purge bad metadata
-- `rc-help.sh` → centralized help dispatcher across scripts
+
 - Obsidian + VSCode integration (`.vscode/tasks.json`, URI schemes)
 
 ## 🔧 Contributing

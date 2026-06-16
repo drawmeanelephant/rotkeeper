@@ -117,19 +117,6 @@ This document outlines the full sequence of Rotkeeper rituals, from initializing
   ```
 - **Result**: `RESEED.md` is up-to-date, reflecting all current versions and pending tasks.
 
-## 8. Help Aggregator (`rc-help.sh`)
-
-- **Purpose**: Consolidate all script `--help` outputs into a single reference.
-- **Actions**:
-  1. Print a banner with project name and version.
-  2. Loop through each `rc-*.sh` in `bones/scripts/`.
-  3. Invoke the script with `--help` and display its usage.
-- **Usage**:
-  ```bash
-  ./bones/scripts/rc-help.sh
-  ```
-- **Result**: A unified help index for all Rotkeeper CLI rituals.
-
 ---
 
 ## Schema References
@@ -167,7 +154,7 @@ graph LR
 
 - [Schemas](schemas.md)
 - [Glossary](glossary.md)
-- [Help Index](../../docs/bones/scripts/rc-help.md)
+
 
 ## 🛣️ Navigation (End)
 - [Back to Rotkeeper Docs](../index.md)
