@@ -11,17 +11,19 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-bump.sh
 #  Purpose : Automated microbump logging and version bumping workflow
-#  Version : 0.3.0.18
+#  Version : 0.3.0.19
 # ------------------------------------------------------------
 
 set -euo pipefail
 IFS=$'\n\t'
+
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 source "$SCRIPT_DIR/rc-utils.sh"
+rk_init_script "rc-bump" "$@"
 
 DRY_RUN=false
 VERBOSE=false
@@ -72,9 +74,6 @@ if [[ -z "$MESSAGE" ]]; then
   show_help
   exit 1
 fi
-
-init_log rc-bump
-trap 'trap_err ${LINENO}' ERR
 
 # Step 1: Read current version from rotkeeper.sh
 CURRENT_VERSION=$(grep -E '^VERSION=' "$ROOT_DIR/rotkeeper.sh" | cut -d'"' -f2)

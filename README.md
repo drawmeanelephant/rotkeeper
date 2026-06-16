@@ -92,7 +92,7 @@ Most commands support `--dry-run`, `--verbose`, and `--help`.
 ├── output/                      # Rendered HTML output
 ├── bones/                       # Internal system directory
 │   ├── scripts/                 # Bash rituals (rc-*.sh)
-│   ├── config/                  # System config (render-flags.yaml, rotkeeper.yaml, etc.)
+│   ├── config/                  # System config (rotkeeper.yaml, etc.)
 │   ├── templates/               # HTML templates for rendering
 │   ├── archive/                 # Pack archives (tomb-*.tar.gz)
 │   ├── releases/                # Release distributions (lite/full .zip)

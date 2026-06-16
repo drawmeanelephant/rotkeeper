@@ -25,7 +25,7 @@ This document outlines the full sequence of Rotkeeper rituals, from initializing
 - **Actions**:
   1. Copy core scripts and templates into `bones/`.
   2. Create essential folders (e.g., `bones/logs/`, `home/content/`).
-  3. Set up default configuration files (`rotkeeper-bom.yaml`, `render-flags.yaml`).
+  3. Set up default configuration files (`rotkeeper-bom.yaml`, `rotkeeper.yaml`).
 - **Usage**:
   ```bash
   ./bones/scripts/rc-init.sh [--help]
@@ -49,7 +49,7 @@ This document outlines the full sequence of Rotkeeper rituals, from initializing
 
 - **Purpose**: Convert `home/content/*.md` into HTML using Pandoc.
 - **Actions**:
-  2. Read `render-flags.yaml` for `content_dirs` and `output_dir`.
+  2. Rely on environment defaults from `rc-env.sh` and config from `rotkeeper.yaml`.
   3. For each `.md` (skipping drafts/logical recursion), run Pandoc with the appropriate template.
   4. Append rendered file paths to `bones/manifest.txt`.
 - **Usage**:
@@ -122,7 +122,6 @@ This document outlines the full sequence of Rotkeeper rituals, from initializing
 ## Schema References
 
 - **rotkeeper-bom.yaml**: Defines `content: []` array with fields `filename, title, template, body, status, updated`.
-- **render-flags.yaml**: Contains `content_dirs: []` (list of subdirectories under `home/content`) and `output_dir: <dir>`.
 - **asset-manifest.yaml**: Maps `path → {checksum, version, tomb_id}` for automation tooling.
 
 For detailed field definitions, see `schemas.md`.

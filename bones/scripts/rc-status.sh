@@ -11,15 +11,17 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-status.sh
 #  Purpose : Output a high-level status report on recent rituals and artifacts
-#  Version : 0.3.0.18
+#  Version : 0.3.0.19
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
 
 source "$(dirname "$0")/rc-utils.sh"
+rk_init_script "rc-status" "$@"
 set -euo pipefail
 IFS=$'\n\t'
+
 
 LOG_FILE="$LOG_DIR/rc-status-$(date +%Y-%m-%d_%H%M).log"
 mkdir -p "$LOG_DIR"

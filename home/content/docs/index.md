@@ -63,7 +63,6 @@ Ritual types include:
 - [`rc-release.sh`](bones/scripts/rc-release.md)
 
 ### 4. 🔧 Configuration
-- [`render-flags.yaml`](bones/config/render-flags.md)
 - [`rotkeeper-bom.yaml`](bones/config/rotkeeper-bom.md)
 - [Template Expectations](bones/templates/index.md)
 

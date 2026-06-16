@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-reseed.sh
 #  Purpose : Reverse ritual — unbind aggregated markdown back into original files
-#  Version : 0.3.0.18
+#  Version : 0.3.0.19
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -19,6 +19,9 @@
 
 set -euo pipefail
 IFS=$'\n\t'
+
+source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+rk_init_script "rc-reseed" "$@"
 
 # Use current directory as root — assume script and inputs live together
 ROOT_DIR="$(pwd)"

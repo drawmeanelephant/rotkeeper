@@ -48,7 +48,6 @@ This is the internal documentation hub for all Rotkeeper rituals, scripts, forma
 - [`rc-webbook.sh`](bones/scripts/rc-webbook.md)
 
 ### 4. 🔧 Configuration
-- [`render-flags.yaml`](bones/config/render-flags.md)
 - [`rotkeeper-bom.yaml`](bones/config/rotkeeper-bom.md)
 - [Template Expectations](bones/templates/index.md)
 

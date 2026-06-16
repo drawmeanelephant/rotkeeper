@@ -80,3 +80,6 @@
 
 ## [0.3.0.18] - 2026-06-15
 - Audit Refactoring Phase 1: standardized scaffolding, tightened day-1 UX, and simplified path logic
+
+## [0.3.0.19] - 2026-06-15
+- Refactor remaining scripts to use rk_init_script

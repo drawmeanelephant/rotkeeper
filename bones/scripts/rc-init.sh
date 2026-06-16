@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-init.sh
 #  Purpose : Initialize environment: reseed, bless scripts, render, and validate
-#  Version : 0.3.0.18
+#  Version : 0.3.0.19
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -20,6 +20,7 @@
 
 # Source shared Rotkeeper helpers
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+rk_init_script "rc-init" "$@"
 
 set -euo pipefail
 IFS=$'\n\t'
@@ -39,7 +40,6 @@ EOF
   exit 0
 }
 
-rk_init_script "rc-init" "$@"
 
 # Resolve script directory for sibling commands
 SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

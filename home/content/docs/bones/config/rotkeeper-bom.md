@@ -45,7 +45,6 @@ rc-scan.sh --bom rotkeeper-bom.yaml
 ## 🛣️ Navigation
 
 <!-- Quick links within configs -->
-- [render-flags.yaml](render-flags.html)
 - [rotkeeper-bom.yaml](rotkeeper-bom.html)
 
 ## Future Additions

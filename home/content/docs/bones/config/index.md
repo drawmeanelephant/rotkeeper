@@ -25,7 +25,6 @@ asset_meta:
 | Config File             | Description                                    | Link                                          | Status   |
 |-------------------------|------------------------------------------------|-----------------------------------------------|----------|
 | rotkeeper-bom.yaml      | Bill of Materials for tomb and asset tracking  | [rotkeeper-bom.yaml](rotkeeper-bom.md) | Ready    |
-| render-flags.yaml       | Flags and options for `rc-render.sh` pipeline  | [render-flags.yaml](render-flags.md)  | Ready    |
 | <em>future-config.yaml</em> | Placeholder for upcoming config types           | [future-config](future-config.md)    | Missing  |
 | …                       | …                                              | …                                             | …        |
 
@@ -33,7 +32,6 @@ asset_meta:
 
 <!-- Quick nav to config -->
 - [rotkeeper-bom.yaml](rotkeeper-bom.md)
-- [render-flags.yaml](render-flags.md)
 - [Other configs…](index.md)
 
 ## 🧭 Usage

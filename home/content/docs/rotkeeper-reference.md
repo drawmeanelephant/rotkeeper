@@ -36,6 +36,5 @@ The standard lifecycle of managing content in Rotkeeper follows this sequence:
 ## Configuration Files (`bones/config/`)
 
 - **`rotkeeper.yaml`**: Canonical configuration file defining templates, asset management rules, and toggle behavior.
-- **`render-flags.yaml`**: (Legacy) Previously defined content and output directories.
 - **`rotkeeper-bom.yaml`**: Bill of materials for releases and distributions.
 - **`asset-manifest.yaml`**: Generated checksums for static assets.

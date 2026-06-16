@@ -34,7 +34,7 @@ This section documents the internal tech stack, shell-based tools, and output ri
    Describes each `rc-*.sh` script: purpose, flags, inputs, outputs.
 
 3. [⚙️ Configuration Reference](config-reference.md)
-   All YAML knobs, environment flags, and how render-flags.yaml gets interpreted.
+   All YAML knobs, environment flags, and how rotkeeper.yaml gets interpreted.
 
 4. [🪵 Logging & Reports](logging-reports.md)
    Where logs go, what `bones/logs/` holds, and how reports are used in audits.

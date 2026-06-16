@@ -20,7 +20,7 @@ asset_meta:
 
 # 🧾 Rotkeeper Template Rituals
 
-These templates define how rendered HTML outputs look across different parts of the Rotkeeper system. They're consumed by `rc-render.sh` and selected using `render-flags.yaml`.
+These templates define how rendered HTML outputs look across different parts of the Rotkeeper system. They're consumed by `rc-render.sh` and selected using `rotkeeper.yaml`.
 
 Each template lives in:
 ```
@@ -39,7 +39,7 @@ bones/templates/
 
 ## ⚙️ How Rendering Works
 
-Template selection is configured in `render-flags.yaml` using the keys:
+Template selection is configured in `rotkeeper.yaml` under `content.default_template`:
 
 ```yaml
 template_dir: bones/templates/

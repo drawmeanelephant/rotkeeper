@@ -56,7 +56,6 @@ If you spot TODOs, unfinished rituals, or hallucinated AI logic, call it out. If
 - `bones/` — Where logs, configs, and scan results are entombed.
 - `home/` — Where your tombs and rendered results live.
 - `rotkeeper-bom.yaml` — Required for `rc-expand.sh`; defines what gets generated.
-- `render-flags.yaml` — Optional. Overrides rendering behavior for `rc-render.sh`.
 
 ---
 

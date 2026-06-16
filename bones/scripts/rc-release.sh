@@ -15,14 +15,11 @@
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+rk_init_script "rc-release" "$@"
 set -euo pipefail
 IFS=$'\n\t'
 
-init_log "rc-release"
 LOG_FILE="$PWD/$LOG_FILE"
-
-trap cleanup EXIT INT TERM
-trap 'trap_err $LINENO' ERR
 
 VERSION="${1:-}"
 if [[ -z "$VERSION" ]]; then

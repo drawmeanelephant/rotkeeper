@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-scan.sh
 #  Purpose : Audit files vs manifest, classify orphans, and write digest reports
-#  Version : 0.3.0.18
+#  Version : 0.3.0.17
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -23,10 +23,13 @@ manifest_list=()
 disk_list=()
 IFS=$'\n\t'
 
-# --- Flag Parsing & Helpers ---
+source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+rk_init_script "rc-scan" "$@"
 
+# --- Flag Parsing & Helpers ---
+show_help() {
   cat << EOF
-rc-scan.sh — Audit manifest and scan environment for file reports (v0.3.0.18.1)
+rc-scan.sh — Audit manifest and scan environment for file reports (v0.3.0.19.1)
 
 Usage: rc-scan.sh [options]
 
@@ -36,11 +39,6 @@ Options:
   --verbose         Print detailed logs during scanning
 EOF
   exit 0
-}
-
-show_help() {
-  local level="$1"; shift
-  printf '[%s] [%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$level" "$*"
 }
 
 run() {

@@ -168,7 +168,7 @@ You have limited room for jazz. This is metadata, not poetry.
 ## 🔍 Where YAML Appears in Rotkeeper
 
 - All documentation `.md` files use frontmatter (like this one).
-- Configuration files like `rotkeeper-bom.yaml` and `render-flags.yaml`.
+- Configuration files like `rotkeeper-bom.yaml` and `rotkeeper.yaml`.
 - Potential future tomb manifests and ritual logs.
 
 ## ✅ YAML Rules (for the Forgetful)

@@ -11,15 +11,14 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-glue.sh
 #  Purpose : Generate navigation glue (index.md) for unindexed directories
-#  Version : 0.3.0.18
+#  Version : 0.3.0.19
 # ------------------------------------------------------------
 
 set -euo pipefail
 
-source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 
-init_log "rc-glue"
-trap 'trap_err $LINENO' ERR
+source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+rk_init_script "rc-glue" "$@"
 
 main() {
   log "INFO" "Applying navigation glue to unindexed tombs in $CONTENT_DIR..."

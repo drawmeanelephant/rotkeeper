@@ -28,6 +28,7 @@ This is your consolidated status snapshot: what’s working, what’s stubbed, a
 
 ## 📡 Living Buildlog (Micro Updates)
 <!-- LIVING_BUILDLOG_START -->
+* `v0.3.0.19` - (2026-06-15 23:28) - Refactor remaining scripts to use rk_init_script
 * `v0.3.0.18` - (2026-06-15 23:09) - Audit Refactoring Phase 1: standardized scaffolding, tightened day-1 UX, and simplified path logic
 * `v0.3.0.17` - (2026-06-15 21:22) - fix: correct home/content path resolution in rc-init
 * `v0.3.0.16` - (2026-06-15 20:54) - Purged ghost scripts and perfectly synchronized documentation with active rituals

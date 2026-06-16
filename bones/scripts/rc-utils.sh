@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-utils.sh
 #  Purpose : Shared Rotkeeper helper functions and runtime sanity wrappers
-#  Version : 0.3.0.18
+#  Version : 0.3.0.19
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -138,7 +138,7 @@ rk_init_script() {
   
   : "${DRY_RUN:=${RK_DRY:-false}}"
   : "${VERBOSE:=${RK_VERBOSE:-false}}"
-  HELP=false
+  : "${HELP:=false}"
   
   parse_flags "$@"
   if [[ "$HELP" == true ]]; then

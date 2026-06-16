@@ -1,5 +1,5 @@
 # 🔮 rotkeeper.yaml — canonical configuration for all CLI rituals
-# This file replaces scattered config fragments (render-flags.yaml, template-index.yaml, etc.)
+# This file replaces scattered config fragments (template-index.yaml, etc.)
 # It is parsed by all rc-*.sh modules for consistent behavior and flag normalization.
 
 version: "0.2.3-pre"

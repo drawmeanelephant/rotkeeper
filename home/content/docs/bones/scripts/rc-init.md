@@ -34,7 +34,6 @@ This script is typically run **once**, or when reanimating a collapsed tomb stru
 
 It also ensures the following exist:
 - `bones/manifest.txt`
-- `render-flags.yaml`
 
 ---
 
@@ -124,7 +123,6 @@ rotkeeper/
 │   └── content/
 │       └── rotkeeper/
 ├── output/
-├── render-flags.yaml
 └── bones/manifest.txt
 ```
 
