@@ -83,3 +83,6 @@
 
 ## [0.3.0.19] - 2026-06-15
 - Refactor remaining scripts to use rk_init_script
+
+## [0.3.0.20] - 2026-06-15
+- Add test harness, agent-handoff, snapshot, and timeline commands

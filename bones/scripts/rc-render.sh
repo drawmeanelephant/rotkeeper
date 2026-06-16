@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-render.sh
 #  Purpose : Render markdown tombs into HTML using Pandoc and templates
-#  Version : 0.3.0.19
+#  Version : 0.3.0.20
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.

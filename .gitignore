@@ -28,4 +28,5 @@ bones/tmp
 messages-from-my-friends
 home/content/messages
 bones/ingested
-bones/releases
+bones/releasestestenv/
+rotkeeper-test-env/

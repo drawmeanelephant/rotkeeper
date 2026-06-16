@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-pack.sh
 #  Purpose : Bundle rendered output into versioned .tar.gz archive and export markdown to JSON
-#  Version : 0.3.0.19
+#  Version : 0.3.0.20
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -24,7 +24,7 @@ IFS=$'\n\t'
 
 show_help() {
   cat << EOF
-rc-pack.sh — Ritual Compression Packager (v0.3.0.19.1)
+rc-pack.sh — Ritual Compression Packager (v0.3.0.20.1)
 
 Usage: rc-pack.sh [options]
 

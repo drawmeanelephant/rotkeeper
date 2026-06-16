@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rotkeeper.sh
 #  Purpose : CLI dispatcher for all Rotkeeper rituals
-#  Version : 0.3.0.19
+#  Version : 0.3.0.20
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -20,7 +20,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-VERSION="0.3.0.19"
+VERSION="0.3.0.20"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BONES="$SCRIPT_DIR/bones/scripts"
 
@@ -88,6 +88,14 @@ Commands:
                 --input FILE     Use a scriptbook/docbook/configbook
 
   status      Display latest render/log/archive/git state summary
+
+  agent-handoff Generate books and package a tombkit for AI delegates
+
+  snapshot    Instantly run render, pack, and scan to freeze the current state
+
+  timeline    Generate a reverse-chronological history report of the tombs
+
+  test        Run the integration test harness against the rotkeeper scripts
 
   bump        Log a micro-update, bump the version, and commit changes
 
@@ -216,6 +224,32 @@ case "$command" in
   bump)
     echo "Logging microupdate and bumping version..."
     bash "$BONES/rc-bump.sh" "$@"
+    ;;
+
+  test)
+    echo "Running Rotkeeper test harness..."
+    bash "test.sh" "$@"
+    ;;
+
+  agent-handoff)
+    echo "Initiating Agent Handoff..."
+    bash "$BONES/rc-book.sh" --all
+    bash "$BONES/rc-pack.sh" --self
+    echo ""
+    echo "Tombkit generated. Hand the latest tombkit-*.tar.gz from bones/archive/ to the agent."
+    ;;
+
+  snapshot)
+    echo "Creating a point-in-time snapshot..."
+    bash "$BONES/rc-render.sh" "$@"
+    bash "$BONES/rc-pack.sh" "$@"
+    bash "$BONES/rc-scan.sh" "$@"
+    echo "Snapshot complete."
+    ;;
+
+  timeline)
+    echo "Generating tomb timeline..."
+    bash "$BONES/rc-timeline.sh" "$@"
     ;;
 
   *)

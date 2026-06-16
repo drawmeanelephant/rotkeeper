@@ -38,3 +38,14 @@ The standard lifecycle of managing content in Rotkeeper follows this sequence:
 - **`rotkeeper.yaml`**: Canonical configuration file defining templates, asset management rules, and toggle behavior.
 - **`rotkeeper-bom.yaml`**: Bill of materials for releases and distributions.
 - **`asset-manifest.yaml`**: Generated checksums for static assets.
+
+## Agent Mode & Diagnostics
+
+Rotkeeper treats autonomous agents as first-class citizens. To facilitate AI handoffs and diagnostics:
+
+| Command | Purpose |
+|---|---|
+| `rotkeeper.sh agent-handoff` | Generates full documentation binders and packages the entire system into a `tombkit-*.tar.gz` for seamless LLM transfer. |
+| `rotkeeper.sh snapshot` | Instantly runs `render`, `pack`, and `scan` sequentially to freeze a point-in-time state of the repository. |
+| `rotkeeper.sh timeline` | Reads `bones/archive/` to generate a reverse-chronological history report of all tombs. |
+| `rotkeeper.sh test` | Runs the integration test harness against the core commands to verify system integrity. |

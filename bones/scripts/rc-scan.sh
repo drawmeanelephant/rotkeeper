@@ -29,7 +29,7 @@ rk_init_script "rc-scan" "$@"
 # --- Flag Parsing & Helpers ---
 show_help() {
   cat << EOF
-rc-scan.sh — Audit manifest and scan environment for file reports (v0.3.0.19.1)
+rc-scan.sh — Audit manifest and scan environment for file reports (v0.3.0.20.1)
 
 Usage: rc-scan.sh [options]
 
