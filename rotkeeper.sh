@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rotkeeper.sh
 #  Purpose : CLI dispatcher for all Rotkeeper rituals
-#  Version : 0.3.0.17
+#  Version : 0.3.0.18
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -20,7 +20,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-VERSION="0.3.0.17"
+VERSION="0.3.0.18"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BONES="$SCRIPT_DIR/bones/scripts"
 
@@ -39,6 +39,12 @@ rotkeeper.sh — Rotkeeper CLI v$VERSION
 
 Usage:
   rotkeeper.sh <command> [options]
+
+Quickstart:
+  ./rotkeeper.sh init
+  ./rotkeeper.sh new my-first-page
+  ./rotkeeper.sh render
+  ./rotkeeper.sh pack --content
 
 Commands:
   init        Initialize environment (reseed + assets + render)

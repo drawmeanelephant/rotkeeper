@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-utils.sh
 #  Purpose : Shared Rotkeeper helper functions and runtime sanity wrappers
-#  Version : 0.3.0.17
+#  Version : 0.3.0.18
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -129,6 +129,27 @@ init_log() {
   local name="${1:-$(basename "$0" .sh)}"
   LOG_FILE="bones/logs/${name}-$(date +%Y-%m-%d_%H%M).log"
   mkdir -p "$(dirname "$LOG_FILE")"
+}
+
+# Standardize script initialization: sets name, logs, traps, and parses common flags
+rk_init_script() {
+  SCRIPTNAME="${1:-$(basename "$0" .sh)}"
+  shift
+  
+  : "${DRY_RUN:=${RK_DRY:-false}}"
+  : "${VERBOSE:=${RK_VERBOSE:-false}}"
+  HELP=false
+  
+  parse_flags "$@"
+  if [[ "$HELP" == true ]]; then
+    show_help
+  fi
+  
+  init_log "$SCRIPTNAME"
+  set_traps
+  
+  # Redirect output to log file as well
+  exec > >(tee -a "$LOG_FILE") 2>&1
 }
 
 # Return script directory

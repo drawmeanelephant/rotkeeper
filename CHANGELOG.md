@@ -77,3 +77,6 @@
 
 ## [0.3.0.17] - 2026-06-15
 - fix: correct home/content path resolution in rc-init
+
+## [0.3.0.18] - 2026-06-15
+- Audit Refactoring Phase 1: standardized scaffolding, tightened day-1 UX, and simplified path logic

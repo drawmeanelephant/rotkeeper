@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-new.sh
 #  Purpose : Scaffold a new markdown file with YAML frontmatter
-#  Version : 0.3.0.17
+#  Version : 0.3.0.18
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -22,37 +22,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 set -euo pipefail
 IFS=$'\n\t'
 
-init_log "rc-new"
-LOG_FILE="$PWD/$LOG_FILE"
-
-trap cleanup EXIT INT TERM
-trap 'trap_err $LINENO' ERR
-
-# --- Normalize environment variable overrides ---
-: "${DRY_RUN:=${RK_DRY:-false}}"
-: "${VERBOSE:=${RK_VERBOSE:-false}}"
-HELP=false
-
-# --- Flag parsing ---
-FILE=""
-for arg in "$@"; do
-  case "$arg" in
-    --dry-run)   DRY_RUN=true ;;
-    --verbose)   VERBOSE=true ;;
-    --help|-h)   HELP=true ;;
-    -*) log "ERROR" "Unknown flag: $arg"; exit 1 ;;
-    *) 
-      if [[ -z "$FILE" ]]; then
-        FILE="$arg"
-      else
-        log "ERROR" "Multiple files specified. Usage: rotkeeper.sh new <file>"
-        exit 1
-      fi
-      ;;
-  esac
-done
-
-if [[ "$HELP" == true ]]; then
+show_help() {
   cat << EOF
 rc-new.sh — Scaffold a new markdown file with required YAML frontmatter
 
@@ -64,7 +34,26 @@ Options:
   --verbose        Enable detailed debug logging
 EOF
   exit 0
-fi
+}
+
+rk_init_script "rc-new" "$@"
+
+# --- Flag parsing ---
+FILE=""
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run|--verbose|--help|-h) ;; # handled by rk_init_script
+    -*) log "ERROR" "Unknown flag: $arg"; exit 1 ;;
+    *) 
+      if [[ -z "$FILE" ]]; then
+        FILE="$arg"
+      else
+        log "ERROR" "Multiple files specified. Usage: rotkeeper.sh new <file>"
+        exit 1
+      fi
+      ;;
+  esac
+done
 
 main() {
     if [[ -z "$FILE" ]]; then
