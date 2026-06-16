@@ -8,7 +8,7 @@ Rotkeeper is a haunted CLI suite for Markdown morticians, static site cryptkeepe
 Written in modular Bash, it automates the slow decay and archival rebirth of your flat-file knowledge hoards.
 Every script is annotated for post-apocalyptic readability. No network required. Only reverence.
 
-**Current Version:** `v0.3.0.3`
+**Current Version:** `v0.3.1`
 
 ***
 
@@ -165,7 +165,7 @@ Both are packaged as `.zip` files in `bones/releases/`.
 
 ## 🚧 Status
 
-This is version `v0.3.0.3`.
+This is version `v0.3.1`.
 It is **functional but haunted**.
 Most scripts work cleanly. Some logs whisper.
 Frontmatter validation, content expansion, and logging are stable across all core rituals.

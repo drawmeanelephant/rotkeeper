@@ -163,6 +163,6 @@ If you are operating in the **`lite` distribution**, you will have `AGENTS.md` a
 
 ## 📌 Version
 
-Current version: `v0.3.0.3` (as defined in `rotkeeper.sh`).
+Current version: `v0.3.1` (as defined in `rotkeeper.sh`).
 
 Good luck!
