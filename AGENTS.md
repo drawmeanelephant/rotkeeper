@@ -44,7 +44,7 @@ Run `./rotkeeper.sh help` for the built-in help, or reference this table:
 
 | Command | Description |
 |---------|-------------|
-| `init` | Full initialization: bless scripts with `+x`, reseed workspace, generate starter `hello-world.md`, run assets + render + scan. Use `--force` to rebuild. |
+| `init` | Full initialization: bless scripts with `+x`, reseed workspace, generate starter `test-file.md`, run assets + render + scan. Use `--force` to rebuild. |
 | `render` | Convert Markdown tombs to HTML via Pandoc. Uses templates from `bones/templates/`. Archives output as timestamped `.tar.gz`. |
 | `pack` | Archive rendered `output/` into a versioned tomb `.tar.gz` with embedded JSON metadata. Also exports Markdown to Pandoc JSON. |
 | `pack --content` | Archive only `home/content/` (excluding `docs/`, `help/`, temp files). Use this to ship content to other repositories. |
@@ -87,7 +87,7 @@ If you are tasked with creating a page or testing the framework:
    ```bash
    ./rotkeeper.sh init
    ```
-   This blesses scripts, reseeds the workspace, creates a starter `hello-world.md`, generates asset manifests, renders all content, and runs a scan.
+   This blesses scripts, reseeds the workspace, creates a starter `test-file.md`, generates asset manifests, renders all content, and runs a scan.
 
 2. **Create a Markdown file** in `home/content/` (e.g., `home/content/my-page.md`).
 
