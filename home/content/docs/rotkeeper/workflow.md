@@ -28,21 +28,11 @@ This document outlines the full sequence of Rotkeeper rituals, from initializing
   3. Set up default configuration files (`rotkeeper-bom.yaml`, `rotkeeper.yaml`).
 - **Usage**:
   ```bash
-  ./bones/scripts/rc-init.sh [--help]
+  ./rotkeeper.sh init
   ```
 - **Result**: A skeleton directory structure ready for content expansion.
 
-## 2. Expand Content (`rc-expand.sh`)
 
-- **Purpose**: Generate Markdown stub files from `rotkeeper-bom.yaml`.
-- **Actions**:
-  2. Skip any items with `status: draft`.
-  3. Create directories and write stub `.md` files under `home/content/`.
-- **Usage**:
-  ```bash
-  ./bones/scripts/rc-expand.sh [--dry-run] [--verbose] [--help]
-  ```
-- **Result**: Stub files in `home/content/` representing each content entry.
 
 
 ## 3. Render Pages (`rc-render.sh`)
@@ -54,7 +44,7 @@ This document outlines the full sequence of Rotkeeper rituals, from initializing
   4. Append rendered file paths to `bones/manifest.txt`.
 - **Usage**:
   ```bash
-  ./bones/scripts/rc-render.sh [--dry-run] [--verbose] [--help]
+  ./rotkeeper.sh render [--dry-run] [--verbose] [--help]
   ```
 - **Result**: HTML files under `output/`, ready for packaging.
 
@@ -64,16 +54,16 @@ This document outlines the full sequence of Rotkeeper rituals, from initializing
 - **Actions**:
   1. Parse comments from scripts into the scriptbook.
   2. Aggregate public documentation into the docbook.
-  3. Collect web-facing guides into the webbook.
+  3. Collect system configurations into the configbook.
   4. Generate clean docbook version for downstream consumers.
 - **Usage**:
   ```bash
-  ./bones/scripts/rc-book.sh [--mode <scriptbook|docbook|webbook|clean>] [--help]
+  ./rotkeeper.sh book [--docbook | --scriptbook-full | --configbook | --all] [--help]
   ```
 - **Result**: Markdown files are generated in `bones/reports/`:
-  - `rotkeeper-scriptbook.md`
+  - `rotkeeper-scriptbook-full.md`
   - `rotkeeper-docbook.md`
-  - `rotkeeper-webbook.md`
+  - `rotkeeper-configbook.md`
   - `rotkeeper-docbook-clean.md`
 
 ## 5. Pack Archive (`rc-pack.sh`)
@@ -87,7 +77,7 @@ This document outlines the full sequence of Rotkeeper rituals, from initializing
   5. Log summary (file count, size) to `bones/logs/`.
 - **Usage**:
   ```bash
-  ./bones/scripts/rc-pack.sh [--input <dir>] [--output <dir>] [--help]
+  ./rotkeeper.sh pack [--help]
   ```
 - **Result**: A tomb archive in `bones/archive/` with embedded metadata and checksums.
 
@@ -100,7 +90,7 @@ This document outlines the full sequence of Rotkeeper rituals, from initializing
   3. Report mismatches or missing files.
 - **Usage**:
   ```bash
-  ./bones/scripts/rc-scan.sh [--strict] [--help] <archive or directory>
+  ./rotkeeper.sh scan [--strict] [--help]
   ```
 - **Result**: Exit code `0` if no mismatches (or warnings), `1` if issues found.
 
@@ -113,7 +103,7 @@ This document outlines the full sequence of Rotkeeper rituals, from initializing
   3. Write combined status of all scripts and configuration to `RESEED.md`.
 - **Usage**:
   ```bash
-  ./bones/scripts/rc-reseed.sh [--help]
+  ./rotkeeper.sh reseed [--help]
   ```
 - **Result**: `RESEED.md` is up-to-date, reflecting all current versions and pending tasks.
 
@@ -132,9 +122,7 @@ For detailed field definitions, see `schemas.md`.
 
 ```mermaid
 graph LR
-  A[rc-init.sh] --> B[rc-expand.sh]
-  B --> C[home/content/*.md]
-  C --> D[rc-render.sh]
+  A[rc-init.sh] --> D[rc-render.sh]
   D --> E[output/*.html]
   E --> F[rc-pack.sh]
   F --> G[bones/archive/*.tar.gz]

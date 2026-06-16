@@ -50,7 +50,7 @@ To provide a unified command for interacting with all parts of the rotkeeper too
 | `pack`      | Create `.tar.gz` of output & logs    |
 | `test`      | Run all scripts in dry mode          |
 | `help`      | Show available commands              |
-| `book`      | Generate documentation outputs (scriptbook, docbook, webbook) |
+| `book`      | Generate documentation outputs (scriptbook, docbook, configbook) |
 
 ***
 

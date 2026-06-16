@@ -32,31 +32,25 @@ Welcome, ritual novice. This document will walk you through your first decay cyc
 1. **Initialize a new tomb directory:**
 
    ```bash
-   ./rc-init.sh --name my-first-tomb
+   ./rotkeeper.sh init
    ```
 
-2. **Expand the ritual from YAML:**
+2. **Render the tomb into HTML:**
 
    ```bash
-   ./rc-expand.sh --input tombs/my-first-tomb.yaml
-   ```
-
-3. **Render the tomb into HTML:**
-
-   ```bash
-   ./rc-render.sh --input tombs/my-first-tomb/
+   ./rotkeeper.sh render
    ```
 
 4. **Scan for file decay:**
 
    ```bash
-   ./rc-scan.sh --input tombs/my-first-tomb/
+   ./rotkeeper.sh scan
    ```
 
 5. **Pack** it for archival:
 
    ```bash
-   ./rc-pack.sh --input tombs/my-first-tomb/ --output my-first-tomb.tar.gz
+   ./rotkeeper.sh pack
    ```
 
 ## 📦 What Next?

@@ -11,31 +11,11 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-assets.sh
 #  Purpose : Generate a selective YAML manifest of referenced assets
-#  Version : 0.3.0.20
+#  Version : 0.3.1
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
-source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
-rk_init_script "rc-assets" "$@"
-set -euo pipefail
-IFS=$'\n\t'
-
-# --- Helpers & Flag Parsing ---
-DRY_RUN=false
-VERBOSE=false
-HELP=false
-GENERATE_SITEMAP=false
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --dry-run)   DRY_RUN=true; shift ;;
-    --verbose)   VERBOSE=true; shift ;;
-    --help|-h)   HELP=true; shift ;;
-    --sitemap)   GENERATE_SITEMAP=true; shift ;;
-    *) break ;;
-  esac
-done
-
 show_help() {
   cat << EOF
 rc-assets.sh — Generate a selective YAML manifest of referenced assets
@@ -50,6 +30,25 @@ Options:
 EOF
   exit 0
 }
+
+source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+rk_init_script "rc-assets" "$@"
+set -euo pipefail
+IFS=$'\n\t'
+
+# --- Helpers & Flag Parsing ---
+GENERATE_SITEMAP=false
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --dry-run)   DRY_RUN=true; shift ;;
+    --verbose)   VERBOSE=true; shift ;;
+    --help|-h)   show_help ;;
+    --sitemap)   GENERATE_SITEMAP=true; shift ;;
+    *) break ;;
+  esac
+done
+
+
 
 
 

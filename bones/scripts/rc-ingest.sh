@@ -11,16 +11,10 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-ingest.sh
 #  Purpose : Ingests .tar.gz archives from an inbox into the local content repository safely
-#  Version : 0.3.0.20
+#  Version : 0.3.1
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
-
-source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
-rk_init_script "rc-ingest" "$@"
-set -euo pipefail
-IFS=$'\n\t'
-
 
 show_help() {
   cat << EOF
@@ -36,9 +30,13 @@ EOF
   exit 0
 }
 
+source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+rk_init_script "rc-ingest" "$@"
+set -euo pipefail
+IFS=$'\n\t'
+
+
 # --- Shared Configuration ---
-: "${VERBOSE:=${RK_VERBOSE:-false}}"
-HELP=false
 INBOX_DIR="messages-from-my-friends"
 
 # --- Flag parsing ---
@@ -46,14 +44,10 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --inbox)     INBOX_DIR="$2"; shift 2 ;;
     --verbose)   VERBOSE=true; shift ;;
-    --help|-h)   HELP=true; shift ;;
+    --help|-h)   show_help ;;
     *) break ;;
   esac
 done
-
-if [[ "$HELP" == true ]]; then
-  show_help
-fi
 
 main() {
     log "INFO" "Running rc-ingest.sh"

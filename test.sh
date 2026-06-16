@@ -66,6 +66,9 @@ for script in bones/scripts/rc-*.sh; do
     rc-bump.sh)
       bash "$script" --dry-run -m "test" > /dev/null || { echo "FAIL: $script failed dry-run"; exit 1; }
       ;;
+    rc-release.sh)
+      bash "$script" "0.0.0" --dry-run > /dev/null || { echo "FAIL: $script failed dry-run"; exit 1; }
+      ;;
     rc-new.sh)
       bash "$script" --dry-run test-article-2 > /dev/null || { echo "FAIL: $script failed dry-run"; exit 1; }
       ;;

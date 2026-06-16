@@ -38,14 +38,14 @@ This is the internal documentation hub for all Rotkeeper rituals, scripts, forma
 
 ### 3. ⚙️ Core Rituals (CLI Scripts)
 - [`rc-init.sh`](bones/scripts/rc-init.md)
-- [`rc-expand.sh`](bones/scripts/rc-expand.md)
+
 - [`rc-render.sh`](bones/scripts/rc-render.md)
 - [`rc-pack.sh`](bones/scripts/rc-pack.md)
 - [`rc-scan.sh`](bones/scripts/rc-scan.md)
 - [`rc-assets.sh`](bones/scripts/rc-assets.md)
 - [`rc-status.sh`](bones/scripts/rc-status.md)
 - [`rc-reseed.sh`](bones/scripts/rc-reseed.md)
-- [`rc-webbook.sh`](bones/scripts/rc-webbook.md)
+- [`rc-book.sh`](bones/scripts/rc-book.md)
 
 ### 4. 🔧 Configuration
 - [`rotkeeper-bom.yaml`](bones/config/rotkeeper-bom.md)

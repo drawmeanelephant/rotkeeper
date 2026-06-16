@@ -14,20 +14,6 @@
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
-source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
-rk_init_script "rc-release" "$@"
-set -euo pipefail
-IFS=$'\n\t'
-
-LOG_FILE="$PWD/$LOG_FILE"
-
-VERSION="${1:-}"
-if [[ -z "$VERSION" ]]; then
-  log "ERROR" "No version specified. Usage: rc-release.sh <VERSION> [options]"
-  exit 1
-fi
-shift
-
 show_help() {
   cat << EOF
 rc-release.sh — Release Packager
@@ -42,21 +28,32 @@ EOF
   exit 0
 }
 
-# --- Normalize environment variable overrides ---
-: "${DRY_RUN:=${RK_DRY:-false}}"
-: "${VERBOSE:=${RK_VERBOSE:-false}}"
-HELP=false
+source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+rk_init_script "rc-release" "$@"
+set -euo pipefail
+IFS=$'\n\t'
 
+LOG_FILE="$PWD/$LOG_FILE"
+
+VERSION=""
 # --- Flag parsing ---
 for arg in "$@"; do
   case "$arg" in
     --dry-run)   DRY_RUN=true ;;
     --verbose)   VERBOSE=true ;;
-    --help|-h)   HELP=true ;;
+    --help|-h)   show_help ;;
+    -*) log "ERROR" "Unknown flag: $arg"; exit 1 ;;
+    *) 
+      if [[ -z "$VERSION" ]]; then
+        VERSION="$arg"
+      fi
+      ;;
   esac
 done
-if [[ "$HELP" == true ]]; then
-  show_help
+
+if [[ -z "$VERSION" ]]; then
+  log "ERROR" "No version specified. Usage: rc-release.sh <VERSION> [options]"
+  exit 1
 fi
 
 # We use require_bins from rc-utils.sh. Let's make sure rsync and zip are present.

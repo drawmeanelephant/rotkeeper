@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-bump.sh
 #  Purpose : Automated microbump logging and version bumping workflow
-#  Version : 0.3.0.20
+#  Version : 0.3.1
 # ------------------------------------------------------------
 
 set -euo pipefail
@@ -25,9 +25,6 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh"
 rk_init_script "rc-bump" "$@"
 
-DRY_RUN=false
-VERBOSE=false
-HELP=false
 MESSAGE=""
 
 show_help() {
@@ -50,7 +47,8 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --dry-run) DRY_RUN=true; shift ;;
     --verbose) VERBOSE=true; shift ;;
-    --help|-h) HELP=true; shift ;;
+    --help|-h) show_help ;;
+    --to) NEW_VERSION_OVERRIDE="$2"; shift 2 ;;
     --message|-m) MESSAGE="${2:-}"; shift 2 ;;
     -*) log "ERROR" "Unknown flag: $1"; show_help; exit 1 ;;
     *) 
@@ -63,11 +61,6 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
-
-if [[ "$HELP" == true ]]; then
-  show_help
-  exit 0
-fi
 
 if [[ -z "$MESSAGE" ]]; then
   log "ERROR" "No update message provided."
@@ -88,7 +81,9 @@ log "INFO" "Current version is $CURRENT_VERSION"
 # Step 2: Bump the micro version
 # Example: 0.3.0 -> 0.3.0.1
 # Example: 0.3.0.1 -> 0.3.0.2
-if [[ "$CURRENT_VERSION" =~ ^([0-9]+\.[0-9]+\.[0-9]+)\.([0-9]+)$ ]]; then
+if [[ -n "${NEW_VERSION_OVERRIDE:-}" ]]; then
+  NEW_VERSION="$NEW_VERSION_OVERRIDE"
+elif [[ "$CURRENT_VERSION" =~ ^([0-9]+\.[0-9]+\.[0-9]+)\.([0-9]+)$ ]]; then
   BASE_VER="${BASH_REMATCH[1]}"
   MICRO="${BASH_REMATCH[2]}"
   NEW_MICRO=$((MICRO + 1))
@@ -104,36 +99,18 @@ log "INFO" "Bumping version to $NEW_VERSION"
 if [[ "$DRY_RUN" == true ]]; then
   log "DRYRUN" "Would update scripts to $NEW_VERSION"
 else
-  # Using Python for a safe, reliable, cross-platform global replace
-  python3 -c "
-import os, glob
-
-new_ver = '$NEW_VERSION'
-old_ver = '$CURRENT_VERSION'
-script_dir = '$SCRIPT_DIR'
-root_dir = '$ROOT_DIR'
-
-files = glob.glob(f'{script_dir}/*.sh') + [f'{root_dir}/rotkeeper.sh']
-
-for f in files:
-    with open(f, 'r') as file:
-        content = file.read()
-    
-    # Replace VERSION string in rotkeeper.sh
-    if f.endswith('rotkeeper.sh'):
-        content = content.replace(f'VERSION=\"{old_ver}\"', f'VERSION=\"{new_ver}\"')
-    
-    # Replace # Version : string in headers
-    content = content.replace(f'#  Version : {old_ver}', f'#  Version : {new_ver}')
-    content = content.replace(f'# Version: {old_ver}', f'# Version: {new_ver}')
-    
-    # Replace in help text and debug prints
-    content = content.replace(f'(v{old_ver})', f'(v{new_ver})')
-    content = content.replace(f'v{old_ver}', f'v{new_ver}')
-
-    with open(f, 'w') as file:
-        file.write(content)
-"
+  for f in "$ROOT_DIR/rotkeeper.sh" "$SCRIPT_DIR"/*.sh; do
+    awk -v old_ver="$CURRENT_VERSION" -v new_ver="$NEW_VERSION" '
+      {
+        gsub("VERSION=\"" old_ver "\"", "VERSION=\"" new_ver "\"")
+        gsub("#  Version : " old_ver, "#  Version : " new_ver)
+        gsub("# Version: " old_ver, "# Version: " new_ver)
+        gsub("\\(v" old_ver "\\)", "(v" new_ver ")")
+        gsub("v" old_ver, "v" new_ver)
+        print
+      }
+    ' "$f" > "${f}.tmp" && mv "${f}.tmp" "$f"
+  done
   log "INFO" "Updated version tags in all scripts."
 fi
 

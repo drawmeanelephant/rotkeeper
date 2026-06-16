@@ -19,7 +19,7 @@ asset_meta:
   license: "CC-BY-SA-4.2-unreal"
 ---
 
-`rc-book.sh` is the singular binder ritual for Rotkeeper. It replaces all prior book scripts (`rc-scriptbook.sh`, `rc-docbook.sh`, `rc-webbook.sh`) and now produces canonical markdown reports for resurrection, rendering, or collapse.
+`rc-book.sh` is the singular binder ritual for Rotkeeper. It replaces all prior book scripts (`rc-scriptbook.sh`, `rc-docbook.sh`, `rc-configbook.sh`) and now produces canonical markdown reports for resurrection, rendering, or collapse.
 
 It supports generation of scriptbooks, docbooks (clean and full), and configbooks, and can output a collapsed YAML form of all content.
 

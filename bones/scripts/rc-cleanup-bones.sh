@@ -11,19 +11,16 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-cleanup-bones.sh
 #  Purpose : Backup and prune unneeded directories and templates from bones
-#  Version : 0.3.0.20
+#  Version : 0.3.1
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
 
-source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
-rk_init_script "rc-cleanup-bones" "$@"
-
-showhelp() {
+show_help() {
   cat <<EOF
 rc-cleanup-bones.sh — Backup and prune unneeded directories and templates from bones
-v0.3.0.20
+v0.3.1
 
 Usage: rc-cleanup-bones.sh [options]
 
@@ -36,24 +33,25 @@ EOF
   exit 0
 }
 
+source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+rk_init_script "rc-cleanup-bones" "$@"
+
+
+
 set -euo pipefail
 IFS=$'\n\t'
 
 
-HELP=false
-DRYRUN=false
-VERBOSE=false
 RETAINDAYS=30
 
 parseflags() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --help|-h)
-        HELP=true
-        shift
+        show_help
         ;;
       --dry-run)
-        DRYRUN=true
+        DRY_RUN=true
         shift
         ;;
       --verbose)
@@ -77,9 +75,7 @@ checkdependencies() {
 
 parseflags "$@"
 
-if $HELP; then showhelp; fi
-
-log DEBUG "HELP=$HELP, DRYRUN=$DRYRUN, VERBOSE=$VERBOSE, RETAINDAYS=$RETAINDAYS"
+log "DEBUG" "DRY_RUN=$DRY_RUN, VERBOSE=$VERBOSE, RETAINDAYS=$RETAINDAYS"
 
 main() {
   checkdependencies
@@ -90,7 +86,7 @@ main() {
   BACKUPNAME="bones-backup-${TIMESTAMP}.tar.gz"
   BACKUPPATH="${BACKUPDIR}/${BACKUPNAME}"
 
-  if $DRYRUN; then
+  if [[ "$DRY_RUN" == true ]]; then
     log INFO "Dry run mode: simulating backup and cleanup actions"
     echo "Would create backup: $BACKUPPATH"
     echo "Would prune backups older than $RETAINDAYS days from $BACKUPDIR"

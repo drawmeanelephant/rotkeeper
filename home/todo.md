@@ -27,7 +27,7 @@ This ledger reflects all tasks known, forgotten, or ghostwritten as of `v0.3.0.4
 - [ ] Define and document the full ritual chain in `workflow.md` (`init → reseed → render → pack → scan`)
 - [ ] Add schema docs for: `rotkeeper-bom.yaml`, `asset-manifest.yaml`
 - [ ] Ensure all index and navigation pages include backlinks to the root or documentation overview
-- [ ] Build rc-pdfbook.sh to generate PDF from merged docbook/webbook
+- [ ] Build rc-pdfbook.sh to generate PDF from merged docbook/configbook
 - [ ] Optionally strip internal frontmatter blocks for clean PDF output
 - [ ] Add config-driven style selector for future PDF themes
 - [ ] Build a glossary/index from `asset-meta.title`, `slug`, and `template`

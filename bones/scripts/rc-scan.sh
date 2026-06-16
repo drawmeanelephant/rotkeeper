@@ -23,52 +23,33 @@ manifest_list=()
 disk_list=()
 IFS=$'\n\t'
 
-source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
-rk_init_script "rc-scan" "$@"
-
-# --- Flag Parsing & Helpers ---
 show_help() {
-  cat << EOF
+  cat <<EOF
 rc-scan.sh — Audit manifest and scan environment for file reports (v0.3.0.20.1)
 
-Usage: rc-scan.sh [options]
+Usage: rc-scan.sh [flags]
 
-Options:
-  --help, -h        Show this help message and exit
-  --dry-run         Preview actions without writing reports
-  --verbose         Print detailed logs during scanning
+Flags:
+  --manifest-only   Read only manifest file, skip disk scan.
+  --include <ext>   Comma-separated list of extensions to include.
+  --exclude <pat>   Glob pattern to exclude (can repeat).
+  --dry-run         Show actions without writing reports.
+  --verbose         Print detailed logs.
+  --json-only       Output only JSON report.
+  --md-only         Output only Markdown report.
+  -h, --help        Show this help message and exit.
 EOF
   exit 0
 }
 
-run() {
-  if [[ "$DRY_RUN" == true ]]; then
-    log "DRY-RUN" "$(printf '%q ' "$@")"
-  else
-    log "INFO" "$(printf '%q ' "$@")"
-    "$@"
-  fi
-}
+source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+rk_init_script "rc-scan" "$@"
 
 if [ -z "${BASH_VERSION:-}" ]; then
     echo "🚨 rc-scan.sh requires bash. Please run with: bash ./rc-scan.sh" >&2
     exit 1
 fi
 
-LOG_FILE="bones/logs/rc-scan-$(date +%Y-%m-%d_%H%M).log"
-
-mkdir -p "$(dirname "$LOG_FILE")"
-
-log() {
-    local level="$1"; shift
-    printf '%s [%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$level" "$*" | tee -a "$LOG_FILE"
-}
-
-cleanup() {
-    log "INFO" "Cleaning up after rc-scan.sh."
-    # Add cleanup commands here
-}
-trap cleanup EXIT INT TERM
 
 
 main() {
@@ -103,29 +84,8 @@ EXCLUDE_PATTERNS=()
 # --- CLI Defaults & Argument Parsing ---
 # Initialize CLI-related variables and parse command-line flags.
 # CLI defaults
-DRY_RUN=false
-VERBOSE=false
 JSON_ONLY=false
 MD_ONLY=false
-
-#
-# Display usage help when requested or on error.
-#
-function usage {
-  cat <<EOF
-Usage: rc-scan.sh [flags]
-Flags:
-  --manifest-only   Read only manifest file, skip disk scan.
-  --include <ext>   Comma-separated list of extensions to include.
-  --exclude <pat>   Glob pattern to exclude (can repeat).
-  --dry-run         Show actions without writing reports.
-  --verbose         Print detailed logs.
-  --json-only       Output only JSON report.
-  --md-only         Output only Markdown report.
-  -h, --help        Show this help.
-EOF
-  exit 1
-}
 
 #
 # Parse input flags and options.
@@ -139,8 +99,8 @@ while [[ $# -gt 0 ]]; do
     --verbose) VERBOSE=true; shift ;;
     --json-only) JSON_ONLY=true; shift ;;
     --md-only) MD_ONLY=true; shift ;;
-    -h|--help) usage ;;
-    *) echo "[ERROR] Unknown flag: $1"; usage ;;
+    -h|--help) show_help ;;
+    *) echo "[ERROR] Unknown flag: $1"; show_help ;;
   esac
 done
 

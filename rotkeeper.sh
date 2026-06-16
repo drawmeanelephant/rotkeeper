@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rotkeeper.sh
 #  Purpose : CLI dispatcher for all Rotkeeper rituals
-#  Version : 0.3.0.20
+#  Version : 0.3.1
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -20,7 +20,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-VERSION="0.3.0.20"
+VERSION="0.3.1"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BONES="$SCRIPT_DIR/bones/scripts"
 
@@ -52,8 +52,9 @@ Commands:
 
   new <file>  Scaffold a new markdown file with required YAML frontmatter
 
-  render      Convert markdown files (from home/content/) into HTML tombs (in output/)
-              (Note: This also creates a timestamped backup archive in bones/archive/)
+  render      Convert all markdown files (from home/content/) into HTML tombs (in output/)
+              Note: This builds the entire site at once; target files cannot be specified.
+              (This also creates a timestamped backup archive in bones/archive/)
 
   pack        Archive rendered HTML into a versioned tarball with embedded JSON metadata
               (Use pack to create shareable tomb releases; render just creates backups)

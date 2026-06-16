@@ -45,7 +45,7 @@ asset_meta:
 2. **Microbump Calculation**
    - Increments the final digit of the version string (e.g., `0.3.0.6` becomes `0.3.0.7`).
 3. **Global Replacement**
-   - Uses a secure Python script to execute a search-and-replace across all `rc-*.sh` files and the main dispatcher, ensuring the new version string is stamped into every header.
+   - Uses a POSIX-compliant `awk` script to execute a search-and-replace across all `rc-*.sh` files and the main dispatcher, ensuring the new version string is stamped into every header.
 4. **Living Buildlog Injection**
    - Appends the message and timestamp directly into the `road-to-bones/index.md` buildlog.
 5. **Changelog Append**

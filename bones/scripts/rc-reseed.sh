@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-reseed.sh
 #  Purpose : Reverse ritual — unbind aggregated markdown back into original files
-#  Version : 0.3.0.20
+#  Version : 0.3.1
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -20,18 +20,9 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
-rk_init_script "rc-reseed" "$@"
-
-# Use current directory as root — assume script and inputs live together
-ROOT_DIR="$(pwd)"
-
-INPUT=""
-DRY_RUN=false
-
 show_help() {
   cat <<EOF
-rc-reseed.sh — Reverse ritual for scriptbook/docbook/webbook unbinding
+rc-reseed.sh — Reverse ritual for scriptbook/docbook/configbook unbinding
 
 Usage: rc-reseed.sh [--input FILE] [--dry-run] [--all]
 
@@ -43,6 +34,14 @@ Options:
 EOF
   exit 0
 }
+
+source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+rk_init_script "rc-reseed" "$@"
+
+# Use current directory as root — assume script and inputs live together
+ROOT_DIR="$(pwd)"
+
+INPUT=""
 # =============================================================================
 # rc-reseed.sh — Resurrection from Documentation
 #
@@ -62,6 +61,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --input) INPUT="$2"; shift 2 ;;
     --dry-run) DRY_RUN=true; shift ;;
+    --verbose) VERBOSE=true; shift ;;
     --all) INPUT="__ALL__"; shift ;;
     --help|-h) show_help ;;
     --force) FORCE=true; shift ;;
@@ -91,14 +91,24 @@ for INPUT in "${DEFAULT_BOOKS[@]}"; do
   skip_next=0
 
   while IFS= read -r line || [[ -n "$line" ]]; do
-    if [[ "$line" =~ ^\<\!\-\-\ START:?\ ([^[:space:]]+)\ \-\-\>$ ]]; then
-      relpath="road-to-bones/${BASH_REMATCH[1]}"
+    if [[ "$line" =~ ^\<\!\-\-\ START(:)?\ ([^[:space:]]+)\ \-\-\>$ ]]; then
+      relpath="${BASH_REMATCH[2]}"
       outfile="$ROOT_DIR/$relpath"
       mkdir -p "$(dirname "$outfile")"
-      $DRY_RUN || > "$outfile"
+      if [[ "$DRY_RUN" == false ]]; then
+        > "$outfile"
+      fi
       echo "📁 Resurrecting → $relpath"
       in_block=true
       skip_next=2
+      continue
+    fi
+
+    if [[ "$line" =~ ^\<\!\-\-\ END(:)?\ ([^[:space:]]+)\ \-\-\>$ ]]; then
+      if [[ "$DRY_RUN" == false && "$outfile" == *".sh" ]]; then
+        chmod +x "$outfile" 2>/dev/null || true
+      fi
+      in_block=false
       continue
     fi
 
@@ -108,68 +118,12 @@ for INPUT in "${DEFAULT_BOOKS[@]}"; do
     fi
 
     if [[ "$in_block" == true && "$DRY_RUN" == false ]]; then
-      # Skip fence lines
-      [[ "$line" == '```' ]] && continue
-      # Skip stitching markers <!-- START / END -->
-      [[ "$line" =~ ^\<\!\-\- ]] && continue
-      # Write only the actual code lines
+      # Skip markdown code fences
+      if [[ "$line" =~ ^\`\`\` ]]; then
+        continue
+      fi
       echo "$line" >> "$outfile"
     fi
-
-    # After finishing a script file, sanitize line endings and add final newline
-    if [[ "$line" =~ ^\<\!\-\-\ END:\ ([^[:space:]]+)\ \-\-\>$ && "$DRY_RUN" == false && "$outfile" == *".sh" ]]; then
-      # Convert CRLF → LF
-      sed -i '' 's/\r$//' "$outfile" 2>/dev/null || true
-      # Ensure trailing newline
-      tail -c1 "$outfile" | read -r _ || echo "" >> "$outfile"
-
-      # Auto-close any unclosed 'if' blocks
-      open_if=$(grep -c '^[[:space:]]*if ' "$outfile")
-      close_fi=$(grep -c '^[[:space:]]*fi' "$outfile")
-      while (( open_if > close_fi )); do
-          echo "fi" >> "$outfile"
-          ((close_fi++))
-      done
-
-      # Auto-close any unclosed 'for' or 'while' loops
-      open_for=$(grep -c '^[[:space:]]*\(for \|while \)' "$outfile")
-      close_done=$(grep -c '^[[:space:]]*done' "$outfile")
-      while (( open_for > close_done )); do
-          echo "done" >> "$outfile"
-          ((close_done++))
-      done
-
-      # Auto-close any unclosed functions (count '{' vs '}')
-      open_func=$(grep -c '{' "$outfile")
-      close_func=$(grep -c '}' "$outfile")
-      while (( open_func > close_func )); do
-          echo "}" >> "$outfile"
-          ((close_func++))
-      done
-
-      # Add default main guard if none exists
-      if ! grep -q '^@' "$outfile"; then
-          cat <<'EOF' >> "$outfile"
-
-# Only run if script executed directly
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    main() { :; }
-    main "$@"
-fi
-
-@  # script end marker for reseed
-EOF
-      fi
-
-      chmod +x "$outfile"
-      in_block=false
-    fi
-
-    if [[ "$line" == '```' ]]; then
-      in_block=false
-      continue
-    fi
-
   done < "$INPUT"
 done
 

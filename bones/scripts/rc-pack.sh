@@ -11,17 +11,11 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-pack.sh
 #  Purpose : Bundle rendered output into versioned .tar.gz archive and export markdown to JSON
-#  Version : 0.3.0.20
+#  Version : 0.3.1
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
-source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
-rk_init_script "rc-pack" "$@"
-set -euo pipefail
-IFS=$'\n\t'
-
-
 show_help() {
   cat << EOF
 rc-pack.sh — Ritual Compression Packager (v0.3.0.20.1)
@@ -37,6 +31,12 @@ Options:
 EOF
   exit 0
 }
+
+source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+rk_init_script "rc-pack" "$@"
+set -euo pipefail
+IFS=$'\n\t'
+
 
 # =============================================================================
 # rc-pack.sh – Ritual Compression Packager
@@ -61,26 +61,19 @@ EOF
 main() {
     log "INFO" "Running rc-pack.sh."
 
-    # --- Normalize environment variable overrides ---
-    : "${DRY_RUN:=${RK_DRY:-false}}"
-    : "${VERBOSE:=${RK_VERBOSE:-false}}"
     SELF_MODE=false
     CONTENT_MODE=false
-    HELP=false
 
     # --- Flag parsing ---
     for arg in "$@"; do
       case "$arg" in
         --dry-run)   DRY_RUN=true ;;
+        --verbose)   VERBOSE=true ;;
+        --help|-h)   show_help ;;
         --self)      SELF_MODE=true ;;
         --content)   CONTENT_MODE=true ;;
-        --verbose)   VERBOSE=true ;;
-        --help|-h)   HELP=true ;;
       esac
     done
-    if [[ "$HELP" == true ]]; then
-      show_help
-    fi
 
     check_dependencies
     $VERBOSE && log "DEBUG" "Dependencies verified."

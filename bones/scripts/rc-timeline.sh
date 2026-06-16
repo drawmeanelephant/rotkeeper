@@ -9,8 +9,6 @@ source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 set -euo pipefail
 IFS=$'\n\t'
 
-rk_init_script "rc-timeline" "$@"
-
 show_help() {
   cat << EOF
 rc-timeline.sh — Generate a tomb timeline
@@ -24,6 +22,9 @@ Options:
 EOF
   exit 0
 }
+
+rk_init_script "rc-timeline" "$@"
+
 
 main() {
   check_dependencies

@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-sitemap.sh
 #  Purpose : Extract sitemap/navigation info from the most recent render log
-#  Version : 0.3.0.20
+#  Version : 0.3.1
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -19,29 +19,13 @@
 
 set -euo pipefail
 
-VERBOSE=""
-DRY_RUN=""
-HELP=""
- # Ensure environment variables are loaded early and reliably
- source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/rc-env.sh"
-TMP_YAML=""
-# ░▒▓█ ROTKEEPER SCRIPT █▓▒░
-# Script: rc-sitemap.sh
-# Purpose: Extract sitemap/navigation info from the most recent render log
-# Requires: rc-env.sh, rc-utils.sh
-
-
-VERBOSE=""
-DRY_RUN=""
-HELP=""
-
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 rk_init_script "rc-sitemap" "$@"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --dry-run) DRY_RUN=true; shift ;;
     --verbose) VERBOSE=true; shift ;;
-    --help|-h) HELP=true; shift ;;
+    --help|-h) show_help ;;
     *) break ;;
   esac
 done

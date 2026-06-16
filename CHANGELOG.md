@@ -86,3 +86,6 @@
 
 ## [0.3.0.20] - 2026-06-15
 - Add test harness, agent-handoff, snapshot, and timeline commands
+
+## [0.3.1] - 2026-06-16
+- Minor release: Framework stabilization and documentation scrub

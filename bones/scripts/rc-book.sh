@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-book.sh
 #  Purpose : Bind documentation reports — scriptbook, docbook, configbook, contentbook
-#  Version : 0.3.0.20
+#  Version : 0.3.1
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -24,20 +24,16 @@ rk_init_script "rc-book" "$@"
 set -euo pipefail
 IFS=$'\n\t'
 
-trap 'echo "Error on line $LINENO" && exit 1' ERR
-
 require_gawk_version
 
 MODE=""
 CONFIG=""
-DRYRUN=false
 STRIPMODE=false
-VERBOSE=false
 
 showhelp() {
   cat <<EOF
 rc-book.sh — Documentation binder ritual
-v0.3.0.20
+v0.3.1
 
 Usage: rc-book.sh [mode] [options]
 
@@ -72,10 +68,10 @@ parseflags() {
       --contentbook)       MODE=contentbook; shift ;;
       --contentmeta)       MODE=contentmeta; shift ;;
       --config)            CONFIG="$2"; shift 2 ;;
-      --dry-run)           DRYRUN=true; shift ;;
+      --dry-run)           shift ;;
       --strip-frontmatter) STRIPMODE=true; shift ;;
-      --verbose)           VERBOSE=true; shift ;;
-      --help)              showhelp; exit 0 ;;
+      --verbose)           shift ;;
+      --help|-h)           showhelp; exit 0 ;;
       *) echo "Unknown option: $1"; showhelp; exit 1 ;;
     esac
   done
@@ -84,7 +80,7 @@ parseflags() {
 runscriptbookfull() {
   mkdir -p "$REPORT_DIR"
   local OUT="$REPORT_DIR/rotkeeper-scriptbook-full.md"
-  if [[ "$DRYRUN" == true ]]; then
+  if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would generate full scriptbook at $OUT"
     find "$ROOT_DIR/bones/scripts" "$ROOT_DIR" -maxdepth 1 -type f \( -name "rc-*.sh" -o -name "rotkeeper.sh" \) | sort | while read -r script; do
       echo "  - ${script#$ROOT_DIR/}"
@@ -117,7 +113,7 @@ runscriptbookfull() {
 rundocbook() {
   mkdir -p "$REPORT_DIR"
   local OUT="$REPORT_DIR/rotkeeper-docbook.md"
-  if [[ "$DRYRUN" == true ]]; then
+  if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would generate docbook at $OUT"
     return 0
   fi
@@ -150,7 +146,7 @@ rundocbook() {
 rundocbookclean() {
   mkdir -p "$REPORT_DIR"
   local OUT="$REPORT_DIR/rotkeeper-docbook-clean.md"
-  if [[ "$DRYRUN" == true ]]; then
+  if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would generate cleaned docbook at $OUT"
     return 0
   fi
@@ -201,7 +197,7 @@ runconfigbook() {
 runcontentbook() {
   mkdir -p "$REPORT_DIR"
   local OUT="$REPORT_DIR/rotkeeper-contentbook.md"
-  if [[ "$DRYRUN" == true ]]; then
+  if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would generate full contentbook at $OUT"
     return 0
   fi
@@ -285,7 +281,7 @@ runmode() {
     contentmeta)    runcontentmeta ;;
     collapse)       collapse ;;
     all)
-      if [[ "$DRYRUN" == true ]]; then
+      if [[ "$DRY_RUN" == true ]]; then
         log "DRY-RUN" "Would generate scriptbook at $REPORT_DIR/rotkeeper-scriptbook-full.md"
         log "DRY-RUN" "Would generate docbook at $REPORT_DIR/rotkeeper-docbook.md"
         log "DRY-RUN" "Would generate cleaned docbook at $REPORT_DIR/rotkeeper-docbook-clean.md"
