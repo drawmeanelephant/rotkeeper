@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-init.sh
 #  Purpose : Initialize environment: reseed, bless scripts, render, and validate
-#  Version : 0.3.0.16
+#  Version : 0.3.0.17
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -73,8 +73,8 @@ main() {
     run "$RESEED_CMD" --force
     
     # Generate a heavily commented test-file.md as an example for blind users
-    mkdir -p "$SCRIPTDIR/../home/content"
-    cat << 'EOF_HELLO' > "$SCRIPTDIR/../home/content/test-file.md"
+    mkdir -p "$SCRIPTDIR/../../home/content"
+    cat << 'EOF_HELLO' > "$SCRIPTDIR/../../home/content/test-file.md"
 ---
 title: "Test File"
 slug: test-file

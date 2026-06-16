@@ -74,3 +74,6 @@
 
 ## [0.3.0.16] - 2026-06-15
 - Purged ghost scripts and perfectly synchronized documentation with active rituals
+
+## [0.3.0.17] - 2026-06-15
+- fix: correct home/content path resolution in rc-init
