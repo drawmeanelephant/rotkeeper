@@ -1,10 +1,24 @@
+name: CI
+
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - run: echo success
+      - uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc jq gawk bats zip rsync
+          # Install yq (Go version)
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod a+x /usr/local/bin/yq
+
+      - name: Run test.sh
+        run: ./test.sh
