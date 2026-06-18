@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # ============================================================
-#  ██████╗  ██████╗ ████████╗██╗  ██╗███████╗███████╗██████╗
-#  ██╔══██╗██╔═══██╗╚══██╔══╝██║ ██╔╝██╔════╝██╔════╝██╔══██╗
-#  ██████╔╝██║   ██║   ██║   █████╔╝ █████╗  █████╗  ██████╔╝
-#  ██╔══██╗██║   ██║   ██║   ██╔═██╗ ██╔══╝  ██╔══╝  ██╔═══╝
-#  ██║  ██║╚██████╔╝   ██║   ██║  ██╗███████╗███████╗██║
-#  ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝
+#  ██████╗  ██████╗  ██████╗ ██╗  ██╗
+#  ██╔══██╗██╔═══██╗██╔═══██╗██║ ██╔╝
+#  ██████╔╝██║   ██║██║   ██║█████╔╝
+#  ██╔══██╗██║   ██║██║   ██║██╔═██╗
+#  ██████╔╝╚██████╔╝╚██████╔╝██║  ██╗
+#  ╚═════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═╝
 # ============================================================
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
@@ -77,6 +77,10 @@ parseflags() {
   done
 }
 
+# ---
+# runscriptbookfull: Gathers all rc-*.sh spells into a single, massive markdown tome.
+# Paths are made relative to the root, and code is fenced in bash blocks.
+# ---
 runscriptbookfull() {
   mkdir -p "$REPORT_DIR"
   local OUT="$REPORT_DIR/rotkeeper-scriptbook-full.md"
@@ -110,6 +114,10 @@ runscriptbookfull() {
   log "INFO" "Full Scriptbook written to $OUT"
 }
 
+# ---
+# rundocbook: Binds the markdown docs from home/content/docs into one continuous scroll.
+# The awk spell preserves frontmatter while appending content.
+# ---
 rundocbook() {
   mkdir -p "$REPORT_DIR"
   local OUT="$REPORT_DIR/rotkeeper-docbook.md"
@@ -143,6 +151,10 @@ rundocbook() {
   log "INFO" "Docbook written to $OUT"
 }
 
+# ---
+# rundocbookclean: A purified binding of the docbook.
+# The awk logic strips the YAML frontmatter, leaving only the mortal text.
+# ---
 rundocbookclean() {
   mkdir -p "$REPORT_DIR"
   local OUT="$REPORT_DIR/rotkeeper-docbook-clean.md"
@@ -229,6 +241,10 @@ runcontentbook() {
   log "INFO" "Contentbook written to $OUT"
 }
 
+# ---
+# runcontentmeta: Extracts the soul (YAML frontmatter) from every tomb in the content dir.
+# Writes it into a consolidated YAML index for agents to devour.
+# ---
 runcontentmeta() {
   mkdir -p "$REPORT_DIR"
   local OUT="$REPORT_DIR/rotkeeper-contentmeta.yaml"

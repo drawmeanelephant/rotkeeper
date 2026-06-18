@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # ============================================================
-#  ██████╗  ██████╗ ████████╗██╗  ██╗███████╗███████╗██████╗
-#  ██╔══██╗██╔═══██╗╚══██╔══╝██║ ██╔╝██╔════╝██╔════╝██╔══██╗
-#  ██████╔╝██║   ██║   ██║   █████╔╝ █████╗  █████╗  ██████╔╝
-#  ██╔══██╗██║   ██║   ██║   ██╔═██╗ ██╔══╝  ██╔══╝  ██╔═══╝
-#  ██║  ██║╚██████╔╝   ██║   ██║  ██╗███████╗███████╗██║
-#  ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝
+#  ██╗   ██╗████████╗██╗██╗     ███████╗
+#  ██║   ██║╚══██╔══╝██║██║     ██╔════╝
+#  ██║   ██║   ██║   ██║██║     ███████╗
+#  ██║   ██║   ██║   ██║██║     ╚════██║
+#  ╚██████╔╝   ██║   ██║███████╗███████║
+#   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚══════╝
 # ============================================================
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
@@ -26,6 +26,12 @@ VERBOSE=false
 HELP=false
 
 # Parse common flags: --dry-run, --verbose, --help
+# ---
+# parse_flags: Interprets the whispered command-line flags (--dry-run, --verbose, --help)
+# Inputs: $@ (all arguments)
+# Outputs: Modifies global DRY_RUN, VERBOSE, HELP flags
+# ---
+# Interprets the whispered command-line flags (--dry-run, --verbose, --help)
 parse_flags() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -38,12 +44,20 @@ parse_flags() {
 }
 
 # Default help handler (can be overridden by scripts)
+# ---
+# show_help: Displays the eternal void (default help text) if a script has no manual
+# ---
+# Displays the eternal void (default help text) if a script has no manual
 show_help() {
   log "INFO" "No help available for this command."
   exit 0
 }
 
 # Logging function: prints timestamped messages and writes to $LOG_FILE if set
+# ---
+# log: Writes timestamped missives to the console and to the sacred $LOG_FILE
+# Inputs: $1 (Level: INFO, ERROR, WARN), $2+ (Message)
+# ---
 log() {
   local level="$1"; shift
   local ts
@@ -66,6 +80,12 @@ run() {
 }
 
 # Require explicitly listed command-line tools (use in main scripts)
+# ---
+# require_bins: Checks if the required earthly binaries exist in the PATH
+# Inputs: $@ (List of binary names like 'pandoc' or 'jq')
+# Outputs: Exits with code 2 if a tool is missing
+# ---
+# Checks if the required earthly binaries exist in the PATH
 require_bins() {
   for cmd in "$@"; do
     if ! command -v "$cmd" >/dev/null 2>&1; then
@@ -109,6 +129,10 @@ cleanup() {
   :
 }
 
+# ---
+# set_traps: Binds the err and exit hooks to ensure graceful demise upon failure
+# ---
+# Binds the err and exit hooks to ensure graceful demise upon failure
 set_traps() {
   trap 'trap_err $LINENO' ERR
   trap 'cleanup' EXIT INT TERM
