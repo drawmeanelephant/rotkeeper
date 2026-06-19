@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-pack.sh
 #  Purpose : Bundle rendered output into versioned .tar.gz archive and export markdown to JSON
-#  Version : 0.3.1.2
+#  Version : 0.3.1.3
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -23,6 +23,7 @@ rc-pack.sh — Ritual Compression Packager (v0.3.0.20.1)
 Usage: rc-pack.sh [options]
 
 Options:
+  --version, -v    Show script version and quit
   --help, -h       Show this help message and exit
   --dry-run        Preview actions without writing files
   --self           Archive the full Rotkeeper system (rotkeeper.sh, bones/, home/, output/)
@@ -36,6 +37,8 @@ source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 rk_init_script "rc-pack" "$@"
 set -euo pipefail
 IFS=$'\n\t'
+
+VERSION="0.3.1.3"
 
 
 # =============================================================================
@@ -84,9 +87,9 @@ main() {
     SOURCE_DIR="$CONTENT_DIR"
     OUTPUT_DIR="$OUTPUT_DIR"
     MANIFEST_FILE="$CONFIG_DIR/manifest.txt"
-    VERSION=$(date +%Y-%m-%d_%H%M)
-    TOMB="tomb-$VERSION.tar"
-    EXPORT_JSON="$ARCHIVE_DIR/tomb-export-$VERSION.json"
+    TIMESTAMP_VERSION=$(date +%Y-%m-%d_%H%M)
+    TOMB="tomb-$TIMESTAMP_VERSION.tar"
+    EXPORT_JSON="$ARCHIVE_DIR/tomb-export-$TIMESTAMP_VERSION.json"
 
     run mkdir -p "$ARCHIVE_DIR"
     run mkdir -p "$LOG_DIR"
@@ -104,7 +107,7 @@ main() {
     fi
 
     if [[ "$CONTENT_MODE" == true ]]; then
-      CONTENT_ARCHIVE="tomb-content-$VERSION.tar"
+      CONTENT_ARCHIVE="tomb-content-$TIMESTAMP_VERSION.tar"
       if [[ "$DRY_RUN" == false ]]; then
         echo "📦 Packing \"$SOURCE_DIR\" into \"$CONTENT_ARCHIVE\""
         run tar --exclude="home/content/docs" \
@@ -139,7 +142,7 @@ main() {
         jq -n \
           --arg name "$TOMB" \
           --arg sha "$SHA" \
-          --arg timestamp "$VERSION" \
+          --arg timestamp "$TIMESTAMP_VERSION" \
           --arg mode "default" \
           --arg count "$count" \
           '{name: $name, sha256: $sha, timestamp: $timestamp, mode: $mode, file_count: $count|tonumber}' > "$METADATA_FILE"
@@ -156,7 +159,7 @@ main() {
     fi
 
     if [[ "$SELF_MODE" == true ]]; then
-      SELF_ARCHIVE="tombkit-$VERSION.tar"
+      SELF_ARCHIVE="tombkit-$TIMESTAMP_VERSION.tar"
       echo "📦 Packing full rotkeeper system into \"$SELF_ARCHIVE\""
       run tar --exclude="$ARCHIVE_DIR" -cf "$ARCHIVE_DIR/$SELF_ARCHIVE" rotkeeper.sh bones/ home/ output/
       count=$(tar -tf "$ARCHIVE_DIR/$SELF_ARCHIVE" | wc -l)
@@ -169,7 +172,7 @@ main() {
       jq -n \
         --arg name "$SELF_ARCHIVE" \
         --arg sha "$SHA" \
-        --arg timestamp "$VERSION" \
+        --arg timestamp "$TIMESTAMP_VERSION" \
         --arg mode "self" \
         --arg count "$count" \
         '{name: $name, sha256: $sha, timestamp: $timestamp, mode: $mode, file_count: $count|tonumber}' > "$METADATA_FILE"

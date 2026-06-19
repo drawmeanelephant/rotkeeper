@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-timeline.sh
 #  Purpose : Generate a reverse-chronological history report of tombs
-#  Version : 0.3.1.2
+#  Version : 0.3.1.3
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -21,6 +21,8 @@ source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 set -euo pipefail
 IFS=$'\n\t'
 
+VERSION="0.3.1.3"
+
 show_help() {
   cat << EOF
 rc-timeline.sh — Generate a tomb timeline
@@ -28,6 +30,7 @@ rc-timeline.sh — Generate a tomb timeline
 Usage: rc-timeline.sh [options]
 
 Options:
+  --version, -v    Show script version and quit
   --help, -h        Show this help message and exit
   --dry-run         Preview actions
   --verbose         Print detailed logs

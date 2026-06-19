@@ -21,6 +21,7 @@ rc-release.sh — Release Packager
 Usage: rc-release.sh <VERSION> [options]
 
 Options:
+  --version, -v    Show script version and quit
   --help, -h       Show this help message and exit
   --dry-run        Preview actions without writing files
   --verbose        Enable detailed debug logging
@@ -33,9 +34,11 @@ rk_init_script "rc-release" "$@"
 set -euo pipefail
 IFS=$'\n\t'
 
+VERSION="0.3.1.3"
+
 LOG_FILE="$PWD/$LOG_FILE"
 
-VERSION=""
+TARGET_VERSION=""
 # --- Flag parsing ---
 for arg in "$@"; do
   case "$arg" in
@@ -44,8 +47,8 @@ for arg in "$@"; do
     --help|-h)   show_help ;;
     -*) log "ERROR" "Unknown flag: $arg"; exit 1 ;;
     *) 
-      if [[ -z "$VERSION" ]]; then
-        VERSION="$arg"
+      if [[ -z "$TARGET_VERSION" ]]; then
+        TARGET_VERSION="$arg"
       fi
       ;;
   esac

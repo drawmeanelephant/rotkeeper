@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-new.sh
 #  Purpose : Scaffold a new markdown file with YAML frontmatter
-#  Version : 0.3.1.2
+#  Version : 0.3.1.3
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -24,6 +24,7 @@ rc-new.sh — Scaffold a new markdown file with required YAML frontmatter
 Usage: rotkeeper.sh new <file>
 
 Options:
+  --version, -v    Show script version and quit
   --help, -h       Show this help message and exit
   --dry-run        Preview actions without writing files
   --verbose        Enable detailed debug logging
@@ -36,6 +37,8 @@ rk_init_script "rc-new" "$@"
 
 set -euo pipefail
 IFS=$'\n\t'
+
+VERSION="0.3.1.3"
 
 
 

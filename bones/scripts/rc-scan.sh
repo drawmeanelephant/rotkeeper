@@ -23,9 +23,14 @@ manifest_list=()
 disk_list=()
 IFS=$'\n\t'
 
+VERSION="0.3.1.3"
+
 show_help() {
   cat <<EOF
 rc-scan.sh — Audit manifest and scan environment for file reports (v0.3.0.20.1)
+
+Options:
+  --version, -v    Show script version and quit
 
 Usage: rc-scan.sh [flags]
 
@@ -92,6 +97,7 @@ MD_ONLY=false
 #
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --version|-v) echo "$(basename "$0") v${VERSION:-unknown}"; exit 0 ;;
     --manifest-only) MANIFEST_ONLY=true; shift ;;
     --include) IFS=',' read -ra INCLUDE_EXT <<< "$2"; shift 2 ;;
     --exclude) EXCLUDE_PATTERNS+=("$2"); shift 2 ;;

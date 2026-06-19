@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-book.sh
 #  Purpose : Bind documentation reports — scriptbook, docbook, configbook, contentbook
-#  Version : 0.3.1.2
+#  Version : 0.3.1.3
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -24,6 +24,8 @@ rk_init_script "rc-book" "$@"
 set -euo pipefail
 IFS=$'\n\t'
 
+VERSION="0.3.1.3"
+
 require_gawk_version
 
 MODE=""
@@ -33,7 +35,7 @@ STRIPMODE=false
 showhelp() {
   cat <<EOF
 rc-book.sh — Documentation binder ritual
-v0.3.1.2
+v0.3.1.3
 
 Usage: rc-book.sh [mode] [options]
 
@@ -59,6 +61,7 @@ EOF
 parseflags() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --version|-v) echo "$(basename "$0") v${VERSION:-unknown}"; exit 0 ;;
       --scriptbook-full)   MODE=scriptbookfull; shift ;;
       --docbook)           MODE=docbook; shift ;;
       --all)               MODE=all; shift ;;

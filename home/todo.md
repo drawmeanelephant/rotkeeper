@@ -42,7 +42,7 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [ ] Add a release checklist and verify archive contents/excluded paths.
 - [ ] Add sanity script to verify lite vs. full zip expectations.
 - [ ] Standardize header/help versions, exit codes, and version strings across all scripts.
-- [ ] Add `--version` flag to all `rc-*.sh` scripts (one source of truth).
+- [x] Add `--version` flag to all `rc-*.sh` scripts (one source of truth).
 
 ---
 
