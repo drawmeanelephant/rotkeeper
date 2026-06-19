@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-reseed.sh
 #  Purpose : Reverse ritual — unbind aggregated markdown back into original files
-#  Version : 0.3.1
+#  Version : 0.3.1.1
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.

@@ -2,7 +2,7 @@
 
 If you are a Gemini agent (or a specialized subagent spawned by Antigravity) working within this workspace, these are your core directives for modifying or assisting with the Rotkeeper project.
 
-**Current Version:** `v0.3.1`
+**Current Version:** `v0.3.1.1`
 
 ## Context
 
@@ -84,14 +84,7 @@ If the user asks you to build a new feature (e.g., an "audit" command):
 
 If tasked with creating a page or report:
 1. Run `./rotkeeper.sh init` (if workspace is fresh).
-2. Create your `.md` file in `home/content/` with YAML frontmatter:
-   ```yaml
-   ---
-   title: "My Report"
-   slug: my-report
-   template: rotkeeper-blog.html
-   ---
-   ```
+2. Run `./rotkeeper.sh new my-report` to automatically scaffold your `.md` file in `home/content/` with correct YAML frontmatter.
 3. Run `./rotkeeper.sh render` to compile.
 4. Run `./rotkeeper.sh pack --content` to preserve your work.
 5. Verify with `./rotkeeper.sh status`.
