@@ -11,18 +11,20 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-sitemap.sh
 #  Purpose : Extract sitemap/navigation info from the most recent render log
-#  Version : 0.3.1.2
+#  Version : 0.3.1.3
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
 
+VERSION="0.3.1.3"
 set -euo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 rk_init_script "rc-sitemap" "$@"
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --version|-v) echo "$(basename "$0") v${VERSION:-unknown}"; exit 0 ;;
     --dry-run) DRY_RUN=true; shift ;;
     --verbose) VERBOSE=true; shift ;;
     --help|-h) show_help ;;

@@ -11,12 +11,13 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-env.sh
 #  Purpose : Environment bootstrap — canonical path variables for all rc-*.sh rituals
-#  Version : 0.3.1.2
+#  Version : 0.3.1.3
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
 
+VERSION="0.3.1.3"
 # Fail fast if sourced in a non-Bash shell
 [[ -n "$BASH_VERSION" ]] || {
   echo "[ERROR] rc-env.sh must be sourced in Bash." >&2

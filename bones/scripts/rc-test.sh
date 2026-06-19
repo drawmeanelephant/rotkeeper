@@ -5,6 +5,7 @@
 #  Purpose : End-to-end integration test harness for Rotkeeper
 # ============================================================
 
+VERSION="0.3.1.3"
 set -euo pipefail
 
 if [[ "${1:-}" == "--dry-run" ]]; then

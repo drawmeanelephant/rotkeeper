@@ -96,3 +96,6 @@
 ## [0.3.1.2] - 2026-06-19
 - Restructure todo.md for Jules queue and move test.sh to bones/scripts/
 - Purge obsolete references to `rc-unpack.sh` stub
+
+## [0.3.1.3] - 2026-06-19
+- Add --version flag to all rc-*.sh scripts

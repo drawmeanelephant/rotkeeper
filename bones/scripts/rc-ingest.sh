@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-ingest.sh
 #  Purpose : Ingests .tar.gz archives from an inbox into the local content repository safely
-#  Version : 0.3.1.2
+#  Version : 0.3.1.3
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
@@ -23,6 +23,7 @@ rc-ingest.sh — Rotkeeper Ingestion Pipeline
 Usage: rc-ingest.sh [options]
 
 Options:
+  --version, -v    Show script version and quit
   --help, -h       Show this help message and exit
   --inbox DIR      Specify a custom inbox directory (default: messages-from-my-friends)
   --verbose        Enable detailed debug logging
@@ -35,6 +36,8 @@ rk_init_script "rc-ingest" "$@"
 set -euo pipefail
 IFS=$'\n\t'
 
+VERSION="0.3.1.3"
+
 
 # --- Shared Configuration ---
 INBOX_DIR="messages-from-my-friends"
@@ -42,6 +45,7 @@ INBOX_DIR="messages-from-my-friends"
 # --- Flag parsing ---
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --version|-v) echo "$(basename "$0") v${VERSION:-unknown}"; exit 0 ;;
     --inbox)     INBOX_DIR="$2"; shift 2 ;;
     --verbose)   VERBOSE=true; shift ;;
     --help|-h)   show_help ;;

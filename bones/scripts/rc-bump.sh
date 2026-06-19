@@ -11,11 +11,13 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-bump.sh
 #  Purpose : Automated microbump logging and version bumping workflow
-#  Version : 0.3.1.2
+#  Version : 0.3.1.3
 # ------------------------------------------------------------
 
 set -euo pipefail
 IFS=$'\n\t'
+
+VERSION="0.3.1.3"
 
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 
@@ -35,6 +37,7 @@ Usage:
   rc-bump.sh [message] [options]
 
 Options:
+  --version, -v    Show script version and quit
   --message, -m MSG  The update message to log
   --dry-run          Preview changes without saving or committing
   --verbose          Detailed output
@@ -45,6 +48,7 @@ EOF
 # Parse flags manually
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --version|-v) echo "$(basename "$0") v${VERSION:-unknown}"; exit 0 ;;
     --dry-run) DRY_RUN=true; shift ;;
     --verbose) VERBOSE=true; shift ;;
     --help|-h) show_help ;;
