@@ -89,28 +89,22 @@ If you are tasked with creating a page or testing the framework:
    ```
    This blesses scripts, reseeds the workspace, creates a starter `test-file.md`, generates asset manifests, renders all content, and runs a scan.
 
-2. **Create a Markdown file** in `home/content/` (e.g., `home/content/my-page.md`).
-
-3. **Add YAML frontmatter** at the very top of the file (must start with `---`):
-   ```yaml
-   ---
-   title: "My Page Title"
-   slug: my-page
-   template: rotkeeper-blog.html
-   description: "A brief description of this page."
-   ---
+2. **Create a new Markdown file** by running:
+   ```bash
+   ./rotkeeper.sh new my-page
    ```
+   This will automatically scaffold a new file in `home/content/my-page.md` with the correct YAML frontmatter pre-filled for you.
 
-4. **Write Markdown content** below the frontmatter.
+3. **Write Markdown content** below the frontmatter.
 
-5. **Render** the site:
+4. **Render** the site:
    ```bash
    ./rotkeeper.sh render
    ```
 
-6. **Verify** your output exists in the `output/` directory (e.g., `output/my-page.html`).
+5. **Verify** your output exists in the `output/` directory (e.g., `output/my-page.html`).
 
-7. **Check status** to confirm everything:
+6. **Check status** to confirm everything:
    ```bash
    ./rotkeeper.sh status
    ```
@@ -163,6 +157,6 @@ If you are operating in the **`lite` distribution**, you will have `AGENTS.md` a
 
 ## 📌 Version
 
-Current version: `v0.3.1` (as defined in `rotkeeper.sh`).
+Current version: `v0.3.1.1` (as defined in `rotkeeper.sh`).
 
 Good luck!

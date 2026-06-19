@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-pack.sh
 #  Purpose : Bundle rendered output into versioned .tar.gz archive and export markdown to JSON
-#  Version : 0.3.1
+#  Version : 0.3.1.1
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
