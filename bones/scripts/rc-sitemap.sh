@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-sitemap.sh
 #  Purpose : Extract sitemap/navigation info from the most recent render log
-#  Version : 0.3.1.1
+#  Version : 0.3.1.2
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
