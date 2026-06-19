@@ -2,7 +2,7 @@
 
 If you are a Gemini agent (or a specialized subagent spawned by Antigravity) working within this workspace, these are your core directives for modifying or assisting with the Rotkeeper project.
 
-**Current Version:** `v0.3.1.1`
+**Current Version:** `v0.3.1.2`
 
 ## Context
 
