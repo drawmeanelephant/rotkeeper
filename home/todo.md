@@ -100,6 +100,5 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [ ] Build `rc-pdfbook.sh` to generate PDF from merged docbook/configbook (with optional frontmatter stripping).
 - [ ] Add weird mascot lore footer or 404 page entry.
 - [ ] Load `.ritual.yaml` workflows via `rotkeeper.sh perform <ritual>`.
-- [ ] Implement or purge stub: `rc-unpack.sh`.
 - [ ] Add optional Mermaid diagram injection into book outputs via `rc-book.sh` or frontmatter flag.
 - [ ] Create reusable Pandoc Lua filters to inject frontmatter fields into rendered documents.
