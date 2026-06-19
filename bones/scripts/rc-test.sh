@@ -7,10 +7,14 @@
 
 set -euo pipefail
 
+if [[ "${1:-}" == "--dry-run" ]]; then
+  exit 0
+fi
+
 # Start in a clean environment
 echo "--- Rotkeeper Test Harness ---"
 
-TEST_DIR="rotkeeper-test-env"
+TEST_DIR="/tmp/rotkeeper-test-env"
 
 cleanup() {
   echo "Cleaning up test environment..."
