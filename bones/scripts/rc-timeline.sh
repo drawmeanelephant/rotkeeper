@@ -1,8 +1,20 @@
 #!/usr/bin/env bash
 # ============================================================
+#  ████████╗██╗███╗   ███╗███████╗██╗     ██╗███╗   ██╗███████╗
+#  ╚══██╔══╝██║████╗ ████║██╔════╝██║     ██║████╗  ██║██╔════╝
+#     ██║   ██║██╔████╔██║█████╗  ██║     ██║██╔██╗ ██║█████╗
+#     ██║   ██║██║╚██╔╝██║██╔══╝  ██║     ██║██║╚██╗██║██╔══╝
+#     ██║   ██║██║ ╚═╝ ██║███████╗███████╗██║██║ ╚████║███████╗
+#     ╚═╝   ╚═╝╚═╝     ╚═╝╚══════╝╚══════╝╚═╝╚═╝  ╚═══╝╚══════╝
+# ============================================================
 #  Project : Rotkeeper
+#  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-timeline.sh
 #  Purpose : Generate a reverse-chronological history report of tombs
+#  Version : 0.3.1
+#  Updated : 2026-03-23
+# ------------------------------------------------------------
+#  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
 
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
@@ -27,8 +39,10 @@ rk_init_script "rc-timeline" "$@"
 
 
 main() {
+  # We first verify the tools of our craft are present (bash, pandoc, etc.)
   check_dependencies
 
+  # Summon the ledger and begin transcription
   log "INFO" "Generating tomb timeline..."
 
   local TIMELINE_FILE="$REPORT_DIR/rotkeeper-timeline.md"
@@ -56,7 +70,8 @@ main() {
         echo "- **Date:** $timestamp"
         echo "- **Size:** $filesize"
         
-        # If there's an embedded metadata.json, we could extract it, but for a simple timeline, just listing them is enough.
+        # We gaze upon the size and date.
+        # (Though they contain embedded JSON souls, listing their exterior is sufficient for this simple ledger.)
         echo ""
       done
     else
