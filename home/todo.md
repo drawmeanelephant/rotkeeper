@@ -6,7 +6,6 @@ This ledger reflects all tasks known, forgotten, or ghostwritten as of `v0.3.0.4
 
 ## 🧠 Core Ritual Hardening
 
-- [ ] Implement or purge stub: `rc-unpack.sh`
 - [ ] Add `--version` flag to all `rc-*.sh` scripts
 - [ ] Replace all HTML regex parsing in `rc-assets.sh` with a proper parser (`pup`, `htmlq`, or awk)
 
