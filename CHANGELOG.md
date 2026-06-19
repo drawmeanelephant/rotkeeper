@@ -94,4 +94,5 @@
 - Merge PRs #2 and #3: ASCII art headers and CI test suite updates
 
 ## [0.3.1.2] - 2026-06-19
+- Restructure todo.md for Jules queue and move test.sh to bones/scripts/
 - Purge obsolete references to `rc-unpack.sh` stub
