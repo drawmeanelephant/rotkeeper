@@ -1,0 +1,30 @@
+name: Rotkeeper CI (Jules Compat)
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Jules Environment
+        # This triggers the same deterministic setup that Jules would use
+        run: sudo bash scripts/setup-jules.sh
+
+      - name: Lint with ShellCheck
+        run: |
+          # The ubuntu-latest runner comes with shellcheck pre-installed
+          echo "Running ShellCheck on dispatcher..."
+          shellcheck rotkeeper.sh
+          echo "Running ShellCheck on all ritual scripts..."
+          find bones/scripts -name "rc-*.sh" -exec shellcheck {} +
+
+      - name: Run Smoke Test
+        run: bash rotkeeper.sh smoke
