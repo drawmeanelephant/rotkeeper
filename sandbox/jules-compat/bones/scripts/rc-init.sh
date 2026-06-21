@@ -96,13 +96,6 @@ main() {
     mkdir -p "$PROJECT_ROOT/home/content"
     mkdir -p "$PROJECT_ROOT/output"
     mkdir -p "$PROJECT_ROOT/bones/config"
-    if [[ ! -f "$PROJECT_ROOT/bones/config/rotkeeper.yaml" ]]; then
-        cat << 'EOF_CONFIG' > "$PROJECT_ROOT/bones/config/rotkeeper.yaml"
-title: "Rotkeeper Config"
-description: "Minimal valid config"
-default_template: "theme-light.html"
-EOF_CONFIG
-    fi
     log "INFO" "✅ Verified core directories exist."
 
     if [[ "$WITH_SAMPLE" == true ]]; then

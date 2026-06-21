@@ -143,7 +143,7 @@ set_traps() {
 
 # Load rc-env.sh from script root
 source_rc_env() {
-  local ENV_FILE; ENV_FILE="$(dirname "${BASH_SOURCE[0]:-$0}")/rc-env.sh"
+  local ENV_FILE="$(dirname "${BASH_SOURCE[0]:-$0}")/rc-env.sh"
   if [[ -f "$ENV_FILE" ]]; then
     source "$ENV_FILE"
   else
