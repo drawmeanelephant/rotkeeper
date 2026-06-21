@@ -1,2 +1,3 @@
-title: "Rotkeeper Test"
-description: "Test configuration"
+title: "Rotkeeper Config"
+description: "Minimal valid config for rendering tests"
+default_template: "theme-light.html"
