@@ -1,0 +1,2 @@
+/app/sandbox/jules-compat/output/./test-article-unique.html
+/app/sandbox/jules-compat/output/./test-file.html

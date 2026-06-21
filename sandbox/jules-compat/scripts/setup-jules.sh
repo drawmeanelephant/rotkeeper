@@ -19,7 +19,7 @@ fi
 
 echo "1. Installing APT dependencies..."
 $SUDO apt-get update
-$SUDO apt-get install -y pandoc jq rsync zip gawk wget curl
+$SUDO apt-get install -y pandoc jq rsync zip gawk wget curl bats
 
 echo "2. Installing yq v4 (pinned)..."
 YQ_VERSION="v4.40.5"
