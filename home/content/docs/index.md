@@ -50,6 +50,7 @@ Ritual types include:
 
 ### 3. ⚙️ CLI Ritual Scripts
 - [`rc-init.sh`](bones/scripts/rc-init.md)
+- [`setup-jules.sh`](scripts/setup-jules.md)
 - [`rc-expand.sh`](bones/scripts/rc-expand.md)
 - [`rc-render.sh`](bones/scripts/rc-render.md)
 - [`rc-pack.sh`](bones/scripts/rc-pack.md)
