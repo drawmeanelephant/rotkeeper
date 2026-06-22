@@ -8,7 +8,7 @@ Rotkeeper is a haunted CLI suite for Markdown morticians, static site cryptkeepe
 Written in modular Bash, it automates the slow decay and archival rebirth of your flat-file knowledge hoards.
 Every script is annotated for post-apocalyptic readability. No network required. Only reverence.
 
-**Current Version:** `v0.3.1`
+**Current Version:** `v0.3.1.4`
 
 ***
 
@@ -114,7 +114,7 @@ Most commands support `--dry-run`, `--verbose`, and `--help`.
 
 ## 🎨 Available Templates
 
-Use these in your Markdown frontmatter's `template:` field. Run `./rotkeeper.sh templates` to verify.
+Use these in your Markdown frontmatter's `template:` field. Run `./rotkeeper.sh templates` to verify. Note that currently included templates are minimal placeholders.
 
 | Template | Purpose |
 |----------|---------|
@@ -158,14 +158,13 @@ Both are packaged as `.zip` files in `bones/releases/`.
 - Environment bootstrapped via `rc-env.sh` with canonical path variables
 - All output can be archived, verified, reseeded, or collapsed
 - Supports logging to `bones/logs/`, dry-run execution, and manifest-aware audits
-- Includes Bats-based utility test coverage (`rc-utils.bats`)
 - No unnecessary runtime dependencies — fully offline-capable
 
 ***
 
 ## 🚧 Status
 
-This is version `v0.3.1`.
+This is version `v0.3.1.4`.
 It is **functional but haunted**.
 Most scripts work cleanly. Some logs whisper.
 Frontmatter validation, content expansion, and logging are stable across all core rituals.

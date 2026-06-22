@@ -51,10 +51,12 @@ parse_flags() {
 # show_help: Displays the eternal void (default help text) if a script has no manual
 # ---
 # Displays the eternal void (default help text) if a script has no manual
-show_help() {
-  log "INFO" "No help available for this command."
-  exit 0
-}
+if ! declare -f show_help > /dev/null; then
+  show_help() {
+    log "INFO" "No help available for this command."
+    exit 0
+  }
+fi
 
 # Logging function: prints timestamped messages and writes to $LOG_FILE if set
 # ---
@@ -170,13 +172,18 @@ rk_init_script() {
   parse_flags "$@"
   if [[ "$HELP" == true ]]; then
     show_help
+    exit 0
   fi
 
   init_log "$SCRIPTNAME"
   set_traps
 
   # Redirect output to log file as well
-  exec > >(tee -a "$LOG_FILE") 2>&1
+  if (exec > >(true) 2>/dev/null); then
+    exec > >(tee -a "$LOG_FILE") 2>&1
+  else
+    exec >> "$LOG_FILE" 2>&1
+  fi
 }
 
 # Return script directory
