@@ -29,6 +29,7 @@ VERSION="0.3.1.3"
 require_gawk_version
 
 MODE=""
+# shellcheck disable=SC2034
 CONFIG=""
 STRIPMODE=false
 
@@ -90,7 +91,7 @@ runscriptbookfull() {
   if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would generate full scriptbook at $OUT"
     find "$ROOT_DIR/bones/scripts" "$ROOT_DIR" -maxdepth 1 -type f \( -name "rc-*.sh" -o -name "rotkeeper.sh" \) | sort | while read -r script; do
-      echo "  - ${script#$ROOT_DIR/}"
+      echo "  - ${script#"$ROOT_DIR"/}"
     done
     return 0
   fi
@@ -103,7 +104,7 @@ runscriptbookfull() {
     echo ""
   } > "$OUT"
   find "$ROOT_DIR/bones/scripts" "$ROOT_DIR" -maxdepth 1 -type f \( -name "rc-*.sh" -o -name "rotkeeper.sh" \) | sort | while read -r script; do
-    rel="${script#$ROOT_DIR/}"
+    rel="${script#"$ROOT_DIR"/}"
     {
       echo "<!-- START $rel -->"
       echo ""
@@ -137,7 +138,7 @@ rundocbook() {
   } > "$OUT"
   mapfile -t docfiles < <(find "$DOCS_DIR" -name "*.md" -type f | sort)
   for file in "${docfiles[@]}"; do
-    rel="${file#$ROOT_DIR/}"
+    rel="${file#"$ROOT_DIR"/}"
     {
       echo "<!-- START $rel -->"
       echo ""
@@ -197,7 +198,7 @@ runconfigbook() {
     echo ""
   } > "$OUT"
   find "$ROOT_DIR/bones/config" "$ROOT_DIR/bones/templates" -type f \( -name "*.yaml" -o -name "*.yml" -o -name "*.tpl" -o -name "*.html" \) | sort | while read -r file; do
-    rel="${file#$ROOT_DIR/}"
+    rel="${file#"$ROOT_DIR"/}"
     {
       echo "<!-- START $rel -->"
       echo ""
@@ -225,7 +226,7 @@ runcontentbook() {
   } > "$OUT"
   mapfile -t contentfiles < <(find "$CONTENT_DIR" -name "*.md" -type f | sort)
   for file in "${contentfiles[@]}"; do
-    rel="${file#$ROOT_DIR/}"
+    rel="${file#"$ROOT_DIR"/}"
     {
       echo "<!-- START $rel -->"
       echo ""
@@ -254,7 +255,7 @@ runcontentmeta() {
   log "INFO" "Extracting frontmatter YAML from content files..."
   echo "" > "$OUT"
   find "$CONTENT_DIR" -name "*.md" -type f | sort | while read -r file; do
-    rel="${file#$ROOT_DIR/}"
+    rel="${file#"$ROOT_DIR"/}"
     awk -v path="$rel" '
       BEGIN { inyaml=0 }
       /^---$/ { inyaml++; if (inyaml==1) { print "- path: " path }; next }

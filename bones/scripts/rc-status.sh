@@ -50,7 +50,7 @@ fi
 
 # Last pack artifact
 if ls "$ARCHIVE_DIR"/*.tar.gz 1> /dev/null 2>&1; then
-  latest_pack=$(ls -t "$ARCHIVE_DIR"/*.tar.gz | head -n1)
+  latest_pack=$(find "$ARCHIVE_DIR" -name "*.tar.gz" -print -quit 2>/dev/null)
   echo -e "\n📦 Latest Tomb:"
   echo "   $(basename "$latest_pack")"
 else

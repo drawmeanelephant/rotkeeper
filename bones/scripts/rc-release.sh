@@ -46,7 +46,7 @@ for arg in "$@"; do
     --verbose)   VERBOSE=true ;;
     --help|-h)   show_help ;;
     -*) log "ERROR" "Unknown flag: $arg"; exit 1 ;;
-    *) 
+    *)
       if [[ -z "$TARGET_VERSION" ]]; then
         TARGET_VERSION="$arg"
       fi
@@ -113,18 +113,18 @@ main() {
     if [[ "$DRY_RUN" == false ]]; then
         # Copy full as a base
         cp -a "$FULL_DIR" "$LITE_DIR"
-        
+
         # Strip documentation for lite
         rm -f "$LITE_DIR/README.md"
         rm -f "$LITE_DIR/CHANGELOG.md"
         rm -f "$LITE_DIR/CONTRIBUTING.md"
         rm -f "$LITE_DIR/CREDITS.md"
-        
+
         # Strip content documentation
         rm -rf "$LITE_DIR/home/content/docs"
         rm -rf "$LITE_DIR/home/content/help"
         rm -rf "$LITE_DIR/home/content/rotkeeper"
-        
+
         # Overwrite index.md for lite distribution to avoid broken links
         cat << 'EOF_LITE_INDEX' > "$LITE_DIR/home/content/index.md"
 ---
@@ -180,15 +180,15 @@ EOF_README
         local ORIG_DIR
         ORIG_DIR="$(pwd)"
         cd "$STAGING_DIR"
-        
+
         log "INFO" "Compressing $FULL_ZIP..."
         rm -f "$FULL_ZIP"
         zip -rq "$FULL_ZIP" "rotkeeper-full"
-        
+
         log "INFO" "Compressing $LITE_ZIP..."
         rm -f "$LITE_ZIP"
         zip -rq "$LITE_ZIP" "rotkeeper-lite"
-        
+
         cd "$ORIG_DIR"
         log "INFO" "✅ Releases successfully packaged:"
         log "INFO" "   - $FULL_ZIP"

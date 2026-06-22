@@ -83,7 +83,7 @@ main() {
     asset_count=$(echo "$ASSET_PATHS" | grep -c . || true)
     log "INFO" "Found $asset_count assets in $ASSETS_DIR"
 
-    [[ "$DRY_RUN" == false ]] && > "$REPORT"
+    [[ "$DRY_RUN" == false ]] && : > "$REPORT"
 
     if [[ "$asset_count" -eq 0 ]]; then
         log "WARN" "No assets found under $ASSETS_DIR"
@@ -127,7 +127,7 @@ generate_sitemap() {
     log "INFO" "Generating sitemap at $sitemap_md"
 
     mapfile -t html_files < <(find "$OUTPUT_DIR" -type f -name '*.html' 2>/dev/null | sort)
-    if [[ $? -ne 0 ]]; then
+    if [[ $? -ne 0 ]]; then # shellcheck disable=SC2181
       log "ERROR" "Failed to read .html files from $OUTPUT_DIR"
       set -e
       return 1
@@ -161,7 +161,7 @@ generate_sitemap() {
         echo "| Path | Markdown Equivalent |"
         echo "| ---- | ------------------- |"
         for file in "${html_files[@]}"; do
-            relpath="${file#$OUTPUT_DIR/}"
+            relpath="${file#"$OUTPUT_DIR"/}"
             md_path="${relpath%.html}.md"
             echo "| $relpath | $md_path |"
         done

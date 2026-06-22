@@ -70,7 +70,7 @@ main() {
     log "INFO" "TEMPLATE_DIR=$TEMPLATE_DIR"
 
     # Debug available templates and default
-    log "INFO" "Available templates: $(ls "$TEMPLATE_DIR" 2>/dev/null | tr '\n' ' ')"
+    log "INFO" "Available templates: $(find "$TEMPLATE_DIR" -maxdepth 1 -type f -exec basename {} \; 2>/dev/null | tr '\n' ' ')"
 
     log_manifest() {
       local entry="$1"
@@ -88,7 +88,7 @@ main() {
     fi
 
      # If no template is set in config, fallback to the first found in the templates directory
-    DEFAULT_TEMPLATE=$(yq -r '.content.default_template' "$CONFIG_FILE" | sed 's/^null$//')
+    DEFAULT_TEMPLATE=$(awk '/^[[:space:]]*default_template:/ { print $2 }' "$CONFIG_FILE")
     if [[ -z "${DEFAULT_TEMPLATE:-}" ]]; then
       # No default_template set; fallback to first template in TEMPLATE_DIR
       choices=()
@@ -106,7 +106,7 @@ main() {
       fi
     fi
     log "INFO" "DEFAULT_TEMPLATE=$DEFAULT_TEMPLATE"
-    log "INFO" "Available templates: $(ls "$TEMPLATE_DIR" 2>/dev/null | tr '\n' ' ')"
+    log "INFO" "Available templates: $(find "$TEMPLATE_DIR" -maxdepth 1 -type f -exec basename {} \; 2>/dev/null | tr '\n' ' ')"
 
     # Verify templates directory exists
     if [[ ! -d "$TEMPLATE_DIR" ]]; then
@@ -119,30 +119,30 @@ main() {
     # Iterate over all markdown files in CONTENT_DIR, explicitly ignoring output/, bones/, and docs/
     while IFS= read -r mdfile; do
       [ -f "$mdfile" ] || continue
-      
+
       [[ "$VERBOSE" == true ]] && log "DEBUG" "Found markdown file: $mdfile"
       base=$(basename "$mdfile" .md)
       mdpath=$(realpath "$mdfile")
       srcpath=$(realpath "$CONTENT_DIR")
-      
+
       # Debug logging for path resolution
       [[ "$VERBOSE" == true ]] && {
         log "DEBUG" "mdfile=$mdfile"
         log "DEBUG" "mdpath=$mdpath"
         log "DEBUG" "srcpath=$srcpath"
       }
-      
+
       # Harden relpath: ensure srcpath is a prefix of mdpath, and trim only if so
       if [[ "$mdpath" == "$srcpath"* ]]; then
-        relpath="${mdpath#$srcpath/}"
+        relpath="${mdpath#"$srcpath"/}"
       else
         log "ERROR" "mdpath $mdpath is not under srcpath $srcpath; skipping."
         continue
       fi
-      
+
       # Debug relpath
       [[ "$VERBOSE" == true ]] && log "DEBUG" "relpath=$relpath"
-      
+
       reldir=$(dirname "$relpath")
       outdir="$OUTPUT_DIR/$reldir"
       if [[ -z "$outdir" || "$outdir" =~ ^[[:space:]]*$ ]]; then
@@ -152,12 +152,12 @@ main() {
       log "DEBUG" "Resolved outdir='$outdir'"
       run mkdir -p "$outdir"
       outfile="$outdir/${base}.html"
-      rel_md="${mdpath#$PROJ_ROOT/}"
-      rel_out="${outfile#$PROJ_ROOT/}"
+      rel_md="${mdpath#"$PROJ_ROOT"/}"
+      rel_out="${outfile#"$PROJ_ROOT"/}"
       [[ "$VERBOSE" == true ]] && echo "📄 Rendering $rel_md → $rel_out"
       TEMPLATE=""
       if grep -q '^template:' "$mdfile"; then
-        TEMPLATE=$(awk '/^template:/ { gsub(/"/, "", $2); print $2 }' "$mdfile")
+        TEMPLATE=$(awk '/^template:/ { print $2 }' "$mdfile")
       fi
       [[ -z "$TEMPLATE" ]] && TEMPLATE="$DEFAULT_TEMPLATE"
 

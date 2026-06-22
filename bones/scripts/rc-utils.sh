@@ -162,19 +162,19 @@ init_log() {
 rk_init_script() {
   SCRIPTNAME="${1:-$(basename "$0" .sh)}"
   shift
-  
+
   : "${DRY_RUN:=${RK_DRY:-false}}"
   : "${VERBOSE:=${RK_VERBOSE:-false}}"
   : "${HELP:=false}"
-  
+
   parse_flags "$@"
   if [[ "$HELP" == true ]]; then
     show_help
   fi
-  
+
   init_log "$SCRIPTNAME"
   set_traps
-  
+
   # Redirect output to log file as well
   exec > >(tee -a "$LOG_FILE") 2>&1
 }

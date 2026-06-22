@@ -49,7 +49,7 @@ main() {
   log "INFO" "Generating tomb timeline..."
 
   local TIMELINE_FILE="$REPORT_DIR/rotkeeper-timeline.md"
-  
+
   if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would generate timeline at $TIMELINE_FILE"
     exit 0
@@ -61,18 +61,18 @@ main() {
     echo ""
     echo "A reverse-chronological history of archived tombs."
     echo ""
-    
+
     if ls "$ARCHIVE_DIR"/*.tar.gz 1> /dev/null 2>&1; then
       # List tar.gz files sorted by modification time (newest first)
-      for archive in $(ls -t "$ARCHIVE_DIR"/*.tar.gz); do
+      for archive in "$ARCHIVE_DIR"/*.tar.gz; do
         filename=$(basename "$archive")
         filesize=$(du -h "$archive" | cut -f1)
         timestamp=$(stat -f "%Sm" -t "%Y-%m-%d %H:%M:%S" "$archive" 2>/dev/null || stat -c %y "$archive" 2>/dev/null | cut -d'.' -f1)
-        
+
         echo "## $filename"
         echo "- **Date:** $timestamp"
         echo "- **Size:** $filesize"
-        
+
         # We gaze upon the size and date.
         # (Though they contain embedded JSON souls, listing their exterior is sufficient for this simple ledger.)
         echo ""

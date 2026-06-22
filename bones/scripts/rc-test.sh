@@ -5,6 +5,7 @@
 #  Purpose : End-to-end integration test harness for Rotkeeper
 # ============================================================
 
+# shellcheck disable=SC2034
 VERSION="0.3.1.3"
 set -euo pipefail
 
@@ -17,6 +18,7 @@ echo "--- Rotkeeper Test Harness ---"
 
 TEST_DIR="/tmp/rotkeeper-test-env"
 
+# shellcheck disable=SC2317
 cleanup() {
   echo "Cleaning up test environment..."
   rm -rf "$TEST_DIR"
@@ -34,19 +36,19 @@ cp -R home "$TEST_DIR/"
 cd "$TEST_DIR"
 
 echo "2. Testing 'init'..."
-./rotkeeper.sh init --force > /dev/null
+./rotkeeper.sh init --full > /dev/null
 
 echo "3. Testing 'new'..."
-./rotkeeper.sh new test-article-unique > /dev/null
-if [[ ! -f "home/content/test-article-unique.md" ]]; then
-  echo "FAIL: 'new' command did not generate test-article-unique.md"
+UNIQUE_ARTICLE="test-article-$(date +%s)"; ./rotkeeper.sh new "$UNIQUE_ARTICLE" > /dev/null
+if [[ ! -f "home/content/${UNIQUE_ARTICLE}.md" ]]; then
+  echo "FAIL: 'new' command did not generate ${UNIQUE_ARTICLE}.md"
   exit 1
 fi
 
 echo "4. Testing 'render'..."
 ./rotkeeper.sh render > /dev/null
-if [[ ! -f "output/test-article-unique.html" ]]; then
-  echo "FAIL: 'render' command did not generate test-article-unique.html"
+if [[ ! -f "output/${UNIQUE_ARTICLE}.html" ]]; then
+  echo "FAIL: 'render' command did not generate ${UNIQUE_ARTICLE}.html"
   exit 1
 fi
 
@@ -59,7 +61,7 @@ fi
 
 echo "6. Testing 'scan'..."
 ./rotkeeper.sh scan > /dev/null
-SCAN_REPORT=$(ls bones/reports/scan-report-*.json 2>/dev/null | head -n 1)
+SCAN_REPORT=$(find bones/reports -name "scan-report-*.json" -print -quit 2>/dev/null)
 if [[ -z "$SCAN_REPORT" ]]; then
   echo "FAIL: 'scan' command did not generate a report"
   exit 1

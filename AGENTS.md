@@ -37,123 +37,57 @@ Rotkeeper is a terminal-based toolkit for rendering, archiving, and preserving t
 └── CHANGELOG.md                 # Version history
 ```
 
+## 🚀 Bootstrap Path for Jules (and Ephemeral Environments)
 
-## 📋 Complete Command Reference
+If you are running in a short-lived VM environment (like Jules/Ubuntu), follow this deterministic bootstrap path before running any `rotkeeper.sh` commands:
 
-Run `./rotkeeper.sh help` for the built-in help, or reference this table:
-
-| Command | Description |
-|---------|-------------|
-| `init` | Full initialization: bless scripts with `+x`, reseed workspace, generate starter `test-file.md`, run assets + render + scan. Use `--force` to rebuild. |
-| `render` | Convert Markdown tombs to HTML via Pandoc. Uses templates from `bones/templates/`. Archives output as timestamped `.tar.gz`. |
-| `pack` | Archive rendered `output/` into a versioned tomb `.tar.gz` with embedded JSON metadata. Also exports Markdown to Pandoc JSON. |
-| `pack --content` | Archive only `home/content/` (excluding `docs/`, `help/`, temp files). Use this to ship content to other repositories. |
-| `pack --self` | Archive the full Rotkeeper system as a `tombkit-*.tar.gz`. |
-| `release` | Create versioned `lite` and `full` distribution `.zip` files in `bones/releases/`. |
-| `ingest` | Unpack `.tar.gz` payloads from `messages-from-my-friends/` into `home/content/messages/`. Moves processed archives to `bones/ingested/`. |
-| `scan` | Audit files against `bones/manifest.txt`. Reports missing files, orphans, SHA256 mismatches. Supports `--json-only`, `--md-only`, `--include`, `--exclude`. |
-| `verify` | Check `home/assets/` against SHA256 hashes in `bones/asset-manifest.yaml`. Use `--regen` to rebuild manifest first. |
-| `assets` | Scan `home/assets/`, copy to `output/assets/`, generate `bones/asset-manifest.yaml` with checksums. |
-| `index` | Build HTML index and Markdown binder from rendered files in `output/`. |
-| `sitemap` | Parse latest render log and generate `bones/reports/site-index.yaml`. |
-| `templates` | List all available HTML templates in `bones/templates/`. |
-| `book` | Aggregate files into binders. Modes: `--scriptbook-full`, `--docbook`, `--docbook-clean`, `--configbook`, `--contentbook`, `--contentmeta`, `--collapse`, `--all`. |
-| `meta` | Extract YAML frontmatter from all content tombs to `bones/reports/rotkeeper-contentmeta.yaml`. |
-| `cleanup` | Back up `bones/`, then prune old backups and logs. `--days N` sets retention (default: 30). **Warning:** destructive — removes most of `bones/` contents. |
-| `reseed` | Reconstruct source files from a `.tar.gz` archive or a bound markdown file (`--input FILE`). `--all` reseeds from all known books. |
-| `status` | Display latest render logs, archive state, output count, available templates, and git info. |
-| `bump` | Log a micro-update (`-m "message"`), bump version across all scripts, inject into changelog, and git commit. |
-| `test` | Run `--dry-run` on every `rc-*.sh` script. Also runs Bats unit tests if available. |
-| `help` | Show the built-in help message. |
-
-**Universal flags** (supported by most commands): `--dry-run`, `--verbose`, `--help`.
-
-## 🎨 Available Templates
-
-Use the `template:` key in your YAML frontmatter. Run `./rotkeeper.sh templates` to confirm availability.
-
-| Template | Purpose |
-|----------|---------|
-| `rotkeeper-blog.html` | Blog-style layout with full styling |
-| `rotkeeper-doc.html` | Documentation layout with navigation |
-| `theme-dark.html` | Clean, flat dark theme layout |
-| `theme-light.html` | Clean, flat light theme layout (system default) |
-
-## 🚀 Quickstart for Agents
-
-If you are tasked with creating a page or testing the framework:
-
-1. **Initialize the workspace** by running:
+1. **Run the deterministic setup script:**
    ```bash
-   ./rotkeeper.sh init
+   bash scripts/setup-jules.sh
    ```
-   This blesses scripts, reseeds the workspace, creates a starter `test-file.md`, generates asset manifests, renders all content, and runs a scan.
+   This will use `apt-get` to install `pandoc`, `jq`, `rsync`, `zip`, and `gawk`, while safely downloading the required `yq` v4 binary from GitHub releases. It will also ensure all scripts in `bones/scripts/` have execution permissions. Note: Always use this rather than guessing the environment state.
 
-2. **Create a new Markdown file** by running:
+2. **Run the smoke test:**
    ```bash
-   ./rotkeeper.sh new my-page
+   bash rotkeeper.sh smoke
    ```
-   This will automatically scaffold a new file in `home/content/my-page.md` with the correct YAML frontmatter pre-filled for you.
+   This performs a fast, non-destructive verification of dependencies, core directories, asset manifests, and runs a mock scan to ensure the repository is healthy.
 
-3. **Write Markdown content** below the frontmatter.
-
-4. **Render** the site:
+3. **Initialize safely:**
    ```bash
-   ./rotkeeper.sh render
+   bash rotkeeper.sh init --with-sample
    ```
+   The `init` command is lightweight by default. It creates required directories. Using `--with-sample` generates a starter `test-file.md` in `home/content/`. To run the full initialization suite (reseed, assets, render, scan), use `--full`.
 
-5. **Verify** your output exists in the `output/` directory (e.g., `output/my-page.html`).
+## 📋 Canonical Safe Commands
 
-6. **Check status** to confirm everything:
-   ```bash
-   ./rotkeeper.sh status
-   ```
+Here are the canonical, highly-safe commands you should prefer during your workflow:
+
+- `bash rotkeeper.sh init` — Prepares directories safely. Use `--with-render` or `--full` for heavier workflows.
+- `bash rotkeeper.sh smoke` — Non-destructive verification and environment test.
+- `bash rotkeeper.sh render` — Convert Markdown tombs to HTML safely. Output lives in `output/`.
+- `bash rotkeeper.sh scan --dry-run` — Test file constraints without side effects.
+- `bash rotkeeper.sh pack --content` — Safe export method to send `home/content/` to external sources.
+- `bash rotkeeper.sh status` — Get real-time status of the project state.
+- `bash rotkeeper.sh help` — Always available.
+
+### ⚠️ Constraints & Safety Rules
+
+- **Never invoke `rc-*.sh` scripts directly.** Always use `bash rotkeeper.sh <command>`.
+- **`rotkeeper.sh cleanup` is destructive.** It prunes most of `bones/` contents. Avoid using it unless specifically requested.
+- **Do not edit `output/` files directly.** Trace the changes back to the source `.md` files in `home/content/` and re-run `render`.
+- Setup must remain finite and non-interactive. Use `setup-jules.sh` and `smoke` to guarantee readiness.
 
 ## 📬 Decentralized Ingestion Pipeline
 
 If you are generating content or auditing the system, you can use Rotkeeper's ingestion pipeline to permanently save and share your work:
 
 1. Ensure your generated markdown files have proper YAML frontmatter. Include a `report.md` or `audit.md` summarizing your methods and findings.
-
-2. Run `./rotkeeper.sh pack --content`. This bundles `home/content/` into a `.tar.gz` archive (excluding redundant `docs/`, `help/`, and temp files).
-
+2. Run `./rotkeeper.sh pack --content`. This bundles `home/content/` into a `.tar.gz` archive.
 3. The resulting `.tar.gz` is saved in `bones/archive/`.
-
-4. **To submit to a central repository:** Copy the `.tar.gz` file into the central repo's `messages-from-my-friends/` directory.
-
-5. **The central repository** runs `./rotkeeper.sh ingest` to:
-   - Extract each payload into `home/content/messages/<archive-name>/`
-   - Move processed archives to `bones/ingested/`
-   - Handle filename collisions by appending timestamps
-
-6. **After ingestion**, run `./rotkeeper.sh render` to compile the new content into HTML.
-
-## 📦 Release Distributions
-
-The `release` command creates two distribution flavors:
-
-| Distribution | What's Included | What's Stripped |
-|-------------|----------------|-----------------|
-| **`full`** | Everything except `.git/`, `output/`, `bones/logs/`, `bones/releases/`, `bones/ingested/`, `bones/tmp/` | Nothing significant |
-| **`lite`** | Same as full, minus documentation | `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `CREDITS.md`, `home/content/docs/`, `home/content/help/`, `home/content/rotkeeper/`. A micro-README is injected. |
-
-If you are operating in the **`lite` distribution**, you will have `AGENTS.md` and `GEMINI.md` available, plus the output of `./rotkeeper.sh help` to navigate.
-
-## ⚙️ Dependencies
-
-**Required:** `bash` 4+, `pandoc`, `sha256sum` (or `shasum`), `yq` v4+ (Go-based), `gawk` (GNU Awk)
-
-**Command-specific:**
-- `pack` (default mode): `jq` (for JSON metadata embedding)
-- `release`: `rsync`, `zip`
-- `bump`: `python3`
-- `test`: `bats` (optional, for unit tests)
-
-## ⚠️ Known Friction Points
-
-- **YAML frontmatter must start with `---`** on the very first line. If omitted, Pandoc will treat your metadata as regular paragraph text in the HTML output.
-- **`cleanup` is destructive.** It backs up `bones/` first, but then removes most of its contents (except `backups/` and `logs/`). Use `--dry-run` to preview.
-- **Do not invoke `bones/scripts/rc-*.sh` directly.** Always use `./rotkeeper.sh <command>` as the dispatcher.
+4. **To submit:** Copy the `.tar.gz` file into `messages-from-my-friends/`.
+5. **Ingest:** Run `./rotkeeper.sh ingest` to extract payloads safely.
+6. **After ingestion**, run `./rotkeeper.sh render` to compile the new content.
 
 ## 📌 Version
 

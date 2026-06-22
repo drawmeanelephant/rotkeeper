@@ -27,7 +27,7 @@ BONES="$SCRIPT_DIR/bones/scripts"
 trap 'echo "Unexpected error on line $LINENO"; exit 1' ERR
 
 command="${1:-}"
-[[ $# -gt 0 ]] && shift || true
+if [[ $# -gt 0 ]]; then shift; fi
 
 # ---------------------------------------------------------------------------
 # Help
@@ -47,8 +47,11 @@ Quickstart:
   ./rotkeeper.sh pack --content
 
 Commands:
-  init        Initialize environment (reseed + assets + render)
-                --force    Force rebuild of all files
+  init        Initialize environment (minimal by default)
+                --with-sample    Generate sample file
+                --with-render    Run the render ritual
+                --full           Full initialization (reseed, sample, assets, render, scan)
+                --force          Force rebuild of all files
 
   new <file>  Scaffold a new markdown file with required YAML frontmatter
 
@@ -60,6 +63,8 @@ Commands:
               (Use pack to create shareable tomb releases; render just creates backups)
 
   release     Package the project into 'lite' and 'full' distribution zip files
+
+  smoke       Run the minimal verification suite for agent validation
 
   scan        Verify manifest entries against actual files
 
@@ -152,6 +157,11 @@ case "$command" in
   release)
     echo "Creating release distributions..."
     bash "$BONES/rc-release.sh" "$VERSION" "$@"
+    ;;
+
+  smoke)
+    echo "Running smoke test..."
+    bash "$BONES/rc-smoke.sh" "$@"
     ;;
 
   scan)
