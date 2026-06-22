@@ -16,6 +16,7 @@
 
 set -euo pipefail
 
+# shellcheck disable=SC2034
 VERSION="0.3.1.3"
 
 

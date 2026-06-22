@@ -40,6 +40,7 @@ rk_init_script "rc-init" "$@"
 set -euo pipefail
 IFS=$'\n\t'
 
+# shellcheck disable=SC2034
 VERSION="0.3.1.3"
 
 SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -1,0 +1,3 @@
+# .shellcheckrc - ShellCheck configuration file
+# Disable SC1091: ShellCheck cannot follow non-constant source.
+disable=SC1091

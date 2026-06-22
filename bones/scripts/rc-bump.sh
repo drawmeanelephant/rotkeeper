@@ -50,7 +50,8 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --version|-v) echo "$(basename "$0") v${VERSION:-unknown}"; exit 0 ;;
     --dry-run) DRY_RUN=true; shift ;;
-    --verbose) VERBOSE=true; shift ;;
+    --verbose) # shellcheck disable=SC2034
+               VERBOSE=true; shift ;;
     --help|-h) show_help ;;
     --to) NEW_VERSION_OVERRIDE="$2"; shift 2 ;;
     --message|-m) MESSAGE="${2:-}"; shift 2 ;;

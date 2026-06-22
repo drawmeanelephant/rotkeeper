@@ -5,6 +5,7 @@
 #  Purpose : End-to-end integration test harness for Rotkeeper
 # ============================================================
 
+# shellcheck disable=SC2034
 VERSION="0.3.1.3"
 set -euo pipefail
 
@@ -17,6 +18,7 @@ echo "--- Rotkeeper Test Harness ---"
 
 TEST_DIR="/tmp/rotkeeper-test-env"
 
+# shellcheck disable=SC2317
 cleanup() {
   echo "Cleaning up test environment..."
   rm -rf "$TEST_DIR"

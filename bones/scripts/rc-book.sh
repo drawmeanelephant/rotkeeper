@@ -29,6 +29,7 @@ VERSION="0.3.1.3"
 require_gawk_version
 
 MODE=""
+# shellcheck disable=SC2034
 CONFIG=""
 STRIPMODE=false
 
