@@ -11,13 +11,13 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-bump.sh
 #  Purpose : Automated microbump logging and version bumping workflow
-#  Version : 0.3.1.3
+#  Version : 0.3.1.4
 # ------------------------------------------------------------
 
 set -euo pipefail
 IFS=$'\n\t'
 
-VERSION="0.3.1.3"
+VERSION="0.3.1.4"
 
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 
