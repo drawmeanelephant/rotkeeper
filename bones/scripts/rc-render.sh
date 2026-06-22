@@ -88,7 +88,7 @@ main() {
     fi
 
      # If no template is set in config, fallback to the first found in the templates directory
-    DEFAULT_TEMPLATE=$(awk '/^[[:space:]]*default_template:/ { print $2 }' "$CONFIG_FILE")
+    DEFAULT_TEMPLATE=$(yq -r '.content.default_template' "$CONFIG_FILE" | sed 's/^null$//')
     if [[ -z "${DEFAULT_TEMPLATE:-}" ]]; then
       # No default_template set; fallback to first template in TEMPLATE_DIR
       choices=()
@@ -157,7 +157,7 @@ main() {
       [[ "$VERBOSE" == true ]] && echo "📄 Rendering $rel_md → $rel_out"
       TEMPLATE=""
       if grep -q '^template:' "$mdfile"; then
-        TEMPLATE=$(awk '/^template:/ { print $2 }' "$mdfile")
+        TEMPLATE=$(awk '/^template:/ { gsub(/"/, "", $2); print $2 }' "$mdfile")
       fi
       [[ -z "$TEMPLATE" ]] && TEMPLATE="$DEFAULT_TEMPLATE"
 
