@@ -100,7 +100,7 @@ for INPUT in "${DEFAULT_BOOKS[@]}"; do
       outfile="$ROOT_DIR/$relpath"
       mkdir -p "$(dirname "$outfile")"
       if [[ "$DRY_RUN" == false ]]; then
-        > "$outfile"
+        : > "$outfile"
       fi
       echo "📁 Resurrecting → $relpath"
       in_block=true
@@ -126,7 +126,7 @@ for INPUT in "${DEFAULT_BOOKS[@]}"; do
       if [[ "$line" =~ ^\`\`\` ]]; then
         continue
       fi
-      echo "$line" >> "$outfile"
+      echo "$line" > "$outfile"
     fi
   done < "$INPUT"
 done
@@ -134,4 +134,3 @@ done
 echo "✅ Reseed complete."
 
 exit 0
-

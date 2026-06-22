@@ -33,7 +33,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Locate latest render log
-RENDER_LOG="${1:-$(ls -t "$LOG_DIR"/rc-render-*.log 2>/dev/null | head -n 1)}"
+RENDER_LOG="${1:-$(find "$LOG_DIR" -name "rc-render-*.log" -print -quit 2>/dev/null)}"
 
 if [[ -z "$RENDER_LOG" || ! -f "$RENDER_LOG" ]]; then
   if [[ "$DRY_RUN" == true ]]; then

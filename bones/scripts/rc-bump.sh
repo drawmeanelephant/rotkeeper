@@ -55,7 +55,7 @@ while [[ $# -gt 0 ]]; do
     --to) NEW_VERSION_OVERRIDE="$2"; shift 2 ;;
     --message|-m) MESSAGE="${2:-}"; shift 2 ;;
     -*) log "ERROR" "Unknown flag: $1"; show_help; exit 1 ;;
-    *) 
+    *)
       if [[ -z "$MESSAGE" ]]; then
         MESSAGE="$1"
       else

@@ -48,7 +48,7 @@ for arg in "$@"; do
   case "$arg" in
     --dry-run|--verbose|--help|-h) ;; # handled by rk_init_script
     -*) log "ERROR" "Unknown flag: $arg"; exit 1 ;;
-    *) 
+    *)
       if [[ -z "$FILE" ]]; then
         FILE="$arg"
       else

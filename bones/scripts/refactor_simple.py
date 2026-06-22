@@ -6,7 +6,7 @@ scripts = glob.glob("/Users/tbuddy/Documents/GitHub/rotkeeper/bones/scripts/rc-*
 for filepath in scripts:
     with open(filepath, "r") as f:
         content = f.read()
-    
+
     if "rk_init_script" in content or "rc-env.sh" in filepath or "rc-utils.sh" in filepath:
         continue
 
@@ -21,7 +21,7 @@ for filepath in scripts:
     # Find the best place to insert rk_init_script "..." "$@"
     # Right after source .../rc-utils.sh
     # or set -euo pipefail
-    
+
     lines = content.split('\n')
     insert_idx = -1
     for i, line in enumerate(lines):

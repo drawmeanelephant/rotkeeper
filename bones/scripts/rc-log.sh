@@ -32,4 +32,3 @@ log() {
   shift
   echo "$(date +"%Y-%m-%d %H:%M:%S") [$level] $*" >>"$LOGFILE"
 }
-
