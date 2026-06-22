@@ -34,7 +34,7 @@ rk_init_script "rc-release" "$@"
 set -euo pipefail
 IFS=$'\n\t'
 
-VERSION="0.3.1.3"
+VERSION="0.3.1.4"
 
 LOG_FILE="$PWD/$LOG_FILE"
 

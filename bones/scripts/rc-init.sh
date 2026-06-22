@@ -41,7 +41,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # shellcheck disable=SC2034
-VERSION="0.3.1.3"
+VERSION="0.3.1.4"
 
 SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RESEED_CMD="$SCRIPTDIR/rc-reseed.sh"

@@ -11,13 +11,13 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-log.sh
 #  Purpose : Shared logging utility functions for all rc-*.sh scripts
-#  Version : 0.3.1.3
+#  Version : 0.3.1.4
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
 
-VERSION="0.3.1.3"
+VERSION="0.3.1.4"
 # Auto-initialize log file path using script name
 init_log() {
   local script_name

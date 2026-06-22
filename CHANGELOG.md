@@ -99,3 +99,6 @@
 
 ## [0.3.1.3] - 2026-06-19
 - Add --version flag to all rc-*.sh scripts
+
+## [0.3.1.4] - 2026-06-22
+- Fix template parsing bug in rc-render.sh using yq

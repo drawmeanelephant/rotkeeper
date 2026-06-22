@@ -11,13 +11,13 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-glue.sh
 #  Purpose : Generate navigation glue (index.md) for unindexed directories
-#  Version : 0.3.1.3
+#  Version : 0.3.1.4
 # ------------------------------------------------------------
 
 set -euo pipefail
 
 # shellcheck disable=SC2034
-VERSION="0.3.1.3"
+VERSION="0.3.1.4"
 
 
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"

@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-render.sh
 #  Purpose : Render markdown tombs into HTML using Pandoc and templates
-#  Version : 0.3.1.3
+#  Version : 0.3.1.4
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -36,7 +36,7 @@ rk_init_script "rc-render" "$@"
 set -euo pipefail
 IFS=$'\n\t'
 
-VERSION="0.3.1.3"
+VERSION="0.3.1.4"
 
 
 
@@ -88,7 +88,7 @@ main() {
     fi
 
      # If no template is set in config, fallback to the first found in the templates directory
-    DEFAULT_TEMPLATE=$(awk '/^[[:space:]]*default_template:/ { print $2 }' "$CONFIG_FILE")
+    DEFAULT_TEMPLATE=$(yq e '.default_template' "$CONFIG_FILE" 2>/dev/null || echo "")
     if [[ -z "${DEFAULT_TEMPLATE:-}" ]]; then
       # No default_template set; fallback to first template in TEMPLATE_DIR
       choices=()
@@ -156,9 +156,7 @@ main() {
       rel_out="${outfile#"$PROJ_ROOT"/}"
       [[ "$VERBOSE" == true ]] && echo "📄 Rendering $rel_md → $rel_out"
       TEMPLATE=""
-      if grep -q '^template:' "$mdfile"; then
-        TEMPLATE=$(awk '/^template:/ { print $2 }' "$mdfile")
-      fi
+      TEMPLATE=$(yq --front-matter extract '.template' "$mdfile" 2>/dev/null | grep -v "^null$" || echo "")
       [[ -z "$TEMPLATE" ]] && TEMPLATE="$DEFAULT_TEMPLATE"
 
       log "INFO" "Rendering $rel_md with template: $TEMPLATE"
