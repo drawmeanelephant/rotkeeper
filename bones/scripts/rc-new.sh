@@ -163,7 +163,7 @@ main() {
 
     TAGS_YAML=""
     if [[ -n "$TAGS" ]]; then
-        TAGS_YAML="[$(echo "$TAGS" | sed 's/,/, /g')]"
+        TAGS_YAML="[${TAGS//,/, }]"
     fi
 
     if [[ "$DRY_RUN" == false ]]; then
@@ -187,32 +187,34 @@ EOF
             echo "source_url: \"$SOURCE_URL\"" >> "$FILE"
         fi
 
-        echo "---" >> "$FILE"
-        echo "" >> "$FILE"
-        echo "# $TITLE" >> "$FILE"
-        echo "" >> "$FILE"
+        {
+            echo "---"
+            echo ""
+            echo "# $TITLE"
+            echo ""
 
-        if [[ -n "$SOURCE_URL" ]]; then
-            echo "## Source" >> "$FILE"
-            echo "" >> "$FILE"
-            echo "- **URL:** <$SOURCE_URL>" >> "$FILE"
-            echo "" >> "$FILE"
-            echo "## Notes" >> "$FILE"
-            echo "" >> "$FILE"
-            if [[ -n "$BODY_TEXT" ]]; then
-                echo "$BODY_TEXT" >> "$FILE"
+            if [[ -n "$SOURCE_URL" ]]; then
+                echo "## Source"
+                echo ""
+                echo "- **URL:** <$SOURCE_URL>"
+                echo ""
+                echo "## Notes"
+                echo ""
+                if [[ -n "$BODY_TEXT" ]]; then
+                    echo "$BODY_TEXT"
+                else
+                    echo "<!-- Add your notes, observations, or excerpts here -->"
+                fi
+                echo ""
+                echo "## Summary"
+                echo ""
+                echo "<!-- Add a summary, key points, or LLM-generated content here -->"
             else
-                echo "<!-- Add your notes, observations, or excerpts here -->" >> "$FILE"
+                if [[ -n "$BODY_TEXT" ]]; then
+                    echo "$BODY_TEXT"
+                fi
             fi
-            echo "" >> "$FILE"
-            echo "## Summary" >> "$FILE"
-            echo "" >> "$FILE"
-            echo "<!-- Add a summary, key points, or LLM-generated content here -->" >> "$FILE"
-        else
-            if [[ -n "$BODY_TEXT" ]]; then
-                echo "$BODY_TEXT" >> "$FILE"
-            fi
-        fi
+        } >> "$FILE"
 
         log "INFO" "📄 Scaffolded new file at $FILE"
     else
