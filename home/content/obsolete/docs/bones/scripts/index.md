@@ -41,7 +41,6 @@ bones/scripts/
 | rc-glue.sh          | Generate index.md navigation glue              | [rc-glue.sh](rc-glue.html)      | Ready    |
 | rc-ingest.sh        | Unpack and merge decentralized payloads        | [rc-ingest.sh](rc-ingest.html)  | Ready    |
 | rc-init.sh          | Initialize directory and file layout           | [rc-init.sh](rc-init.html)      | Ready    |
-| rc-log.sh           | Shared logging utility functions               | [rc-log.sh](rc-log.html)        | Ready    |
 | rc-new.sh           | Scaffold a new markdown file with frontmatter  | [rc-new.sh](rc-new.html)        | Ready    |
 | rc-pack.sh          | Archive `/output/`, export JSON                | [rc-pack.sh](rc-pack.html)      | Ready    |
 | rc-release.sh       | Package lite and full distributions            | [rc-release.sh](rc-release.html)| Ready    |

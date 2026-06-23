@@ -29,7 +29,6 @@ This page tracks the documentation status of core project files.
 | `bones/scripts/rc-glue.sh` | [bones/scripts/rc-glue.md](bones/scripts/rc-glue.md) | 2026-06-23 | 2026-06-23 | OK |
 | `bones/scripts/rc-ingest.sh` | [bones/scripts/rc-ingest.md](bones/scripts/rc-ingest.md) | 2026-06-23 | 2026-06-23 | OK |
 | `bones/scripts/rc-init.sh` | [bones/scripts/rc-init.md](bones/scripts/rc-init.md) | 2026-06-23 | 2026-06-23 | OK |
-| `bones/scripts/rc-log.sh` | [bones/scripts/rc-log.md](bones/scripts/rc-log.md) | 2026-06-23 | 2026-06-23 | OK |
 | `bones/scripts/rc-new.sh` | [bones/scripts/rc-new.md](bones/scripts/rc-new.md) | 2026-06-23 | 2026-06-23 | OK |
 | `bones/scripts/rc-pack.sh` | [bones/scripts/rc-pack.md](bones/scripts/rc-pack.md) | 2026-06-23 | 2026-06-23 | OK |
 | `bones/scripts/rc-release.sh` | [bones/scripts/rc-release.md](bones/scripts/rc-release.md) | 2026-06-23 | 2026-06-23 | OK |
