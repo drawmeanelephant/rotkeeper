@@ -1,6 +1,6 @@
 ---
 title: "Document Improvement Project (DIP) Matrix"
-date: "2026-06-23T12:22:47Z"
+date: "2026-06-23T20:38:24Z"
 template: "rotkeeper-doc.html"
 ---
 
@@ -16,7 +16,8 @@ This page tracks the documentation status of core project files.
 | `CREDITS.md` | [CREDITS.md](CREDITS.md) | 2026-06-23 | 2026-06-23 | Stub |
 | `GEMINI.md` | [GEMINI.md](GEMINI.md) | 2026-06-23 | 2026-06-23 | Stub |
 | `README.md` | [README.md](README.md) | 2026-06-23 | 2026-06-23 | Stub |
-| `(Whitelisted)` | [architecture.md](architecture.md) | N/A | 2026-06-23 | OK |
+| `(Whitelisted)` | [architecture.md](architecture.md) | N/A | 2026-06-23 | Whitelisted |
+| `bones/asset-manifest.yaml` | [bones/asset-manifest.md](bones/asset-manifest.md) | 2026-06-23 | 2026-06-23 | Stub |
 | `bones/config/dip-whitelist.txt` | [bones/config/dip-whitelist.md](bones/config/dip-whitelist.md) | 2026-06-23 | 2026-06-23 | Stub |
 | `bones/config/rotkeeper.yaml` | [bones/config/rotkeeper.md](bones/config/rotkeeper.md) | 2026-06-23 | 2026-06-23 | Stub |
 | `bones/scripts/fix_order.py` | [bones/scripts/fix_order.md](bones/scripts/fix_order.md) | 2026-06-23 | 2026-06-23 | Stub |
@@ -48,9 +49,9 @@ This page tracks the documentation status of core project files.
 | `bones/templates/rotkeeper-doc.html` | [bones/templates/rotkeeper-doc.md](bones/templates/rotkeeper-doc.md) | 2026-06-23 | 2026-06-23 | Stub |
 | `bones/templates/theme-dark.html` | [bones/templates/theme-dark.md](bones/templates/theme-dark.md) | 2026-06-23 | 2026-06-23 | Stub |
 | `bones/templates/theme-light.html` | [bones/templates/theme-light.md](bones/templates/theme-light.md) | 2026-06-23 | 2026-06-23 | Stub |
-| `(Whitelisted)` | [index.md](index.md) | N/A | 2026-06-23 | OK |
-| `(Whitelisted)` | [onboarding.md](onboarding.md) | N/A | 2026-06-23 | OK |
-| `(Whitelisted)` | [rotkeeper-reference.md](rotkeeper-reference.md) | N/A | 2026-06-23 | OK |
-| `(Whitelisted)` | [rotkeeper-rituals.md](rotkeeper-rituals.md) | N/A | 2026-06-23 | OK |
+| `(Whitelisted)` | [index.md](index.md) | N/A | 2026-06-23 | Whitelisted |
+| `(Whitelisted)` | [onboarding.md](onboarding.md) | N/A | 2026-06-23 | Whitelisted |
+| `(Whitelisted)` | [rotkeeper-reference.md](rotkeeper-reference.md) | N/A | 2026-06-23 | Whitelisted |
+| `(Whitelisted)` | [rotkeeper-rituals.md](rotkeeper-rituals.md) | N/A | 2026-06-23 | Whitelisted |
 | `rotkeeper.sh` | [rotkeeper.md](rotkeeper.md) | 2026-06-23 | 2026-06-23 | Stub |
 | `scripts/setup-jules.sh` | [scripts/setup-jules.md](scripts/setup-jules.md) | 2026-06-23 | 2026-06-23 | OK |

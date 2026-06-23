@@ -1,0 +1,300 @@
+---
+title: "The Road to Bones"
+slug: road-to-bones
+subtitle: "Rotkeeper Buildlog & Resurrection Notes"
+version: "0.2.5-pre"
+updated: "2025-06-03"
+description: "Buildlog, audit summary, and resurrection notes for Rotkeeper version 0.2.0-pre through 0.2.3-pre."
+tags:
+  - rotkeeper
+  - changelog
+  - audit
+  - bootstrap
+  - logs
+asset_meta:
+  name: "index.md"
+  version: "0.2.5-pre"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "CC-BY-SA-4.2-unreal"
+---
+
+## 🧼 Rotkeeper Reseed Summary (v0.2.0-pre)
+
+This is your consolidated status snapshot: what’s working, what’s stubbed, and what’s next. All redundant reports have been buried.
+
+***
+
+## 📡 Living Buildlog (Micro Updates)
+<!-- LIVING_BUILDLOG_START -->
+* `v0.3.1.4` - (2026-06-22 11:39) - Fix template parsing bug in rc-render.sh using yq
+* `v0.3.1.3` - (2026-06-19 21:56) - Add --version flag to all rc-*.sh scripts
+* `v0.3.1.2` - (2026-06-19 07:00) - Restructure todo.md for Jules queue and move test.sh to bones/scripts/
+* `v0.3.1.1` - (2026-06-18 21:35) - Merge PRs #2 and #3: ASCII art headers and CI test suite updates
+* `v0.3.1` - (2026-06-16 08:47) - Minor release: Framework stabilization and documentation scrub
+* `v0.3.0.20` - (2026-06-15 23:38) - Add test harness, agent-handoff, snapshot, and timeline commands
+* `v0.3.0.19` - (2026-06-15 23:28) - Refactor remaining scripts to use rk_init_script
+* `v0.3.0.18` - (2026-06-15 23:09) - Audit Refactoring Phase 1: standardized scaffolding, tightened day-1 UX, and simplified path logic
+* `v0.3.0.17` - (2026-06-15 21:22) - fix: correct home/content path resolution in rc-init
+* `v0.3.0.16` - (2026-06-15 20:54) - Purged ghost scripts and perfectly synchronized documentation with active rituals
+* `v0.3.0.15` - (2026-06-15 20:21) - Cleaned up deprecated AI script bloat and fixed Pandoc markdown link rendering
+* `v0.3.0.14` - (2026-06-15 18:49) - Strip frontmatter overrides and fix rc-render to use rotkeeper.yaml
+* `v0.3.0.13` - (2026-06-15 18:38) - Add nice clean light and dark themes, set light as default
+* `v0.3.0.12` - (2026-06-15 15:51) - fix: cleaned up vendor bloat and excluded local inbox, messages, and reports from distribution payload
+* `v0.3.0.11` - (2026-06-15 15:46) - fix: resolve reseed regex parsing bug and index post-increment strict mode crash
+* `v0.3.0.10` - (2026-06-15 15:39) - fix: exclude bones/archive from release zip files to reduce bloat
+* `v0.3.0.9` - (2026-06-15 15:22) - fix: updated rc-glue.sh to support non-destructive overwriting using rotkeeper_glued frontmatter
+* `v0.3.0.8` - (2026-06-15 15:06) - docs: documented architecture pillars and new rc rituals
+* `v0.3.0.7` - (2026-06-15 15:02) - feat: added autoindex glue ritual to connect unindexed tombs
+* `v0.3.0.6` - (2026-06-15 14:26) - UX: added init warning to render and YAML syntax example to templates CLI
+* `v0.3.0.5` - (2026-06-15 13:49) - Presentation layer refactor: token-based CSS and Golden Path template
+* `v0.3.0.4` - (2026-06-15 12:56) - Integrate decentralized ingestion pipeline, CLI UX improvements, and Opus doc synchronization.
+* `v0.3.0.3` - (2026-06-14 16:47) - Implemented automated sticky bump ritual to keep roadmaps from rotting
+* `v0.3.0.2` - (2026-06-14 16:47) - test
+
+***
+
+***
+
+### ✅ Core Scripts Verified & Functional
+
+* ✅ `rotkeeper.sh` — version bumped, full dispatch implemented
+* ✅ `rc-render.sh` — output archive fixed, now logs + compresses safely
+* ✅ `rc-expand.sh` — reseeds markdown + templates from BOM
+* ✅ `rc-pack.sh` — respects `--self`, packs full tombkits correctly
+* ✅ `rc-status.sh` — fully operational rot-dashboard
+* ✅ `rc-assets.sh` — generates selective YAML manifests
+* ✅ `rc-cleanup-bones.sh` — dry-run-safe graveyard cleanup
+* ✅ `rc-reseed.sh` — working resurrection script
+
+### 🧪 Partial & Stubbed Tools
+
+
+***
+
+### 🗂 What You *Could* Do Next (Post-Chat Tasks)
+
+| Task                                                      | Reason                           |
+| --------------------------------------------------------- | -------------------------------- |
+| Create `bones/meta/0.2.0-seed.md`                         | Ritual anchor for current reseed |
+| Set `VERSION="0.2.0-pre"` in `rotkeeper.sh`               | Locks in your timeline           |
+| Commit your archive + logs                                | Seals tomb lineage               |
+| Rename current chat thread if you want to export it later | Easier for git-log linking       |
+
+***
+
+<!--
+### 🎨 Parting Sora Prompt
+
+```
+A decayed control panel still blinks under candlelight.
+Each shell script is labeled in rusted brass.
+The tomb's last render hangs suspended in terminal silence.
+A prompt flashes once, then fades:
+“Your rot was preserved.”
+```
+-->
+
+***
+
+## Roadmap
+<!-- Aspirational enhancements for v0.2.0+ -->
+
+* `rc-expand.sh` could integrate mascot generation
+* Add `--dry-run` and `--explain` flags to all scripts
+* Add git pre-commit hook for automatic `scan + pack`
+* Create a `bones/status.md` as a rotkeeper dashboard
+
+***
+
+<!--
+## 🧊 Final Sora Prompt
+
+```
+A bureaucratic mascot archive, stored on a rusted terminal at the end of the world. CRT flickers, mascots trapped in static. Each file is a failure. Generate a glitchy, haunted control panel with mascot stickers, coffee stains, and static overlays. Include the text “Filed & Forgotten.”
+```
+
+🧾 *Filed & Forgotten*
+📁 *Rotkeeper v0.1.9.3 — awaiting 0.2.0*
+💀 *May the manifest never match the disk.*
+-->
+***
+
+## 🛠 Suggested Filesystem Layout
+
+```
+rotkeeper/
+├── bones/
+│   ├── archive/
+│   ├── logs/
+│   ├── reports/
+│   ├── templates/
+│   └── manifest.txt
+├── home/
+│   ├── assets/
+│   └── content/
+│       └── rotkeeper/
+├── output/
+├── rc-*.sh
+└── rotkeeper.sh
+```
+
+<!-- Updated on v0.2.0-pre -->
+
+***
+
+## 🧾 Rotkeeper Structural & Stability Audit — v0.2.1
+
+This section documents the results of a full audit pass on the current Rotkeeper toolchain. The goal was to evaluate the stability, consistency, and safety of core scripts in alignment with the rotkeeper ethos of ritualized decay, reversible archive handling, and offline self-containment.
+
+### 📋 Audit Categories & Standards
+
+This audit focuses on:
+
+1. **Structural Soundness** — Does each script have a `main()` function and proper `trap` usage?
+2. **Error-Handling Consistency** — Are `set -euo pipefail`, `require_bins()`, and safe `cd` practices used uniformly?
+3. **Argument Parsing & Dry-Run Logic** — Are `--dry-run` and flag parsing patterns implemented consistently?
+4. **Reusability & Modular Organization** — Are shared functions extracted? Is logic duplicated across scripts?
+
+### ✅ Verified Practices Across Core Scripts
+
+The following practices were confirmed as present in the majority of verified scripts:
+
+- `set -euo pipefail` in every script, enforcing fail-fast behavior.
+- `main "$@"` function wrapping, reducing surprise side-effects on sourcing.
+- `trap cleanup EXIT INT TERM` is used for many scripts.
+- Logging functions are defined (though not always consistent).
+- `require_bins()` from `rc-utils.sh` is used to validate external dependencies like `pandoc`, `git`, `jq`, etc. All prior instances of legacy dependency checkers have been purged. `require_bins()` is now the sole ritual for verifying external tools.
+
+### ❌ Inconsistencies & Points for Rework
+
+- Not all scripts use a `main()` function. This introduces structural unpredictability.
+- `--dry-run` support is inconsistent. Some scripts use it only partially or not at all.
+- Argument parsing patterns vary between `for arg in "$@"` loops and `while getopts`, introducing fragility.
+- Some scripts re-implement `log()` inline rather than sourcing a shared `rc-utils.sh`.
+- A shared library (`rc-utils.sh`) is now used across scripts, providing unified logic.
+
+### 🛠 Recommendations & Next Moves
+
+#### 1. Create and enforce usage of a shared `rc-utils.sh`:
+Includes:
+
+- `log()`: Timestamped logging
+- `require_bins()`: Unified dependency checks
+- `safe_rm()`: Dry-run-aware deletion wrapper
+- `cd_or_die()`: Safe directory changes
+- `parse_flags()`: Shared flag parser
+
+#### 2. Standardize dry-run logic:
+Replace inline `if $DRY_RUN; then echo…` patterns with:
+
+```bash
+safe_rm() {
+  [ "$DRY_RUN" = "true" ] && echo "Would remove $*" || rm -rf "$@"
+}
+```
+
+Use similarly for `mkdir`, `cp`, `mv`.
+
+#### 3. Trap errors globally:
+Add this pattern to scripts:
+
+```bash
+trap_err() {
+  echo "ERROR in ${BASH_SOURCE[1]} at line $1"
+}
+trap 'trap_err $LINENO' ERR
+```
+
+#### 4. Create audit compliance matrix:
+Track which scripts conform to:
+
+- `main()`
+- `trap`
+- `--dry-run`
+- `log()`
+- `require_bins()`
+- sourced `rc-utils.sh`
+
+#### 5. Update docs with ritual headers:
+Include in each script:
+
+```bash
+## 🔧 name: rc-cleanup-bones
+## 🧼 updated: 2025-05-29
+## 📜 purpose: purge leftovers, preserve backups
+```
+
+***
+
+
+***
+
+### 📊 Compliance Matrix Sample
+
+A snapshot from the living audit matrix:
+
+| Script             | main() | trap | --dry-run | log() | require_bins() | rc-utils.sh |
+|--------------------|--------|------|-----------|-------|---------------|-------------|
+| rc-cleanup-bones   | ✅     | ✅   | ✅        | ❌    | ✅            | ❌          |
+| rc-docs-fix        | ❌     | ❌   | ❌        | ❌    | ❌            | ❌          |
+| rc-render          | ✅     | ✅   | ✅        | ✅    | ✅            | ✅          |
+
+> 🔎 Full matrix maintained at `doc/audit-matrix.csv`. It must be updated with every patch, ritual, or pull request.
+
+---
+
+### ✅ Testing & Linting Requirements
+
+- **ShellCheck**: All scripts must pass `shellcheck` with no fatal errors. Warnings are acceptable *only* if annotated inline with a justification.
+- **Testing**: Every core script must have a corresponding `.test.sh` or `.bats` file in `tests/`. Even a basic dry-run sanity test is better than silence.
+- **CI Compliance**: Consider adding a GitHub Action or Makefile hook to enforce audit compliance and trigger the testing/linting rites automatically.
+
+---
+
+### 🚫 Forbidden Rites
+
+The following practices are heresy, and will be purged without ceremony:
+
+- ❌ `eval` or `source` from user input
+- ❌ Unquoted variable expansions in `rm`, `cp`, `mv`, or `cd`
+- ❌ Logic outside `main()` in executable scripts
+- ❌ Executable utility files (e.g., `chmod +x rc-utils.sh`) — *these must not rise*
+
+---
+
+### 📛 Ritual Logging Styles
+
+Standardize your logs for both clarity and drama:
+
+```bash
+log "WARN" "Missing metadata key: 'template'"
+log "☠️ ERROR" "Missing --target argument. Cannot proceed."
+```
+
+All log output should be timestamped and traceable. If a script fails silently, it is no longer rotkeeper-compliant.
+
+---
+
+🏗 Bootstrap Template (rc-bootstrap.sh)
+
+All new scripts should begin from a standardized scaffold. Create and maintain a rc-bootstrap.sh with:
+	•	Sourced rc-utils.sh
+	•	Parsed flags (--dry-run, --help)
+	•	Standard main()
+	•	Traps for EXIT and ERR
+	•	Ritual header block (## 🔧 name: ...)
+
+This prevents divergence and sets every new tool on a sane, cursed foundation.
+
+---
+
+🧊 Final Closure
+
+Rotkeeper is not a shell utility.
+It is a memory.
+Every function is a scar. Every trap is a boundary spell.
+Write with precision. Exit with grace. Let nothing rot by accident.
+
+exit 0  # If we are lucky
