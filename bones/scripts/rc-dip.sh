@@ -1,140 +1,152 @@
 #!/usr/bin/env bash
-# rc-dip.sh: Document Improvement Project
-# Discovers core files, stubs missing docs, and whisks obsolete docs to safety.
+# ============================================================
+#  ██████╗ ██╗██████╗
+#  ██╔══██╗██║██╔══██╗
+#  ██║  ██║██║██████╔╝
+#  ██║  ██║██║██╔═══╝
+#  ██████╔╝██║██║
+#  ╚═════╝ ╚═╝╚═╝
+# ============================================================
+#  Project : Rotkeeper
+#  Repo    : https://github.com/drawmeanelephant/rotkeeper
+#  Script  : rc-dip.sh
+#  Purpose : Document Improvement Project - audits and fixes docs
+#  Version : 0.3.1.4
+#  Updated : 2026-03-23
+# ------------------------------------------------------------
+#  Part of the Rotkeeper ritual system — bones, scripts, tombs.
+# ============================================================
 
 set -euo pipefail
 
-# Source utilities if available
-[ -f "bones/scripts/rc-utils.sh" ] && source "bones/scripts/rc-utils.sh"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-if [[ "${1:-}" == "--dry-run" ]]; then
-  exit 0
+# Source utilities and env if available
+if [[ -f "$SCRIPT_DIR/rc-utils.sh" ]]; then
+    source "$SCRIPT_DIR/rc-utils.sh"
+else
+    echo "FATAL: cannot source rc-utils.sh" >&2
+    exit 1
 fi
 
-DOCS_DIR="home/content/docs"
-OBSOLETE_DIR="home/content/obsolete/docs"
-WHITELIST_FILE="bones/config/dip-whitelist.txt"
+if [[ -f "$SCRIPT_DIR/rc-env.sh" ]]; then
+    source "$SCRIPT_DIR/rc-env.sh"
+else
+    echo "FATAL: cannot source rc-env.sh" >&2
+    exit 1
+fi
+
+rk_init_script rc-dip "$@"
+
+OBSOLETE_DIR="${CONTENT_DIR}/obsolete/docs"
+WHITELIST_FILE="${CONFIG_DIR}/dip-whitelist.txt"
 MATRIX_FILE="${DOCS_DIR}/dip-matrix.md"
 DATE_STR=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-log_msg() {
-    echo "[DIP] $1"
-}
+log "INFO" "Starting Document Improvement Project audit..."
 
-log_msg "Starting Document Improvement Project audit..."
-
-# 1. Discover Core Files (ignoring home/content, output, bones/reports, etc)
-mapfile -t FOUND_FILES < <(
-  find . \
+# 1. Discover Core Files
+mapfile -d '' FOUND_FILES < <(
+  find "$ROOT_DIR" \
     \( -type d \( \
       -name '.git' -o \
       -name '.github' -o \
       -name '.vscode' -o \
       -name '.idea' -o \
-      -path './home/content' -o \
-      -path './home/assets' -o \
-      -path './output' -o \
-      -path './bones/reports' -o \
-      -path './bones/logs' -o \
-      -path './bones/archive' -o \
-      -path './bones/releases' -o \
-      -path './bones/ingested' -o \
-      -path './bones/tmp' -o \
-      -path './messages-from-my-friends' -o \
-      -path './tmp' \
+      -path "$CONTENT_DIR" -o \
+      -path "$ASSETS_DIR" -o \
+      -path "$OUTPUT_DIR" -o \
+      -path "$REPORT_DIR" -o \
+      -path "$LOG_DIR" -o \
+      -path "$ARCHIVE_DIR" -o \
+      -path "${BONES_DIR}/releases" -o \
+      -path "${BONES_DIR}/ingested" -o \
+      -path "${BONES_DIR}/tmp" -o \
+      -path "$ROOT_DIR/messages-from-my-friends" -o \
+      -path "$ROOT_DIR/tmp" \
     \) -prune \) -o \
-    \( -type f ! -name '.*' -print \) | sed 's|^\./||'
+    \( -type f ! -name '.*' -print0 \)
 )
 
-# Extract core files and core md files
 CORE_FILES=()
-CORE_MD_FILES=()
 for file in "${FOUND_FILES[@]}"; do
-  # Filter out specific file types
-  if [[ "$file" =~ \.(png|css|md|DS_Store|db)$ ]]; then
-    # If it's a top-level uppercase markdown file, add it to CORE_MD_FILES
-    if [[ "$file" =~ ^[A-Z]+\.md$ ]]; then
-      CORE_MD_FILES+=("$file")
+  rel_file="${file#"$ROOT_DIR/"}"
+  if [[ "$rel_file" =~ \.(png|css|md|DS_Store|db)$ ]]; then
+    if [[ "$rel_file" =~ ^[A-Z]+\.md$ ]]; then
+      CORE_FILES+=("$rel_file")
     fi
     continue
   fi
-  CORE_FILES+=("$file")
+  CORE_FILES+=("$rel_file")
 done
 
-ALL_CORE_FILES=$(printf '%s
-' "${CORE_FILES[@]}" "${CORE_MD_FILES[@]}" | sort | uniq | grep -v '^$')
-
-# Create a map of expected doc files
 declare -A EXPECTED_DOCS
-
-for file in $ALL_CORE_FILES; do
-    # Map file path to expected doc path:
-    # rotkeeper.sh -> home/content/docs/rotkeeper.md
-    # bones/scripts/rc-render.sh -> home/content/docs/bones/scripts/rc-render.md
-
-    # Remove file extension and replace with .md
+for file in "${CORE_FILES[@]}"; do
     BASE_NO_EXT="${file%.*}"
-    # If the file has no extension (like some python scripts or just a file), handle it
     if [ "$BASE_NO_EXT" == "$file" ]; then
         DOC_PATH="${DOCS_DIR}/${file}.md"
     else
         DOC_PATH="${DOCS_DIR}/${BASE_NO_EXT}.md"
     fi
-
     EXPECTED_DOCS["$DOC_PATH"]="$file"
 done
 
-# Read whitelist
 declare -A WHITELISTED_DOCS
 if [ -f "$WHITELIST_FILE" ]; then
     while IFS= read -r line; do
-        # Ignore empty lines and comments
         [[ -z "$line" || "$line" == \#* ]] && continue
-        WHITELISTED_DOCS["$line"]=1
+        WHITELISTED_DOCS["$ROOT_DIR/$line"]=1
     done < "$WHITELIST_FILE"
 fi
 
 # 2. Whisk Obsolete Docs
-log_msg "Checking for obsolete docs..."
-EXISTING_DOCS=$(find "$DOCS_DIR" -type f -name "*.md" | grep -v "$MATRIX_FILE" || true)
+log "INFO" "Checking for obsolete docs..."
+mapfile -d '' EXISTING_DOCS < <(find "$DOCS_DIR" -type f -name "*.md" -print0)
 
-for doc in $EXISTING_DOCS; do
-    # Is it in expected docs?
-    if [ -z "${EXPECTED_DOCS["$doc"]:-}" ]; then
-        # Not expected. Is it whitelisted?
-        if [ -z "${WHITELISTED_DOCS["$doc"]:-}" ]; then
-            # Not whitelisted. Whisk it away!
-            # Calculate path relative to DOCS_DIR
+for doc in "${EXISTING_DOCS[@]}"; do
+    [[ "$doc" == "$MATRIX_FILE" ]] && continue
+
+    if [[ -z "${EXPECTED_DOCS["$doc"]:-}" ]]; then
+        if [[ -z "${WHITELISTED_DOCS["$doc"]:-}" ]]; then
             REL_PATH="${doc#"$DOCS_DIR"/}"
             DEST_PATH="${OBSOLETE_DIR}/${REL_PATH}"
             DEST_DIR=$(dirname "$DEST_PATH")
 
-            mkdir -p "$DEST_DIR"
-            mv "$doc" "$DEST_PATH"
-            log_msg "Whisked obsolete doc: $doc -> $DEST_PATH"
+            if [[ "${DRY_RUN:-false}" == true ]]; then
+                log "DRY-RUN" "Would whisk obsolete doc: $doc -> $DEST_PATH"
+            else
+                mkdir -p "$DEST_DIR"
+                mv "$doc" "$DEST_PATH"
+                log "INFO" "Whisked obsolete doc: $doc -> $DEST_PATH"
+            fi
         fi
     fi
 done
 
 # 3. Stub Missing Docs
-log_msg "Stubbing missing docs..."
+log "INFO" "Stubbing missing docs..."
 for doc_path in "${!EXPECTED_DOCS[@]}"; do
     target_file="${EXPECTED_DOCS[$doc_path]}"
 
     if [ ! -f "$doc_path" ]; then
-        DOC_DIR=$(dirname "$doc_path")
-        mkdir -p "$DOC_DIR"
+        if [[ "${DRY_RUN:-false}" == true ]]; then
+            log "DRY-RUN" "Would stub missing doc: $doc_path"
+        else
+            DOC_DIR=$(dirname "$doc_path")
+            mkdir -p "$DOC_DIR"
 
-        # Determine title
-        TITLE=$(basename "$target_file")
+            TITLE=$(basename "$target_file")
 
-        cat << STUB > "$doc_path"
+            cat << STUB > "$doc_path"
 ---
 title: "$TITLE Documentation"
 target_file: "$target_file"
 date: "$DATE_STR"
 template: "rotkeeper-doc.html"
 status: "stub"
+version: "0.1.0"
+author: "Rotkeeper DIP"
+project: "Rotkeeper"
 ---
 
 # $TITLE
@@ -142,19 +154,25 @@ status: "stub"
 Documentation for \`$target_file\`. This file was auto-generated by the Document Improvement Project (DIP).
 
 ## Overview
+<!-- DIP-GENERATED-MARKER: Overview -->
 TODO: Provide a brief overview of what this file does.
 
 ## Details
+<!-- DIP-GENERATED-MARKER: Details -->
 TODO: Provide technical details, usage instructions, or context.
 STUB
-        log_msg "Stubbed missing doc: $doc_path"
+            log "INFO" "Stubbed missing doc: $doc_path"
+        fi
     fi
 done
 
 # 4. Check Formatting & Generate Matrix
-log_msg "Generating DIP Matrix at $MATRIX_FILE..."
+log "INFO" "Generating DIP Matrix at $MATRIX_FILE..."
 
-cat << 'MATRIX' > "$MATRIX_FILE"
+if [[ "${DRY_RUN:-false}" == true ]]; then
+    log "DRY-RUN" "Would generate DIP matrix at $MATRIX_FILE"
+else
+    cat << 'MATRIX' > "$MATRIX_FILE"
 ---
 title: "Document Improvement Project (DIP) Matrix"
 date: "GENERATED_DATE"
@@ -169,52 +187,89 @@ This page tracks the documentation status of core project files.
 |-------------|----------|----------------|---------------|--------|
 MATRIX
 
-sed -i "s/GENERATED_DATE/$DATE_STR/" "$MATRIX_FILE"
+    sed -i "s/GENERATED_DATE/$DATE_STR/" "$MATRIX_FILE"
+fi
 
-# Helper to get filesystem modified date
 get_fs_date() {
     local file=$1
     if [ -f "$file" ]; then
         date -r "$file" "+%Y-%m-%d"
     else
-        echo "Missing"
+        echo "MISSING"
     fi
 }
 
-for doc_path in $(find "$DOCS_DIR" -type f -name "*.md" | grep -v "$MATRIX_FILE" | sort); do
+mapfile -d '' MATRIX_DOCS < <(find "$DOCS_DIR" -type f -name "*.md" -print0)
+IFS=$'\n' sorted_docs=($(sort <<<"${MATRIX_DOCS[*]}"))
+unset IFS
+
+for doc_path in "${sorted_docs[@]}"; do
+    [[ -z "$doc_path" ]] && continue
+    [[ "$doc_path" == "$MATRIX_FILE" ]] && continue
+
     target_file=""
     status="OK"
 
-    # Try to extract target_file from frontmatter
     if grep -q "^target_file:" "$doc_path"; then
         target_file=$(grep "^target_file:" "$doc_path" | awk -F'"' '{print $2}' || grep "^target_file:" "$doc_path" | awk '{print $2}')
     else
-        # Reverse lookup from EXPECTED_DOCS
         target_file="${EXPECTED_DOCS[$doc_path]:-}"
     fi
 
-    # Check if whitelisted
-    if [ -n "${WHITELISTED_DOCS[$doc_path]:-}" ]; then
-        target_file="(Whitelisted)"
+    is_expected=0
+    if [[ -n "${EXPECTED_DOCS[$doc_path]:-}" ]]; then
+        is_expected=1
     fi
 
-    # Determine dates
+    is_whitelisted=0
+    if [[ -n "${WHITELISTED_DOCS[$doc_path]:-}" ]]; then
+        is_whitelisted=1
+    fi
+
     doc_date=$(get_fs_date "$doc_path")
     code_date="N/A"
-    if [ -n "$target_file" ] && [ "$target_file" != "(Whitelisted)" ] && [ -f "$target_file" ]; then
-        code_date=$(get_fs_date "$target_file")
+
+    if [[ "$is_whitelisted" -eq 1 ]]; then
+        status="Whitelisted"
+        if [[ -z "$target_file" ]]; then
+            target_file="(Whitelisted)"
+        elif [[ "$target_file" != "(Whitelisted)" ]]; then
+            if [[ ! -f "$ROOT_DIR/$target_file" ]]; then
+                status="Missing Target"
+                code_date="MISSING"
+            else
+                code_date=$(get_fs_date "$ROOT_DIR/$target_file")
+            fi
+        fi
+    elif [[ "$is_expected" -eq 0 ]]; then
+        status="Orphaned"
+    elif [[ -n "$target_file" && ! -f "$ROOT_DIR/$target_file" ]]; then
+        status="Missing Target"
+        code_date="MISSING"
+    else
+        if [[ -n "$target_file" && -f "$ROOT_DIR/$target_file" ]]; then
+            code_date=$(get_fs_date "$ROOT_DIR/$target_file")
+        fi
+        if ! grep -q "^---" "$doc_path"; then
+            status="Missing Frontmatter"
+        elif grep -q '^status:[[:space:]]*"stub"' "$doc_path" || grep -q "^status:[[:space:]]*stub" "$doc_path"; then
+            if grep -q "TODO:" "$doc_path"; then
+                status="Stub"
+            else
+                status="Stub+Content"
+            fi
+        fi
     fi
 
-    # Very basic format check (has frontmatter?)
-    if ! grep -q "^---" "$doc_path"; then
-        status="Missing Frontmatter"
-    elif grep -q 'status: "stub"' "$doc_path"; then
-        status="Stub"
-    fi
+    rel_doc="${doc_path#"$DOCS_DIR"/}"
 
-    # Print row
-    rel_doc=${doc_path#"$DOCS_DIR"/}
-    echo "| \`$target_file\` | [$rel_doc]($rel_doc) | $code_date | $doc_date | $status |" >> "$MATRIX_FILE"
+    if [[ "${DRY_RUN:-false}" == true ]]; then
+        log "DRY-RUN" "Would matrix row: | \`$target_file\` | [$rel_doc]($rel_doc) | $code_date | $doc_date | $status |"
+    else
+        echo "| \`$target_file\` | [$rel_doc]($rel_doc) | $code_date | $doc_date | $status |" >> "$MATRIX_FILE"
+    fi
 done
 
-log_msg "DIP audit complete. See $MATRIX_FILE for details."
+if [[ "${DRY_RUN:-false}" == false ]]; then
+    log "INFO" "DIP audit complete. See $MATRIX_FILE for details."
+fi
