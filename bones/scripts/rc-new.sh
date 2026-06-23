@@ -24,10 +24,18 @@ rc-new.sh — Scaffold a new markdown file with required YAML frontmatter
 Usage: rotkeeper.sh new <file>
 
 Options:
-  --version, -v    Show script version and quit
-  --help, -h       Show this help message and exit
-  --dry-run        Preview actions without writing files
-  --verbose        Enable detailed debug logging
+  --title "Title"        Override auto-derived title; skip slug-from-filename
+  --author "Name"        Override config-derived author
+  --tags "tag1,tag2"     Comma-separated tags; rendered as YAML list
+  --template "file.html" Override default rotkeeper-blog.html
+  --description "text"   Frontmatter description field
+  --body "text"          Starting body content
+  --url "https://..."    A URL to embed in the document (creates source skeleton)
+  --subdir "path"        Subdirectory under home/content/ to place the file
+  --version, -v          Show script version and quit
+  --help, -h             Show this help message and exit
+  --dry-run              Preview actions without writing files
+  --verbose              Enable detailed debug logging
 EOF
   exit 0
 }
@@ -44,13 +52,60 @@ VERSION="0.3.1.4"
 
 # --- Flag parsing ---
 FILE=""
-for arg in "$@"; do
-  case "$arg" in
-    --dry-run|--verbose|--help|-h) ;; # handled by rk_init_script
-    -*) log "ERROR" "Unknown flag: $arg"; exit 1 ;;
+TITLE_OVERRIDE=""
+AUTHOR_OVERRIDE=""
+TAGS=""
+TEMPLATE_OVERRIDE="rotkeeper-blog.html"
+DESCRIPTION=""
+BODY_TEXT=""
+SOURCE_URL=""
+SUBDIR=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --dry-run|--verbose|--help|-h)
+      shift
+      ;;
+    --title)
+      TITLE_OVERRIDE="$2"
+      shift 2
+      ;;
+    --author)
+      AUTHOR_OVERRIDE="$2"
+      shift 2
+      ;;
+    --tags)
+      TAGS="$2"
+      shift 2
+      ;;
+    --template)
+      TEMPLATE_OVERRIDE="$2"
+      shift 2
+      ;;
+    --description)
+      DESCRIPTION="$2"
+      shift 2
+      ;;
+    --body)
+      BODY_TEXT="$2"
+      shift 2
+      ;;
+    --url)
+      SOURCE_URL="$2"
+      shift 2
+      ;;
+    --subdir)
+      SUBDIR="$2"
+      shift 2
+      ;;
+    -*)
+      log "ERROR" "Unknown flag: $1"
+      exit 1
+      ;;
     *)
       if [[ -z "$FILE" ]]; then
-        FILE="$arg"
+        FILE="$1"
+        shift
       else
         log "ERROR" "Multiple files specified. Usage: rotkeeper.sh new <file>"
         exit 1
@@ -67,6 +122,14 @@ main() {
 
     if [[ ! "$FILE" == *.md ]]; then
         FILE="${FILE}.md"
+    fi
+
+    if [[ -n "$SUBDIR" ]]; then
+        if [[ "$FILE" == */* ]]; then
+            log "WARN" "--subdir is ignored because a path was provided in the filename ($FILE)"
+        else
+            FILE="$SUBDIR/$FILE"
+        fi
     fi
 
     # Ensure it's in home/content
@@ -89,23 +152,68 @@ main() {
         exit 1
     fi
 
-    TITLE=$(basename "$FILE" .md)
+    TITLE="${TITLE_OVERRIDE:-$(basename "$FILE" .md)}"
     # slugify title
     SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed -e 's/[^a-z0-9]/-/g' -e 's/-\+/-/g' -e 's/^-//' -e 's/-$//')
+
+    AUTHOR="$AUTHOR_OVERRIDE"
+    if [[ -z "$AUTHOR" ]]; then
+        AUTHOR=$(yq e '.author // ""' "$CONFIG_DIR/rotkeeper.yaml" 2>/dev/null || echo "")
+    fi
+
+    TAGS_YAML=""
+    if [[ -n "$TAGS" ]]; then
+        TAGS_YAML="[$(echo "$TAGS" | sed 's/,/, /g')]"
+    fi
 
     if [[ "$DRY_RUN" == false ]]; then
         cat << EOF > "$FILE"
 ---
 title: "$TITLE"
 slug: $SLUG
-template: rotkeeper-blog.html
-description: "A brief description of this page."
----
-
-# $TITLE
-
-Write your markdown content here.
+template: $TEMPLATE_OVERRIDE
+description: "${DESCRIPTION}"
 EOF
+
+        if [[ -n "$AUTHOR" ]]; then
+            echo "author: \"$AUTHOR\"" >> "$FILE"
+        fi
+
+        if [[ -n "$TAGS_YAML" ]]; then
+            echo "tags: $TAGS_YAML" >> "$FILE"
+        fi
+
+        if [[ -n "$SOURCE_URL" ]]; then
+            echo "source_url: \"$SOURCE_URL\"" >> "$FILE"
+        fi
+
+        echo "---" >> "$FILE"
+        echo "" >> "$FILE"
+        echo "# $TITLE" >> "$FILE"
+        echo "" >> "$FILE"
+
+        if [[ -n "$SOURCE_URL" ]]; then
+            echo "## Source" >> "$FILE"
+            echo "" >> "$FILE"
+            echo "- **URL:** <$SOURCE_URL>" >> "$FILE"
+            echo "" >> "$FILE"
+            echo "## Notes" >> "$FILE"
+            echo "" >> "$FILE"
+            if [[ -n "$BODY_TEXT" ]]; then
+                echo "$BODY_TEXT" >> "$FILE"
+            else
+                echo "<!-- Add your notes, observations, or excerpts here -->" >> "$FILE"
+            fi
+            echo "" >> "$FILE"
+            echo "## Summary" >> "$FILE"
+            echo "" >> "$FILE"
+            echo "<!-- Add a summary, key points, or LLM-generated content here -->" >> "$FILE"
+        else
+            if [[ -n "$BODY_TEXT" ]]; then
+                echo "$BODY_TEXT" >> "$FILE"
+            fi
+        fi
+
         log "INFO" "📄 Scaffolded new file at $FILE"
     else
         log "DRYRUN" "Would scaffold $FILE with title '$TITLE'"
