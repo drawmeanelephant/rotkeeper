@@ -67,7 +67,18 @@ if [[ -z "$SCAN_REPORT" ]]; then
   exit 1
 fi
 
-echo "7. Testing 'dry-run' on all scripts..."
+echo "7. Testing 'dip'..."
+./rotkeeper.sh dip > /dev/null
+if [[ ! -f "home/content/docs/dip-matrix.md" ]]; then
+  echo "FAIL: 'dip' did not generate dip-matrix.md"
+  exit 1
+fi
+if grep -q "GENERATED_DATE" "home/content/docs/dip-matrix.md"; then
+  echo "FAIL: 'dip' did not substitute GENERATED_DATE in matrix"
+  exit 1
+fi
+
+echo "8. Testing 'dry-run' on all scripts..."
 for script in bones/scripts/rc-*.sh; do
   case "$(basename "$script")" in
     rc-bump.sh)

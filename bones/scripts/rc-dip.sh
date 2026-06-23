@@ -188,7 +188,8 @@ This page tracks the documentation status of core project files.
 |-------------|----------|----------------|---------------|--------|
 MATRIX
 
-    sed -i "s/GENERATED_DATE/$DATE_STR/" "$MATRIX_FILE"
+    content=$(<"$MATRIX_FILE")
+    printf '%s\n' "${content//GENERATED_DATE/$DATE_STR}" > "$MATRIX_FILE"
 fi
 
 get_fs_date() {
