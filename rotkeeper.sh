@@ -78,6 +78,8 @@ Commands:
 
   ingest      Unpack and safely merge .tar.gz payloads from messages-from-my-friends/
 
+  dip         Audit documentation coverage, stub missing files, and whisk obsolete docs.
+
   book        Generate documentation outputs
                 --scriptbook-full   Generate rotkeeper-scriptbook-full.md
                 --docbook           Generate rotkeeper-docbook.md
@@ -187,6 +189,11 @@ case "$command" in
   ingest)
     echo "Ingesting new messages..."
     bash "$BONES/rc-ingest.sh" "$@"
+    ;;
+
+  dip)
+    echo "Running Document Improvement Project (DIP) audit..."
+    bash "$BONES/rc-dip.sh" "$@"
     ;;
 
   templates)

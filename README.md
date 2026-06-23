@@ -61,6 +61,7 @@ Every script is annotated for post-apocalyptic readability. No network required.
 | `pack --self` | Archive the full Rotkeeper system (`rotkeeper.sh`, `bones/`, `home/`, `output/`) as a `tombkit-*.tar.gz`. |
 | `release` | Package the project into versioned `lite` and `full` distribution `.zip` files. See [Release Distributions](#-release-distributions). |
 | `ingest` | Unpack and safely merge `.tar.gz` payloads from the `messages-from-my-friends/` inbox into `home/content/messages/`. |
+| `dip` | Audit documentation coverage, stub missing files, and whisk obsolete docs. |
 | `scan` | Audit files on disk against `bones/manifest.txt`. Reports missing files, orphans, and SHA256 mismatches. Outputs JSON and Markdown reports. |
 | `verify` | Check all assets in `home/assets/` against SHA256 hashes in `bones/asset-manifest.yaml`. Use `--regen` to rebuild the manifest first. |
 | `assets` | Scan `home/assets/`, copy to `output/assets/`, and generate `bones/asset-manifest.yaml` with checksums. |
