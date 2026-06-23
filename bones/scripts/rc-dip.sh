@@ -40,6 +40,7 @@ rk_init_script rc-dip "$@"
 
 OBSOLETE_DIR="${CONTENT_DIR}/obsolete/docs"
 WHITELIST_FILE="${CONFIG_DIR}/dip-whitelist.txt"
+# shellcheck disable=SC2153
 MATRIX_FILE="${DOCS_DIR}/dip-matrix.md"
 DATE_STR=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
@@ -200,8 +201,8 @@ get_fs_date() {
 }
 
 mapfile -d '' MATRIX_DOCS < <(find "$DOCS_DIR" -type f -name "*.md" -print0)
-IFS=$'\n' sorted_docs=($(sort <<<"${MATRIX_DOCS[*]}"))
-unset IFS
+mapfile -t sorted_docs < <(printf '%s
+' "${MATRIX_DOCS[@]}" | sort)
 
 for doc_path in "${sorted_docs[@]}"; do
     [[ -z "$doc_path" ]] && continue
