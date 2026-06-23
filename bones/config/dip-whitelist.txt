@@ -1,0 +1,5 @@
+home/content/docs/architecture.md
+home/content/docs/onboarding.md
+home/content/docs/rotkeeper-rituals.md
+home/content/docs/rotkeeper-reference.md
+home/content/docs/index.md
