@@ -23,13 +23,46 @@ log_msg() {
 
 log_msg "Starting Document Improvement Project audit..."
 
-# 1. Discover Core Files (tracked by git, ignoring home/content, output, bones/reports, etc)
-# Exclude things we don't want to auto-document like .git, images, etc.
-CORE_FILES=$(git ls-files | grep -vE "^home/content/|^output/|^bones/reports/|^bones/logs/|^bones/archive/|^bones/releases/|^bones/ingested/|^bones/tmp/|^messages-from-my-friends/|\.png$|\.css$|\.md$")
-# Add specific .md files we care about tracking (e.g. README.md, AGENTS.md, etc.)
-CORE_MD_FILES=$(git ls-files | grep -E "^[A-Z]+\.md$")
+# 1. Discover Core Files (ignoring home/content, output, bones/reports, etc)
+mapfile -t FOUND_FILES < <(
+  find . \
+    \( -type d \( \
+      -name '.git' -o \
+      -name '.github' -o \
+      -name '.vscode' -o \
+      -name '.idea' -o \
+      -path './home/content' -o \
+      -path './home/assets' -o \
+      -path './output' -o \
+      -path './bones/reports' -o \
+      -path './bones/logs' -o \
+      -path './bones/archive' -o \
+      -path './bones/releases' -o \
+      -path './bones/ingested' -o \
+      -path './bones/tmp' -o \
+      -path './messages-from-my-friends' -o \
+      -path './tmp' \
+    \) -prune \) -o \
+    \( -type f ! -name '.*' -print \) | sed 's|^\./||'
+)
 
-ALL_CORE_FILES=$(echo -e "${CORE_FILES}\n${CORE_MD_FILES}" | sort | uniq | grep -v '^$')
+# Extract core files and core md files
+CORE_FILES=()
+CORE_MD_FILES=()
+for file in "${FOUND_FILES[@]}"; do
+  # Filter out specific file types
+  if [[ "$file" =~ \.(png|css|md|DS_Store|db)$ ]]; then
+    # If it's a top-level uppercase markdown file, add it to CORE_MD_FILES
+    if [[ "$file" =~ ^[A-Z]+\.md$ ]]; then
+      CORE_MD_FILES+=("$file")
+    fi
+    continue
+  fi
+  CORE_FILES+=("$file")
+done
+
+ALL_CORE_FILES=$(printf '%s
+' "${CORE_FILES[@]}" "${CORE_MD_FILES[@]}" | sort | uniq | grep -v '^$')
 
 # Create a map of expected doc files
 declare -A EXPECTED_DOCS
@@ -138,13 +171,13 @@ MATRIX
 
 sed -i "s/GENERATED_DATE/$DATE_STR/" "$MATRIX_FILE"
 
-# Helper to get git commit date
-get_git_date() {
+# Helper to get filesystem modified date
+get_fs_date() {
     local file=$1
-    if git ls-files --error-unmatch "$file" >/dev/null 2>&1; then
-        git log -1 --format="%ad" --date=short "$file"
+    if [ -f "$file" ]; then
+        date -r "$file" "+%Y-%m-%d"
     else
-        echo "Untracked"
+        echo "Missing"
     fi
 }
 
@@ -166,10 +199,10 @@ for doc_path in $(find "$DOCS_DIR" -type f -name "*.md" | grep -v "$MATRIX_FILE"
     fi
 
     # Determine dates
-    doc_date=$(get_git_date "$doc_path")
+    doc_date=$(get_fs_date "$doc_path")
     code_date="N/A"
     if [ -n "$target_file" ] && [ "$target_file" != "(Whitelisted)" ] && [ -f "$target_file" ]; then
-        code_date=$(get_git_date "$target_file")
+        code_date=$(get_fs_date "$target_file")
     fi
 
     # Very basic format check (has frontmatter?)
