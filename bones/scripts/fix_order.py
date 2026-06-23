@@ -18,7 +18,7 @@ for filepath in scripts:
 
     script_name = os.path.basename(filepath).replace(".sh", "")
 
-    if script_name in ["rc-utils", "rc-env", "rc-log"]:
+    if script_name in ["rc-utils", "rc-env"]:
         continue
 
     # Insert rk_init_script immediately after the source line

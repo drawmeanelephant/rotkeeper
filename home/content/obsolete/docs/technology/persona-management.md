@@ -76,7 +76,7 @@ personas/
 └── boilerplate-ghost.yaml
 ```
 
-These files can be read by scripts like `rc-render.sh` or `rc-log.sh` to personalize output or narrate actions.
+These files can be read by scripts like `rc-render.sh` to personalize output or narrate actions.
 
 ***
 
