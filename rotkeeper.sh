@@ -85,6 +85,7 @@ Commands:
                 --docbook           Generate rotkeeper-docbook.md
                 --docbook-clean     Generate collapse-friendly docbook variant
                 --configbook        Generate rotkeeper-configbook.md
+                --fsbook            Generate rotkeeper-files.md catalog
                 --collapse          Convert reports into collapsed-content.yaml
                 --all               Run all binding rituals
 
