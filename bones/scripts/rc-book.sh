@@ -45,6 +45,7 @@ Modes:
   --docbook           Bind docs into rotkeeper-docbook.md
   --docbook-clean     Bind docs, frontmatter stripped
   --configbook        Bind config/templates into rotkeeper-configbook.md
+  --fsbook            Bind project file system catalog into rotkeeper-files.md
   --contentbook       Bind all home/content markdown into rotkeeper-contentbook.md
   --contentmeta       Extract frontmatter YAML into rotkeeper-contentmeta.yaml
   --collapse          Collapse all rotkeeper-*.md into collapsed-content.yaml
@@ -69,6 +70,7 @@ parseflags() {
       --collapse)          MODE=collapse; shift ;;
       --docbook-clean)     MODE=docbookclean; shift ;;
       --configbook)        MODE=configbook; shift ;;
+      --fsbook)            MODE=fsbook; shift ;;
       --contentbook)       MODE=contentbook; shift ;;
       --contentmeta)       MODE=contentmeta; shift ;;
       --config)            CONFIG="$2"; shift 2 ;;
@@ -86,8 +88,8 @@ parseflags() {
 # Paths are made relative to the root, and code is fenced in bash blocks.
 # ---
 runscriptbookfull() {
-  mkdir -p "$REPORT_DIR"
-  local OUT="$REPORT_DIR/rotkeeper-scriptbook-full.md"
+  mkdir -p "$BOOK_REPORT_DIR"
+  local OUT="$BOOK_REPORT_DIR/rotkeeper-scriptbook-full.md"
   if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would generate full scriptbook at $OUT"
     find "$ROOT_DIR/bones/scripts" "$ROOT_DIR" -maxdepth 1 -type f \( -name "rc-*.sh" -o -name "rotkeeper.sh" \) | sort | while read -r script; do
@@ -123,8 +125,8 @@ runscriptbookfull() {
 # The awk spell preserves frontmatter while appending content.
 # ---
 rundocbook() {
-  mkdir -p "$REPORT_DIR"
-  local OUT="$REPORT_DIR/rotkeeper-docbook.md"
+  mkdir -p "$BOOK_REPORT_DIR"
+  local OUT="$BOOK_REPORT_DIR/rotkeeper-docbook.md"
   if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would generate docbook at $OUT"
     return 0
@@ -160,8 +162,8 @@ rundocbook() {
 # The awk logic strips the YAML frontmatter, leaving only the mortal text.
 # ---
 rundocbookclean() {
-  mkdir -p "$REPORT_DIR"
-  local OUT="$REPORT_DIR/rotkeeper-docbook-clean.md"
+  mkdir -p "$BOOK_REPORT_DIR"
+  local OUT="$BOOK_REPORT_DIR/rotkeeper-docbook-clean.md"
   if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would generate cleaned docbook at $OUT"
     return 0
@@ -188,8 +190,8 @@ rundocbookclean() {
 }
 
 runconfigbook() {
-  mkdir -p "$REPORT_DIR"
-  local OUT="$REPORT_DIR/rotkeeper-configbook.md"
+  mkdir -p "$BOOK_REPORT_DIR"
+  local OUT="$BOOK_REPORT_DIR/rotkeeper-configbook.md"
   {
     echo "---"
     echo "title: Rotkeeper Configbook"
@@ -211,8 +213,8 @@ runconfigbook() {
 }
 
 runcontentbook() {
-  mkdir -p "$REPORT_DIR"
-  local OUT="$REPORT_DIR/rotkeeper-contentbook.md"
+  mkdir -p "$BOOK_REPORT_DIR"
+  local OUT="$BOOK_REPORT_DIR/rotkeeper-contentbook.md"
   if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would generate full contentbook at $OUT"
     return 0
@@ -250,8 +252,8 @@ runcontentbook() {
 # Writes it into a consolidated YAML index for agents to devour.
 # ---
 runcontentmeta() {
-  mkdir -p "$REPORT_DIR"
-  local OUT="$REPORT_DIR/rotkeeper-contentmeta.yaml"
+  mkdir -p "$BOOK_REPORT_DIR"
+  local OUT="$BOOK_REPORT_DIR/rotkeeper-contentmeta.yaml"
   log "INFO" "Extracting frontmatter YAML from content files..."
   echo "" > "$OUT"
   find "$CONTENT_DIR" -name "*.md" -type f | sort | while read -r file; do
@@ -267,12 +269,40 @@ runcontentmeta() {
   log "INFO" "Content metadata written to $OUT"
 }
 
+
+# ---
+# runfsbook: Generates a complete catalog of every file in the project.
+# Writes it into a markdown list for RAG exports and agents.
+# ---
+runfsbook() {
+  mkdir -p "$BOOK_REPORT_DIR"
+  local OUT="$BOOK_REPORT_DIR/rotkeeper-files.md"
+  if [[ "$DRY_RUN" == true ]]; then
+    log "DRY-RUN" "Would generate file system catalog at $OUT"
+    return 0
+  fi
+  {
+    echo "---"
+    echo "title: Rotkeeper File System Catalog"
+    echo "subtitle: Complete directory listing of the project"
+    echo "generated: $(date '+%Y-%m-%d %H:%M:%S')"
+    echo "---"
+    echo ""
+    # Find all files, remove leading ./, sort them
+    cd "$ROOT_DIR" && find . -type f | sed 's|^./||' | sort | while read -r f; do
+      echo "- $f"
+    done
+  } > "$OUT"
+  log "INFO" "File system catalog written to $OUT"
+}
+
 collapse() {
-  mkdir -p "$REPORT_DIR"
-  local OUTPUT="$REPORT_DIR/collapsed-content.yaml"
+
+  mkdir -p "$BOOK_REPORT_DIR"
+  local OUTPUT="$BOOK_REPORT_DIR/collapsed-content.yaml"
   log "INFO" "Collapsing reports into YAML..."
   echo "" > "$OUTPUT"
-  for file in "$REPORT_DIR"/rotkeeper-*.md; do
+  for file in "$BOOK_REPORT_DIR"/rotkeeper-*.md; do
     [[ -f "$file" ]] || continue
     local filename title subtitle
     filename=$(basename "$file")
@@ -297,18 +327,21 @@ runmode() {
     docbook)        rundocbook ;;
     docbookclean)   rundocbookclean ;;
     configbook)     runconfigbook ;;
+    fsbook)         runfsbook ;;
     contentbook)    runcontentbook ;;
     contentmeta)    runcontentmeta ;;
     collapse)       collapse ;;
     all)
       if [[ "$DRY_RUN" == true ]]; then
-        log "DRY-RUN" "Would generate scriptbook at $REPORT_DIR/rotkeeper-scriptbook-full.md"
-        log "DRY-RUN" "Would generate docbook at $REPORT_DIR/rotkeeper-docbook.md"
-        log "DRY-RUN" "Would generate cleaned docbook at $REPORT_DIR/rotkeeper-docbook-clean.md"
+        log "DRY-RUN" "Would generate scriptbook at $BOOK_REPORT_DIR/rotkeeper-scriptbook-full.md"
+        log "DRY-RUN" "Would generate docbook at $BOOK_REPORT_DIR/rotkeeper-docbook.md"
+        log "DRY-RUN" "Would generate cleaned docbook at $BOOK_REPORT_DIR/rotkeeper-docbook-clean.md"
+        log "DRY-RUN" "Would generate file system catalog at $BOOK_REPORT_DIR/rotkeeper-files.md"
       else
         runscriptbookfull
         rundocbook
         rundocbookclean
+        runfsbook
       fi
       ;;
     *)
@@ -322,7 +355,7 @@ runmode() {
 main() {
   check_dependencies
   log "INFO" "Running rc-book.sh."
-  mkdir -p "$REPORT_DIR"
+  mkdir -p "$BOOK_REPORT_DIR"
   parseflags "$@"
   runmode
 }
