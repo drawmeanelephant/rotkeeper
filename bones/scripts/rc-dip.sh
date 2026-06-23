@@ -72,7 +72,7 @@ for doc in $EXISTING_DOCS; do
         if [ -z "${WHITELISTED_DOCS["$doc"]:-}" ]; then
             # Not whitelisted. Whisk it away!
             # Calculate path relative to DOCS_DIR
-            REL_PATH="${doc#$DOCS_DIR/}"
+            REL_PATH="${doc#"$DOCS_DIR"/}"
             DEST_PATH="${OBSOLETE_DIR}/${REL_PATH}"
             DEST_DIR=$(dirname "$DEST_PATH")
 
@@ -180,7 +180,7 @@ for doc_path in $(find "$DOCS_DIR" -type f -name "*.md" | grep -v "$MATRIX_FILE"
     fi
 
     # Print row
-    rel_doc=${doc_path#$DOCS_DIR/}
+    rel_doc=${doc_path#"$DOCS_DIR"/}
     echo "| \`$target_file\` | [$rel_doc]($rel_doc) | $code_date | $doc_date | $status |" >> "$MATRIX_FILE"
 done
 
