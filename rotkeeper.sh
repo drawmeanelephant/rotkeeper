@@ -97,6 +97,7 @@ Commands:
                 --input FILE     Use a scriptbook/docbook/configbook
 
   status      Display latest render/log/archive/git state summary
+                --json     Output as minified JSON for agent consumption
 
   agent-handoff Generate books and package a tombkit for AI delegates
 
@@ -236,7 +237,6 @@ case "$command" in
     ;;
 
   status)
-    echo "Summoning rotkeeper status..."
     bash "$BONES/rc-status.sh" "$@"
     ;;
 
