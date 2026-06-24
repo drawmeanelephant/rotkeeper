@@ -3,3 +3,4 @@ home/content/docs/onboarding.md
 home/content/docs/rotkeeper-rituals.md
 home/content/docs/rotkeeper-reference.md
 home/content/docs/index.md
+home/content/docs/road-to-bones/index.md
