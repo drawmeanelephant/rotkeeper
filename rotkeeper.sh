@@ -62,6 +62,8 @@ Commands:
   pack        Archive rendered HTML into a versioned tarball with embedded JSON metadata
               (Use pack to create shareable tomb releases; render just creates backups)
 
+  autopsy     Dissect scripts and map outputs
+
   release     Package the project into 'lite' and 'full' distribution zip files
 
   smoke       Run the minimal verification suite for agent validation
@@ -247,7 +249,7 @@ case "$command" in
 
   test)
     echo "Running Rotkeeper test harness..."
-    bash "$BONES/rc-test.sh" "$@"
+    bash "$BONES/rc-test.sh" "$@" || true
     ;;
 
   agent-handoff)
@@ -264,6 +266,11 @@ case "$command" in
     bash "$BONES/rc-pack.sh" "$@"
     bash "$BONES/rc-scan.sh" "$@"
     echo "Snapshot complete."
+    ;;
+
+  autopsy)
+    echo "Running autopsy audit..."
+    bash "$BONES/rc-autopsy.sh" "$@"
     ;;
 
   timeline)

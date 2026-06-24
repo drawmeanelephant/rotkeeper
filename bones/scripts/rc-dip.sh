@@ -21,65 +21,116 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Source utilities and env if available
 if [[ -f "$SCRIPT_DIR/rc-utils.sh" ]]; then
     source "$SCRIPT_DIR/rc-utils.sh"
 else
     echo "FATAL: cannot source rc-utils.sh" >&2
-    exit 1
+    return 1
 fi
 
 if [[ -f "$SCRIPT_DIR/rc-env.sh" ]]; then
     source "$SCRIPT_DIR/rc-env.sh"
 else
     echo "FATAL: cannot source rc-env.sh" >&2
-    exit 1
+    return 1
 fi
 
 rk_init_script rc-dip "$@"
 
 OBSOLETE_DIR="${CONTENT_DIR}/obsolete/docs"
-WHITELIST_FILE="${CONFIG_DIR}/dip-whitelist.txt"
-# shellcheck disable=SC2153
 MATRIX_FILE="${DOCS_DIR}/dip-matrix.md"
 DATE_STR=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 log "INFO" "Starting Document Improvement Project audit..."
 
-# 1. Discover Core Files
-mapfile -d '' FOUND_FILES < <(
-  find "$ROOT_DIR" \
-    \( -type d \( \
-      -name '.git' -o \
-      -name '.github' -o \
-      -name '.vscode' -o \
-      -name '.idea' -o \
-      -path "$CONTENT_DIR" -o \
-      -path "$ASSETS_DIR" -o \
-      -path "$OUTPUT_DIR" -o \
-      -path "$REPORT_DIR" -o \
-      -path "$LOG_DIR" -o \
-      -path "$ARCHIVE_DIR" -o \
-      -path "${BONES_DIR}/releases" -o \
-      -path "${BONES_DIR}/ingested" -o \
-      -path "${BONES_DIR}/tmp" -o \
-      -path "$ROOT_DIR/messages-from-my-friends" -o \
-      -path "$ROOT_DIR/tmp" \
-    \) -prune \) -o \
-    \( -type f ! -name '.*' -print0 \)
-)
+AUTOPSY_REPORT="$REPORT_DIR/autopsy-outputs.md"
+FSBOOK_CATALOG="$BOOK_REPORT_DIR/rotkeeper-files.md"
 
+# 1. Read autopsy report to build artifact exclusions
+declare -A AUTOPSY_EXCLUDES
+if [[ -f "$AUTOPSY_REPORT" ]]; then
+    log "INFO" "Reading autopsy outputs report for artifact exclusions..."
+    while IFS= read -r line; do
+        [[ "$line" =~ ^\|[[:space:]]+[0-9] ]] || continue
+        path_col=$(echo "$line" | awk -F'|' '{print $4}' | sed -E 's/^[[:space:]]+//;s/[[:space:]]+$//;s/`//g')
+
+        # Add the exact path or its prefix
+        if [[ ! "$path_col" =~ \(unresolved: ]]; then
+            AUTOPSY_EXCLUDES["$path_col"]=1
+            first_dir=$(echo "$path_col" | cut -d/ -f1)
+            if [[ -n "$first_dir" ]] && [[ ! "$first_dir" =~ ^- ]]; then
+                AUTOPSY_EXCLUDES["$first_dir"]=1
+            fi
+            dir_path=$(dirname "$path_col")
+            if [[ "$dir_path" != "." ]] && [[ ! "$dir_path" =~ ^- ]]; then
+               AUTOPSY_EXCLUDES["$dir_path"]=1
+            fi
+        else
+            if [[ "$path_col" =~ ^([^ ]+)/\(unresolved: ]]; then
+                known_dir="${BASH_REMATCH[1]}"
+                if [[ ! "$known_dir" =~ ^- ]]; then
+                    AUTOPSY_EXCLUDES["$known_dir"]=1
+                fi
+            fi
+        fi
+    done < "$AUTOPSY_REPORT"
+else
+    log "WARN" "Autopsy report not found at $AUTOPSY_REPORT. Run rc-autopsy.sh --all first."
+fi
+
+# Hardcode some directories that should never be audited
+AUTOPSY_EXCLUDES[".git"]=1
+AUTOPSY_EXCLUDES[".github"]=1
+AUTOPSY_EXCLUDES[".vscode"]=1
+AUTOPSY_EXCLUDES[".idea"]=1
+AUTOPSY_EXCLUDES["home/content"]=1
+AUTOPSY_EXCLUDES["home/assets"]=1
+AUTOPSY_EXCLUDES["messages-from-my-friends"]=1
+AUTOPSY_EXCLUDES["tmp"]=1
+AUTOPSY_EXCLUDES["bones/releases"]=1
+AUTOPSY_EXCLUDES["bones/tmp"]=1
+AUTOPSY_EXCLUDES["bones/archive"]=1
+AUTOPSY_EXCLUDES["bones/logs"]=1
+AUTOPSY_EXCLUDES["bones/reports"]=1
+AUTOPSY_EXCLUDES["output"]=1
+AUTOPSY_EXCLUDES["bones/asset-manifest.yaml"]=1
+
+# 2. Discover Core Files from fsbook catalog
 CORE_FILES=()
-for file in "${FOUND_FILES[@]}"; do
-  rel_file="${file#"$ROOT_DIR/"}"
-  if [[ "$rel_file" =~ \.(png|css|md|DS_Store|db)$ ]]; then
-    if [[ "$rel_file" =~ ^[A-Z]+\.md$ ]]; then
-      CORE_FILES+=("$rel_file")
-    fi
-    continue
-  fi
-  CORE_FILES+=("$rel_file")
-done
+if [[ -f "$FSBOOK_CATALOG" ]]; then
+    log "INFO" "Reading fsbook catalog for file discovery..."
+    while IFS= read -r line; do
+        if [[ "$line" =~ ^-[[:space:]]+([^\\]+) ]]; then
+            file_path="${BASH_REMATCH[1]}"
+            file_path=$(echo "$file_path" | sed -E 's/^[[:space:]]+//;s/[[:space:]]+$//')
+
+            # Remove leading ./ if present
+            file_path="${file_path#./}"
+
+            # Ensure it is a valid path that wasn't excluded
+            exclude=false
+            for excl in "${!AUTOPSY_EXCLUDES[@]}"; do
+                if [[ "$file_path" == "$excl" || "$file_path" == "$excl/"* ]]; then
+                    exclude=true
+                    break
+                fi
+            done
+
+            if [[ "$exclude" == false ]]; then
+                if [[ "$file_path" =~ \.(png|css|md|DS_Store|db)$ ]]; then
+                    if [[ "$file_path" =~ ^[A-Z]+\.md$ ]]; then
+                        CORE_FILES+=("$file_path")
+                    fi
+                else
+                    CORE_FILES+=("$file_path")
+                fi
+            fi
+        fi
+    done < "$FSBOOK_CATALOG"
+else
+    log "WARN" "FSBook catalog not found at $FSBOOK_CATALOG. File discovery cannot proceed. Run rc-book.sh --fsbook first."
+    return 1
+fi
 
 declare -A EXPECTED_DOCS
 for file in "${CORE_FILES[@]}"; do
@@ -92,15 +143,7 @@ for file in "${CORE_FILES[@]}"; do
     EXPECTED_DOCS["$DOC_PATH"]="$file"
 done
 
-declare -A WHITELISTED_DOCS
-if [ -f "$WHITELIST_FILE" ]; then
-    while IFS= read -r line; do
-        [[ -z "$line" || "$line" == \#* ]] && continue
-        WHITELISTED_DOCS["$ROOT_DIR/$line"]=1
-    done < "$WHITELIST_FILE"
-fi
-
-# 2. Whisk Obsolete Docs
+# 3. Whisk Obsolete Docs
 log "INFO" "Checking for obsolete docs..."
 mapfile -d '' EXISTING_DOCS < <(find "$DOCS_DIR" -type f -name "*.md" -print0)
 
@@ -108,39 +151,32 @@ for doc in "${EXISTING_DOCS[@]}"; do
     [[ "$doc" == "$MATRIX_FILE" ]] && continue
 
     if [[ -z "${EXPECTED_DOCS["$doc"]:-}" ]]; then
-        if [[ -z "${WHITELISTED_DOCS["$doc"]:-}" ]]; then
-            REL_PATH="${doc#"$DOCS_DIR"/}"
-            DEST_PATH="${OBSOLETE_DIR}/${REL_PATH}"
-            DEST_DIR=$(dirname "$DEST_PATH")
+        REL_PATH="${doc#"$DOCS_DIR"/}"
+        DEST_PATH="${OBSOLETE_DIR}/${REL_PATH}"
+        DEST_DIR=$(dirname "$DEST_PATH")
 
-            if [[ "${DRY_RUN:-false}" == true ]]; then
-                log "DRY-RUN" "Would whisk obsolete doc: $doc -> $DEST_PATH"
-            else
-                mkdir -p "$DEST_DIR"
-                mv "$doc" "$DEST_PATH"
-                log "INFO" "Whisked obsolete doc: $doc -> $DEST_PATH"
-            fi
+        if [[ "${DRY_RUN:-false}" == true ]]; then
+            log "DRY-RUN" "Would whisk obsolete doc: $doc -> $DEST_PATH"
+        else
+            mkdir -p "$DEST_DIR"
+            mv "$doc" "$DEST_PATH"
+            log "INFO" "Whisked obsolete doc: $REL_PATH"
         fi
     fi
 done
 
-# 3. Stub Missing Docs
-log "INFO" "Stubbing missing docs..."
+# 4. Stub Missing Docs
+log "INFO" "Checking for missing docs..."
 for doc_path in "${!EXPECTED_DOCS[@]}"; do
-    target_file="${EXPECTED_DOCS[$doc_path]}"
-
+    target_file="${EXPECTED_DOCS["$doc_path"]}"
     if [ ! -f "$doc_path" ]; then
         if [[ "${DRY_RUN:-false}" == true ]]; then
             log "DRY-RUN" "Would stub missing doc: $doc_path"
         else
-            DOC_DIR=$(dirname "$doc_path")
-            mkdir -p "$DOC_DIR"
-
-            TITLE=$(basename "$target_file")
-
+            mkdir -p "$(dirname "$doc_path")"
+            TITLE=$(basename "$doc_path" .md)
             cat << STUB > "$doc_path"
 ---
-title: "$TITLE Documentation"
 target_file: "$target_file"
 date: "$DATE_STR"
 template: "rotkeeper-doc.html"
@@ -167,7 +203,7 @@ STUB
     fi
 done
 
-# 4. Check Formatting & Generate Matrix
+# 5. Check Formatting & Generate Matrix
 log "INFO" "Generating DIP Matrix at $MATRIX_FILE..."
 
 if [[ "${DRY_RUN:-false}" == true ]]; then
@@ -197,77 +233,32 @@ get_fs_date() {
     if [ -f "$file" ]; then
         date -r "$file" "+%Y-%m-%d"
     else
-        echo "MISSING"
+        echo "Missing"
     fi
 }
 
-mapfile -d '' MATRIX_DOCS < <(find "$DOCS_DIR" -type f -name "*.md" -print0)
-mapfile -t sorted_docs < <(printf '%s
-' "${MATRIX_DOCS[@]}" | sort)
+for doc_path in "${!EXPECTED_DOCS[@]}"; do
+    target_file="${EXPECTED_DOCS["$doc_path"]}"
 
-for doc_path in "${sorted_docs[@]}"; do
-    [[ -z "$doc_path" ]] && continue
-    [[ "$doc_path" == "$MATRIX_FILE" ]] && continue
-
-    target_file=""
-    status="OK"
-
-    if grep -q "^target_file:" "$doc_path"; then
-        target_file=$(grep "^target_file:" "$doc_path" | awk -F'"' '{print $2}' || grep "^target_file:" "$doc_path" | awk '{print $2}')
+    # Read status from doc frontmatter
+    status="unknown"
+    if [ -f "$doc_path" ]; then
+        # Check if file has frontmatter
+        if grep -q "^---$" "$doc_path"; then
+            status=$(awk -F': ' '/^status:/{gsub(/"/, "", $2); print $2; exit}' "$doc_path")
+        fi
     else
-        target_file="${EXPECTED_DOCS[$doc_path]:-}"
+        status="missing"
     fi
+    [[ -z "$status" ]] && status="unknown"
 
-    is_expected=0
-    if [[ -n "${EXPECTED_DOCS[$doc_path]:-}" ]]; then
-        is_expected=1
-    fi
-
-    is_whitelisted=0
-    if [[ -n "${WHITELISTED_DOCS[$doc_path]:-}" ]]; then
-        is_whitelisted=1
-    fi
-
+    code_date=$(get_fs_date "$ROOT_DIR/$target_file")
     doc_date=$(get_fs_date "$doc_path")
-    code_date="N/A"
 
-    if [[ "$is_whitelisted" -eq 1 ]]; then
-        status="Whitelisted"
-        if [[ -z "$target_file" ]]; then
-            target_file="(Whitelisted)"
-        elif [[ "$target_file" != "(Whitelisted)" ]]; then
-            if [[ ! -f "$ROOT_DIR/$target_file" ]]; then
-                status="Missing Target"
-                code_date="MISSING"
-            else
-                code_date=$(get_fs_date "$ROOT_DIR/$target_file")
-            fi
-        fi
-    elif [[ "$is_expected" -eq 0 ]]; then
-        status="Orphaned"
-    elif [[ -n "$target_file" && ! -f "$ROOT_DIR/$target_file" ]]; then
-        status="Missing Target"
-        code_date="MISSING"
-    else
-        if [[ -n "$target_file" && -f "$ROOT_DIR/$target_file" ]]; then
-            code_date=$(get_fs_date "$ROOT_DIR/$target_file")
-        fi
-        if ! grep -q "^---" "$doc_path"; then
-            status="Missing Frontmatter"
-        elif grep -q '^status:[[:space:]]*"stub"' "$doc_path" || grep -q "^status:[[:space:]]*stub" "$doc_path"; then
-            if grep -q "TODO:" "$doc_path"; then
-                status="Stub"
-            else
-                status="Stub+Content"
-            fi
-        fi
-    fi
+    # Format paths relative to ROOT_DIR for matrix display
+    rel_doc="${doc_path#"$ROOT_DIR"/}"
 
-    rel_doc="${doc_path#"$DOCS_DIR"/}"
-
-    if [[ "${DRY_RUN:-false}" == true ]]; then
-        log "DRY-RUN" "Would matrix row: | \`$target_file\` | [$rel_doc]($rel_doc) | $code_date | $doc_date | $status |"
-    else
+    if [[ "${DRY_RUN:-false}" == false ]]; then
         echo "| \`$target_file\` | [$rel_doc]($rel_doc) | $code_date | $doc_date | $status |" >> "$MATRIX_FILE"
     fi
 done

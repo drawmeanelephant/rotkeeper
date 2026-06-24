@@ -68,6 +68,8 @@ if [[ -z "$SCAN_REPORT" ]]; then
 fi
 
 echo "7. Testing 'dip'..."
+./rotkeeper.sh book --fsbook > /dev/null
+./rotkeeper.sh autopsy --all > /dev/null
 ./rotkeeper.sh dip > /dev/null
 if [[ ! -f "home/content/docs/dip-matrix.md" ]]; then
   echo "FAIL: 'dip' did not generate dip-matrix.md"
