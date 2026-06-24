@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ============================================================
 #  Project : Rotkeeper
-#  Script  : test.sh
+#  Script  : rc-test.sh
 #  Purpose : End-to-end integration test harness for Rotkeeper
 # ============================================================
 
@@ -13,17 +13,25 @@ if [[ "${1:-}" == "--dry-run" ]]; then
   exit 0
 fi
 
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  echo "rc-test.sh — End-to-end integration test harness"
+  echo "Usage: rc-test.sh [options]"
+  echo "Options:"
+  echo "  --dry-run   Exit immediately with 0"
+  echo "  --help, -h  Show this help message"
+  exit 0
+fi
+
 # Start in a clean environment
 echo "--- Rotkeeper Test Harness ---"
 
 TEST_DIR="/tmp/rotkeeper-test-env"
 
-# shellcheck disable=SC2317
+# shellcheck disable=SC2317,SC2329
 cleanup() {
   echo "Cleaning up test environment..."
   rm -rf "$TEST_DIR"
 }
-
 trap cleanup EXIT INT TERM ERR
 
 echo "1. Creating test workspace..."
@@ -39,7 +47,8 @@ echo "2. Testing 'init'..."
 ./rotkeeper.sh init --full > /dev/null
 
 echo "3. Testing 'new'..."
-UNIQUE_ARTICLE="test-article-$(date +%s)"; ./rotkeeper.sh new "$UNIQUE_ARTICLE" > /dev/null
+UNIQUE_ARTICLE="test-article-$(date +%s)"
+./rotkeeper.sh new "$UNIQUE_ARTICLE" > /dev/null
 if [[ ! -f "home/content/${UNIQUE_ARTICLE}.md" ]]; then
   echo "FAIL: 'new' command did not generate ${UNIQUE_ARTICLE}.md"
   exit 1
@@ -68,14 +77,24 @@ if [[ -z "$SCAN_REPORT" ]]; then
 fi
 
 echo "7. Testing 'dip'..."
-./rotkeeper.sh dip > /dev/null
-if [[ ! -f "home/content/docs/dip-matrix.md" ]]; then
-  echo "FAIL: 'dip' did not generate dip-matrix.md"
-  exit 1
-fi
-if grep -q "GENERATED_DATE" "home/content/docs/dip-matrix.md"; then
-  echo "FAIL: 'dip' did not substitute GENERATED_DATE in matrix"
-  exit 1
+if [[ -f "bones/scripts/rc-dip.sh" ]]; then
+  ./rotkeeper.sh book --fsbook > /dev/null
+  ./rotkeeper.sh autopsy --all > /dev/null
+  ./rotkeeper.sh book --fsbook > /dev/null
+  ./rotkeeper.sh autopsy --all > /dev/null
+  ./rotkeeper.sh book --fsbook > /dev/null
+  ./rotkeeper.sh autopsy --all > /dev/null
+  ./rotkeeper.sh dip > /dev/null
+  if [[ ! -f "home/content/docs/dip-matrix.md" ]]; then
+    echo "FAIL: 'dip' did not generate dip-matrix.md"
+    exit 1
+  fi
+  if grep -q "GENERATED_DATE" "home/content/docs/dip-matrix.md"; then
+    echo "FAIL: 'dip' did not substitute GENERATED_DATE in matrix"
+    exit 1
+  fi
+else
+  echo "7. Skipping dip test — rc-dip.sh not present in this distribution (Full/Lite)"
 fi
 
 echo "8. Testing 'dry-run' on all scripts..."

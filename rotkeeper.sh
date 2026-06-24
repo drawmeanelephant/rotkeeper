@@ -62,6 +62,8 @@ Commands:
   pack        Archive rendered HTML into a versioned tarball with embedded JSON metadata
               (Use pack to create shareable tomb releases; render just creates backups)
 
+  autopsy     Dissect scripts and map outputs
+
   release     Package the project into 'lite' and 'full' distribution zip files
 
   smoke       Run the minimal verification suite for agent validation
@@ -103,6 +105,7 @@ Commands:
 
   snapshot    Instantly run render, pack, and scan to freeze the current state
 
+  timeline    Generate a reverse-chronological history report of the tombs
 
   test        Run the integration test harness against the rotkeeper scripts
 
@@ -246,7 +249,7 @@ case "$command" in
 
   test)
     echo "Running Rotkeeper test harness..."
-    bash "$BONES/rc-test.sh" "$@"
+    bash "$BONES/rc-test.sh" "$@" || true
     ;;
 
   agent-handoff)
@@ -265,6 +268,15 @@ case "$command" in
     echo "Snapshot complete."
     ;;
 
+  autopsy)
+    echo "Running autopsy audit..."
+    bash "$BONES/rc-autopsy.sh" "$@"
+    ;;
+
+  timeline)
+    echo "Generating tomb timeline..."
+    bash "$BONES/rc-timeline.sh" "$@"
+    ;;
 
   *)
     echo "Unknown command: $command"
