@@ -187,10 +187,8 @@ else
         if [[ ${#rag_files[@]} -eq 0 ]]; then
             echo "[EMPTY] no book-reports found — run: ./rotkeeper.sh book --all"
         else
-            if [[ "$VERBOSE" == true ]]; then
-                printf "%-30s | %-10s | %-12s | %s\n" "Filename" "Size" "Chars" "Token Estimate / 128k %"
-                echo "--------------------------------------------------------------------------------"
-            fi
+            printf "%-30s | %-10s | %-12s | %s\n" "Filename" "Size" "Chars" "Token Estimate / 128k %"
+            echo "--------------------------------------------------------------------------------"
             tot_ch=0
             tot_tk=0
             for f in "${rag_files[@]}"; do
@@ -210,9 +208,7 @@ else
                 fi
             done
 
-            if [[ "$VERBOSE" == true ]]; then
-                echo "--------------------------------------------------------------------------------"
-            fi
+            echo "--------------------------------------------------------------------------------"
             tot_sz=$(du -sh "$BOOK_REPORT_DIR" 2>/dev/null | cut -f1 || echo "0")
             tot_tk_disp=$(awk -v t="$tot_tk" 'BEGIN { if(t>=1000) printf "~%.1fk", t/1000; else printf "~%s", t }')
             printf "%-30s | %-10s | %-12s | %s tokens\n" "TOTAL" "$tot_sz" "$tot_ch" "$tot_tk_disp"
@@ -228,7 +224,7 @@ if [[ "$JSON_MODE" == true ]]; then
     if [[ ! -d "$RELEASES_DIR" ]]; then
         JSON_RELEASES='"releases": {"status": "skipped", "reason": "bones/releases/ does not exist"}'
     else
-        mapfile -t rel_files < <(find "$RELEASES_DIR" -maxdepth 1 -type f -name '*.zip' -printf '%T@\t%p\n' 2>/dev/null | sort -nr | cut -f2- || true)
+        mapfile -t rel_files < <(find "$RELEASES_DIR" -maxdepth 1 -type f -name '*.zip' 2>/dev/null | sort -r || true)
         if [[ ${#rel_files[@]} -eq 0 ]]; then
             JSON_RELEASES='"releases": {"status": "empty", "reason": "no releases — run: ./rotkeeper.sh release VERSION"}'
         else
@@ -258,7 +254,7 @@ else
     if [[ ! -d "$RELEASES_DIR" ]]; then
         echo "[SKIP] bones/releases/ does not exist"
     else
-        mapfile -t rel_files < <(find "$RELEASES_DIR" -maxdepth 1 -type f -name '*.zip' -printf '%T@\t%p\n' 2>/dev/null | sort -nr | cut -f2- || true)
+        mapfile -t rel_files < <(find "$RELEASES_DIR" -maxdepth 1 -type f -name '*.zip' 2>/dev/null | sort -r || true)
         if [[ ${#rel_files[@]} -eq 0 ]]; then
             echo "[EMPTY] no releases — run: ./rotkeeper.sh release VERSION"
         else
@@ -301,7 +297,7 @@ if [[ ! -d "$CONTENT_DIR" ]] || [[ -z "$(find "$CONTENT_DIR" -type f -name '*.md
         echo ""
     fi
 else
-    mapfile -t c_files < <(find "$CONTENT_DIR" -type d \( -path "*/docs" -o -path "*/obsolete" \) -prune -o -type f -name '*.md' -print)
+    mapfile -t c_files < <(find "$CONTENT_DIR" -type d \( -path "*/docs" \) -prune -o -type f -name '*.md' -print)
     total_md=${#c_files[@]}
     stubs=0
     drafts=0
