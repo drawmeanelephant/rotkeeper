@@ -40,7 +40,6 @@ This page tracks the documentation status of core project files.
 | `bones/scripts/rc-smoke.sh` | [bones/scripts/rc-smoke.md](bones/scripts/rc-smoke.md) | 2026-06-23 | 2026-06-23 | Stub |
 | `bones/scripts/rc-status.sh` | [bones/scripts/rc-status.md](bones/scripts/rc-status.md) | 2026-06-23 | 2026-06-23 | OK |
 | `bones/scripts/rc-test.sh` | [bones/scripts/rc-test.md](bones/scripts/rc-test.md) | 2026-06-23 | 2026-06-23 | Stub |
-| `bones/scripts/rc-timeline.sh` | [bones/scripts/rc-timeline.md](bones/scripts/rc-timeline.md) | 2026-06-23 | 2026-06-23 | Stub |
 | `bones/scripts/rc-utils.sh` | [bones/scripts/rc-utils.md](bones/scripts/rc-utils.md) | 2026-06-23 | 2026-06-23 | OK |
 | `bones/scripts/refactor.py` | [bones/scripts/refactor.md](bones/scripts/refactor.md) | 2026-06-23 | 2026-06-23 | Stub |
 | `bones/scripts/refactor_simple.py` | [bones/scripts/refactor_simple.md](bones/scripts/refactor_simple.md) | 2026-06-23 | 2026-06-23 | Stub |

@@ -33,7 +33,7 @@ This is your consolidated status snapshot: what’s working, what’s stubbed, a
 * `v0.3.1.2` - (2026-06-19 07:00) - Restructure todo.md for Jules queue and move test.sh to bones/scripts/
 * `v0.3.1.1` - (2026-06-18 21:35) - Merge PRs #2 and #3: ASCII art headers and CI test suite updates
 * `v0.3.1` - (2026-06-16 08:47) - Minor release: Framework stabilization and documentation scrub
-* `v0.3.0.20` - (2026-06-15 23:38) - Add test harness, agent-handoff, snapshot, and timeline commands
+* `v0.3.0.20` - (2026-06-15 23:38) - Add test harness, agent-handoff, snapshot commands
 * `v0.3.0.19` - (2026-06-15 23:28) - Refactor remaining scripts to use rk_init_script
 * `v0.3.0.18` - (2026-06-15 23:09) - Audit Refactoring Phase 1: standardized scaffolding, tightened day-1 UX, and simplified path logic
 * `v0.3.0.17` - (2026-06-15 21:22) - fix: correct home/content path resolution in rc-init
@@ -78,7 +78,6 @@ This is your consolidated status snapshot: what’s working, what’s stubbed, a
 | Task                                                      | Reason                           |
 | --------------------------------------------------------- | -------------------------------- |
 | Create `bones/meta/0.2.0-seed.md`                         | Ritual anchor for current reseed |
-| Set `VERSION="0.2.0-pre"` in `rotkeeper.sh`               | Locks in your timeline           |
 | Commit your archive + logs                                | Seals tomb lineage               |
 | Rename current chat thread if you want to export it later | Easier for git-log linking       |
 
