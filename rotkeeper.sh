@@ -105,7 +105,6 @@ Commands:
 
   snapshot    Instantly run render, pack, and scan to freeze the current state
 
-  timeline    Generate a reverse-chronological history report of the tombs
 
   test        Run the integration test harness against the rotkeeper scripts
 
@@ -268,15 +267,6 @@ case "$command" in
     echo "Snapshot complete."
     ;;
 
-  autopsy)
-    echo "Running autopsy audit..."
-    bash "$BONES/rc-autopsy.sh" "$@"
-    ;;
-
-  timeline)
-    echo "Generating tomb timeline..."
-    bash "$BONES/rc-timeline.sh" "$@"
-    ;;
 
   *)
     echo "Unknown command: $command"

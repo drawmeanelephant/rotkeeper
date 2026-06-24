@@ -297,7 +297,7 @@ if [[ ! -d "$CONTENT_DIR" ]] || [[ -z "$(find "$CONTENT_DIR" -type f -name '*.md
         echo ""
     fi
 else
-    mapfile -t c_files < <(find "$CONTENT_DIR" -type d \( -path "*/docs" -o -path "*/obsolete" \) -prune -o -type f -name '*.md' -print)
+    mapfile -t c_files < <(find "$CONTENT_DIR" -type d \( -path "*/docs" \) -prune -o -type f -name '*.md' -print)
     total_md=${#c_files[@]}
     stubs=0
     drafts=0
