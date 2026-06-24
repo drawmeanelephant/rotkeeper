@@ -96,14 +96,14 @@ run_help_report() {
     echo "## $name" >> "$OUT"
     echo >> "$OUT"
     echo '```text' >> "$OUT"
-
+    
     local help_output
     if ! help_output=$(bash "$script" --help 2>&1) || echo "$help_output" | grep -qi 'No help available' || [[ -z "$help_output" ]]; then
       help_output=$(grep -E '^# FLAGS' -A 20 "$script" | grep -v '^--' || echo "(No help available and no # FLAGS block found)")
       log "WARN" "Script $name did not respond well to --help. Used fallback."
     fi
     echo "$help_output" >> "$OUT"
-
+    
     echo '```' >> "$OUT"
     echo >> "$OUT"
     log "INFO" "Extracted help: $name"
@@ -142,7 +142,7 @@ render_output_report_md() {
 
   for script in "${scripts[@]}"; do
     name="$(basename "$script")"
-
+    
     local matches
     matches=$(grep -nE '(>\s*\$[A-Z_]+|>>\s*\$[A-Z_]+|tee\s+\$[A-Z_]+|mv\s+.*\$[A-Z_]+|cp\s+.*\$[A-Z_]+|tar\s+.*-[cf]f?\s)' "$script" || true)
 
@@ -155,7 +155,7 @@ render_output_report_md() {
       while IFS= read -r line_match; do
         local line_num="${line_match%%:*}"
         local op_content="${line_match#*:}"
-
+        
         op_content=$(echo "$op_content" | sed -E 's/^[[:space:]]+//')
         local original_op="$op_content"
 
@@ -175,14 +175,14 @@ render_output_report_md() {
         if [[ -z "$simple_op" ]] && [[ "$original_op" =~ (mv\s+[^\s]+\s+\$[A-Z_]+) ]]; then simple_op="${BASH_REMATCH[1]}"; fi
         if [[ -z "$simple_op" ]] && [[ "$original_op" =~ (cp\s+[^\s]+\s+\$[A-Z_]+) ]]; then simple_op="${BASH_REMATCH[1]}"; fi
         if [[ -z "$simple_op" ]] && [[ "$original_op" =~ (tar\s+[^\s]+\s+-[cf]f?\s) ]]; then simple_op="${BASH_REMATCH[1]}"; fi
-
+        
         if [[ -z "$simple_op" ]]; then
            simple_op="$(echo "$original_op" | grep -oE '(>|>>|tee|mv|cp|tar)\s+\S+' | head -n1 || echo "$original_op")"
         fi
 
         local final_path="$resolved_path"
         final_path=$(echo "$final_path" | sed -E 's/.*(>|>>|tee|mv|cp|tar[ a-zA-Z-]*)[[:space:]]+//' | sed 's/"//g')
-
+        
         echo "| $line_num | \`${simple_op}\` | \`${final_path}\` |" >> "$OUT"
 
       done <<< "$matches"
@@ -201,7 +201,7 @@ main() {
   if ! parse_args "$@"; then
     return 0
   fi
-
+  
   if [[ "$HELP_REPORT" == true ]]; then
     run_help_report
   fi

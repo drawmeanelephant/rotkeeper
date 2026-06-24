@@ -37,9 +37,7 @@ fi
 
 rk_init_script rc-dip "$@"
 
-OBSOLETE_DIR="${ROOT_DIR}/home/obsolete/docs"
-WHITELIST_FILE="${CONFIG_DIR}/dip-whitelist.txt"
-# shellcheck disable=SC2153
+OBSOLETE_DIR="${CONTENT_DIR}/obsolete/docs"
 MATRIX_FILE="${DOCS_DIR}/dip-matrix.md"
 DATE_STR=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
@@ -55,7 +53,7 @@ if [[ -f "$AUTOPSY_REPORT" ]]; then
     while IFS= read -r line; do
         [[ "$line" =~ ^\|[[:space:]]+[0-9] ]] || continue
         path_col=$(echo "$line" | awk -F'|' '{print $4}' | sed -E 's/^[[:space:]]+//;s/[[:space:]]+$//;s/`//g')
-
+        
         # Add the exact path or its prefix
         if [[ ! "$path_col" =~ \(unresolved: ]]; then
             AUTOPSY_EXCLUDES["$path_col"]=1
@@ -105,10 +103,10 @@ if [[ -f "$FSBOOK_CATALOG" ]]; then
         if [[ "$line" =~ ^-[[:space:]]+([^\\]+) ]]; then
             file_path="${BASH_REMATCH[1]}"
             file_path=$(echo "$file_path" | sed -E 's/^[[:space:]]+//;s/[[:space:]]+$//')
-
+            
             # Remove leading ./ if present
             file_path="${file_path#./}"
-
+            
             # Ensure it is a valid path that wasn't excluded
             exclude=false
             for excl in "${!AUTOPSY_EXCLUDES[@]}"; do
@@ -117,7 +115,7 @@ if [[ -f "$FSBOOK_CATALOG" ]]; then
                     break
                 fi
             done
-
+            
             if [[ "$exclude" == false ]]; then
                 if [[ "$file_path" =~ \.(png|css|md|DS_Store|db)$ ]]; then
                     if [[ "$file_path" =~ ^[A-Z]+\.md$ ]]; then
@@ -241,7 +239,7 @@ get_fs_date() {
 
 for doc_path in "${!EXPECTED_DOCS[@]}"; do
     target_file="${EXPECTED_DOCS["$doc_path"]}"
-
+    
     # Read status from doc frontmatter
     status="unknown"
     if [ -f "$doc_path" ]; then
@@ -259,7 +257,7 @@ for doc_path in "${!EXPECTED_DOCS[@]}"; do
 
     # Format paths relative to ROOT_DIR for matrix display
     rel_doc="${doc_path#"$ROOT_DIR"/}"
-
+    
     if [[ "${DRY_RUN:-false}" == false ]]; then
         echo "| \`$target_file\` | [$rel_doc]($rel_doc) | $code_date | $doc_date | $status |" >> "$MATRIX_FILE"
     fi
