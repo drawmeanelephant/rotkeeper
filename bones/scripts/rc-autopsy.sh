@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2129
 # ============================================================
 #  ██████╗  ██████╗  ██████╗ ██╗  ██╗
 #  ██╔══██╗██╔═══██╗██╔═══██╗██║ ██╔╝
@@ -162,7 +163,7 @@ render_output_report_md() {
         local resolved_path="$op_content"
         for var_name in "${!ENV_VARS[@]}"; do
           local val="${ENV_VARS[$var_name]}"
-          local rel_val="${val#$ROOT_DIR/}"
+          local rel_val="${val#"$ROOT_DIR"/}"
           resolved_path=$(echo "$resolved_path" | sed -E "s|\\\$${var_name}|${rel_val}|g; s|\\\$\\{${var_name}\\}|${rel_val}|g")
         done
 

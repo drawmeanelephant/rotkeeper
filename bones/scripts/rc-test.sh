@@ -27,7 +27,7 @@ echo "--- Rotkeeper Test Harness ---"
 
 TEST_DIR="/tmp/rotkeeper-test-env"
 
-# shellcheck disable=SC2317
+# shellcheck disable=SC2317,SC2329
 cleanup() {
   echo "Cleaning up test environment..."
   rm -rf "$TEST_DIR"
