@@ -209,6 +209,45 @@ for doc in "${EXISTING_DOCS[@]}"; do
     fi
 done
 
+
+inject_env() {
+    local doc_path="$1"
+
+    # Source rc-env.sh to get the variables
+    source "${SCRIPT_DIR}/rc-env.sh"
+
+    local env_list
+    env_list=$(cat <<INNER_EOF
+- **\$ROOT_DIR**: $ROOT_DIR
+- **\$OUTPUT_DIR**: $OUTPUT_DIR
+- **\$CONTENT_DIR**: $CONTENT_DIR
+- **\$ASSETS_DIR**: $ASSETS_DIR
+- **\$DOCS_DIR**: $DOCS_DIR
+- **\$HELP_DIR**: $HELP_DIR
+- **\$BONES_DIR**: $BONES_DIR
+- **\$SCRIPT_DIR**: $SCRIPT_DIR
+- **\$CONFIG_DIR**: $CONFIG_DIR
+- **\$LOG_DIR**: $LOG_DIR
+- **\$TMP_DIR**: $TMP_DIR
+- **\$ARCHIVE_DIR**: $ARCHIVE_DIR
+- **\$REPORT_DIR**: $REPORT_DIR
+- **\$BOOK_REPORT_DIR**: $BOOK_REPORT_DIR
+- **\$TEMPLATE_DIR**: $TEMPLATE_DIR
+- **\$META_DIR**: $META_DIR
+- **\$WEB_DIR**: $WEB_DIR
+INNER_EOF
+)
+
+    export ENV_LIST="$env_list"
+    local marker="<!-- DIP-ENV-EXTRACTED: $(date +%F) -->"
+
+    awk -v marker="$marker" '
+    /^## Environment/ { print $0; print marker; next }
+    /TODO: Stitch environment variables\./ { print ENVIRON["ENV_LIST"]; next }
+    { print $0 }
+    ' "$doc_path" > "${doc_path}.tmp" && mv "${doc_path}.tmp" "$doc_path"
+}
+
 inject_cli_usage() {
     local doc_path="$1"
     local target_script="$2"
@@ -312,7 +351,7 @@ TODO: Stitch ritual history.
 TODO: Stitch necromancer notes.
 STUB
             inject_cli_usage "$doc_path" "$target_file"
-            inject_cli_usage "$doc_path" "$target_file"
+            inject_env "$doc_path"
             log "INFO" "Stubbed missing doc: $doc_path"
         fi
     fi
