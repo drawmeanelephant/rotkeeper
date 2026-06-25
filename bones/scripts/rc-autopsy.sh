@@ -22,7 +22,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; return 1; }
 source "$SCRIPT_DIR/rc-env.sh"   || { echo "FATAL: cannot source rc-env.sh" >&2; return 1; }
 
-VERSION="0.3.1.4"
 
 show_help() { cat <<HELP_EOF
 rc-autopsy.sh — Script dissection ritual v$VERSION
@@ -41,7 +40,10 @@ Options:
 HELP_EOF
 }
 
+VERSION="${ROTKEEPER_VERSION:-0.3.1.4}"
+
 rk_init_script rc-autopsy "$@"
+require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR REPORT_DIR
 
 set -euo pipefail
 IFS=$'\n\t'
@@ -58,7 +60,7 @@ parse_args() {
       --all) HELP_REPORT=true; OUTPUT_REPORT=true; has_mode=true ;;
       --help|-h) show_help; return 1 ;;
       --version|-v) echo "rc-autopsy.sh v$VERSION"; return 1 ;;
-      --dry-run|--verbose) ;; # Handled by rk_init_script
+      --dry-run|--verbose) ;; # Handled by rc-utils.sh
       -*) ;; # Ignore other flags
       *) ;;
     esac

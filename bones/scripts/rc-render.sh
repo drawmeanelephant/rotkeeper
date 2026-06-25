@@ -18,7 +18,7 @@
 # ============================================================
 show_help() {
   cat << EOF
-rc-render.sh — Render Markdown tombs into HTML (v0.2.1)
+rc-render.sh — Render Markdown tombs into HTML (v0.3.1.4)
 
 Usage: rc-render.sh [options]
 
@@ -32,11 +32,13 @@ EOF
 }
 
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+VERSION="${ROTKEEPER_VERSION:-0.3.1.4}"
+
 rk_init_script "rc-render" "$@"
+require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR CONTENT_DIR DOCS_DIR OUTPUT_DIR
 set -euo pipefail
 IFS=$'\n\t'
 
-VERSION="0.3.1.4"
 
 
 

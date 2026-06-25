@@ -29,11 +29,13 @@ for arg in "$@"; do
     fi
 done
 
+VERSION="${ROTKEEPER_VERSION:-0.3.1.4}"
+
 rk_init_script "rc-status" "${ARGS[@]}"
+require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR
 set -euo pipefail
 IFS=$'\n\t'
 
-VERSION="0.3.1.4"
 LOG_FILE="$LOG_DIR/rc-status-$(date +%Y-%m-%d_%H%M).log"
 mkdir -p "$LOG_DIR"
 

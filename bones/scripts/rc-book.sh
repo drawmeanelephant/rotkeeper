@@ -19,12 +19,14 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
+VERSION="${ROTKEEPER_VERSION:-0.3.1.4}"
+
 rk_init_script "rc-book" "$@"
+require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR REPORT_DIR BOOK_REPORT_DIR
 
 set -euo pipefail
 IFS=$'\n\t'
 
-VERSION="0.3.1.4"
 
 require_gawk_version
 
@@ -49,7 +51,7 @@ Modes:
   --contentbook       Bind all home/content markdown into rotkeeper-contentbook.md
   --contentmeta       Extract frontmatter YAML into rotkeeper-contentmeta.yaml
   --collapse          Collapse all rotkeeper-*.md into collapsed-content.yaml
-  --all               Run scriptbook-full + docbook + docbook-clean
+  --all               Run all documentation and book bindings exhaustive
 
 Options:
   --config FILE       Optional config file
@@ -336,12 +338,20 @@ runmode() {
         log "DRY-RUN" "Would generate scriptbook at $BOOK_REPORT_DIR/rotkeeper-scriptbook-full.md"
         log "DRY-RUN" "Would generate docbook at $BOOK_REPORT_DIR/rotkeeper-docbook.md"
         log "DRY-RUN" "Would generate cleaned docbook at $BOOK_REPORT_DIR/rotkeeper-docbook-clean.md"
+        log "DRY-RUN" "Would generate configbook at $BOOK_REPORT_DIR/rotkeeper-configbook.md"
+        log "DRY-RUN" "Would generate contentbook at $BOOK_REPORT_DIR/rotkeeper-contentbook.md"
+        log "DRY-RUN" "Would generate contentmeta at $BOOK_REPORT_DIR/rotkeeper-contentmeta.yaml"
         log "DRY-RUN" "Would generate file system catalog at $BOOK_REPORT_DIR/rotkeeper-files.md"
+        log "DRY-RUN" "Would run collapse to generate $BOOK_REPORT_DIR/collapsed-content.yaml"
       else
         runscriptbookfull
         rundocbook
         rundocbookclean
+        runconfigbook
+        runcontentbook
+        runcontentmeta
         runfsbook
+        collapse
       fi
       ;;
     *)

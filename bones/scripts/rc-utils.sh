@@ -20,7 +20,6 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-VERSION="0.3.1.4"
 
 # --- Global Flags ---
 DRY_RUN=false
@@ -161,6 +160,8 @@ init_log() {
 }
 
 # Standardize script initialization: sets name, logs, traps, and parses common flags
+VERSION="${ROTKEEPER_VERSION:-0.3.1.4}"
+
 rk_init_script() {
   SCRIPTNAME="${1:-$(basename "$0" .sh)}"
   shift

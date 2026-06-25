@@ -33,11 +33,13 @@ EOF
 }
 
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+VERSION="${ROTKEEPER_VERSION:-0.3.1.4}"
+
 rk_init_script "rc-assets" "$@"
+require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR ASSETS_DIR
 set -euo pipefail
 IFS=$'\n\t'
 
-VERSION="0.3.1.4"
 
 # --- Helpers & Flag Parsing ---
 GENERATE_SITEMAP=false

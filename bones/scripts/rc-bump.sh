@@ -17,7 +17,6 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-VERSION="0.3.1.4"
 
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 
@@ -25,9 +24,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 source "$SCRIPT_DIR/rc-utils.sh"
+VERSION="${ROTKEEPER_VERSION:-0.3.1.4}"
+
 rk_init_script "rc-bump" "$@"
+require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR
 
 MESSAGE=""
+COMMIT=false
 
 show_help() {
   cat <<EOF
@@ -40,6 +43,7 @@ Options:
   --version, -v    Show script version and quit
   --message, -m MSG  The update message to log
   --dry-run          Preview changes without saving or committing
+  --commit           Stage changes and commit them to git
   --verbose          Detailed output
   --help, -h         Show help
 EOF
@@ -50,6 +54,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --version|-v) echo "$(basename "$0") v${VERSION:-unknown}"; exit 0 ;;
     --dry-run) DRY_RUN=true; shift ;;
+    --commit) COMMIT=true; shift ;;
     --verbose) # shellcheck disable=SC2034
                VERBOSE=true; shift ;;
     --help|-h) show_help ;;
@@ -157,9 +162,35 @@ fi
 # Step 6: Git Commit
 if [[ "$DRY_RUN" == true ]]; then
   log "DRYRUN" "Would commit changes with message: bump: $NEW_VERSION - $MESSAGE"
+  log "INFO" "Bump ritual complete."
+  exit 0
+fi
+
+if [[ "${COMMIT:-false}" != true ]]; then
+  log "INFO" "Changes applied locally. Run with --commit to stage and commit them."
+  log "INFO" "Bump ritual complete."
+  exit 0
+fi
+
+cd "$ROOT_DIR"
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  log "ERROR" "Not inside a git work tree. Cannot commit."
+  exit 1
+fi
+
+log "INFO" "Staging touched files..."
+git add "rotkeeper.sh"
+git add bones/scripts/*.sh
+if [[ -f "CHANGELOG.md" ]]; then
+  git add "CHANGELOG.md"
+fi
+if [[ -f "home/content/docs/road-to-bones/index.md" ]]; then
+  git add "home/content/docs/road-to-bones/index.md"
+fi
+
+if git diff --quiet --cached; then
+  log "WARN" "No changes to commit. Staged diff is empty."
 else
-  cd "$ROOT_DIR"
-  git add .
   git commit -m "bump: $NEW_VERSION - $MESSAGE"
   log "INFO" "Committed to git repository."
 fi
