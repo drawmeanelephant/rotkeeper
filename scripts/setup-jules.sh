@@ -44,5 +44,5 @@ chmod +x "$PROJECT_ROOT/rotkeeper.sh"
 find "$PROJECT_ROOT/bones/scripts" -type f \( -name "rc-*.sh" -o -name "rc-*.bats" \) -exec chmod +x {} \;
 
 echo "============================================================"
-echo " Setup complete! Ready for 'rotkeeper.sh smoke'."
+echo " Setup complete! Ready for 'rotkeeper.sh test'."
 echo "============================================================"
