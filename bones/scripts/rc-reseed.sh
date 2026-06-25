@@ -20,7 +20,6 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-VERSION="0.3.1.4"
 
 show_help() {
   cat <<EOF
@@ -39,7 +38,10 @@ EOF
 }
 
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+VERSION="${ROTKEEPER_VERSION:-0.3.1.4}"
+
 rk_init_script "rc-reseed" "$@"
+require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR CONTENT_DIR DOCS_DIR
 
 # Use current directory as root — assume script and inputs live together
 ROOT_DIR="$(pwd)"
@@ -126,7 +128,7 @@ for INPUT in "${DEFAULT_BOOKS[@]}"; do
       if [[ "$line" =~ ^\`\`\` ]]; then
         continue
       fi
-      echo "$line" > "$outfile"
+      echo "$line" >> "$outfile"
     fi
   done < "$INPUT"
 done

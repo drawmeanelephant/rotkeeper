@@ -23,11 +23,10 @@ manifest_list=()
 disk_list=()
 IFS=$'\n\t'
 
-VERSION="0.3.1.4"
 
 show_help() {
   cat <<EOF
-rc-scan.sh — Audit manifest and scan environment for file reports (v0.3.0.20.1)
+rc-scan.sh — Audit manifest and scan environment for file reports (v0.3.1.4)
 
 Options:
   --version, -v    Show script version and quit
@@ -48,7 +47,10 @@ EOF
 }
 
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+VERSION="${ROTKEEPER_VERSION:-0.3.1.4}"
+
 rk_init_script "rc-scan" "$@"
+require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR OUTPUT_DIR
 
 if [ -z "${BASH_VERSION:-}" ]; then
     echo "🚨 rc-scan.sh requires bash. Please run with: bash ./rc-scan.sh" >&2

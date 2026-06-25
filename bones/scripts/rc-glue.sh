@@ -15,13 +15,23 @@
 # ------------------------------------------------------------
 
 set -euo pipefail
+FORCE_GLUE=false
 
 # shellcheck disable=SC2034
-VERSION="0.3.1.4"
 
 
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+VERSION="${ROTKEEPER_VERSION:-0.3.1.4}"
+
 rk_init_script "rc-glue" "$@"
+require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR CONTENT_DIR DOCS_DIR
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --force) FORCE_GLUE=true; shift ;;
+    *) shift ;;
+  esac
+done
 
 main() {
   log "INFO" "Applying navigation glue to unindexed tombs in $CONTENT_DIR..."
@@ -32,8 +42,13 @@ main() {
 
     if [[ -f "$INDEX_FILE" ]]; then
       if grep -q "rotkeeper_glued: true" "$INDEX_FILE"; then
-        log "INFO" "Updating existing auto-glued index: $INDEX_FILE"
-        rm "$INDEX_FILE"
+        if [[ "$FORCE_GLUE" == true ]]; then
+            log "INFO" "Overwriting existing auto-glued index with --force: $INDEX_FILE"
+            rm "$INDEX_FILE"
+        else
+            log "WARN" "Auto-glued index exists at $INDEX_FILE. Skipping. Use --force to replace."
+            continue
+        fi
       else
         continue
       fi

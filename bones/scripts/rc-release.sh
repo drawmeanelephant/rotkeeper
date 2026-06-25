@@ -34,11 +34,13 @@ HELPEOF
 }
 
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+VERSION="${ROTKEEPER_VERSION:-0.3.1.4}"
+
 rk_init_script "rc-release" "$@"
+require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR OUTPUT_DIR
 set -euo pipefail
 IFS=$'\n\t'
 
-VERSION="0.3.1.4"
 
 LOG_FILE="$PWD/$LOG_FILE"
 
@@ -186,13 +188,11 @@ No documentation, no dev scripts, no heavy assets.
 3. Render your output: `./rotkeeper.sh render`
 
 **Frontmatter required for every content file:**
-```yaml
 ---
 title: "My Page"
 slug: my-page
 template: rotkeeper-blog.html
 ---
-```
 
 For full documentation, use the Full or Dev distribution.
 EOF_README

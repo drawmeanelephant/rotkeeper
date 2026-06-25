@@ -28,6 +28,7 @@ Options:
   --version, -v    Show script version and quit
   --help, -h     Show this help message and exit
   --dry-run      Preview actions without executing
+  --confirm-prune Execute pruning and deletion of ephemeral data
   --verbose      Show detailed logs
   --days N       Set retention window in days (default: 30)
 EOF
@@ -35,17 +36,20 @@ EOF
 }
 
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
+VERSION="${ROTKEEPER_VERSION:-0.3.1.4}"
+
 rk_init_script "rc-cleanup-bones" "$@"
+require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR
 
 
 
 set -euo pipefail
 IFS=$'\n\t'
 
-VERSION="0.3.1.4"
 
 
 RETAINDAYS=30
+CONFIRM_PRUNE=false
 
 parseflags() {
   while [[ $# -gt 0 ]]; do
@@ -56,6 +60,10 @@ parseflags() {
         ;;
       --dry-run)
         DRY_RUN=true
+        shift
+        ;;
+      --confirm-prune)
+        CONFIRM_PRUNE=true
         shift
         ;;
       --verbose)
@@ -86,27 +94,39 @@ main() {
   log INFO "Running rc-cleanup-bones.sh."
 
   BACKUPDIR="bones/backups"
-  TIMESTAMP=$(date +%Y-%m-d_%H%M)
+  TIMESTAMP=$(date +%Y-%m-%d_%H%M)
   BACKUPNAME="bones-backup-${TIMESTAMP}.tar.gz"
   BACKUPPATH="${BACKUPDIR}/${BACKUPNAME}"
 
-  if [[ "$DRY_RUN" == true ]]; then
-    log INFO "Dry run mode: simulating backup and cleanup actions"
+  if [[ "$DRY_RUN" == true ]] || [[ "$CONFIRM_PRUNE" == false ]]; then
+    log INFO "Dry run / preview mode: simulating backup and cleanup actions"
     echo "Would create backup: $BACKUPPATH"
     echo "Would prune backups older than $RETAINDAYS days from $BACKUPDIR"
     echo "Would prune logs older than $RETAINDAYS days from bones/logs"
-    echo "Would delete contents of bones/ except backups and logs:"
-    find bones -maxdepth 1 -mindepth 1 ! -name backups ! -name logs -print | sed 's/^/  - /'
-    log INFO "Dry run complete: no changes made."
-    log INFO "Ritual concluded at $(date +%Y-%m-d\ %H:%M) — bones remain undisturbed."
+    echo "Would explicitly delete the following ephemeral directories under $ROOT_DIR/bones/:"
+    for d in "tmp" "archive" "reports" "book-reports" "ingested"; do
+      echo "  - $ROOT_DIR/bones/$d"
+    done
+    if [[ "$CONFIRM_PRUNE" == false && "$DRY_RUN" == false ]]; then
+      log INFO "Run with --confirm-prune to execute actual deletion."
+    else
+      log INFO "Dry run complete: no changes made."
+    fi
+    log INFO "Ritual concluded at $(date +%Y-%m-%d\ %H:%M) — bones remain undisturbed."
     return 0
   fi
 
-  log INFO "Backing up bones to $BACKUPPATH"
-  run mkdir -p "$BACKUPDIR"
+  log INFO "Starting cleanup sequence for $RETAINDAYS days retention."
 
-  # FIX: use -C "$ROOTDIR" so archive paths are relative (bones/...) not absolute
-  run tar --exclude="$BACKUPDIR" -czf "$BACKUPPATH" -C "$ROOTDIR" bones
+  if [ ! -d "$BACKUPDIR" ]; then
+      log WARN "Backup directory $BACKUPDIR does not exist. Creating it."
+      run mkdir -p "$BACKUPDIR"
+  fi
+
+  log INFO "Backing up bones to $BACKUPPATH"
+
+  # FIX: use -C "$ROOT_DIR" so archive paths are relative (bones/...) not absolute
+  run tar --exclude="$BACKUPDIR" -czf "$BACKUPPATH" -C "$ROOT_DIR" bones
 
   if [[ ! -s "$BACKUPPATH" ]]; then
     log ERROR "Backup tarball appears to be missing or empty: $BACKUPNAME"
@@ -116,19 +136,23 @@ main() {
   BACKUPSIZE=$(du -h "$BACKUPPATH" | cut -f1)
   log INFO "Backup created successfully: $BACKUPNAME ($BACKUPSIZE)"
 
-  log INFO "Pruning backups older than $RETAINDAYS days"
-  run find "$BACKUPDIR" -type f -mtime +"$RETAINDAYS" -print -delete
+  log INFO "Pruning backups older than $RETAINDAYS days in $BACKUPDIR"
+  run find "$BACKUPDIR" -type f -name "bones-backup-*.tar.gz" -mtime +"$RETAINDAYS" -print -delete
 
   LOGDIR="bones/logs"
   log INFO "Pruning logs older than $RETAINDAYS days in $LOGDIR"
   run find "$LOGDIR" -type f -mtime +"$RETAINDAYS" -print -delete
 
   log INFO "Removing non-essential files and folders in bones/"
-  find bones -maxdepth 1 -mindepth 1 ! -name backups ! -name logs -print0 \
-    | xargs -0 rm -rf
+  for d in "tmp" "archive" "reports" "book-reports" "ingested"; do
+    target="$ROOT_DIR/bones/$d"
+    if [[ -d "$target" ]]; then
+      run rm -rf "$target"
+    fi
+  done
 
   log INFO "Cleanup complete: bones pruned, logs trimmed, backup created: $BACKUPNAME ($BACKUPSIZE)"
-  log INFO "Ritual concluded at $(date +%Y-%m-d\ %H:%M) — decay logged and archived."
+  log INFO "Ritual concluded at $(date +%Y-%m-%d\ %H:%M) — decay logged and archived."
 }
 
 main

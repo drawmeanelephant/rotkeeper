@@ -35,7 +35,10 @@ else
     return 1
 fi
 
+VERSION="${ROTKEEPER_VERSION:-0.3.1.4}"
+
 rk_init_script rc-dip "$@"
+require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR CONTENT_DIR DOCS_DIR REPORT_DIR BOOK_REPORT_DIR
 
 OBSOLETE_DIR="${CONTENT_DIR}/obsolete/docs"
 MATRIX_FILE="${DOCS_DIR}/dip-matrix.md"
@@ -97,10 +100,15 @@ AUTOPSY_EXCLUDES["bones/asset-manifest.yaml"]=1
 
 # 2. Discover Core Files from fsbook catalog
 CORE_FILES=()
+if [[ ! -f "$FSBOOK_CATALOG" ]]; then
+    log "INFO" "FSBook catalog not found at $FSBOOK_CATALOG. Auto-generating..."
+    bash "$SCRIPT_DIR/rc-book.sh" --fsbook
+fi
+
 if [[ -f "$FSBOOK_CATALOG" ]]; then
     log "INFO" "Reading fsbook catalog for file discovery..."
     while IFS= read -r line; do
-        if [[ "$line" =~ ^-[[:space:]]+([^\\]+) ]]; then
+        if [[ "$line" =~ ^-[[:space:]]+([^\]+) ]]; then
             file_path="${BASH_REMATCH[1]}"
             file_path=$(echo "$file_path" | sed -E 's/^[[:space:]]+//;s/[[:space:]]+$//')
             
@@ -118,18 +126,17 @@ if [[ -f "$FSBOOK_CATALOG" ]]; then
             
             if [[ "$exclude" == false ]]; then
                 if [[ "$file_path" =~ \.(png|css|md|DS_Store|db)$ ]]; then
-                    if [[ "$file_path" =~ ^[A-Z]+\.md$ ]]; then
-                        CORE_FILES+=("$file_path")
-                    fi
-                else
-                    CORE_FILES+=("$file_path")
+                    continue
+                fi
+                if [[ -n "$file_path" ]]; then
+                   CORE_FILES+=("$file_path")
                 fi
             fi
         fi
     done < "$FSBOOK_CATALOG"
 else
-    log "WARN" "FSBook catalog not found at $FSBOOK_CATALOG. File discovery cannot proceed. Run rc-book.sh --fsbook first."
-    return 1
+    log "ERROR" "FSBook catalog could not be generated. File discovery cannot proceed. Run rc-book.sh --fsbook to debug."
+    exit 1
 fi
 
 declare -A EXPECTED_DOCS
