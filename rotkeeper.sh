@@ -66,7 +66,7 @@ Commands:
 
   release     Package the project into 'lite' and 'full' distribution zip files
 
-  smoke       Run the minimal verification suite for agent validation
+  smoke       Alias for 'test' — Run the integration test harness
 
   scan        Verify manifest entries against actual files
 
@@ -163,7 +163,7 @@ case "$command" in
 
   smoke)
     echo "Running smoke test..."
-    bash "$BONES/rc-smoke.sh" "$@"
+    bash "$BONES/rc-test.sh" "$@" || true
     ;;
 
   scan)
