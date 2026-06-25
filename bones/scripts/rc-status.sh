@@ -32,7 +32,7 @@ done
 VERSION="${ROTKEEPER_VERSION:-0.3.1.4}"
 
 rk_init_script "rc-status" "${ARGS[@]}"
-require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR
+require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR ARCHIVE_DIR
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -54,6 +54,7 @@ JSON_ENV=""
 JSON_HEALTH=""
 JSON_RAG=""
 JSON_RELEASES=""
+JSON_TOMBS=""
 JSON_PULSE=""
 JSON_RENDER=""
 JSON_INBOX=""
@@ -278,6 +279,61 @@ else
 fi
 
 
+# --- Section 4b: Recent Tombs ---
+if [[ "$JSON_MODE" == true ]]; then
+    if [[ ! -d "$ARCHIVE_DIR" ]]; then
+        JSON_TOMBS='"recent_tombs": {"status": "skipped", "reason": "bones/archive/ does not exist"}'
+    else
+        mapfile -t tomb_files < <(find "$ARCHIVE_DIR" -maxdepth 1 -type f -name '*.tar.gz' 2>/dev/null | sort -r | head -n 5 || true)
+        if [[ ${#tomb_files[@]} -eq 0 ]]; then
+            JSON_TOMBS='"recent_tombs": {"status": "empty", "reason": "no archives found — run: ./rotkeeper.sh render"}'
+        else
+            json_tomb_arr="["
+            first_tomb=true
+            for f in "${tomb_files[@]}"; do
+                fn=$(basename "$f")
+                sz=$(du -h "$f" | cut -f1)
+                mod=$(date -r "$f" '+%Y-%m-%d %H:%M:%S')
+
+                [[ "$first_tomb" == false ]] && json_tomb_arr+=","
+                json_tomb_arr+="
+          {
+            \"filename\": \"$fn\",
+            \"size\": \"$sz\",
+            \"date\": \"$mod\"
+          }"
+                first_tomb=false
+            done
+            json_tomb_arr+="
+        ]"
+            JSON_TOMBS="\"recent_tombs\": {\"status\": \"ok\", \"files\": $json_tomb_arr, \"count\": ${#tomb_files[@]}}"
+        fi
+    fi
+else
+    echo "=== Recent Tombs ==="
+    if [[ ! -d "$ARCHIVE_DIR" ]]; then
+        echo "[SKIP] bones/archive/ does not exist"
+    else
+        mapfile -t tomb_files < <(find "$ARCHIVE_DIR" -maxdepth 1 -type f -name '*.tar.gz' 2>/dev/null | sort -r | head -n 5 || true)
+        if [[ ${#tomb_files[@]} -eq 0 ]]; then
+            echo "[EMPTY] no archives found — run: ./rotkeeper.sh render"
+        else
+            printf "%-30s | %-10s | %s\n" "Filename" "Size" "Date"
+            echo "----------------------------------------------------------------------"
+            for f in "${tomb_files[@]}"; do
+                fn=$(basename "$f")
+                sz=$(du -h "$f" | cut -f1)
+                mod=$(date -r "$f" '+%Y-%m-%d %H:%M:%S')
+                printf "%-30s | %-10s | %s\n" "$fn" "$sz" "$mod"
+            done
+            echo "----------------------------------------------------------------------"
+            echo "Total Recent Tombs Shown: ${#tomb_files[@]}"
+        fi
+    fi
+    echo ""
+fi
+
+
 # --- Section 5: Content Pulse ---
 if [[ ! -d "$CONTENT_DIR" ]] || [[ -z "$(find "$CONTENT_DIR" -type f -name '*.md' -print -quit 2>/dev/null)" ]]; then
     if [[ "$JSON_MODE" == true ]]; then
@@ -441,6 +497,7 @@ if [[ "$JSON_MODE" == true ]]; then
     echo "$JSON_HEALTH,"
     echo "$JSON_RAG,"
     echo "$JSON_RELEASES,"
+    echo "  $JSON_TOMBS,"
     echo "$JSON_PULSE,"
     echo "$JSON_RENDER,"
     echo "$JSON_INBOX,"

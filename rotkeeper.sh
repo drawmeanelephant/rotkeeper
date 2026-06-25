@@ -72,8 +72,6 @@ Commands:
 
   assets      Generate asset manifest (home/assets → bones/asset-manifest.yaml)
 
-  sitemap     Build sitemap_pipeline.yaml, nav_partial.html, and generated index pages
-
   glue        Auto-generate index.md navigation glue for unindexed content directories
 
   templates   List all available HTML templates in the bones/templates/ directory
@@ -104,8 +102,6 @@ Commands:
   agent-handoff Generate books and package a tombkit for AI delegates
 
   snapshot    Instantly run render, pack, and scan to freeze the current state
-
-  timeline    Generate a reverse-chronological history report of the tombs
 
   test        Run the integration test harness against the rotkeeper scripts
 
@@ -178,11 +174,6 @@ case "$command" in
   assets)
     echo "Generating asset manifest..."
     bash "$BONES/rc-assets.sh" "$@"
-    ;;
-
-  sitemap)
-    echo "Building sitemap..."
-    bash "$BONES/rc-sitemap.sh" "$@"
     ;;
 
   glue)
@@ -271,11 +262,6 @@ case "$command" in
   autopsy)
     echo "Running autopsy audit..."
     bash "$BONES/rc-autopsy.sh" "$@"
-    ;;
-
-  timeline)
-    echo "Generating tomb timeline..."
-    bash "$BONES/rc-timeline.sh" "$@"
     ;;
 
   *)
