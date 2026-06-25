@@ -306,6 +306,41 @@ inject_cli_usage() {
     ' "$doc_path" > "${doc_path}.tmp" && mv "${doc_path}.tmp" "$doc_path"
 }
 
+
+inject_necromancer_notes() {
+    local doc_path=$1
+    local target_script_name=$2
+
+    if [[ ! -d "home/content/messages" ]]; then
+        return 0
+    fi
+
+    local extracted_body=""
+
+    for msg_file in home/content/messages/*.md; do
+        [[ -f "$msg_file" ]] || continue
+
+        if grep -q 'report_type: "necromancer-notes"' "$msg_file" && grep -q "subject_script: \"$target_script_name\"" "$msg_file"; then
+            extracted_body=$(sed '1{/^---$/!q;}; 1,/^---$/d' "$msg_file")
+            break
+        fi
+    done
+
+    if [[ -z "$extracted_body" ]]; then
+        return 0
+    fi
+
+    export EXTRACTED_BODY="$extracted_body"
+    local marker="<!-- DIP-SOUL-EXTRACTED: $(date +%F) -->"
+
+    awk -v marker="$marker" '
+    /^#### Necromancer'\''s Notes/ || /^## Necromancer'\''s Notes/ { print $0; print marker; next }
+    /TODO: Stitch necromancer notes\./ { print ENVIRON["EXTRACTED_BODY"]; next }
+    { print $0 }
+    ' "$doc_path" > "${doc_path}.tmp" && mv "${doc_path}.tmp" "$doc_path"
+    unset EXTRACTED_BODY
+}
+
 # 4. Stub Missing Docs
 log "INFO" "Checking for missing docs..."
 for doc_path in "${!EXPECTED_DOCS[@]}"; do
@@ -352,6 +387,7 @@ TODO: Stitch necromancer notes.
 STUB
             inject_cli_usage "$doc_path" "$target_file"
             inject_env "$doc_path"
+            inject_necromancer_notes "$doc_path" "$(basename "$target_file")"
             log "INFO" "Stubbed missing doc: $doc_path"
         fi
     fi
