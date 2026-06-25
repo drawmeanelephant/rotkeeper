@@ -92,7 +92,7 @@ run_help_report() {
     echo
   } > "$OUT"
 
-  mapfile -t scripts < <(find "$ROOT_DIR" "$SCRIPT_DIR" -maxdepth 1 -type f \( -name "rc-*.sh" -o -name "rotkeeper.sh" \) | sort | uniq)
+  mapfile -t scripts < <({ find "$SCRIPT_DIR" -maxdepth 1 -type f -name "rc-*.sh"; find "$ROOT_DIR" -maxdepth 1 -type f -name "rotkeeper.sh"; } | sort | uniq)
 
   for script in "${scripts[@]}"; do
     name="$(basename "$script")"
@@ -141,7 +141,7 @@ render_output_report_md() {
     fi
   done < <(env)
 
-  mapfile -t scripts < <(find "$ROOT_DIR" "$SCRIPT_DIR" -maxdepth 1 -type f \( -name "rc-*.sh" -o -name "rotkeeper.sh" \) | sort | uniq)
+  mapfile -t scripts < <({ find "$SCRIPT_DIR" -maxdepth 1 -type f -name "rc-*.sh"; find "$ROOT_DIR" -maxdepth 1 -type f -name "rotkeeper.sh"; } | sort | uniq)
 
   for script in "${scripts[@]}"; do
     name="$(basename "$script")"
