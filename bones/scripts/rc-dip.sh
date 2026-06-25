@@ -47,7 +47,7 @@ DATE_STR=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 get_fs_date() {
     local file=$1
     if [ -f "$file" ]; then
-        TZ=UTC stat -f "%Sm" -t "%Y-%m-%d" "$file"
+        if stat --version >/dev/null 2>&1; then date -u -d "@$(stat -c %Y "$file")" "+%Y-%m-%d"; else TZ=UTC stat -f "%Sm" -t "%Y-%m-%d" "$file"; fi
     else
         echo "Missing"
     fi
@@ -56,7 +56,7 @@ get_fs_date() {
 get_fs_iso() {
     local file=$1
     if [ -f "$file" ]; then
-        TZ=UTC stat -f "%Sm" -t "%Y-%m-%dT%H:%M:%SZ" "$file"
+        if stat --version >/dev/null 2>&1; then date -u -d "@$(stat -c %Y "$file")" "+%Y-%m-%dT%H:%M:%SZ"; else TZ=UTC stat -f "%Sm" -t "%Y-%m-%dT%H:%M:%SZ" "$file"; fi
     else
         echo "0000-00-00T00:00:00Z"
     fi
