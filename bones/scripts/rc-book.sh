@@ -94,7 +94,7 @@ runscriptbookfull() {
   local OUT="$BOOK_REPORT_DIR/rotkeeper-scriptbook-full.md"
   if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would generate full scriptbook at $OUT"
-    find "$ROOT_DIR/bones/scripts" "$ROOT_DIR" -maxdepth 1 -type f \( -name "rc-*.sh" -o -name "rotkeeper.sh" \) | sort | while read -r script; do
+    { find "$ROOT_DIR/bones/scripts" -maxdepth 1 -type f -name "rc-*.sh"; find "$ROOT_DIR" -maxdepth 1 -type f -name "rotkeeper.sh"; } | sort | while read -r script; do
       echo "  - ${script#"$ROOT_DIR"/}"
     done
     return 0
@@ -107,7 +107,7 @@ runscriptbookfull() {
     echo "---"
     echo ""
   } > "$OUT"
-  find "$ROOT_DIR/bones/scripts" "$ROOT_DIR" -maxdepth 1 -type f \( -name "rc-*.sh" -o -name "rotkeeper.sh" \) | sort | while read -r script; do
+  { find "$ROOT_DIR/bones/scripts" -maxdepth 1 -type f -name "rc-*.sh"; find "$ROOT_DIR" -maxdepth 1 -type f -name "rotkeeper.sh"; } | sort | while read -r script; do
     rel="${script#"$ROOT_DIR"/}"
     {
       echo "<!-- START $rel -->"
