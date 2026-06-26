@@ -78,6 +78,8 @@ Commands:
 
   ingest      Unpack and safely merge .tar.gz payloads from messages-from-my-friends/
 
+  sync-inbox  Automate the AI documentation ingestion loop (scan, ingest, dip, render)
+
   dip         Audit documentation coverage, stub missing files, and whisk obsolete docs.
 
   book        Generate documentation outputs
@@ -184,6 +186,11 @@ case "$command" in
   ingest)
     echo "Ingesting new messages..."
     bash "$BONES/rc-ingest.sh" "$@"
+    ;;
+
+  sync-inbox)
+    echo "Running Inbox Autopilot..."
+    bash "$BONES/rc-sync-inbox.sh" "$@"
     ;;
 
   dip)
