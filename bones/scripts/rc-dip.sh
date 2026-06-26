@@ -248,34 +248,7 @@ INNER_EOF
     ' "$doc_path" > "${doc_path}.tmp" && mv "${doc_path}.tmp" "$doc_path"
 }
 
-inject_cli_usage() {
-    local doc_path="$1"
-    local target_script="$2"
-    local help_report="$REPORT_DIR/autopsy-help.md"
 
-    if [[ ! -f "$help_report" ]]; then
-        return 0
-    fi
-
-    local script_name
-    script_name=$(basename "$target_script")
-
-    local help_content
-    help_content=$(sed -n "/^## $script_name\$/,/^## /{ /^## /d; p; }" "$help_report" | sed -e '1{/^$/d;}' | sed -e '${/^$/d;}')
-
-    if [[ -z "$help_content" ]]; then
-        return 0
-    fi
-
-    export HELP_CONTENT="$help_content"
-    local marker="<!-- DIP-HELP-EXTRACTED: $(date +%F) -->"
-
-    awk -v marker="$marker" '
-    /^######## CLI Usage/ { print $0; print marker; next }
-    /TODO: Stitch extracted help block\./ { print ENVIRON["HELP_CONTENT"]; next }
-    { print $0 }
-    ' "$doc_path" > "${doc_path}.tmp" && mv "${doc_path}.tmp" "$doc_path"
-}
 
 inject_cli_usage() {
     local doc_path="$1"
@@ -411,14 +384,23 @@ stitch_pillar() {
     
     if [[ -z "$doc_mtime" || "$source_mtime" > "$doc_mtime" ]]; then
         local tmp_file="${doc_path}.tmp"
-        python3 -c "
-import sys, re
-with open(sys.argv[1], 'r') as f: content = f.read()
-content = re.sub(r'(<!-- ' + sys.argv[2] + r':).*?(-->)', lambda m: m.group(1) + ' ' + sys.argv[5] + ' ' + m.group(2), content)
-pattern = r'(<!-- ' + sys.argv[2] + r':.*?\n).*?(?=\n## |\Z)'
-content = re.sub(pattern, lambda m: m.group(1) + '\n' + sys.argv[3] + '\n', content, flags=re.DOTALL)
-with open(sys.argv[4], 'w') as f: f.write(content)
-" "$doc_path" "$marker" "$new_content" "$tmp_file" "$DATE_STR"
+        export NEW_CONTENT="$new_content"
+        export DATE_STR="$DATE_STR"
+        export MARKER="$marker"
+        
+        awk '
+        BEGIN { skip=0 }
+        skip && /^## / { skip=0 }
+        $0 ~ "<!-- " ENVIRON["MARKER"] ":" {
+            sub(/<!-- [^:]+:.*-->/, "<!-- " ENVIRON["MARKER"] ": " ENVIRON["DATE_STR"] " -->")
+            print $0
+            print ""
+            print ENVIRON["NEW_CONTENT"]
+            skip=1
+            next
+        }
+        !skip { print $0 }
+        ' "$doc_path" > "$tmp_file"
         mv "$tmp_file" "$doc_path"
     fi
 }
