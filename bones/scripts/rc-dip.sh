@@ -311,13 +311,13 @@ inject_necromancer_notes() {
     local doc_path=$1
     local target_script_name=$2
 
-    if [[ ! -d "home/content/messages" ]]; then
+    if [[ ! -d "$CONTENT_DIR/messages" ]]; then
         return 0
     fi
 
     local extracted_body=""
 
-    for msg_file in home/content/messages/*.md; do
+    for msg_file in "$CONTENT_DIR/messages"/*.md; do
         [[ -f "$msg_file" ]] || continue
 
         if grep -q 'report_type: "necromancer-notes"' "$msg_file" && grep -q "subject_script: \"$target_script_name\"" "$msg_file"; then
