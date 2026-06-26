@@ -337,7 +337,6 @@ runmode() {
       if [[ "$DRY_RUN" == true ]]; then
         log "DRY-RUN" "Would generate scriptbook at $BOOK_REPORT_DIR/rotkeeper-scriptbook-full.md"
         log "DRY-RUN" "Would generate docbook at $BOOK_REPORT_DIR/rotkeeper-docbook.md"
-        log "DRY-RUN" "Would generate cleaned docbook at $BOOK_REPORT_DIR/rotkeeper-docbook-clean.md"
         log "DRY-RUN" "Would generate configbook at $BOOK_REPORT_DIR/rotkeeper-configbook.md"
         log "DRY-RUN" "Would generate contentbook at $BOOK_REPORT_DIR/rotkeeper-contentbook.md"
         log "DRY-RUN" "Would generate contentmeta at $BOOK_REPORT_DIR/rotkeeper-contentmeta.yaml"
@@ -346,7 +345,6 @@ runmode() {
       else
         runscriptbookfull
         rundocbook
-        rundocbookclean
         runconfigbook
         runcontentbook
         runcontentmeta
