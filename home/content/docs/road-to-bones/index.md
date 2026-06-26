@@ -28,6 +28,8 @@ This is your consolidated status snapshot: what’s working, what’s stubbed, a
 
 ## 📡 Living Buildlog (Micro Updates)
 <!-- LIVING_BUILDLOG_START -->
+* `v0.4.0` - (2026-06-26 18:34) - Minor release: Integrates Inbox Autopilot, Frankenstein document engine, path-mirrored Necronotes architecture, and comprehensive sidecar documentation
+* `v0.4.0` - (2026-06-26 18:34) - Minor release: Integrates Inbox Autopilot, Frankenstein document engine, path-mirrored Necronotes architecture, and comprehensive sidecar documentation
 * `v0.3.1.4` - (2026-06-22 11:39) - Fix template parsing bug in rc-render.sh using yq
 * `v0.3.1.3` - (2026-06-19 21:56) - Add --version flag to all rc-*.sh scripts
 * `v0.3.1.2` - (2026-06-19 07:00) - Restructure todo.md for Jules queue and move test.sh to bones/scripts/
