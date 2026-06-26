@@ -102,3 +102,9 @@
 
 ## [0.3.1.4] - 2026-06-22
 - Fix template parsing bug in rc-render.sh using yq
+
+## [0.4.0] - 2026-06-26
+- Minor release: Integrates Inbox Autopilot, Frankenstein document engine, path-mirrored Necronotes architecture, and comprehensive sidecar documentation
+
+## [0.4.0] - 2026-06-26
+- Minor release: Integrates Inbox Autopilot, Frankenstein document engine, path-mirrored Necronotes architecture, and comprehensive sidecar documentation
