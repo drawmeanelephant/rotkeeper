@@ -2,7 +2,7 @@
 # ============================================================
 #  Project : Rotkeeper
 #  Script  : rc-showcase.sh
-#  Purpose : Auto-scaffolds test pages for all HTML themes
+#  Purpose : Auto-scaffolds test pages for all HTML templates
 # ============================================================
 
 set -euo pipefail
@@ -19,48 +19,95 @@ main() {
   mkdir -p "$showcase_dir"
   log "INFO" "Ensured showcase directory exists: $showcase_dir"
 
-  # Find all files matching theme-*.html in the template directory
-  for theme_file in "$TEMPLATE_DIR"/theme-*.html; do
-    if [[ ! -f "$theme_file" ]]; then
-      log "INFO" "No themes found."
-      return 0
+  if [[ ! -d "$TEMPLATE_DIR" ]]; then
+    log "ERROR" "Template directory not found: $TEMPLATE_DIR"
+    exit 1
+  fi
+
+  local count=0
+  for template_file in "$TEMPLATE_DIR"/*.html; do
+    if [[ ! -f "$template_file" ]]; then
+      continue
     fi
 
-    local filename=$(basename "$theme_file")
-    # Extract the vibe name: theme-vampire.html -> vampire
-    local vibe=$(echo "$filename" | sed -E 's/^theme-(.*)\.html$/\1/')
+    local template_name=$(basename "$template_file")
+    local theme_name="${template_name%.html}"
+    theme_name="${theme_name#theme-}"
 
-    local target_file="$showcase_dir/showcase-${vibe}.md"
+    local target_file="$showcase_dir/showcase-${theme_name}.md"
 
-    log "INFO" "Scaffolding showcase page for theme: $filename -> $target_file"
+    log "INFO" "Scaffolding showcase page for template: $template_name -> $target_file"
 
-    cat << 'MARKDOWN_EOF' > "$target_file"
+    cat << MD_EOF > "$target_file"
 ---
-title: "Showcase: $VIBE"
-template: "$FILENAME"
+title: "Showcase: $theme_name"
+date: $(date +%Y-%m-%d)
+template: "$template_name"
 ---
 
-# Header 1: The Crypt
-## Header 2: Embalming Logs
-### Header 3: Necromantic Devops
+# Heading 1
+Through a terminal-driven, proactive embalming approach we can remain tomb-focused and artifact-directed, innovate and be an offline-first necropolis which facilitates static bash-readiness.
 
-> "Every file dies. Not every file decays with style." - Rotkeeper Ritual Council
+## Heading 2
+Transforming turnkey phylacteries to dead-code 24/365 paradigms with benchmark archival channels implementing viral bash-rituals and flat-file action-items.
 
-Through a terminal-driven, proactive embalming approach we can remain tomb-focused and artifact-directed, innovate and be an offline-first necropolis which facilitates static bash-readiness transforming turnkey phylacteries to dead-code 24/365 paradigms with benchmark archival channels implementing viral bash-rituals and flat-file action-items while we take that action item strictly off-line and raise a fatal `trap_err` and remember to touch base as you think about the markdown fences outside of the crypt and seize B2B (Bash-to-Bone) orchestrators and re-envisioneer necromantic partnerships that evolve zero-hydration initiatives delivering synergistic dead-drops to incentivize CI/CD deliverables that leverage Pandoc solutions to synergize bash-and-bone dropzones while facilitating one-to-one shell-scripts with revolutionary Frankenstein stitching that deliver viral payloads.
+### Heading 3
+While we take that action item strictly off-line and raise a fatal \`trap_err\` and remember to touch base as you think about the markdown fences outside of the crypt.
 
-*   **Pillar 1:** Anatomy
-*   **Pillar 2:** History
-*   **Pillar 3:** The Soul
-*   **Pillar 4:** Environment
-MARKDOWN_EOF
+#### Heading 4
+And seize B2B (Bash-to-Bone) orchestrators and re-envisioneer necromantic partnerships that evolve zero-hydration initiatives delivering synergistic dead-drops.
 
-    # Replace variables in the heredoc (since we used 'MARKDOWN_EOF' to prevent bash expansion of trap_err)
-    sed -i "s/\$VIBE/${vibe^}/g" "$target_file"
-    sed -i "s/\$FILENAME/$filename/g" "$target_file"
+##### Heading 5
+To incentivize CI/CD deliverables that leverage Pandoc solutions to synergize bash-and-bone dropzones while facilitating one-to-one shell-scripts.
 
+###### Heading 6
+With revolutionary Frankenstein stitching that deliver viral payloads and grow decentralized supply-chains that expedite seamless embalming.
+
+---
+
+**Bold Text**: Transform back-end shell dependencies through a terminal-driven, proactive embalming approach we can remain tomb-focused and artifact-directed.
+
+*Italic Text*: Innovate and be an offline-first necropolis which facilitates static bash-readiness transforming turnkey phylacteries to dead-code 24/365 paradigms.
+
+> Blockquote:
+> With benchmark archival channels implementing viral bash-rituals and flat-file action-items while we take that action item strictly off-line and raise a fatal \`trap_err\`.
+>
+> And remember to touch base as you think about the markdown fences outside of the crypt and seize B2B (Bash-to-Bone) orchestrators.
+
+---
+
+### Unordered List
+* Re-envisioneer necromantic partnerships
+* Evolve zero-hydration initiatives delivering synergistic dead-drops
+* Incentivize CI/CD deliverables that leverage Pandoc solutions
+
+### Ordered List
+1. Synergize bash-and-bone dropzones
+2. Facilitating one-to-one shell-scripts with revolutionary Frankenstein stitching
+3. Deliver viral payloads
+
+---
+
+### Code Block
+\`\`\`bash
+echo "Transforming turnkey phylacteries to dead-code 24/365 paradigms."
+echo "With benchmark archival channels implementing viral bash-rituals."
+\`\`\`
+
+### Table
+| Feature | Status | Impact |
+|---|---|---|
+| Terminal-driven | Active | Proactive embalming |
+| Offline-first | Enabled | Static bash-readiness |
+| B2B Orchestrators | Seized | Zero-hydration initiatives |
+
+---
+MD_EOF
+
+    count=$((count + 1))
   done
 
-  log "INFO" "Showcase generation complete!"
+  log "INFO" "Showcase generation complete! Generated $count files."
 }
 
 main "$@"

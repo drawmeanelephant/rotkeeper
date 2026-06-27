@@ -47,7 +47,7 @@ Quickstart:
   ./rotkeeper.sh pack --content
 
 Commands:
-  showcase    Auto-scan and scaffold test pages for custom themes
+  showcase    Generate markdown showcase files for all available HTML templates
   init        Initialize environment (minimal by default)
                 --with-sample    Generate sample file
                 --with-render    Run the render ritual
@@ -131,7 +131,7 @@ EOF
 
 case "$command" in
   showcase)
-    echo "Scaffolding Showcase pages..."
+    echo "Generating showcase files..."
     bash "$BONES/rc-showcase.sh" "$@"
     ;;
 
