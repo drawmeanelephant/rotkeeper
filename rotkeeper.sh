@@ -101,6 +101,8 @@ Commands:
   status      Display latest render/log/archive/git state summary
                 --json     Output as minified JSON for agent consumption
 
+  showcase    Generate markdown showcase files for all available HTML templates
+
   agent-handoff Generate books and package a tombkit for AI delegates
 
   snapshot    Instantly run render, pack, and scan to freeze the current state
@@ -238,6 +240,11 @@ case "$command" in
 
   status)
     bash "$BONES/rc-status.sh" "$@"
+    ;;
+
+  showcase)
+    echo "Generating showcase files..."
+    bash "$BONES/rc-showcase.sh" "$@"
     ;;
 
   bump)
