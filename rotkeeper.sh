@@ -47,6 +47,7 @@ Quickstart:
   ./rotkeeper.sh pack --content
 
 Commands:
+  showcase    Generate markdown showcase files for all available HTML templates
   init        Initialize environment (minimal by default)
                 --with-sample    Generate sample file
                 --with-render    Run the render ritual
@@ -101,8 +102,6 @@ Commands:
   status      Display latest render/log/archive/git state summary
                 --json     Output as minified JSON for agent consumption
 
-  showcase    Generate markdown showcase files for all available HTML templates
-
   agent-handoff Generate books and package a tombkit for AI delegates
 
   snapshot    Instantly run render, pack, and scan to freeze the current state
@@ -131,6 +130,11 @@ EOF
 # ---------------------------------------------------------------------------
 
 case "$command" in
+  showcase)
+    echo "Generating showcase files..."
+    bash "$BONES/rc-showcase.sh" "$@"
+    ;;
+
 
   --version|-v)
     echo "rotkeeper v$VERSION"
@@ -240,11 +244,6 @@ case "$command" in
 
   status)
     bash "$BONES/rc-status.sh" "$@"
-    ;;
-
-  showcase)
-    echo "Generating showcase files..."
-    bash "$BONES/rc-showcase.sh" "$@"
     ;;
 
   bump)

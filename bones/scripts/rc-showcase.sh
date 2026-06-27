@@ -1,23 +1,44 @@
 #!/usr/bin/env bash
+# ============================================================
+#  Project : Rotkeeper
+#  Script  : rc-showcase.sh
+#  Purpose : Auto-scaffolds test pages for all HTML templates
+# ============================================================
 
-# Source environment
+set -euo pipefail
+
 source "$(dirname "${BASH_SOURCE[0]}")/rc-env.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 
-SHOWCASE_DIR="$CONTENT_DIR/showcase"
+rk_init_script "rc-showcase" "$@"
 
-mkdir -p "$SHOWCASE_DIR"
+main() {
+  log "INFO" "Initializing Gallery of the Damned showcase scanner..."
 
-if [[ -d "$TEMPLATE_DIR" ]]; then
-    for template_file in "$TEMPLATE_DIR"/*.html; do
-        if [[ -f "$template_file" ]]; then
-            template_name=$(basename "$template_file")
-            theme_name="${template_name%.html}"
-            theme_name="${theme_name#theme-}"
+  local showcase_dir="$CONTENT_DIR/showcase"
+  mkdir -p "$showcase_dir"
+  log "INFO" "Ensured showcase directory exists: $showcase_dir"
 
-            output_file="$SHOWCASE_DIR/showcase-${theme_name}.md"
+  if [[ ! -d "$TEMPLATE_DIR" ]]; then
+    log "ERROR" "Template directory not found: $TEMPLATE_DIR"
+    exit 1
+  fi
 
-            cat << MD_EOF > "$output_file"
+  local count=0
+  for template_file in "$TEMPLATE_DIR"/*.html; do
+    if [[ ! -f "$template_file" ]]; then
+      continue
+    fi
+
+    local template_name=$(basename "$template_file")
+    local theme_name="${template_name%.html}"
+    theme_name="${theme_name#theme-}"
+
+    local target_file="$showcase_dir/showcase-${theme_name}.md"
+
+    log "INFO" "Scaffolding showcase page for template: $template_name -> $target_file"
+
+    cat << MD_EOF > "$target_file"
 ---
 title: "Showcase: $theme_name"
 date: $(date +%Y-%m-%d)
@@ -31,7 +52,7 @@ Through a terminal-driven, proactive embalming approach we can remain tomb-focus
 Transforming turnkey phylacteries to dead-code 24/365 paradigms with benchmark archival channels implementing viral bash-rituals and flat-file action-items.
 
 ### Heading 3
-While we take that action item strictly off-line and raise a fatal trap_err and remember to touch base as you think about the markdown fences outside of the crypt.
+While we take that action item strictly off-line and raise a fatal \`trap_err\` and remember to touch base as you think about the markdown fences outside of the crypt.
 
 #### Heading 4
 And seize B2B (Bash-to-Bone) orchestrators and re-envisioneer necromantic partnerships that evolve zero-hydration initiatives delivering synergistic dead-drops.
@@ -44,12 +65,12 @@ With revolutionary Frankenstein stitching that deliver viral payloads and grow d
 
 ---
 
-**Bold Text**: Transform back-end shell dependencies withthrough a terminal-driven, proactive embalming approach we can remain tomb-focused and artifact-directed.
+**Bold Text**: Transform back-end shell dependencies through a terminal-driven, proactive embalming approach we can remain tomb-focused and artifact-directed.
 
 *Italic Text*: Innovate and be an offline-first necropolis which facilitates static bash-readiness transforming turnkey phylacteries to dead-code 24/365 paradigms.
 
 > Blockquote:
-> With benchmark archival channels implementing viral bash-rituals and flat-file action-items while we take that action item strictly off-line and raise a fatal trap_err.
+> With benchmark archival channels implementing viral bash-rituals and flat-file action-items while we take that action item strictly off-line and raise a fatal \`trap_err\`.
 >
 > And remember to touch base as you think about the markdown fences outside of the crypt and seize B2B (Bash-to-Bone) orchestrators.
 
@@ -82,9 +103,11 @@ echo "With benchmark archival channels implementing viral bash-rituals."
 
 ---
 MD_EOF
-            echo "Generated showcase file: $output_file"
-        fi
-    done
-else
-    echo "Template directory not found: $TEMPLATE_DIR"
-fi
+
+    count=$((count + 1))
+  done
+
+  log "INFO" "Showcase generation complete! Generated $count files."
+}
+
+main "$@"
