@@ -47,6 +47,7 @@ Quickstart:
   ./rotkeeper.sh pack --content
 
 Commands:
+  showcase    Auto-scan and scaffold test pages for custom themes
   init        Initialize environment (minimal by default)
                 --with-sample    Generate sample file
                 --with-render    Run the render ritual
@@ -129,6 +130,11 @@ EOF
 # ---------------------------------------------------------------------------
 
 case "$command" in
+  showcase)
+    echo "Scaffolding Showcase pages..."
+    bash "$BONES/rc-showcase.sh" "$@"
+    ;;
+
 
   --version|-v)
     echo "rotkeeper v$VERSION"
