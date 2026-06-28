@@ -161,7 +161,7 @@ fi
 
 declare -A EXPECTED_DOCS
 for file in "${CORE_FILES[@]}"; do
-    BASE_NO_EXT="${file%.*}"
+    BASE_NO_EXT=$(get_base_no_ext "$file")
     if [ "$BASE_NO_EXT" == "$file" ]; then
         DOC_PATH="${DOCS_DIR}/${file}.md"
     else
@@ -429,23 +429,20 @@ for doc_path in "${!EXPECTED_DOCS[@]}"; do
     fi
 
     # Pillar 3: Necromancer's Notes
-    MESSAGES_DIR="$CONTENT_DIR/messages"
-    if [[ -d "$MESSAGES_DIR" ]]; then
-        notes_content=""
-        notes_mtime="0000-00-00"
-        for msg_file in "$MESSAGES_DIR"/*.md; do
-            [[ -f "$msg_file" ]] || continue
-            if grep -q "report_type: \"necromancer-notes\"" "$msg_file" && grep -q "subject_script: \"$script_name\"" "$msg_file"; then
-                fm_mtime=$(get_fs_iso "$msg_file")
-                [[ "$fm_mtime" > "$notes_mtime" ]] && notes_mtime="$fm_mtime"
-                body=$(sed '1{/^---$/!q;}; 1,/^---$/d' "$msg_file")
-                notes_content+="$body"$'\n\n'
-            fi
-        done
-        notes_content=$(echo "$notes_content" | grep -v '^$' || true)
-        if [[ -n "$notes_content" ]]; then
-            stitch_pillar "$doc_path" "DIP-SOUL-EXTRACTED" "$notes_content" "$notes_mtime"
+    soulbody=$(read_meta_sidecar_body "$target_file")
+    if [[ -n "$soulbody" ]]; then
+        base_no_ext=$(get_base_no_ext "$target_file")
+        soulmtime=$(get_fs_iso "${META_DIR}/${base_no_ext}.soul.md")
+        
+        # Auto-upgrade legacy documentation files to include the marker if missing
+        if ! grep -q "<!-- DIP-SOUL-EXTRACTED:" "$doc_path"; then
+            echo -e "
+## Necromancer's Notes
+<!-- DIP-SOUL-EXTRACTED: 0000-00-00T00:00:00Z -->
+TODO: Stitch necromancer notes." >> "$doc_path"
         fi
+        
+        stitch_pillar "$doc_path" "DIP-SOUL-EXTRACTED" "$soulbody" "$soulmtime"
     fi
 done
 

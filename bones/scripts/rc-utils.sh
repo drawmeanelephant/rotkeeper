@@ -187,6 +187,38 @@ rk_init_script() {
   fi
 }
 
+get_base_no_ext() {
+    local file="$1"
+    local dir_part="."
+    if [[ "$file" == */* ]]; then
+        dir_part="${file%/*}"
+    fi
+    local file_part="${file##*/}"
+    local base_name
+    if [[ "$file_part" =~ ^\.[^.]+\. ]]; then
+        base_name="${file_part%.*}"
+    elif [[ "$file_part" =~ ^\.[^.]+$ ]]; then
+        base_name="$file_part"
+    else
+        base_name="${file_part%.*}"
+    fi
+    if [ "$dir_part" = "." ]; then
+        echo "$base_name"
+    else
+        echo "${dir_part}/${base_name}"
+    fi
+}
+
+read_meta_sidecar_body() {
+    local target_file="$1"
+    local base_no_ext
+    base_no_ext=$(get_base_no_ext "$target_file")
+    local sidecar="${META_DIR}/${base_no_ext}.soul.md"
+    if [[ -f "$sidecar" ]]; then
+        sed "1{/^---$/!q;}; 1,/^---$/d" "$sidecar"
+    fi
+}
+
 # Return script directory
 resolve_script_dir() {
   cd "$(dirname "${BASH_SOURCE[0]}")" && pwd
