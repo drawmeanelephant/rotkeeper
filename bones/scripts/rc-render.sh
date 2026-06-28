@@ -170,7 +170,7 @@ main() {
       run pandoc "$mdfile" --from markdown --to html --template="$TEMPLATE_DIR/$TEMPLATE" --lua-filter="$PROJ_ROOT/bones/scripts/rewrite-links.lua" -o "$outfile"
       pages_rendered=$((pages_rendered + 1))
       log_manifest "$outfile"
-    done < <(find "$CONTENT_DIR" -type d \( -name "output" -o -name "bones" -o -name "docs" \) -prune -o -type f -name "*.md" -print)
+    done < <(find "$CONTENT_DIR" -type f -name "*.md" -print)
     [[ "$VERBOSE" == true ]] && echo "✅ Render complete." >&2
 
     # 📦 Archive the rendered output into a timestamped tar.gz tomb
