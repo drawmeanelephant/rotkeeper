@@ -71,3 +71,10 @@ See the [Quickstart Guide](/docs/quickstart-guide.md) to begin your first decay 
 <!--
 Sora prompt: "A decayed tombstone interface for Rotkeeper.com—ghostly monospaced text drifting across a glitching terminal window, rusted metal accents, and flickering OpenMoji icons."
 -->
+<!-- ROTKEEPER-GLUE-START -->
+- [docs/](docs/index.html)
+- [help/](help/index.html)
+- [rotkeeper/](rotkeeper/index.html)
+- [showcase/](showcase/index.html)
+- [my-first-page](my-first-page.html)
+<!-- ROTKEEPER-GLUE-END -->

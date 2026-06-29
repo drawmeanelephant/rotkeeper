@@ -40,6 +40,7 @@ main() {
   find "$CONTENT_DIR" -type d -print0 | while IFS= read -r -d '' DIR; do
     INDEX_FILE="$DIR/index.md"
 
+    IS_EXISTING_CUSTOM=false
     if [[ -f "$INDEX_FILE" ]]; then
       if grep -q "rotkeeper_glued: true" "$INDEX_FILE"; then
         if [[ "$FORCE_GLUE" == true ]]; then
@@ -50,7 +51,7 @@ main() {
             continue
         fi
       else
-        continue
+        IS_EXISTING_CUSTOM=true
       fi
     fi
 
@@ -92,24 +93,48 @@ ${DEFAULT_YAML}
 
     log "INFO" "Generating glued metadata map for $DIR_NAME..."
 
-    cat <<CAT_EOF > "$INDEX_FILE"
+    GLUE_CONTENT="<!-- ROTKEEPER-GLUE-START -->"
+    while IFS= read -r -d '' SUBDIR; do
+      SUBDIR_NAME=$(basename "$SUBDIR")
+      GLUE_CONTENT+=$'\n'"- [$SUBDIR_NAME/]($SUBDIR_NAME/index.html)"
+    done < <(find "$DIR" -maxdepth 1 -mindepth 1 -type d -print0 | sort -z)
+
+    while IFS= read -r -d '' FILE; do
+      FILE_NAME=$(basename "$FILE" .md)
+      GLUE_CONTENT+=$'\n'"- [$FILE_NAME]($FILE_NAME.html)"
+    done < <(find "$DIR" -maxdepth 1 -mindepth 1 -type f -name "*.md" ! -name "index.md" -print0 | sort -z)
+    GLUE_CONTENT+=$'\n'"<!-- ROTKEEPER-GLUE-END -->"
+
+    if [[ "$IS_EXISTING_CUSTOM" == true ]]; then
+        if grep -q "<!-- ROTKEEPER-GLUE-START -->" "$INDEX_FILE" && grep -q "<!-- ROTKEEPER-GLUE-END -->" "$INDEX_FILE"; then
+            log "INFO" "Updating existing custom index with boundaries: $INDEX_FILE"
+            GLUE_CONTENT="$GLUE_CONTENT" gawk '
+                BEGIN { p=1 }
+                /<!-- ROTKEEPER-GLUE-START -->/ {
+                    print ENVIRON["GLUE_CONTENT"]
+                    p=0
+                }
+                /<!-- ROTKEEPER-GLUE-END -->/ {
+                    p=1
+                    next
+                }
+                p { print }
+            ' "$INDEX_FILE" > "${INDEX_FILE}.tmp"
+            mv "${INDEX_FILE}.tmp" "$INDEX_FILE"
+        else
+            log "INFO" "Appending dynamic block to footer of custom index: $INDEX_FILE"
+            echo "" >> "$INDEX_FILE"
+            echo "$GLUE_CONTENT" >> "$INDEX_FILE"
+        fi
+    else
+        cat <<CAT_EOF > "$INDEX_FILE"
 ${FRONTMATTER}
 
-# $SOUL_TITLE
+# ${SOUL_TITLE}
 
+${GLUE_CONTENT}
 CAT_EOF
-
-    # List subdirectories
-    find "$DIR" -maxdepth 1 -mindepth 1 -type d -print0 | sort -z | while IFS= read -r -d '' SUBDIR; do
-      SUBDIR_NAME=$(basename "$SUBDIR")
-      echo "- [$SUBDIR_NAME/]($SUBDIR_NAME/index.html)" >> "$INDEX_FILE"
-    done
-
-    # List immediate markdown files (excluding index.md which we just created)
-    find "$DIR" -maxdepth 1 -mindepth 1 -type f -name "*.md" ! -name "index.md" -print0 | sort -z | while IFS= read -r -d '' FILE; do
-      FILE_NAME=$(basename "$FILE" .md)
-      echo "- [$FILE_NAME]($FILE_NAME.html)" >> "$INDEX_FILE"
-    done
+    fi
 
     log "INFO" "Created/Updated structured tomb index: $INDEX_FILE"
   done

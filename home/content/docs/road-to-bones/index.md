@@ -301,3 +301,6 @@ Every function is a scar. Every trap is a boundary spell.
 Write with precision. Exit with grace. Let nothing rot by accident.
 
 exit 0  # If we are lucky
+
+<!-- ROTKEEPER-GLUE-START -->
+<!-- ROTKEEPER-GLUE-END -->

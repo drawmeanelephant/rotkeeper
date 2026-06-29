@@ -92,3 +92,15 @@ Ritual types include:
 <!--
 Sora prompt: “A glitching wiki carved into obsidian, with glowing CLI runes etched in rust.”
 -->
+<!-- ROTKEEPER-GLUE-START -->
+- [bones/](bones/index.html)
+- [road-to-bones/](road-to-bones/index.html)
+- [scripts/](scripts/index.html)
+- [.md](.md.html)
+- [architecture](architecture.html)
+- [dip-matrix](dip-matrix.html)
+- [onboarding](onboarding.html)
+- [rotkeeper-reference](rotkeeper-reference.html)
+- [rotkeeper-rituals](rotkeeper-rituals.html)
+- [rotkeeper](rotkeeper.html)
+<!-- ROTKEEPER-GLUE-END -->
