@@ -113,72 +113,7 @@ main() {
         log "INFO" "Full asset manifest generated at: $MANIFEST"
     fi
 
-    if [[ "$GENERATE_SITEMAP" == true ]]; then
-        generate_sitemap
-    fi
-}
-
-generate_sitemap() {
-    set +e  # disable strict mode temporarily
-    local sitemap_md="$REPORT_DIR/rotkeeper-sitemap.md"
-    if [[ -f "$sitemap_md" && ! -s "$sitemap_md" ]]; then
-      log "WARN" "Skipping sitemap generation: empty file exists at $sitemap_md"
-      return 0
-    fi
-    mkdir -p "$REPORT_DIR"
-    log "INFO" "Generating sitemap at $sitemap_md"
-
-    mapfile -t html_files < <(find "$OUTPUT_DIR" -type f -name '*.html' 2>/dev/null | sort)
-    if [[ $? -ne 0 ]]; then # shellcheck disable=SC2181
-      log "ERROR" "Failed to read .html files from $OUTPUT_DIR"
-      set -e
-      return 1
-    fi
-
-    {
-      echo "---"
-      echo "title: \"${PROJECT} Sitemap\""
-      echo "slug: sitemap"
-      echo "template: rotkeeper-doc.html"
-      echo "version: \"0.3.0\""
-      echo "updated: $(date +%Y-%m-%d)"
-      echo "description: \"Rendered output paths and resolved markdown equivalents.\""
-      echo "tags: [report, sitemap]"
-      echo "asset_meta:"
-      echo "  name: \"rotkeeper-sitemap.md\""
-      echo "  version: \"0.3.0\""
-      echo "  author: \"${AUTHOR}\""
-      echo "  project: \"${PROJECT}\""
-      echo "  tracked: true"
-      echo "  license: \"CC-BY-SA-4.0\""
-      echo "---"
-      echo
-      echo "# Sitemap"
-      echo
-
-      if [[ "${#html_files[@]}" -eq 0 ]]; then
-        log "WARN" "No .html files found in $OUTPUT_DIR"
-        echo "_No pages found._"
-      else
-        echo "| Path | Markdown Equivalent |"
-        echo "| ---- | ------------------- |"
-        for file in "${html_files[@]}"; do
-            relpath="${file#"$OUTPUT_DIR"/}"
-            md_path="${relpath%.html}.md"
-            echo "| $relpath | $md_path |"
-        done
-      fi
-      echo
-    } > "$sitemap_md"
-
-    if [[ ! -s "$sitemap_md" ]]; then
-      log "ERROR" "Sitemap generation failed: $sitemap_md is empty or missing"
-      return 1
-    fi
-
-    log "INFO" "Sitemap markdown successfully written to: $sitemap_md"
-    set -e
-    return 0
+    # SITEMAP PURGED ENTIRELY FROM CORE PIPELINE.
 }
 
 # --- Entry Point ---

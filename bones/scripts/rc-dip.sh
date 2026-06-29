@@ -314,6 +314,29 @@ inject_necromancer_notes() {
     unset EXTRACTED_BODY
 }
 
+
+# 3.5 Verify Folder Souls
+log "INFO" "Verifying folder souls..."
+find "$ROOT_DIR" -type d | while read -r DIR; do
+    [[ "$DIR" == "$ROOT_DIR" ]] && continue
+    # Skip excluded directories
+    REL_DIR="${DIR#$ROOT_DIR/}"
+    [[ -z "$REL_DIR" ]] && continue
+    exclude=false
+    for excl in "${!AUTOPSY_EXCLUDES[@]}"; do
+        if [[ "$REL_DIR" == "$excl" || "$REL_DIR" == "$excl/"* || "$REL_DIR" == .git* ]]; then
+            exclude=true
+            break
+        fi
+    done
+    [[ "$exclude" == true ]] && continue
+
+    if [[ -d "$DIR" ]]; then
+        SOUL_FILE="$META_DIR/${REL_DIR}.soul.md"
+        EXPECTED_DOCS["$SOUL_FILE"]="$REL_DIR"
+    fi
+done
+
 # 4. Stub Missing Docs
 log "INFO" "Checking for missing docs..."
 for doc_path in "${!EXPECTED_DOCS[@]}"; do
