@@ -432,7 +432,7 @@ for doc_path in "${!EXPECTED_DOCS[@]}"; do
     soulbody=$(read_meta_sidecar_body "$target_file")
     if [[ -n "$soulbody" ]]; then
         base_no_ext=$(get_base_no_ext "$target_file")
-        soulmtime=$(get_fs_iso "${META_DIR}/${base_no_ext}.soul.md")
+        soulmtime=$(get_fs_iso "$(get_sidecar_path "$target_file")")
         
         # Auto-upgrade legacy documentation files to include the marker if missing
         if ! grep -q "<!-- DIP-SOUL-EXTRACTED:" "$doc_path"; then

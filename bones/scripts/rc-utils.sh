@@ -209,11 +209,23 @@ get_base_no_ext() {
     fi
 }
 
+get_sidecar_path() {
+    local target="$1"
+    local base_no_ext
+    base_no_ext=$(get_base_no_ext "$target")
+
+    # If it's a directory, point to path.soul.md, else file.soul.md
+    if [[ -d "$ROOT_DIR/$target" ]]; then
+        echo "${META_DIR}/${target}.soul.md"
+    else
+        echo "${META_DIR}/${base_no_ext}.soul.md"
+    fi
+}
+
 read_meta_sidecar_body() {
     local target_file="$1"
-    local base_no_ext
-    base_no_ext=$(get_base_no_ext "$target_file")
-    local sidecar="${META_DIR}/${base_no_ext}.soul.md"
+    local sidecar
+    sidecar=$(get_sidecar_path "$target_file")
     if [[ -f "$sidecar" ]]; then
         sed "1{/^---$/!q;}; 1,/^---$/d" "$sidecar"
     fi
