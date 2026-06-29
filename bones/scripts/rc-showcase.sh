@@ -37,13 +37,34 @@ main() {
     local target_file="$showcase_dir/showcase-${theme_name}.md"
 
     log "INFO" "Scaffolding showcase page for template: $template_name -> $target_file"
+    log "INFO" "Auditing template: $(basename "$template_file")"
 
-    cat << MD_EOF > "$target_file"
----
-title: "Showcase: $theme_name"
-date: $(date +%Y-%m-%d)
-template: "$template_name"
----
+    mapfile -t found_vars < <(grep -oE '\$[a-zA-Z_]+\$' "$template_file" | tr -d '$' | sort -u)
+
+    local frontmatter="---
+title: \"Showcase: $theme_name\"
+slug: \"showcase-${theme_name}\"
+template: \"$template_name\""
+
+    for var in "${found_vars[@]}"; do
+      if [[ "$var" == "title" || "$var" == "slug" || "$var" == "template" || "$var" == "body" || "$var" == "endif" || "$var" == "date" ]]; then
+        continue
+      fi
+
+      if [[ "$var" == "description" ]]; then
+        if (( count % 2 == 0 )); then
+          frontmatter+=$'\n'"description: \"Programmatic description for $theme_name\""
+        fi
+        continue
+      fi
+
+      frontmatter+=$'\n'"$var: \"Dummy value for $var\""
+    done
+    frontmatter+=$'\n'"---"
+
+    echo "$frontmatter" > "$target_file"
+
+    cat << MD_EOF >> "$target_file"
 
 # Heading 1
 Through a terminal-driven, proactive embalming approach we can remain tomb-focused and artifact-directed, innovate and be an offline-first necropolis which facilitates static bash-readiness.
@@ -102,7 +123,42 @@ echo "With benchmark archival channels implementing viral bash-rituals."
 | B2B Orchestrators | Seized | Zero-hydration initiatives |
 
 ---
+
+## Stress Testing
+
+### Nested Blockquotes & Fences
+
+> Level 1 blockquote
+>
+> > Level 2 blockquote
+> >
+> > \`\`\`bash
+> > echo "Nested fence!"
+> > \`\`\`
+> >
+> > > Level 3 blockquote
+
+### Side-by-Side Content Overflows
+
+#### Deeply Nested Lists
+* Level 1
+  * Level 2
+    * Level 3
+      * Level 4
+
+#### Massive Technical Table
+
+| Col 1 | Col 2 | Col 3 | Col 4 | Col 5 | Col 6 |
+|---|---|---|---|---|---|
+| A very long string that might cause overflow | Data | Data | Data | Data | Data |
+| Data | A very long string that might cause overflow | Data | Data | Data | Data |
+
 MD_EOF
+
+    if ! pandoc "$target_file" --from markdown --to html --template="$template_file" -o /dev/null >/dev/null 2>&1; then
+       log "ERROR" "Template $(basename "$template_file") failed Pandoc validation."
+       trap_err $LINENO
+    fi
 
     count=$((count + 1))
   done
