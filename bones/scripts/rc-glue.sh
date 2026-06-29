@@ -96,17 +96,27 @@ ${DEFAULT_YAML}
     GLUE_CONTENT="<!-- ROTKEEPER-GLUE-START -->"
     while IFS= read -r -d '' SUBDIR; do
       SUBDIR_NAME=$(basename "$SUBDIR")
-      GLUE_CONTENT+=$'\n'"- [$SUBDIR_NAME/]($SUBDIR_NAME/index.html)"
+      GLUE_CONTENT+=$'\n'"- [$SUBDIR_NAME/](<$SUBDIR_NAME/index.html>)"
     done < <(find "$DIR" -maxdepth 1 -mindepth 1 -type d -print0 | sort -z)
 
     while IFS= read -r -d '' FILE; do
       FILE_NAME=$(basename "$FILE" .md)
-      GLUE_CONTENT+=$'\n'"- [$FILE_NAME]($FILE_NAME.html)"
+      GLUE_CONTENT+=$'\n'"- [$FILE_NAME](<$FILE_NAME.html>)"
     done < <(find "$DIR" -maxdepth 1 -mindepth 1 -type f -name "*.md" ! -name "index.md" -print0 | sort -z)
     GLUE_CONTENT+=$'\n'"<!-- ROTKEEPER-GLUE-END -->"
 
     if [[ "$IS_EXISTING_CUSTOM" == true ]]; then
-        if grep -q "<!-- ROTKEEPER-GLUE-START -->" "$INDEX_FILE" && grep -q "<!-- ROTKEEPER-GLUE-END -->" "$INDEX_FILE"; then
+        local MARKERS_OK=false
+        if awk '
+            BEGIN { start=0; end=0; ok=0 }
+            /<!-- ROTKEEPER-GLUE-START -->/ { start++ }
+            /<!-- ROTKEEPER-GLUE-END -->/ { end++; if(start == 1) ok=1 }
+            END { if (start == 1 && end == 1 && ok == 1) exit 0; else exit 1 }
+        ' "$INDEX_FILE"; then
+            MARKERS_OK=true
+        fi
+
+        if [[ "$MARKERS_OK" == true ]]; then
             log "INFO" "Updating existing custom index with boundaries: $INDEX_FILE"
             GLUE_CONTENT="$GLUE_CONTENT" gawk '
                 BEGIN { p=1 }
@@ -122,18 +132,14 @@ ${DEFAULT_YAML}
             ' "$INDEX_FILE" > "${INDEX_FILE}.tmp"
             mv "${INDEX_FILE}.tmp" "$INDEX_FILE"
         else
+            if grep -q "<!-- ROTKEEPER-GLUE" "$INDEX_FILE"; then
+                log "WARN" "Malformed glue boundaries in custom index, appending to footer: $INDEX_FILE"
+            fi
             log "INFO" "Appending dynamic block to footer of custom index: $INDEX_FILE"
-            echo "" >> "$INDEX_FILE"
-            echo "$GLUE_CONTENT" >> "$INDEX_FILE"
+            printf '\n%s\n' "$GLUE_CONTENT" >> "$INDEX_FILE"
         fi
     else
-        cat <<CAT_EOF > "$INDEX_FILE"
-${FRONTMATTER}
-
-# ${SOUL_TITLE}
-
-${GLUE_CONTENT}
-CAT_EOF
+        printf '%s\n\n# %s\n\n%s\n' "$FRONTMATTER" "$SOUL_TITLE" "$GLUE_CONTENT" > "$INDEX_FILE"
     fi
 
     log "INFO" "Created/Updated structured tomb index: $INDEX_FILE"
