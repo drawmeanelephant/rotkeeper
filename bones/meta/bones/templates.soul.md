@@ -1,6 +1,6 @@
 ---
-title: "🎨 Presentation Layer Layouts"
-description: "Zero-hydration layout targets. Standard Pandoc placeholders ($body$, $assets_root$, $title$) required."
+title: "Templates Directory"
+description: "Master index explaining the zero-hydration theme architecture."
 status: "complete"
 ---
 
@@ -12,6 +12,3 @@ This directory exclusively expects rigid HTML files equipped with standard Pando
 - Core structural templates containing necessary variables like `$title$`, `$body$`, and `$assets_root$` (e.g., `rotkeeper-blog.html`, `rotkeeper-doc.html`).
 - Sub-theme wrappers that declare styling variables and font families (e.g., `theme-light.html`, `theme-dark.html`, `theme-phosphor.html`, `theme-kawaii.html`, `theme-overgrown.html`).
 Any file lacking these standard Pandoc placeholders or attempting to introduce dynamic application logic will be considered invalid. Only valid HTML files with proper Pandoc-compliant directives are tolerated.
-
-### Preservation Notes
-These zero-hydration HTML structures are engineered for terminal survival. By violently rejecting the bloated abstractions of external CSS and JavaScript frameworks, these layouts remain functionally immortal. They will render correctly precisely as long as basic web standards endure, free from the inevitable rot of transient dependencies and runtime environments.
