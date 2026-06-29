@@ -196,13 +196,17 @@ main() {
         echo "[" > "$TMP_EXPORT"
         FIRST=true
         find "$SOURCE_DIR" -name '*.md' | while read -r mdfile; do
-          if ! CONTENT=$(pandoc "$mdfile" -t json 2>/dev/null); then
+          if ! AST_CONTENT=$(pandoc "$mdfile" -t json 2>/dev/null); then
             log "ERROR" "Pandoc failed on $mdfile, skipping."
             continue
           fi
 
-          JSON_ENTRY=$(jq -n --arg path "$mdfile" --argjson content "$CONTENT" \
-            '{path: $path, pandoc_json: $content}')
+          ABS_PATH=$(realpath "$mdfile")
+          REL_PATH="${mdfile#"$ROOT_DIR"/}"
+          FM_CONTENT=$(yq --front-matter="extract" -o=json '.' "$mdfile" 2>/dev/null || echo "{}")
+
+          JSON_ENTRY=$(jq -n --arg abs "$ABS_PATH" --arg rel "$REL_PATH" --argjson ast "$AST_CONTENT" --argjson fm "$FM_CONTENT" \
+            '{absolute_path: $abs, relative_path: $rel, frontmatter: (if $fm != null then $fm else {} end), pandoc_ast: (if $ast != null then $ast else {} end)}')
 
           if [ "$FIRST" = true ]; then
             FIRST=false
