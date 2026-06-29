@@ -1,14 +1,17 @@
 ---
-title: "Templates Directory"
-description: "Master index explaining the zero-hydration theme architecture."
+title: "🎨 Presentation Layer Layouts"
+description: "Zero-hydration layout targets. Standard Pandoc placeholders ($body$, $assets_root$, $title$) required."
 status: "complete"
 ---
 
-### Architectural Intent
-The `bones/templates/` directory serves as the visual gatekeeper. It is the architectural mandate of this directory to house the raw HTML shells forcibly applied to markdown files during compilation. We do not hydrate. We do not run client-side JavaScript to construct the DOM. The final page structure is built statically at render time, yielding a lean, indestructible artifact.
+# 🎨 Presentation Layer Layouts
 
-### Directory / File Schema Expectations
-This directory exclusively expects rigid HTML files equipped with standard Pandoc-compliant directives. Permitted assets include:
-- Core structural templates containing necessary variables like `$title$`, `$body$`, and `$assets_root$` (e.g., `rotkeeper-blog.html`, `rotkeeper-doc.html`).
-- Sub-theme wrappers that declare styling variables and font families (e.g., `theme-light.html`, `theme-dark.html`, `theme-phosphor.html`, `theme-kawaii.html`, `theme-overgrown.html`).
-Any file lacking these standard Pandoc placeholders or attempting to introduce dynamic application logic will be considered invalid. Only valid HTML files with proper Pandoc-compliant directives are tolerated.
+## Architectural Intent
+Manages the visual bones of the compiled estate. This directory forces a strict zero-hydration rule across all generated pages.
+
+## Directory / File Schema Expectations
+- Layout files must be plain valid HTML containing valid Pandoc variables (e.g., `$title$`, `$description$`, `$body$`).
+- BANNED: client-side reactive hydration scripts, framework runtimes, tracking bloat, or blocking assets.
+
+## Preservation Notes
+Templates are designed to outlive modern browser specifications. Stick to native CSS variables and standard layout flows.

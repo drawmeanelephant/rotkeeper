@@ -93,3 +93,15 @@ With tar and with find,
 It culled what’s confined,
 And kept your bones tidy and grand.
 -->
+## Necromancer's Notes
+<!-- DIP-SOUL-EXTRACTED: 2026-06-29T21:12:31Z -->
+
+
+### Bones of the Code
+The janitor of the crypt. It attempts to prune old logs and temp files to keep the bones neat. It's a blunt instrument used to sweep the dust of dead processes under the rug.
+
+### Restless Spirits
+This script wields `find ... -delete` and `rm -rf` like a blind man swinging a scythe. If the target paths are improperly initialized (say, an unset variable defaulting to `/`), this script will happily erase your entire existence. The abyss stares back, and it's holding a deletion flag.
+
+### Ritual Warnings
+Ensure all path variables are strictly validated before running. One unset variable and you'll be restoring from backups while the script cackles in the void.

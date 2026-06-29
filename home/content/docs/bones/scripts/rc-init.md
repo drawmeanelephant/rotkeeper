@@ -137,3 +137,16 @@ rotkeeper/
 - May be chained with `rc-book.sh` or `rc-render.sh` to generate reports and outputs after setup
 
 <!-- Sora Prompt: "A ceremonial shovel labeled 'rc-init.sh' digging the first directory into a haunted filescape; skeletons holding folder trees, sigils glowing faintly on markdown pages." -->
+
+## Necromancer's Notes
+<!-- DIP-SOUL-EXTRACTED: 2026-06-29T21:12:31Z -->
+
+
+### Bones of the Code
+The Genesis script. It copies templates, blesses scripts, and bootstraps the project. It's the overly enthusiastic cult leader welcoming you to the compound.
+
+### Restless Spirits
+Its zealotry knows no bounds. When invoked with `--force`, it will violently overwrite existing configurations and clobber active directories without a second thought. It respects nothing that came before it.
+
+### Ritual Warnings
+Use `--force` only when you are entirely prepared to salt the earth and start anew. Keep backups of your configuration.

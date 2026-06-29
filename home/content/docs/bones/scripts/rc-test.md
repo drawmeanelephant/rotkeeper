@@ -15,3 +15,16 @@ TODO: Provide a brief overview of what this file does.
 
 ## Details
 TODO: Provide technical details, usage instructions, or context.
+
+## Necromancer's Notes
+<!-- DIP-SOUL-EXTRACTED: 2026-06-29T21:12:31Z -->
+
+
+### Bones of the Code
+The torturer. It subjects the scripts to Bats unit tests and dry-run sweeps, demanding perfection from an inherently flawed system.
+
+### Restless Spirits
+Its syntax validation is merely a surface-level scan, and its environment config checks often miss deeper semantic errors. It gives a false sense of security, allowing deeply nested bugs to slip through the cracks while it proudly reports a passing grade.
+
+### Ritual Warnings
+A passing test suite here merely means the code compiles; it does not mean the code is sane.

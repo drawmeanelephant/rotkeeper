@@ -15,3 +15,13 @@ TODO: Provide a brief overview of what this file does.
 
 ## Details
 TODO: Provide technical details, usage instructions, or context.
+
+## Necromancer's Notes
+<!-- DIP-SOUL-EXTRACTED: 2026-06-29T21:12:31Z -->
+
+
+### Architectural Intent
+The central configuration file for Rotkeeper's build process. It defines site variables, metadata defaults, theme styling switches, and paths used during static site generation.
+
+### Directory / File Schema Expectations
+Errors or typos in the YAML syntax (such as indentation or missing quotes) will cause `yq` parsing to collapse, breaking script configurations and halts execution. Validate this file against standard YAML rules after editing. Ensure directory keys match the paths configured in the environment variables.

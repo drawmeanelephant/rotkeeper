@@ -45,5 +45,14 @@ TODO: Stitch extracted help block.
 TODO: Stitch ritual history.
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 0000-00-00T00:00:00Z -->
-TODO: Stitch necromancer notes.
+<!-- DIP-SOUL-EXTRACTED: 2026-06-29T21:12:31Z -->
+
+
+### Bones of the Code
+The mailman of the underworld. It pulls incoming message payloads from presumably remote or isolated locations and dumps them into the inbox.
+
+### Restless Spirits
+It blindly syncs whatever it finds. Unvalidated sync paths mean that a malicious actor could drop a payload that overwrites existing files or plants executable scripts directly into your workflow.
+
+### Ritual Warnings
+Never sync from untrusted sources without sanitizing the payloads first. You are inviting vampires into your home.
