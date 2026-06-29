@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-status.sh
 #  Purpose : Output a structured, human-readable status report across environment, health, and pulse.
-#  Version : 0.4.0
+#  Version : 0.4.0.1
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.

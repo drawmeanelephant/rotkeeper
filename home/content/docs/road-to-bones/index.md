@@ -28,6 +28,7 @@ This is your consolidated status snapshot: what’s working, what’s stubbed, a
 
 ## 📡 Living Buildlog (Micro Updates)
 <!-- LIVING_BUILDLOG_START -->
+* `v0.4.0.1` - (2026-06-29 11:40) - Enforce 3-tier verbosity, prune redundant render backups, and optimize JSON AST packaging
 * `v0.4.0` - (2026-06-26 18:34) - Minor release: Integrates Inbox Autopilot, Frankenstein document engine, path-mirrored Necronotes architecture, and comprehensive sidecar documentation
 * `v0.4.0` - (2026-06-26 18:34) - Minor release: Integrates Inbox Autopilot, Frankenstein document engine, path-mirrored Necronotes architecture, and comprehensive sidecar documentation
 * `v0.3.1.4` - (2026-06-22 11:39) - Fix template parsing bug in rc-render.sh using yq

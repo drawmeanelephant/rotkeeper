@@ -108,3 +108,6 @@
 
 ## [0.4.0] - 2026-06-26
 - Minor release: Integrates Inbox Autopilot, Frankenstein document engine, path-mirrored Necronotes architecture, and comprehensive sidecar documentation
+
+## [0.4.0.1] - 2026-06-29
+- Enforce 3-tier verbosity, prune redundant render backups, and optimize JSON AST packaging
