@@ -37,7 +37,7 @@ main() {
   log "INFO" "Applying navigation glue to unindexed tombs in $CONTENT_DIR..."
 
   # Process bottom-up to ensure we only glue things that make sense
-  find "$CONTENT_DIR" -type d | while read -r DIR; do
+  find "$CONTENT_DIR" -type d -print0 | while IFS= read -r -d '' DIR; do
     INDEX_FILE="$DIR/index.md"
 
     if [[ -f "$INDEX_FILE" ]]; then
@@ -70,44 +70,43 @@ main() {
     fi
 
     # Initialize baseline frontmatter defaults
-    SOUL_TITLE="Index of $DIR_NAME"
-    SOUL_TEMPLATE="rotkeeper-blog.html"
-    SOUL_EXTRA=""
+    DEFAULT_YAML="title: \"Index of $DIR_NAME\"
+template: \"rotkeeper-blog.html\"
+rotkeeper_glued: true"
 
     if [[ -f "$SOUL_FILE" ]]; then
         log "INFO" "💀 Found folder soul tombstone: $SOUL_FILE"
-        # Extract specific keys using Mike Farah's yq evaluation blocks safely
-        EXTRACTED_TITLE=$(yq eval '.title // ""' "$SOUL_FILE" 2>/dev/null | xargs || true)
-        EXTRACTED_TMPL=$(yq eval '.template // ""' "$SOUL_FILE" 2>/dev/null | xargs || true)
-        EXTRACTED_DESC=$(yq eval '.description // ""' "$SOUL_FILE" 2>/dev/null | xargs || true)
-
-        [[ -n "$EXTRACTED_TITLE" ]] && SOUL_TITLE="$EXTRACTED_TITLE"
-        [[ -n "$EXTRACTED_TMPL" ]] && SOUL_TEMPLATE="$EXTRACTED_TMPL"
-        [[ -n "$EXTRACTED_DESC" ]] && SOUL_EXTRA="description: \"$EXTRACTED_DESC\""
+        # Overwrite auto-generated structural headers with data pulled directly from the target folder's sidecar
+        # Merge the complete frontmatter dictionary blocks directly
+        MERGED_YAML=$(yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' <(echo "$DEFAULT_YAML") <(yq eval --front-matter="extract" '.' "$SOUL_FILE"))
+        SOUL_TITLE=$(echo "$MERGED_YAML" | yq eval '.title // ""' -)
+        FRONTMATTER="---
+${MERGED_YAML}
+---"
+    else
+        SOUL_TITLE="Index of $DIR_NAME"
+        FRONTMATTER="---
+${DEFAULT_YAML}
+---"
     fi
 
     log "INFO" "Generating glued metadata map for $DIR_NAME..."
 
     cat <<CAT_EOF > "$INDEX_FILE"
----
-title: "$SOUL_TITLE"
-template: $SOUL_TEMPLATE
-rotkeeper_glued: true
-$SOUL_EXTRA
----
+${FRONTMATTER}
 
 # $SOUL_TITLE
 
 CAT_EOF
 
     # List subdirectories
-    find "$DIR" -maxdepth 1 -mindepth 1 -type d | sort | while read -r SUBDIR; do
+    find "$DIR" -maxdepth 1 -mindepth 1 -type d -print0 | sort -z | while IFS= read -r -d '' SUBDIR; do
       SUBDIR_NAME=$(basename "$SUBDIR")
       echo "- [$SUBDIR_NAME/]($SUBDIR_NAME/index.html)" >> "$INDEX_FILE"
     done
 
     # List immediate markdown files (excluding index.md which we just created)
-    find "$DIR" -maxdepth 1 -mindepth 1 -type f -name "*.md" ! -name "index.md" | sort | while read -r FILE; do
+    find "$DIR" -maxdepth 1 -mindepth 1 -type f -name "*.md" ! -name "index.md" -print0 | sort -z | while IFS= read -r -d '' FILE; do
       FILE_NAME=$(basename "$FILE" .md)
       echo "- [$FILE_NAME]($FILE_NAME.html)" >> "$INDEX_FILE"
     done
