@@ -320,7 +320,7 @@ log "INFO" "Verifying folder souls..."
 find "$ROOT_DIR" -type d | while read -r DIR; do
     [[ "$DIR" == "$ROOT_DIR" ]] && continue
     # Skip excluded directories
-    REL_DIR="${DIR#$ROOT_DIR/}"
+    REL_DIR="${DIR#"$ROOT_DIR"/}"
     [[ -z "$REL_DIR" ]] && continue
     exclude=false
     for excl in "${!AUTOPSY_EXCLUDES[@]}"; do
