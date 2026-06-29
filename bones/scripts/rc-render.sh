@@ -118,7 +118,7 @@ main() {
 
     log "MARKER" "📄 Reanimating..."
 
-    # Iterate over all markdown files in CONTENT_DIR, explicitly ignoring output/, bones/, and docs/
+        # Iterate over all markdown files in CONTENT_DIR
     while IFS= read -r mdfile; do
       [ -f "$mdfile" ] || continue
 
@@ -127,14 +127,7 @@ main() {
       mdpath=$(realpath "$mdfile")
       srcpath=$(realpath "$CONTENT_DIR")
 
-      # Debug logging for path resolution
-      [[ "$VERBOSE" == true ]] && {
-        log "DEBUG" "mdfile=$mdfile"
-        log "DEBUG" "mdpath=$mdpath"
-        log "DEBUG" "srcpath=$srcpath"
-      }
-
-      # Harden relpath: ensure srcpath is a prefix of mdpath, and trim only if so
+      # Harden relpath: ensure srcpath is a prefix of mdpath
       if [[ "$mdpath" == "$srcpath"* ]]; then
         relpath="${mdpath#"$srcpath"/}"
       else
@@ -142,31 +135,55 @@ main() {
         continue
       fi
 
-      # Debug relpath
-      [[ "$VERBOSE" == true ]] && log "DEBUG" "relpath=$relpath"
-
       reldir=$(dirname "$relpath")
       outdir="$OUTPUT_DIR/$reldir"
       if [[ -z "$outdir" || "$outdir" =~ ^[[:space:]]*$ ]]; then
         log "WARN" "Invalid or empty output path for $mdfile — skipping."
         continue
       fi
-      log "DEBUG" "Resolved outdir='$outdir'"
+
       run mkdir -p "$outdir"
       outfile="$outdir/${base}.html"
       rel_md="${mdpath#"$PROJ_ROOT"/}"
       rel_out="${outfile#"$PROJ_ROOT"/}"
-      log "INFO" "Rendering $rel_md → $rel_out"
-      TEMPLATE=""
-      TEMPLATE=$(yq --front-matter extract '.template' "$mdfile" 2>/dev/null | grep -v "^null$" || echo "")
-      [[ -z "$TEMPLATE" ]] && TEMPLATE="$DEFAULT_TEMPLATE"
 
+      log "INFO" "Rendering $rel_md → $rel_out"
+
+      # --- File-Level Sidecar Resolution ---
+      # Map: home/content/path/file.md -> bones/meta/path/file.soul.md
+      local soul_file="$META_DIR/${relpath%.md}.soul.md"
+      local pandoc_inputs=()
+
+      # Track active inputs and extract the template target cleanly
+      if [[ -f "$soul_file" ]]; then
+        log "INFO" "💀 Found spiritual shadow sidecar: $soul_file"
+        if ! yq eval '.' "$soul_file" >/dev/null 2>&1; then
+          log "WARN" "Malformed YAML frontmatter in sidecar $soul_file. Dropping back to isolated pass."
+          pandoc_inputs+=("$mdfile")
+          TEMPLATE=$(yq --front-matter extract '.template' "$mdfile" 2>/dev/null | grep -v "^null$" || echo "")
+        else
+          # Sidecar-Dominance: pass the user document FIRST, sidecar SECOND.
+          # Pandoc flattens the AST metadata in-memory, letting the sidecar stomp conflicts.
+          pandoc_inputs+=("$mdfile" "$soul_file")
+
+          # Read template from sidecar first; fall back to document if missing
+          TEMPLATE=$(yq --front-matter extract '.template' "$soul_file" 2>/dev/null | grep -v "^null$" || echo "")
+          [[ -z "$TEMPLATE" ]] && TEMPLATE=$(yq --front-matter extract '.template' "$mdfile" 2>/dev/null | grep -v "^null$" || echo "")
+        fi
+      else
+        # Standard fallback pass
+        pandoc_inputs+=("$mdfile")
+        TEMPLATE=$(yq --front-matter extract '.template' "$mdfile" 2>/dev/null | grep -v "^null$" || echo "")
+      fi
+
+      [[ -z "$TEMPLATE" ]] && TEMPLATE="$DEFAULT_TEMPLATE"
       log "INFO" "Rendering $rel_md with template: $TEMPLATE"
 
       if [ ! -f "$TEMPLATE_DIR/$TEMPLATE" ]; then
         echo "❌ ERROR: Template not found: $TEMPLATE_DIR/$TEMPLATE"
         continue
       fi
+
       if [[ "$reldir" == "." ]]; then
           ASSETS_ROOT="./assets/"
       else
@@ -179,14 +196,10 @@ main() {
         PANDOC_ARGS="--trace --dump-args --verbose"
       fi
 
+      # Execute the zero-clutter in-memory aggregation pass
       # shellcheck disable=SC2086
-      run pandoc "$mdfile" \
-        --from markdown \
-        --to html \
-        --template="$TEMPLATE_DIR/$TEMPLATE" \
-        --variable=assets_root="$ASSETS_ROOT" \
-        --lua-filter="$PROJ_ROOT/bones/scripts/rewrite-links.lua" \
-        -o "$outfile" $PANDOC_ARGS
+      run pandoc "${pandoc_inputs[@]}"         --from markdown         --to html         --template="$TEMPLATE_DIR/$TEMPLATE"         --variable=assets_root="$ASSETS_ROOT"         --lua-filter="$PROJ_ROOT/bones/scripts/rewrite-links.lua"         -o "$outfile" $PANDOC_ARGS
+
       pages_rendered=$((pages_rendered + 1))
       log_manifest "$outfile"
     done < <(find "$CONTENT_DIR" -type f -name "*.md" -print)
