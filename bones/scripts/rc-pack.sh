@@ -112,8 +112,7 @@ main() {
       CONTENT_ARCHIVE="tomb-content-$TIMESTAMP_VERSION.tar"
       if [[ "$DRY_RUN" == false ]]; then
         echo "📦 Packing \"$SOURCE_DIR\" into \"$CONTENT_ARCHIVE\""
-        run tar --exclude="home/content/docs" \
-                --exclude="home/content/help" \
+        run tar --exclude="home/content/help" \
                 --exclude="*_temp.md" \
                 -cf "$ARCHIVE_DIR/$CONTENT_ARCHIVE" "home/content"
         count=$(tar -tf "$ARCHIVE_DIR/$CONTENT_ARCHIVE" | wc -l)

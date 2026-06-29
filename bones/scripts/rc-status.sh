@@ -355,7 +355,7 @@ if [[ ! -d "$CONTENT_DIR" ]] || [[ -z "$(find "$CONTENT_DIR" -type f -name '*.md
         echo ""
     fi
 else
-    mapfile -t c_files < <(find "$CONTENT_DIR" -type d \( -path "*/docs" \) -prune -o -type f -name '*.md' -print)
+    mapfile -t c_files < <(find "$CONTENT_DIR" -type f -name '*.md' -print)
     total_md=${#c_files[@]}
     stubs=0
     drafts=0
@@ -389,7 +389,7 @@ fi
 
 # --- Section 6: Render Freshness ---
 NEWEST_HTML=$(find "$OUTPUT_DIR" -type f -name '*.html' -exec stat -c %Y {} + 2>/dev/null | sort -nr | head -n 1 || echo "")
-NEWEST_MD=$(find "$CONTENT_DIR" -type d -path "*/docs" -prune -o -type f -name '*.md' -exec stat -c %Y {} + 2>/dev/null | sort -nr | head -n 1 || echo "")
+NEWEST_MD=$(find "$CONTENT_DIR" -type f -name '*.md' -exec stat -c %Y {} + 2>/dev/null | sort -nr | head -n 1 || echo "")
 
 status_render="[EMPTY] no rendered output found"
 status_json="empty"
