@@ -21,3 +21,11 @@ The `bones` folder holds the structural foundation of the Rotkeeper static site 
 - **[Templates (templates/)](templates/index.html)**: HTML and theme layouts used by Pandoc.
 - **[Log Archives (logs/)](logs/index.html)**: Standard output and error files from past operations.
 - **[Archive & Releases (archive/)](archive/index.html)**: Compiled release zipballs and historical packages.
+
+<!-- ROTKEEPER-GLUE-START -->
+- [archive/](archive/index.html)
+- [config/](config/index.html)
+- [logs/](logs/index.html)
+- [scripts/](scripts/index.html)
+- [templates/](templates/index.html)
+<!-- ROTKEEPER-GLUE-END -->

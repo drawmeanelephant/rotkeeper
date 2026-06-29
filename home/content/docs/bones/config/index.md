@@ -19,3 +19,8 @@ This folder manages files that modify the behavior of scanning and build rituals
 - **[rotkeeper.yaml](rotkeeper.html)**: Main settings file for directory paths, author fields, and metadata options.
 - **[dip-whitelist.md](dip-whitelist.html)**: Whitelisted files that are skipped during obsolete checks in DIP.
 - **[asset-manifest.md](asset-manifest.html)**: The manifest mapping asset paths to SHA256 integrity hashes.
+
+<!-- ROTKEEPER-GLUE-START -->
+- [dip-whitelist](dip-whitelist.html)
+- [rotkeeper](rotkeeper.html)
+<!-- ROTKEEPER-GLUE-END -->

@@ -20,3 +20,13 @@ HTML and CSS layouts that structure the static site output.
 - **[rotkeeper-blog.html](rotkeeper-blog.html)**: Layout template optimized for logs, blogs, and updates.
 - **[theme-dark.html](theme-dark.html)**: Dark-mode theme configuration.
 - **[theme-light.html](theme-light.html)**: Light-mode theme configuration.
+
+<!-- ROTKEEPER-GLUE-START -->
+- [rotkeeper-blog](rotkeeper-blog.html)
+- [rotkeeper-doc](rotkeeper-doc.html)
+- [theme-dark](theme-dark.html)
+- [theme-kawaii](theme-kawaii.html)
+- [theme-light](theme-light.html)
+- [theme-overgrown](theme-overgrown.html)
+- [theme-phosphor](theme-phosphor.html)
+<!-- ROTKEEPER-GLUE-END -->

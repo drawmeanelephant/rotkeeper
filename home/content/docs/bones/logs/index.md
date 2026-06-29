@@ -19,3 +19,6 @@ Logs are written under `bones/logs/` during execution.
 - **`rc-book.log`**: Traces compilation of books and script binders.
 - **`rc-render.log`**: Traces HTML rendering steps and Pandoc errors.
 - **`rc-scan.log`**: Reports integrity verification or metadata drift failures.
+
+<!-- ROTKEEPER-GLUE-START -->
+<!-- ROTKEEPER-GLUE-END -->
