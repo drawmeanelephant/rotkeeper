@@ -167,7 +167,20 @@ main() {
         echo "❌ ERROR: Template not found: $TEMPLATE_DIR/$TEMPLATE"
         continue
       fi
-      run pandoc "$mdfile" --from markdown --to html --template="$TEMPLATE_DIR/$TEMPLATE" --lua-filter="$PROJ_ROOT/bones/scripts/rewrite-links.lua" -o "$outfile"
+      if [[ "$reldir" == "." ]]; then
+          ASSETS_ROOT="./assets/"
+      else
+          depth=$(echo "$reldir" | tr -cd '/' | wc -c)
+          ASSETS_ROOT=$(printf '../%.0s' $(seq 1 $((depth + 1))))"assets/"
+      fi
+
+      run pandoc "$mdfile" \
+        --from markdown \
+        --to html \
+        --template="$TEMPLATE_DIR/$TEMPLATE" \
+        --variable=assets_root="$ASSETS_ROOT" \
+        --lua-filter="$PROJ_ROOT/bones/scripts/rewrite-links.lua" \
+        -o "$outfile"
       pages_rendered=$((pages_rendered + 1))
       log_manifest "$outfile"
     done < <(find "$CONTENT_DIR" -type f -name "*.md" -print)
