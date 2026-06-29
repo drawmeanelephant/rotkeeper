@@ -1,1 +1,21 @@
-<!DOCTYPE html><html><body>$body$</body></html>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>$title$</title>
+  <link rel="stylesheet" href="../../home/assets/css/rotkeeper.css">
+</head>
+<body class="rk-page rk-page--blog">
+  <div class="rk-shell">
+    <div class="rk-header">
+      <h1 class="rk-title">$title$</h1>
+      $if(description)$
+      <p class="rk-subtitle">$description$</p>
+      $endif$
+    </div>
+    <div class="rk-article">
+      $body$
+    </div>
+  </div>
+</body>
+</html>
