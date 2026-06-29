@@ -55,23 +55,50 @@ main() {
     fi
 
     DIR_NAME=$(basename "$DIR")
-
     if [[ "$DIR" == "$CONTENT_DIR" ]]; then
       DIR_NAME="Root Index"
     fi
 
-    log "INFO" "Generating glue for $DIR_NAME..."
+    # --- Path-Mirrored Folder Soul Ingestion ---
+    # e.g., "home/content/docs/bones" -> "bones/meta/docs/bones.soul.md"
+    REL_DIR_PATH="${DIR#"$CONTENT_DIR"/}"
 
-    cat <<EOF > "$INDEX_FILE"
+    if [[ -z "$REL_DIR_PATH" || "$REL_DIR_PATH" == "$DIR" ]]; then
+        SOUL_FILE="$META_DIR/rotkeeper.soul.md" # Root fallthrough
+    else
+        SOUL_FILE="$META_DIR/${REL_DIR_PATH}.soul.md"
+    fi
+
+    # Initialize baseline frontmatter defaults
+    SOUL_TITLE="Index of $DIR_NAME"
+    SOUL_TEMPLATE="rotkeeper-blog.html"
+    SOUL_EXTRA=""
+
+    if [[ -f "$SOUL_FILE" ]]; then
+        log "INFO" "💀 Found folder soul tombstone: $SOUL_FILE"
+        # Extract specific keys using Mike Farah's yq evaluation blocks safely
+        EXTRACTED_TITLE=$(yq eval '.title // ""' "$SOUL_FILE" 2>/dev/null | xargs || true)
+        EXTRACTED_TMPL=$(yq eval '.template // ""' "$SOUL_FILE" 2>/dev/null | xargs || true)
+        EXTRACTED_DESC=$(yq eval '.description // ""' "$SOUL_FILE" 2>/dev/null | xargs || true)
+
+        [[ -n "$EXTRACTED_TITLE" ]] && SOUL_TITLE="$EXTRACTED_TITLE"
+        [[ -n "$EXTRACTED_TMPL" ]] && SOUL_TEMPLATE="$EXTRACTED_TMPL"
+        [[ -n "$EXTRACTED_DESC" ]] && SOUL_EXTRA="description: \"$EXTRACTED_DESC\""
+    fi
+
+    log "INFO" "Generating glued metadata map for $DIR_NAME..."
+
+    cat <<CAT_EOF > "$INDEX_FILE"
 ---
-title: "Index of $DIR_NAME"
-template: rotkeeper-blog.html
+title: "$SOUL_TITLE"
+template: $SOUL_TEMPLATE
 rotkeeper_glued: true
+$SOUL_EXTRA
 ---
 
-# Index of $DIR_NAME
+# $SOUL_TITLE
 
-EOF
+CAT_EOF
 
     # List subdirectories
     find "$DIR" -maxdepth 1 -mindepth 1 -type d | sort | while read -r SUBDIR; do
@@ -85,7 +112,7 @@ EOF
       echo "- [$FILE_NAME]($FILE_NAME.html)" >> "$INDEX_FILE"
     done
 
-    log "INFO" "Created/Updated $INDEX_FILE"
+    log "INFO" "Created/Updated structured tomb index: $INDEX_FILE"
   done
 
   log "INFO" "Navigation glue applied successfully."
