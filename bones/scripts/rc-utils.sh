@@ -24,6 +24,8 @@ IFS=$'\n\t'
 # --- Global Flags ---
 DRY_RUN=false
 VERBOSE=false
+QUIET=true
+DEBUG=false
 HELP=false
 
 # Parse common flags: --dry-run, --verbose, --help
@@ -38,7 +40,9 @@ parse_flags() {
     case "$1" in
       --version|-v) echo "$(basename "$0") v${VERSION:-unknown}"; exit 0 ;;
       --dry-run)   DRY_RUN=true; shift ;;
-      --verbose)   VERBOSE=true; shift ;;
+      --verbose)   VERBOSE=true; QUIET=false; shift ;;
+      --quiet)     QUIET=true; shift ;;
+      --debug)     DEBUG=true; VERBOSE=true; QUIET=false; shift ;;
       --help|-h)   HELP=true; shift ;;
       *) break ;;
     esac
@@ -67,9 +71,25 @@ log() {
   local ts
   ts=$(date '+%Y-%m-%d %H:%M:%S')
   local msg="[$ts] [$level] $*"
-  echo "$msg"
+
+  # Three-tier verbosity filter for standard stdout
+  if [[ "$level" == "MARKER" ]]; then
+    echo "$*" >&3
+  elif [[ "$QUIET" == true && ( "$level" == "INFO" || "$level" == "DEBUG" || "$level" == "WARN" || "$level" == "DRY-RUN" ) ]]; then
+    : # Skip stdout
+  elif [[ "$level" == "DEBUG" && "$DEBUG" != true ]]; then
+    : # Skip stdout
+  else
+    echo "$msg"
+  fi
+
+  # Always write standard logs to file if present
   if [[ -n "${LOG_FILE:-}" ]]; then
-    echo "$msg" >> "$LOG_FILE"
+    if [[ "$level" == "MARKER" ]]; then
+      echo "[$ts] [MARKER] $*" >> "$LOG_FILE"
+    else
+      echo "$msg" >> "$LOG_FILE"
+    fi
   fi
 }
 
@@ -168,6 +188,8 @@ rk_init_script() {
 
   : "${DRY_RUN:=${RK_DRY:-false}}"
   : "${VERBOSE:=${RK_VERBOSE:-false}}"
+  : "${QUIET:=${RK_QUIET:-true}}"
+  : "${DEBUG:=${RK_DEBUG:-false}}"
   : "${HELP:=false}"
 
   parse_flags "$@"
@@ -179,11 +201,24 @@ rk_init_script() {
   init_log "$SCRIPTNAME"
   set_traps
 
+  # Save original stdout to fd 3 for MARKER bypass
+  exec 3>&1
+
   # Redirect output to log file as well
-  if (exec > >(true) 2>/dev/null); then
-    exec > >(tee -a "$LOG_FILE") 2>&1
+  if [[ "$QUIET" == true ]]; then
+    exec > "$LOG_FILE" 2>&1
   else
-    exec >> "$LOG_FILE" 2>&1
+    if (exec > >(true) 2>/dev/null); then
+      exec > >(tee -a "$LOG_FILE") 2>&1
+    else
+      exec >> "$LOG_FILE" 2>&1
+    fi
+  fi
+
+  # If debug is enabled, dump env and turn on tracing
+  if [[ "$DEBUG" == true ]]; then
+    env
+    set -x
   fi
 }
 

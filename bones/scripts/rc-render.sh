@@ -116,7 +116,7 @@ main() {
       exit 1
     fi
 
-    [[ "$VERBOSE" == true ]] && echo "🖋 Rendering tombs..." >&2
+    log "MARKER" "📄 Reanimating..."
 
     # Iterate over all markdown files in CONTENT_DIR, explicitly ignoring output/, bones/, and docs/
     while IFS= read -r mdfile; do
@@ -156,7 +156,7 @@ main() {
       outfile="$outdir/${base}.html"
       rel_md="${mdpath#"$PROJ_ROOT"/}"
       rel_out="${outfile#"$PROJ_ROOT"/}"
-      [[ "$VERBOSE" == true ]] && echo "📄 Rendering $rel_md → $rel_out"
+      log "INFO" "Rendering $rel_md → $rel_out"
       TEMPLATE=""
       TEMPLATE=$(yq --front-matter extract '.template' "$mdfile" 2>/dev/null | grep -v "^null$" || echo "")
       [[ -z "$TEMPLATE" ]] && TEMPLATE="$DEFAULT_TEMPLATE"
@@ -174,25 +174,24 @@ main() {
           ASSETS_ROOT=$(printf '../%.0s' $(seq 1 $((depth + 1))))"assets/"
       fi
 
+      PANDOC_ARGS=""
+      if [[ "$DEBUG" == true ]]; then
+        PANDOC_ARGS="--trace --dump-args --verbose"
+      fi
+
+      # shellcheck disable=SC2086
       run pandoc "$mdfile" \
         --from markdown \
         --to html \
         --template="$TEMPLATE_DIR/$TEMPLATE" \
         --variable=assets_root="$ASSETS_ROOT" \
         --lua-filter="$PROJ_ROOT/bones/scripts/rewrite-links.lua" \
-        -o "$outfile"
+        -o "$outfile" $PANDOC_ARGS
       pages_rendered=$((pages_rendered + 1))
       log_manifest "$outfile"
     done < <(find "$CONTENT_DIR" -type f -name "*.md" -print)
-    [[ "$VERBOSE" == true ]] && echo "✅ Render complete." >&2
+    log "MARKER" "✓ Exorcism complete."
 
-    # 📦 Archive the rendered output into a timestamped tar.gz tomb
-    ARCHIVE_DIR="$ARCHIVE_DIR"
-    mkdir -p "$ARCHIVE_DIR"
-    TOMB="tomb-$(date +%Y-%m-%d_%H%M).tar.gz"
-    run tar -czf "$ARCHIVE_DIR/$TOMB" -C "$PROJ_ROOT" "output"
-    [[ "$VERBOSE" == true ]] && echo "📦 Archived rendered output to bones/archive/$TOMB" >&2
-    log "INFO" "Archived output as bones/archive/$TOMB"
 
     # Compute and log summary
     end_ts=$(date +%s)
