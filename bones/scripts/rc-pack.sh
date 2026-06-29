@@ -202,7 +202,7 @@ main() {
           fi
 
           ABS_PATH=$(realpath "$mdfile")
-          REL_PATH="${mdfile#$ROOT_DIR/}"
+          REL_PATH="${mdfile#"$ROOT_DIR"/}"
           FM_CONTENT=$(yq --front-matter="extract" -o=json '.' "$mdfile" 2>/dev/null || echo "{}")
 
           JSON_ENTRY=$(jq -n --arg abs "$ABS_PATH" --arg rel "$REL_PATH" --argjson ast "$AST_CONTENT" --argjson fm "$FM_CONTENT" \
