@@ -110,3 +110,16 @@ It checks and it logs,
 Guards against clogs,
 And lights up the whole Rotkeeper land.
 -->
+
+## Necromancer's Notes
+<!-- DIP-SOUL-EXTRACTED: 2026-06-29T21:12:31Z -->
+
+
+### Bones of the Code
+The shared toolbox of rusty implements. It provides logging, color printing, and environment assertions for the rest of the scripts.
+
+### Restless Spirits
+Its attempts at portability often fall flat when encountering ancient or obscure shell environments. The 'robust' shell functions are one edge case away from a syntax error, especially when dealing with non-standard terminal emulators or deeply nested subshells.
+
+### Ritual Warnings
+Do not rely on these utilities in truly hostile environments. Their portability is an illusion maintained by sheer luck.

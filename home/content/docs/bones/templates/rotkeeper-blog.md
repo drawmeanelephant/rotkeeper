@@ -15,3 +15,13 @@ TODO: Provide a brief overview of what this file does.
 
 ## Details
 TODO: Provide technical details, usage instructions, or context.
+
+## Necromancer's Notes
+<!-- DIP-SOUL-EXTRACTED: 2026-06-29T21:12:31Z -->
+
+
+### Architectural Intent
+A Pandoc HTML template optimized for blog layout rendering. It provides metadata structures, date displays, and tag layouts for news and log articles.
+
+### Directory / File Schema Expectations
+This template expects standard variables like `$body$`, `$title$`, and `$date$`. If these fields are missing from the frontmatter of blog posts, rendering compiles empty strings without a layout fallback. Ensure all blog markdown files contain proper `date` and `title` variables in their frontmatter before rendering.

@@ -1,11 +1,14 @@
 ---
-title: "Theme Suite (x5)"
-description: "Defines CSS variables, fonts, and specific layouts for themes."
+title: "🟢 theme-phosphor Layout Soul"
+description: "CRT overlay interface configuration utilizing VT323 monospaced arrays for terminal emulation."
 status: "complete"
 ---
 
-### Architectural Intent
-The aesthetic and functional objective of the phosphor theme is absolute utilitarian nostalgia. It ruthlessly emulates a vintage green-phosphor CRT terminal, forcing users into a retro CLI-like reading environment. This is not for comfort; it is for immersion in the terminal decay. No bloat, no hydration, just raw phosphor burn on cold glass.
+# 🟢 theme-phosphor Layout Soul
 
-### Directory / File Schema Expectations
-Requires terminal styling variables.
+## Architectural Intent
+Provides a retro-brutalist CRT terminal layout block for users or agents checking logs inside a sandboxed environment.
+
+## Directory / File Schema Expectations
+- Requires accompanying layout styling in `home/assets/css/theme-phosphor.css`.
+- Must parse template flags dynamically without fracturing the common `$body$` structure.

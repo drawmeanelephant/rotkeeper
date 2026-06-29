@@ -95,3 +95,15 @@ With hashes in hand,
 It restores the land,
 Ensuring no file is at frost.
 -->
+## Necromancer's Notes
+<!-- DIP-SOUL-EXTRACTED: 2026-06-29T21:12:31Z -->
+
+
+### Bones of the Code
+The paranoid auditor. It checks files against `bones/manifest.txt` to see what has been stolen or what has crawled in uninvited.
+
+### Restless Spirits
+Its reporting mechanism for missing or orphaned files is easily confused by symlinks, bizarre characters in filenames, or simple directory restructurings. It cries wolf so often that its warnings are eventually ignored.
+
+### Ritual Warnings
+Do not treat its manifest as absolute truth. It is easily fooled by the slightest deviation in the physical realm.

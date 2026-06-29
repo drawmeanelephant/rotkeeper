@@ -15,3 +15,13 @@ TODO: Provide a brief overview of what this file does.
 
 ## Details
 TODO: Provide technical details, usage instructions, or context.
+
+## Necromancer's Notes
+<!-- DIP-SOUL-EXTRACTED: 2026-06-29T21:12:31Z -->
+
+
+### Architectural Intent
+The primary Pandoc HTML template for rendering static documentation pages. It handles layout rendering, side navigation, headers, footers, and scripts integration.
+
+### Directory / File Schema Expectations
+It is deeply dependent on the CSS structures declared in `rotkeeper.css`. If layout classes are renamed in the stylesheet, the documentation grid layout will crumble. Modify this layout only when updating global documentation typography or page headers.

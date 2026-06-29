@@ -73,3 +73,16 @@ With version in line,
 And logs all in time,
 It guides your next ritual by noon.
 -->
+
+## Necromancer's Notes
+<!-- DIP-SOUL-EXTRACTED: 2026-06-29T21:12:31Z -->
+
+
+### Bones of the Code
+The physician examining a corpse. It attempts to provide diagnostics and status reports by probing the repository and log files.
+
+### Restless Spirits
+If Git is not installed, it panics like a lost child. If the logs are empty, it assumes everything is perfectly fine, completely blind to the fact that the logging daemon might have silently crashed days ago.
+
+### Ritual Warnings
+Do not mistake silence for health. An empty log often means the patient is already dead.

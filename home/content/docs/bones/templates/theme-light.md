@@ -15,3 +15,13 @@ TODO: Provide a brief overview of what this file does.
 
 ## Details
 TODO: Provide technical details, usage instructions, or context.
+
+## Necromancer's Notes
+<!-- DIP-SOUL-EXTRACTED: 2026-06-29T21:12:31Z -->
+
+
+### Architectural Intent
+An HTML layout file that includes the light theme styles, establishing the standard light-mode aesthetic for rendered documents.
+
+### Directory / File Schema Expectations
+If colors are edited without reviewing dark-mode overrides, theme switching widgets will break. Verify contrast ratios on all text and code blocks.
