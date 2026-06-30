@@ -2,7 +2,6 @@
 target_file: "bones/templates/theme-phosphor.html"
 date: "2026-06-27T16:16:32Z"
 template: "rotkeeper-doc.html"
-status: "stub"
 version: "0.1.0"
 author: "Rotkeeper DIP"
 project: "Rotkeeper"
@@ -14,7 +13,7 @@ Documentation for `bones/templates/theme-phosphor.html`. This file was auto-gene
 
 ## Overview
 <!-- DIP-GENERATED-MARKER: Overview -->
-TODO: Provide a brief overview of what this file does.
+HTML template for the retro-brutalist CRT terminal overlay theme.
 
 ###### CLI Usage
 TODO: Stitch extracted help block.
@@ -45,11 +44,17 @@ TODO: Stitch extracted help block.
 TODO: Stitch ritual history.
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-06-29T21:18:16Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-06-30T14:44:02Z -->
 
 
 # 🟢 theme-phosphor Layout Soul
 
+## Architectural Intent
+Provides a retro-brutalist CRT terminal layout block for users or agents checking logs inside a sandboxed environment.
+
+## Directory / File Schema Expectations
+- Requires accompanying layout styling in `home/assets/css/theme-phosphor.css`.
+- Must parse template flags dynamically without fracturing the common `$body$` structure.
 ## Architectural Intent
 Provides a retro-brutalist CRT terminal layout block for users or agents checking logs inside a sandboxed environment.
 
