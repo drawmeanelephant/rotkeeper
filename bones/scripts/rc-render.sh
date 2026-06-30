@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-render.sh
 #  Purpose : Render markdown tombs into HTML using Pandoc and templates
-#  Version : 0.4.0.1
+#  Version : 0.4.0.2
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -151,6 +151,11 @@ main() {
 
       # --- File-Level Sidecar Resolution ---
       # Map: home/content/path/file.md -> bones/meta/path/file.soul.md
+      # Path traversal protection guard
+      if [[ "$relpath" == *"../"* ]]; then
+        log "ERROR" "Malicious directory traversal detected in path: $relpath"
+        exit 2
+      fi
       local soul_file="$META_DIR/${relpath%.md}.soul.md"
       local pandoc_inputs=()
 

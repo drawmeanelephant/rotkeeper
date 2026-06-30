@@ -36,7 +36,10 @@ META_DIR="$BONES_DIR/meta"
 CONFIG_TARGET="$CONFIG_DIR/rotkeeper.yaml"
 [[ ! -f "$CONFIG_TARGET" && -f "$ROOT_DIR/config/rotkeeper.yaml" ]] && CONFIG_TARGET="$ROOT_DIR/config/rotkeeper.yaml"
 
-LAYOUT_STYLE=$(yq eval '.layout_style // "crypt"' "$CONFIG_TARGET" 2>/dev/null || echo "crypt")
+LAYOUT_STYLE="crypt"
+if [[ -f "$CONFIG_TARGET" ]]; then
+  LAYOUT_STYLE=$(grep -E '^layout_style:' "$CONFIG_TARGET" | cut -d'"' -f2 || echo "crypt")
+fi
 
 case "${LAYOUT_STYLE,,}" in
   "busy")

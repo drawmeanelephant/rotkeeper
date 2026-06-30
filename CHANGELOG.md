@@ -111,3 +111,6 @@
 
 ## [0.4.0.1] - 2026-06-29
 - Enforce 3-tier verbosity, prune redundant render backups, and optimize JSON AST packaging
+
+## [0.4.0.2] - 2026-06-30
+- Optimize rc-env subshell parsing and harden sidecar path traversal boundaries
