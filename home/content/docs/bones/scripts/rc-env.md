@@ -13,7 +13,7 @@ asset_meta:
   name: "rc-env.md"
   author: "Filed Systems"
   project: "Rotkeeper"
-  license: "CC-BY-SA-4.2-unreal"
+  license: "All Rights Reserved"
   tracked: true
   version: "0.2.5"
 ---
