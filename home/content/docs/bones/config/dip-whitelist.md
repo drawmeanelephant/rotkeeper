@@ -16,7 +16,7 @@ Configuration file containing a whitelist of files to be audited by the Document
 Configuration file intended to be manually edited or read by Rotkeeper scripts.
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-06-30T14:44:02Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-06-30T15:49:36Z -->
 
 
 ### Architectural Intent

@@ -16,7 +16,7 @@ Lua filter for Pandoc to dynamically rewrite .md suffixes to .html for internal 
 Lua script intended to be used as a Pandoc filter.
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-06-30T14:44:02Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-06-30T15:49:36Z -->
 
 
 ### Bones of the Code

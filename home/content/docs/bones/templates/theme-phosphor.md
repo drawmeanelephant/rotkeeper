@@ -40,15 +40,21 @@ TODO: Stitch extracted help block.
 - **$WEB_DIR**: /app/output
 
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 0000-00-00T00:00:00Z -->
-TODO: Stitch ritual history.
+<!-- DIP-HISTORY-EXTRACTED: 2026-06-30T16:02:58Z -->
+No changelog entries found. This ritual has lived and died in silence.
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-06-30T14:44:02Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-06-30T15:49:36Z -->
 
 
 # 🟢 theme-phosphor Layout Soul
 
+## Architectural Intent
+Provides a retro-brutalist CRT terminal layout block for users or agents checking logs inside a sandboxed environment.
+
+## Directory / File Schema Expectations
+- Requires accompanying layout styling in `home/assets/css/theme-phosphor.css`.
+- Must parse template flags dynamically without fracturing the common `$body$` structure.
 ## Architectural Intent
 Provides a retro-brutalist CRT terminal layout block for users or agents checking logs inside a sandboxed environment.
 

@@ -40,11 +40,11 @@ TODO: Stitch extracted help block.
 - **$WEB_DIR**: /app/output
 
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 0000-00-00T00:00:00Z -->
-TODO: Stitch ritual history.
+<!-- DIP-HISTORY-EXTRACTED: 2026-06-30T16:02:58Z -->
+No changelog entries found. This ritual has lived and died in silence.
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-06-30T14:44:02Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-06-30T15:49:36Z -->
 
 
 ### Architectural Intent
