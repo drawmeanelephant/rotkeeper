@@ -1,6 +1,6 @@
 ---
 title: "Document Improvement Project (DIP) Matrix"
-date: "2026-06-30T16:03:37Z"
+date: "2026-06-30T19:57:56Z"
 template: "rotkeeper-doc.html"
 ---
 
@@ -28,7 +28,7 @@ This page tracks the documentation status of core project files.
 | `bones/scripts/rc-glue.sh` | [home/content/docs/bones/scripts/rc-glue.md](home/content/docs/bones/scripts/rc-glue.md) | 2026-06-30 | 2026-06-30 | unknown |
 | `rotkeeper.sh` | [home/content/docs/rotkeeper.md](home/content/docs/rotkeeper.md) | 2026-06-30 | 2026-06-30 | unknown |
 | `bones/config/rotkeeper.yaml` | [home/content/docs/bones/config/rotkeeper.md](home/content/docs/bones/config/rotkeeper.md) | 2026-06-30 | 2026-06-30 | unknown |
-| `bones/scripts/rc-sync-inbox.sh` | [home/content/docs/bones/scripts/rc-sync-inbox.md](home/content/docs/bones/scripts/rc-sync-inbox.md) | 2026-06-30 | 2026-06-30 | unknown |
+| `bones/scripts/rc-sync-inbox.sh` | [home/content/docs/bones/scripts/rc-sync-inbox.md](home/content/docs/bones/scripts/rc-sync-inbox.md) | 2026-06-30 | 2026-06-30 | complete |
 | `.gitignore` | [home/content/docs/.gitignore.md](home/content/docs/.gitignore.md) | 2026-06-30 | 2026-06-30 | unknown |
 | `bones/templates/rotkeeper-blog.html` | [home/content/docs/bones/templates/rotkeeper-blog.md](home/content/docs/bones/templates/rotkeeper-blog.md) | 2026-06-30 | 2026-06-30 | unknown |
 | `bones/scripts/rc-init.sh` | [home/content/docs/bones/scripts/rc-init.md](home/content/docs/bones/scripts/rc-init.md) | 2026-06-30 | 2026-06-30 | unknown |
