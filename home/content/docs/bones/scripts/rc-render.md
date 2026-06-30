@@ -118,7 +118,7 @@ And edges apart,
 Leaving no page in pending doom.
 -->
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-06-29T21:12:31Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-06-30T14:44:02Z -->
 
 
 ### Bones of the Code

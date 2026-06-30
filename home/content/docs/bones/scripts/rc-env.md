@@ -75,7 +75,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 Every script should source `rc-env.sh` to avoid path chaos.
 ```
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-06-29T21:12:31Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-06-30T14:44:02Z -->
 
 
 ### Bones of the Code

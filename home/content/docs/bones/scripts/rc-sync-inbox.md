@@ -2,7 +2,6 @@
 target_file: "bones/scripts/rc-sync-inbox.sh"
 date: "2026-06-27T16:16:32Z"
 template: "rotkeeper-doc.html"
-status: "stub"
 version: "0.1.0"
 author: "Rotkeeper DIP"
 project: "Rotkeeper"
@@ -14,7 +13,7 @@ Documentation for `bones/scripts/rc-sync-inbox.sh`. This file was auto-generated
 
 ## Overview
 <!-- DIP-GENERATED-MARKER: Overview -->
-TODO: Provide a brief overview of what this file does.
+Script to automate the AI documentation ingestion loop.
 
 ###### CLI Usage
 TODO: Stitch extracted help block.
@@ -45,7 +44,7 @@ TODO: Stitch extracted help block.
 TODO: Stitch ritual history.
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-06-29T21:12:31Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-06-30T14:44:02Z -->
 
 
 ### Bones of the Code

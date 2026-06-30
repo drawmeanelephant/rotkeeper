@@ -125,7 +125,7 @@ Then logged what survived,
 Ensuring no relic would stray.
 -->
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-06-29T21:12:31Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-06-30T14:44:02Z -->
 
 
 ### Bones of the Code

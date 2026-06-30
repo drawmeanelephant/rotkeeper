@@ -139,7 +139,7 @@ rotkeeper/
 <!-- Sora Prompt: "A ceremonial shovel labeled 'rc-init.sh' digging the first directory into a haunted filescape; skeletons holding folder trees, sigils glowing faintly on markdown pages." -->
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-06-29T21:12:31Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-06-30T14:44:02Z -->
 
 
 ### Bones of the Code
