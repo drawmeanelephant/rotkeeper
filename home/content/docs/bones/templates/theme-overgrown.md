@@ -44,7 +44,7 @@ TODO: Stitch extracted help block.
 No changelog entries found. This ritual has lived and died in silence.
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-06-30T15:49:36Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-06-30T17:53:41Z -->
 
 
 ### Architectural Intent

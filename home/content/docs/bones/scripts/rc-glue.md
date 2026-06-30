@@ -63,7 +63,7 @@ And the pages were all bound up tight.
 -->
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-06-30T15:49:36Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-06-30T17:53:41Z -->
 
 
 ### Bones of the Code

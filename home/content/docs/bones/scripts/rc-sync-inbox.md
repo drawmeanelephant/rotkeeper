@@ -3,6 +3,7 @@ target_file: "bones/scripts/rc-sync-inbox.sh"
 date: "2026-06-27T16:16:32Z"
 template: "rotkeeper-doc.html"
 version: "0.1.0"
+status: "complete"
 author: "Rotkeeper DIP"
 project: "Rotkeeper"
 ---
@@ -13,10 +14,20 @@ Documentation for `bones/scripts/rc-sync-inbox.sh`. This file was auto-generated
 
 ## Overview
 <!-- DIP-GENERATED-MARKER: Overview -->
-Script to automate the AI documentation ingestion loop.
+The inbox autopilot script automates the AI documentation ingestion loop. It scans the drop zone for incoming `.tar.gz` payloads and orchestrates the subsequent processing steps. This includes calling ingest to unpack payloads, dip to stitch documents, and render to publish the final HTML.
 
 ###### CLI Usage
-TODO: Stitch extracted help block.
+```bash
+rc-sync-inbox.sh — Inbox Autopilot
+Automates the AI documentation ingestion loop: scan → ingest → dip → render
+
+Usage: rc-sync-inbox.sh [options]
+Options:
+  --dry-run     Preview phases without executing
+  --verbose     Show detailed logs
+  --help, -h    Show this message
+  --version, -v Show version
+```
 
 ## Environment
 <!-- DIP-ENV-EXTRACTED: 2026-06-27 -->
@@ -44,7 +55,7 @@ TODO: Stitch extracted help block.
 No changelog entries found. This ritual has lived and died in silence.
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-06-30T15:49:36Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-06-30T19:57:56Z -->
 
 
 ### Bones of the Code

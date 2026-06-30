@@ -5,12 +5,31 @@
 #  Purpose : Inbox Autopilot - automates AI documentation ingestion loop
 # ============================================================
 
+SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPTDIR}/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
+
+show_help() {
+  cat <<EOF
+rc-sync-inbox.sh — Inbox Autopilot
+Automates the AI documentation ingestion loop: scan → ingest → dip → render
+
+Usage: rc-sync-inbox.sh [options]
+Options:
+  --dry-run     Preview phases without executing
+  --verbose     Show detailed logs
+  --help, -h    Show this message
+  --version, -v Show version
+EOF
+  exit 0
+}
+
+VERSION="${ROTKEEPER_VERSION:-0.4.0.2}"
+rk_init_script "rc-sync-inbox" "$@"
+require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONTENT_DIR LOG_DIR
 set -euo pipefail
+IFS=$'\n\t'
 
-# Source standard environment variables
-source "$(dirname "${BASH_SOURCE[0]}")/rc-env.sh"
-
-echo "Phase 1: Scanning drop zone..."
+log "INFO" "Phase 1: Scanning drop zone..."
 INBOX_DIR="$ROOT_DIR/messages-from-my-friends"
 
 # Scan for payloads
@@ -19,30 +38,35 @@ archives=("$INBOX_DIR"/*.tar.gz)
 shopt -u nullglob
 
 if [[ ${#archives[@]} -eq 0 ]]; then
-    echo "No pending payloads found in $INBOX_DIR. Exiting gracefully."
-
+    log "INFO" "No pending payloads found in $INBOX_DIR. Exiting gracefully."
     exit 0
 fi
 
-echo "Found ${#archives[@]} payload(s)."
+log "INFO" "Found ${#archives[@]} payload(s)."
 
-echo "Phase 2: Unpack & Ingest..."
-if ! "$ROOT_DIR/rotkeeper.sh" ingest; then
-    echo "Error: Ingest ritual failed."
-    exit 1
+log "INFO" "Phase 2: Unpack & Ingest..."
+if [[ "$DRY_RUN" != true ]]; then
+    if ! "$ROOT_DIR/rotkeeper.sh" ingest; then
+        log "ERROR" "Ingest ritual failed."
+        exit 1
+    fi
 fi
 
-echo "Phase 3: Stitch the Docs (Auto-DIP)..."
-if ! "$ROOT_DIR/rotkeeper.sh" dip; then
-    echo "Error: DIP ritual failed."
-    exit 1
+log "INFO" "Phase 3: Stitch the Docs (Auto-DIP)..."
+if [[ "$DRY_RUN" != true ]]; then
+    if ! "$ROOT_DIR/rotkeeper.sh" dip; then
+        log "ERROR" "DIP ritual failed."
+        exit 1
+    fi
 fi
 
-echo "Phase 4: Publish the HTML..."
-if ! "$ROOT_DIR/rotkeeper.sh" render; then
-    echo "Error: Render ritual failed."
-    exit 1
+log "INFO" "Phase 4: Publish the HTML..."
+if [[ "$DRY_RUN" != true ]]; then
+    if ! "$ROOT_DIR/rotkeeper.sh" render; then
+        log "ERROR" "Render ritual failed."
+        exit 1
+    fi
 fi
 
-echo "Inbox Autopilot completed successfully!"
+log "INFO" "Inbox Autopilot completed successfully!"
 exit 0
