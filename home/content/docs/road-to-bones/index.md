@@ -17,7 +17,7 @@ asset_meta:
   author: "Filed Systems"
   project: "Rotkeeper"
   tracked: true
-  license: "CC-BY-SA-4.2-unreal"
+  license: "All Rights Reserved"
 ---
 
 ## 🧼 Rotkeeper Reseed Summary (v0.2.0-pre)

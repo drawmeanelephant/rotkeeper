@@ -14,7 +14,7 @@ asset_meta:
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
-  license: "CC-BY-SA-4.2-unreal"
+  license: "All Rights Reserved"
 ---
 
 <!--

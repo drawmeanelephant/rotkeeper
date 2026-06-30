@@ -177,7 +177,7 @@ asset_meta:
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
-  license: "CC-BY-SA-4.2-unreal"
+  license: "All Rights Reserved"
 ---
 
 <!--
@@ -483,7 +483,7 @@ asset_meta:
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
-  license: "CC-BY-SA-4.2-unreal"
+  license: "All Rights Reserved"
 ---
 
 
@@ -665,7 +665,7 @@ asset_meta:
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
-  license: "CC-BY-SA-4.2-unreal"
+  license: "All Rights Reserved"
 ---
 
 `rc-book.sh` is the singular binder ritual for Rotkeeper. It replaces all prior book scripts (`rc-scriptbook.sh`, `rc-docbook.sh`, `rc-configbook.sh`) and now produces canonical markdown reports for resurrection, rendering, or collapse.
@@ -737,7 +737,7 @@ asset_meta:
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
-  license: "CC-BY-SA-4.2-unreal"
+  license: "All Rights Reserved"
 ---
 
 <!--
@@ -821,7 +821,7 @@ asset_meta:
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
-  license: "CC-BY-SA-4.2-unreal"
+  license: "All Rights Reserved"
 ---
 
 # rc-cleanup-bones.sh
@@ -969,7 +969,7 @@ asset_meta:
   name: "rc-env.md"
   author: "Filed Systems"
   project: "Rotkeeper"
-  license: "CC-BY-SA-4.2-unreal"
+  license: "All Rights Reserved"
   tracked: true
   version: "0.2.5"
 ---
@@ -1063,7 +1063,7 @@ asset_meta:
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
-  license: "CC-BY-SA-4.2-unreal"
+  license: "All Rights Reserved"
 ---
 
 <!--
@@ -1143,7 +1143,7 @@ asset_meta:
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
-  license: "CC-BY-SA-4.2-unreal"
+  license: "All Rights Reserved"
 ---
 
 <!--
@@ -1228,7 +1228,7 @@ asset_meta:
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
-  license: "CC-BY-SA-4.2-unreal"
+  license: "All Rights Reserved"
 ---
 
 # 🧱 rc-init — Ritual Bootstrap
@@ -1437,7 +1437,7 @@ asset_meta:
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
-  license: "CC-BY-SA-4.2-unreal"
+  license: "All Rights Reserved"
 ---
 
 <!-- Begin Ritual Script Documentation -->
@@ -1579,7 +1579,7 @@ asset_meta:
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
-  license: "CC-BY-SA-4.2-unreal"
+  license: "All Rights Reserved"
 ---
 
 <!--
@@ -1664,7 +1664,7 @@ asset_meta:
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
-  license: "CC-BY-SA-4.2-unreal"
+  license: "All Rights Reserved"
 ---
 
 <!--
@@ -1808,7 +1808,7 @@ asset_meta:
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
-  license: "CC-BY-SA-4.2-unreal"
+  license: "All Rights Reserved"
 ---
 
 # `rc-reseed.sh`
@@ -1919,7 +1919,7 @@ asset_meta:
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
-  license: "CC-BY-SA-4.2-unreal"
+  license: "All Rights Reserved"
 ---
 
 <!-- Begin Ritual Script Documentation -->
@@ -2097,7 +2097,7 @@ asset_meta:
   project: "Rotkeeper"
   type: "script-doc"
   tracked: true
-  license: "CC-BY-SA-4.2-unreal"
+  license: "All Rights Reserved"
 ---
 ---
 
@@ -2287,7 +2287,7 @@ asset_meta:
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
-  license: "CC-BY-SA-4.2-unreal"
+  license: "All Rights Reserved"
 ---
 
 # rc-utils.sh
@@ -2873,7 +2873,7 @@ asset_meta:
   author: "Filed Systems"
   project: "Rotkeeper"
   tracked: true
-  license: "CC-BY-SA-4.2-unreal"
+  license: "All Rights Reserved"
 ---
 
 # 📖 Rotkeeper Documentation Index
@@ -2983,7 +2983,7 @@ asset_meta:
   author: "Filed Systems"
   project: "Rotkeeper"
   tracked: true
-  license: "CC-BY-SA-4.2-unreal"
+  license: "All Rights Reserved"
 ---
 # 🧟 Rotkeeper Maintainer Onboarding
 
@@ -3073,7 +3073,7 @@ asset_meta:
   author: "Filed Systems"
   project: "Rotkeeper"
   tracked: true
-  license: "CC-BY-SA-4.2-unreal"
+  license: "All Rights Reserved"
 ---
 
 ## 🧼 Rotkeeper Reseed Summary (v0.2.0-pre)
@@ -3637,7 +3637,7 @@ asset_meta:
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
-  license: "CC-BY-SA-4.2-unreal"
+  license: "All Rights Reserved"
 ---
 
 # 🤖 setup-jules.sh — Environment Prep

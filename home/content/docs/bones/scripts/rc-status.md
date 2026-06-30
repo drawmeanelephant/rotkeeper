@@ -19,7 +19,7 @@ asset_meta:
   project: "Rotkeeper"
   type: "script-doc"
   tracked: true
-  license: "CC-BY-SA-4.2-unreal"
+  license: "All Rights Reserved"
 ---
 ---
 
