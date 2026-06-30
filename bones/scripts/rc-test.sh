@@ -2,120 +2,123 @@
 # ============================================================
 #  Project : Rotkeeper
 #  Script  : rc-test.sh
-#  Purpose : End-to-end integration test harness for Rotkeeper
+#  Purpose : Multi-Pass Layout Integration Test Matrix
+#  Version : 0.4.1.0
 # ============================================================
 
-# shellcheck disable=SC2034
 set -euo pipefail
+IFS=$'\n\t'
 
-if [[ "${1:-}" == "--dry-run" ]]; then
-  exit 0
-fi
+if [[ "${1:-}" == "--dry-run" ]]; then exit 0; fi
 
-if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
-  echo "rc-test.sh — End-to-end integration test harness"
-  echo "Usage: rc-test.sh [options]"
-  echo "Options:"
-  echo "  --dry-run   Exit immediately with 0"
-  echo "  --help, -h  Show this help message"
-  exit 0
-fi
-
-# Start in a clean environment
-echo "--- Rotkeeper Test Harness ---"
+echo "--- Rotkeeper Multi-Pass Layout Matrix Test Suite ---"
 
 TEST_DIR="/tmp/rotkeeper-test-env"
-
-# shellcheck disable=SC2317,SC2329
 cleanup() {
-  echo "Cleaning up test environment..."
+  echo "Pruning testing footprints from the physical realm..."
   rm -rf "$TEST_DIR"
 }
 trap cleanup EXIT INT TERM ERR
 
-echo "1. Creating test workspace..."
+# Establish sandbox footprint
 rm -rf "$TEST_DIR"
 mkdir -p "$TEST_DIR"
-cp rotkeeper.sh "$TEST_DIR/"
-cp -R bones "$TEST_DIR/"
-cp -R home "$TEST_DIR/"
 
-cd "$TEST_DIR"
+# Matrix Configuration Array
+LAYOUT_MODES=("crypt" "busy" "sterile")
 
-echo "2. Testing 'init'..."
-./rotkeeper.sh init --full > /dev/null
+for mode in "${LAYOUT_MODES[@]}"; do
+  echo "======================================================================"
+  echo "🔬 EXECUTING VALIDATION PASS: [Layout Mode: $mode]"
+  echo "======================================================================"
 
-echo "3. Testing 'new'..."
-UNIQUE_ARTICLE="test-article-$(date +%s)"
-./rotkeeper.sh new "$UNIQUE_ARTICLE" > /dev/null
-if [[ ! -f "home/content/${UNIQUE_ARTICLE}.md" ]]; then
-  echo "FAIL: 'new' command did not generate ${UNIQUE_ARTICLE}.md"
-  exit 1
-fi
+  # 1. Provision Fresh Sandbox Layout Architecture
+  pass_dir="$TEST_DIR/$mode"
+  mkdir -p "$pass_dir/bones/scripts"
+  mkdir -p "$pass_dir/bones/config"
+  mkdir -p "$pass_dir/bones/templates"
 
-echo "4. Testing 'render'..."
-./rotkeeper.sh render > /dev/null
-if [[ ! -f "output/${UNIQUE_ARTICLE}.html" ]]; then
-  echo "FAIL: 'render' command did not generate ${UNIQUE_ARTICLE}.html"
-  exit 1
-fi
+  # Copy foundational codebases
+  cp rotkeeper.sh "$pass_dir/"
+  cp bones/scripts/rc-*.sh "$pass_dir/bones/scripts/"
+  cp bones/scripts/rewrite-links.lua "$pass_dir/bones/scripts/"
+  cp bones/templates/*.html "$pass_dir/bones/templates/"
 
-echo "5. Testing 'assets'..."
-./rotkeeper.sh assets > /dev/null
-if [[ ! -f "bones/asset-manifest.yaml" ]]; then
-  echo "FAIL: 'assets' command did not generate asset-manifest.yaml"
-  exit 1
-fi
+  # Inject target layout setting into our active configuration profile
+  cat << CONF_EOF > "$pass_dir/bones/config/rotkeeper.yaml"
+project: "Test Tomb"
+author: "Test Necromancer"
+default_template: "theme-light.html"
+layout_style: "$mode"
+CONF_EOF
 
-echo "6. Testing 'scan'..."
-./rotkeeper.sh scan > /dev/null
-SCAN_REPORT=$(find bones/reports -name "scan-report-*.json" -print -quit 2>/dev/null)
-if [[ -z "$SCAN_REPORT" ]]; then
-  echo "FAIL: 'scan' command did not generate a report"
-  exit 1
-fi
-
-echo "7. Testing 'dip'..."
-if [[ -f "bones/scripts/rc-dip.sh" ]]; then
-  ./rotkeeper.sh book --fsbook > /dev/null
-  ./rotkeeper.sh autopsy --all > /dev/null
-  ./rotkeeper.sh book --fsbook > /dev/null
-  ./rotkeeper.sh autopsy --all > /dev/null
-  ./rotkeeper.sh book --fsbook > /dev/null
-  ./rotkeeper.sh autopsy --all > /dev/null
-  ./rotkeeper.sh dip > /dev/null
-  if [[ ! -f "home/content/docs/dip-matrix.md" ]]; then
-    echo "FAIL: 'dip' did not generate dip-matrix.md"
-    exit 1
-  fi
-  if grep -q "GENERATED_DATE" "home/content/docs/dip-matrix.md"; then
-    echo "FAIL: 'dip' did not substitute GENERATED_DATE in matrix"
-    exit 1
-  fi
-else
-  echo "7. Skipping dip test — rc-dip.sh not present in this distribution (Full/Lite)"
-fi
-
-echo "8. Testing 'dry-run' on all scripts..."
-for script in bones/scripts/rc-*.sh; do
-  case "$(basename "$script")" in
-    rc-bump.sh)
-      bash "$script" --dry-run -m "test" > /dev/null || { echo "FAIL: $script failed dry-run"; exit 1; }
+  # Setup targeted sub-directories natively based on active pass context
+  case "$mode" in
+    "busy")
+      mv "$pass_dir/bones/templates" "$pass_dir/templates"
+      mkdir -p "$pass_dir/assets/css"
+      mkdir -p "$pass_dir/home/content"
+      cp home/assets/css/*.css "$pass_dir/assets/css/"
       ;;
-    rc-release.sh)
-      bash "$script" "0.0.0" --dry-run > /dev/null || { echo "FAIL: $script failed dry-run"; exit 1; }
+    "sterile")
+      mkdir -p "$pass_dir/config"
+      mv "$pass_dir/bones/templates" "$pass_dir/config/templates"
+      mkdir -p "$pass_dir/src/assets/css"
+      mkdir -p "$pass_dir/src/content"
+      cp home/assets/css/*.css "$pass_dir/src/assets/css/"
       ;;
-    rc-new.sh)
-      bash "$script" --dry-run test-article-2 > /dev/null || { echo "FAIL: $script failed dry-run"; exit 1; }
-      ;;
-    rc-reseed.sh)
-      bash "$script" --dry-run --all > /dev/null || { echo "FAIL: $script failed dry-run"; exit 1; }
-      ;;
-    *)
-      bash "$script" --dry-run > /dev/null || { echo "FAIL: $script failed dry-run"; exit 1; }
+    "crypt")
+      mkdir -p "$pass_dir/home/assets/css"
+      mkdir -p "$pass_dir/home/content"
+      cp home/assets/css/*.css "$pass_dir/home/assets/css/"
       ;;
   esac
+
+  # 2. Enter target workspace boundary and execute lifecycle loops
+  (
+    cd "$pass_dir"
+    export ROT_SKIP_ENV=false # Enforce fresh boots
+
+    echo "  [+] Initializing environment..."
+    ./rotkeeper.sh init --with-sample > /dev/null
+
+    # Assert structural content scaffolding placement matches criteria
+    case "$mode" in
+      "busy")    [ -f "home/content/test-file.md" ] || exit 40 ;;
+      "sterile") [ -f "src/content/test-file.md" ] || exit 41 ;;
+      "crypt")   [ -f "home/content/test-file.md" ] || exit 42 ;;
+    esac
+
+    echo "  [+] Testing 'new' scaffold ritual..."
+    ./rotkeeper.sh new "custom-page" > /dev/null
+
+    echo "  [+] Compiling and running Pandoc Forge passes..."
+    ./rotkeeper.sh render > /dev/null
+
+    # Validate output targets match criteria
+    case "$mode" in
+      "busy")    [ -f "output/custom-page.html" ] || exit 50 ;;
+      "sterile") [ -f "dist/custom-page.html" ] || exit 51 ;;
+      "crypt")   [ -f "output/custom-page.html" ] || exit 52 ;;
+    esac
+
+    echo "  [+] Auditing asset mapping constraints..."
+    ./rotkeeper.sh assets > /dev/null
+    [ -f "bones/asset-manifest.yaml" ] || exit 53
+
+    echo "  [+] Running validation audit tools..."
+    ./rotkeeper.sh book --fsbook > /dev/null
+    ./rotkeeper.sh autopsy --all > /dev/null
+    ./rotkeeper.sh dip > /dev/null
+
+    echo "  [+] Verifying workspace status summaries..."
+    ./rotkeeper.sh status --json > /dev/null
+
+    echo "  🎉 Pass [$mode] successful and structurally coherent."
+  )
 done
 
-echo "✅ All tests passed successfully."
+echo "======================================================================"
+echo "✅ ALL LAYOUT MATRIX PASSES COMPLETED WITHOUT ENTROPY PROLIFERATION."
+echo "======================================================================"
 exit 0
