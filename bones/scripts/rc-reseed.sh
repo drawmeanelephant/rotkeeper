@@ -91,14 +91,30 @@ for INPUT in "${DEFAULT_BOOKS[@]}"; do
   [[ -f "$INPUT" ]] || { echo "⚠️  Skipping missing input: $INPUT"; continue; }
   echo "📖 Reading from: $INPUT"
 
-  # State
+  # State tracking variables
   outfile=""
   in_block=false
+  in_code_fence=false
   skip_next=0
 
   while IFS= read -r line || [[ -n "$line" ]]; do
-    if [[ "$line" =~ ^\<\!\-\-\ START(:)?\ ([^[:space:]]+)\ \-\-\>$ ]]; then
-      relpath="${BASH_REMATCH[2]}"
+    # Track whether we are inside an active markdown code block
+    if [[ "$line" =~ ^\`\`\` ]]; then
+      if [[ "$in_code_fence" == true ]]; then
+        in_code_fence=false
+      else
+        in_code_fence=true
+      fi
+      # If we're inside a file block, we still write the fence back to the script
+      if [[ "$in_block" == true && "$DRY_RUN" == false ]]; then
+        echo "$line" >> "$outfile"
+      fi
+      continue
+    fi
+
+    # ONLY catch path markers if they appear OUTSIDE of code fences
+    if [[ "$in_code_fence" == false && "$line" =~ ^\<\!\-\-\ START\ ([^[:space:]]+)\ \-\-\>$ ]]; then
+      relpath="${BASH_REMATCH[1]}"
       outfile="$ROOT_DIR/$relpath"
       mkdir -p "$(dirname "$outfile")"
       if [[ "$DRY_RUN" == false ]]; then
@@ -106,11 +122,11 @@ for INPUT in "${DEFAULT_BOOKS[@]}"; do
       fi
       echo "📁 Resurrecting → $relpath"
       in_block=true
-      skip_next=2
+      skip_next=0 # Frontmatter processing handled natively now
       continue
     fi
 
-    if [[ "$line" =~ ^\<\!\-\-\ END(:)?\ ([^[:space:]]+)\ \-\-\>$ ]]; then
+    if [[ "$in_code_fence" == false && "$line" =~ ^\<\!\-\-\ END\ ([^[:space:]]+)\ \-\-\>$ ]]; then
       if [[ "$DRY_RUN" == false && "$outfile" == *".sh" ]]; then
         chmod +x "$outfile" 2>/dev/null || true
       fi
@@ -118,16 +134,8 @@ for INPUT in "${DEFAULT_BOOKS[@]}"; do
       continue
     fi
 
-    if (( skip_next > 0 )); then
-      ((skip_next--))
-      continue
-    fi
-
+    # Write the earthly code lines back into the resurrected files
     if [[ "$in_block" == true && "$DRY_RUN" == false ]]; then
-      # Skip markdown code fences
-      if [[ "$line" =~ ^\`\`\` ]]; then
-        continue
-      fi
       echo "$line" >> "$outfile"
     fi
   done < "$INPUT"
