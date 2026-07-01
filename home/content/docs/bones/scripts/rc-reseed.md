@@ -94,7 +94,7 @@ No database. No runtime.
 Just bones. Just bash. Just right.
 -->
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-01T02:47:18Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-01T10:11:53Z -->
 
 
 ### Bones of the Code
@@ -105,9 +105,8 @@ The regex used to split the binder is a ticking time bomb. If the source materia
 
 ### Ritual Warnings
 Pray that your code never resembles the delimiter. The reconstruction process is only as reliable as the uniqueness of its markers.
-
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-01T03:09:08Z -->
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-01T10:32:34Z -->
 
 - - `rc-reseed.sh` now supports resurrection from scriptbook, docbook, and configbook
 - - `rc-reseed.sh` takes `--all` and restores from markdown binders, not archives

@@ -22,7 +22,7 @@ Document Improvement Project (DIP) engine script to audit documentation coverage
 ```
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-01T02:47:18Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-01T10:11:53Z -->
 
 
 ### Bones of the Code
@@ -33,8 +33,9 @@ The newly refactored ingestion logic is a snake eating its own tail. It is highl
 
 ### Ritual Warnings
 Do not feed it self-referential sidecars. Handle empty notes with care, or the engine will lock itself in a state of endless contemplation.
-
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-01T03:09:08Z -->
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-01T10:32:34Z -->
 
+- - Fix rc-dip.sh to properly stitch empty sidecars.
+- - Streamline rc-dip.sh parsing logic.
 - - Refactor rc-dip.sh to extract ritual history reliably.

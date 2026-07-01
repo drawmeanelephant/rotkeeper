@@ -67,7 +67,7 @@ And committed the code really fast.
 -->
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-01T02:47:18Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-01T10:11:53Z -->
 
 
 ### Bones of the Code
@@ -78,7 +78,6 @@ Running this in a dirty Git tree will indiscriminately swallow your uncommitted 
 
 ### Ritual Warnings
 Never invoke this ritual in a dirty working directory. If you attach this to an automated pipeline, ensure you have safeguards against infinite commit loops, or face the wrath of the repository maintainers.
-
 ## Ritual History
 <!-- DIP-HISTORY-EXTRACTED: 0000-00-00T00:00:00Z -->
 TODO: Stitch ritual history.

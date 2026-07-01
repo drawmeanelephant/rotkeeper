@@ -63,7 +63,7 @@ And the pages were all bound up tight.
 -->
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-01T02:47:18Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-01T10:11:53Z -->
 
 
 ### Bones of the Code
@@ -74,9 +74,8 @@ String replacements using `awk` or `sed` are fundamentally fragile. Throw in a s
 
 ### Ritual Warnings
 Sanitize your inputs. If your injected code contains special characters, prepare for the regex parser to summon something unholy.
-
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-01T03:09:08Z -->
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-01T10:32:34Z -->
 
 - - fix: updated rc-glue.sh to support non-destructive overwriting using rotkeeper_glued frontmatter
 - * `v0.3.0.9` - (2026-06-15 15:22) - fix: updated rc-glue.sh to support non-destructive overwriting using rotkeeper_glued frontmatter

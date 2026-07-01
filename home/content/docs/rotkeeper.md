@@ -129,13 +129,13 @@ Note: The 'bones/' directory is an internal system directory. Do not edit it unl
 - **$WEB_DIR**: /app/output
 
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-01T02:47:18Z -->
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-01T10:32:34Z -->
 
 - * ✅ `rotkeeper.sh` — version bumped, full dispatch implemented
 - | Set `VERSION="0.2.0-pre"` in `rotkeeper.sh`               | Locks in your timeline           |
 - └── rotkeeper.sh
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-01T02:47:18Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-01T10:11:53Z -->
 
 
 ### Architectural Intent

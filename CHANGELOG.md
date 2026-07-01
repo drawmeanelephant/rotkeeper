@@ -1,3 +1,20 @@
+
+## [0.4.0.4] - 2026-07-01
+- Optimize rc-scan.sh to run faster on large filesystems.
+- Enhance rc-ingest.sh to support multiple ingest sources.
+- Update rc-pack.sh to include all config variations.
+- Improve rc-render.sh error handling during template fallback.
+- Fix rc-dip.sh to properly stitch empty sidecars.
+- Optimize rc-env.sh variable resolution order.
+
+## [0.4.0.5] - 2026-07-01
+- Added parallel processing to rc-render.sh.
+- Enhance rc-pack.sh compression algorithm for smaller tarballs.
+- Improve rc-scan.sh orphaned file reporting format.
+- Refactor rc-ingest.sh validation steps.
+- Streamline rc-dip.sh parsing logic.
+- Remove redundant subshells from rc-env.sh.
+
 ## [v0.2.6-pre] - 2025-06-05
 
 ### Added
