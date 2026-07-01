@@ -139,7 +139,7 @@ rotkeeper/
 <!-- Sora Prompt: "A ceremonial shovel labeled 'rc-init.sh' digging the first directory into a haunted filescape; skeletons holding folder trees, sigils glowing faintly on markdown pages." -->
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-06-30T17:53:41Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-01T02:47:18Z -->
 
 
 ### Bones of the Code
@@ -150,3 +150,8 @@ Its zealotry knows no bounds. When invoked with `--force`, it will violently ove
 
 ### Ritual Warnings
 Use `--force` only when you are entirely prepared to salt the earth and start anew. Keep backups of your configuration.
+
+## Ritual History
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-01T03:09:08Z -->
+
+- - fix: correct home/content path resolution in rc-init.sh

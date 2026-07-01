@@ -67,7 +67,7 @@
 - Add nice clean light and dark themes, set light as default
 
 ## [0.3.0.14] - 2026-06-15
-- Strip frontmatter overrides and fix rc-render to use rotkeeper.yaml
+- Strip frontmatter overrides and fix rc-render.sh to use rotkeeper.yaml
 
 ## [0.3.0.15] - 2026-06-15
 - Cleaned up deprecated AI script bloat and fixed Pandoc markdown link rendering
@@ -76,7 +76,7 @@
 - Purged ghost scripts and perfectly synchronized documentation with active rituals
 
 ## [0.3.0.17] - 2026-06-15
-- fix: correct home/content path resolution in rc-init
+- fix: correct home/content path resolution in rc-init.sh
 
 ## [0.3.0.18] - 2026-06-15
 - Audit Refactoring Phase 1: standardized scaffolding, tightened day-1 UX, and simplified path logic
@@ -113,4 +113,12 @@
 - Enforce 3-tier verbosity, prune redundant render backups, and optimize JSON AST packaging
 
 ## [0.4.0.2] - 2026-06-30
-- Optimize rc-env subshell parsing and harden sidecar path traversal boundaries
+- Optimize rc-env.sh subshell parsing and harden sidecar path traversal boundaries
+
+## [0.4.0.3] - 2026-06-30
+- Ensure rc-render.sh outputs proper HTML with valid tags.
+- Update rc-pack.sh to handle content flag natively.
+- Optimize rc-scan.sh to quickly analyze missing references.
+- Enhance rc-ingest.sh to validate payload checksums safely.
+- Refactor rc-dip.sh to extract ritual history reliably.
+- Optimize rc-env.sh to prevent unnecessary fork subshells.

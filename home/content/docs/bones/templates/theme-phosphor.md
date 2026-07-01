@@ -44,11 +44,17 @@ TODO: Stitch extracted help block.
 No changelog entries found. This ritual has lived and died in silence.
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-06-30T17:53:41Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-01T02:47:18Z -->
 
 
 # 🟢 theme-phosphor Layout Soul
 
+## Architectural Intent
+Provides a retro-brutalist CRT terminal layout block for users or agents checking logs inside a sandboxed environment.
+
+## Directory / File Schema Expectations
+- Requires accompanying layout styling in `home/assets/css/theme-phosphor.css`.
+- Must parse template flags dynamically without fracturing the common `$body$` structure.
 ## Architectural Intent
 Provides a retro-brutalist CRT terminal layout block for users or agents checking logs inside a sandboxed environment.
 

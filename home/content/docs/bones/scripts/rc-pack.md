@@ -125,7 +125,7 @@ Then logged what survived,
 Ensuring no relic would stray.
 -->
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-06-30T17:53:41Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-01T02:47:18Z -->
 
 
 ### Bones of the Code
@@ -136,3 +136,9 @@ Its absolute reliance on `jq` means that without it, the metadata creation proce
 
 ### Ritual Warnings
 Ensure `jq` is installed and functioning. Beware of injecting raw, unescaped text into the JSON metadata fields.
+
+## Ritual History
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-01T03:09:08Z -->
+
+- - Update rc-pack.sh to handle content flag natively.
+- * ✅ `rc-pack.sh` — respects `--self`, packs full tombkits correctly
