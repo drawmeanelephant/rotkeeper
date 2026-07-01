@@ -110,12 +110,12 @@ runscriptbookfull() {
   { find "$ROOT_DIR/bones/scripts" -maxdepth 1 -type f -name "rc-*.sh"; find "$ROOT_DIR" -maxdepth 1 -type f -name "rotkeeper.sh"; } | sort | while read -r script; do
     rel="${script#"$ROOT_DIR"/}"
     {
-      echo "<!-- START $rel -->"
+      echo "<!-- START $rel::$BOOK_SUFFIX -->"
       echo ""
       echo '```bash'
       cat "$script"
       echo '```'
-      echo "<!-- END $rel -->"
+      echo "<!-- END $rel::$BOOK_SUFFIX -->"
       echo ""
     } >> "$OUT"
   done
@@ -144,7 +144,7 @@ rundocbook() {
   for file in "${docfiles[@]}"; do
     rel="${file#"$ROOT_DIR"/}"
     {
-      echo "<!-- START $rel -->"
+      echo "<!-- START $rel::$BOOK_SUFFIX -->"
       echo ""
       awk -v dostrip="$STRIPMODE" '
         BEGIN { inyaml=0 }
@@ -152,7 +152,7 @@ rundocbook() {
         inyaml==1 { if (dostrip=="true") next; print; next }
         { print }
       ' "$file"
-      echo "<!-- END $rel -->"
+      echo "<!-- END $rel::$BOOK_SUFFIX -->"
       echo ""
     } >> "$OUT"
   done
@@ -204,10 +204,10 @@ runconfigbook() {
   find "$ROOT_DIR/bones/config" "$ROOT_DIR/bones/templates" -type f \( -name "*.yaml" -o -name "*.yml" -o -name "*.tpl" -o -name "*.html" \) | sort | while read -r file; do
     rel="${file#"$ROOT_DIR"/}"
     {
-      echo "<!-- START $rel -->"
+      echo "<!-- START $rel::$BOOK_SUFFIX -->"
       echo ""
       cat "$file"
-      echo "<!-- END $rel -->"
+      echo "<!-- END $rel::$BOOK_SUFFIX -->"
       echo ""
     } >> "$OUT"
   done
@@ -232,7 +232,7 @@ runcontentbook() {
   for file in "${contentfiles[@]}"; do
     rel="${file#"$ROOT_DIR"/}"
     {
-      echo "<!-- START $rel -->"
+      echo "<!-- START $rel::$BOOK_SUFFIX -->"
       echo ""
       awk -v dostrip="$STRIPMODE" '
         BEGIN { inyaml=0; linenumber=0 }
@@ -242,7 +242,7 @@ runcontentbook() {
         inyaml==1 { if (dostrip=="true") next; print; next }
         { print }
       ' "$file"
-      echo "<!-- END $rel -->"
+      echo "<!-- END $rel::$BOOK_SUFFIX -->"
       echo ""
     } >> "$OUT"
   done
@@ -361,6 +361,7 @@ runmode() {
 }
 
 main() {
+  export BOOK_SUFFIX=$(printf "%04x%04x" $RANDOM $RANDOM)
   check_dependencies
   log "INFO" "Running rc-book.sh."
   mkdir -p "$BOOK_REPORT_DIR"

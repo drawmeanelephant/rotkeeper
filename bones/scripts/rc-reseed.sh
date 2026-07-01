@@ -22,7 +22,7 @@ IFS=$'\n\t'
 
 
 show_help() {
-  cat <<EOF
+  cat <<EOF2
 rc-reseed.sh — Reverse ritual for scriptbook/docbook/configbook unbinding
 
 Usage: rc-reseed.sh [--input FILE] [--dry-run] [--all]
@@ -33,7 +33,7 @@ Options:
   --dry-run          Preview actions without writing files
   --all              Reseed from all known books (scriptbook-full, docbook, configbook)
   --help, -h         Display this message
-EOF
+EOF2
   exit 0
 }
 
@@ -91,8 +91,30 @@ for INPUT in "${DEFAULT_BOOKS[@]}"; do
   [[ -f "$INPUT" ]] || { echo "⚠️  Skipping missing input: $INPUT"; continue; }
   echo "📖 Reading from: $INPUT"
 
+  # Pre-scan for duplicates
+  declare -A file_counts
+  declare -A skip_list
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    if [[ "$line" =~ ^\<\!\-\-\ START(:)?\ ([^[:space:]:]+)(::[^[:space:]]+)?\ \-\-\>$ ]]; then
+      relpath="${BASH_REMATCH[2]}"
+      if [[ -z "${file_counts[$relpath]:-}" ]]; then
+        file_counts["$relpath"]=1
+      else
+        ((file_counts["$relpath"]++))
+      fi
+    fi
+  done < "$INPUT"
+
+  for p in "${!file_counts[@]}"; do
+    if (( file_counts["$p"] > 1 )); then
+      log "WARN" "Skipping duplicate file in binder: $p (found ${file_counts["$p"]} times)"
+      skip_list["$p"]=1
+    fi
+  done
+
   # State tracking variables
   outfile=""
+  active_suffix=""
   in_block=false
   in_code_fence=false
   skip_next=0
@@ -113,8 +135,17 @@ for INPUT in "${DEFAULT_BOOKS[@]}"; do
     fi
 
     # ONLY catch path markers if they appear OUTSIDE of code fences
-    if [[ "$in_code_fence" == false && "$line" =~ ^\<\!\-\-\ START\ ([^[:space:]]+)\ \-\-\>$ ]]; then
-      relpath="${BASH_REMATCH[1]}"
+    if [[ "$in_block" == false && "$in_code_fence" == false && "$line" =~ ^\<\!\-\-\ START(:)?\ ([^[:space:]:]+)(::[^[:space:]]+)?\ \-\-\>$ ]]; then
+      relpath="${BASH_REMATCH[2]}"
+      if [[ -n "${skip_list[$relpath]:-}" ]]; then
+        continue
+      fi
+      if [[ -n "${BASH_REMATCH[3]:-}" ]]; then
+        active_suffix="${BASH_REMATCH[3]}"
+      else
+        active_suffix=""
+      fi
+      relpath="${BASH_REMATCH[2]}"
       outfile="$ROOT_DIR/$relpath"
       mkdir -p "$(dirname "$outfile")"
       if [[ "$DRY_RUN" == false ]]; then
@@ -126,7 +157,16 @@ for INPUT in "${DEFAULT_BOOKS[@]}"; do
       continue
     fi
 
-    if [[ "$in_code_fence" == false && "$line" =~ ^\<\!\-\-\ END\ ([^[:space:]]+)\ \-\-\>$ ]]; then
+    if [[ "$in_block" == true && "$in_code_fence" == false && "$line" =~ ^\<\!\-\-\ END(:)?\ ([^[:space:]:]+)(::[^[:space:]]+)?\ \-\-\>$ ]]; then
+      relpath="${BASH_REMATCH[2]}"
+      if [[ "$ROOT_DIR/$relpath" != "$outfile" ]]; then
+        continue
+      fi
+      end_suffix="${BASH_REMATCH[3]:-}"
+      if [[ -n "$active_suffix" && "$active_suffix" != "$end_suffix" ]]; then
+        log "WARN" "Mismatched END suffix for $relpath. Expected $active_suffix, got $end_suffix. Ignoring."
+        continue
+      fi
       if [[ "$DRY_RUN" == false && "$outfile" == *".sh" ]]; then
         chmod +x "$outfile" 2>/dev/null || true
       fi
