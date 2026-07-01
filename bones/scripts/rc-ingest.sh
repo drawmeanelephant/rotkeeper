@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-ingest.sh
 #  Purpose : Ingests .tar.gz archives from an inbox into the local content repository safely
-#  Version : 0.4.0.2
+#  Version : 0.4.0.3
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
@@ -32,7 +32,7 @@ EOF
 }
 
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
-VERSION="${ROTKEEPER_VERSION:-0.3.1.4}"
+VERSION="${ROTKEEPER_VERSION:-0.4.0.3}"
 
 rk_init_script "rc-ingest" "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR CONTENT_DIR DOCS_DIR
