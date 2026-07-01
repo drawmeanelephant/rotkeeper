@@ -92,6 +92,39 @@ CONF_EOF
     echo "  [+] Testing 'new' scaffold ritual..."
     ./rotkeeper.sh new "custom-page" > /dev/null
 
+    echo "  [+] Testing path traversal hardening..."
+    local_content_dir="home/content"
+    if [[ "$mode" == "sterile" ]]; then
+      local_content_dir="src/content"
+    fi
+    cat << 'MALICIOUS_EOF' > "$local_content_dir/malicious-file.md"
+---
+template: ../../../../../etc/passwd
+---
+This file should not be rendered successfully.
+MALICIOUS_EOF
+    ./rotkeeper.sh render > /dev/null
+
+    # Assert that no HTML was generated for malicious file
+    if [[ "$mode" == "sterile" ]]; then
+      if [[ -f "dist/malicious-file.html" ]]; then
+        echo "❌ Path traversal failed: malicious-file.html was generated."
+        exit 60
+      fi
+    else
+      if [[ -f "output/malicious-file.html" ]]; then
+        echo "❌ Path traversal failed: malicious-file.html was generated."
+        exit 60
+      fi
+    fi
+
+    # Verify ERROR log was created
+    if ! grep -q "Path traversal detected in template path" bones/logs/rc-render-*.log; then
+      echo "❌ Path traversal failed: No ERROR log found."
+      exit 61
+    fi
+    rm "$local_content_dir/malicious-file.md"
+
     echo "  [+] Compiling and running Pandoc Forge passes..."
     ./rotkeeper.sh render > /dev/null
 

@@ -118,14 +118,39 @@ main() {
 
     log "MARKER" "📄 Reanimating..."
 
+    # Helper for canonicalization
+    get_canonical_path() {
+      local path="$1"
+      local canonical_path
+      canonical_path=$(realpath -m "$path" 2>/dev/null || readlink -f "$path" 2>/dev/null || python3 -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$path" 2>/dev/null)
+      if [[ -z "$canonical_path" ]]; then
+        echo ""
+      else
+        echo "$canonical_path"
+      fi
+    }
+
+    CANONICAL_CONTENT_DIR=$(get_canonical_path "$CONTENT_DIR")
+    CANONICAL_META_DIR=$(get_canonical_path "$META_DIR")
+    CANONICAL_TEMPLATE_DIR=$(get_canonical_path "$TEMPLATE_DIR")
+
         # Iterate over all markdown files in CONTENT_DIR
     while IFS= read -r mdfile; do
       [ -f "$mdfile" ] || continue
 
       [[ "$VERBOSE" == true ]] && log "DEBUG" "Found markdown file: $mdfile"
       base=$(basename "$mdfile" .md)
-      mdpath=$(realpath "$mdfile")
-      srcpath=$(realpath "$CONTENT_DIR")
+      canonical_mdpath=$(get_canonical_path "$mdfile")
+      if [[ -z "$canonical_mdpath" ]]; then
+         log "ERROR" "Failed to resolve canonical path for $mdfile; skipping."
+         continue
+      fi
+      if [[ "$canonical_mdpath" != "$CANONICAL_CONTENT_DIR"* ]]; then
+         log "ERROR" "mdpath $canonical_mdpath escaped srcpath $CANONICAL_CONTENT_DIR; skipping."
+         continue
+      fi
+      mdpath="$canonical_mdpath"
+      srcpath="$CANONICAL_CONTENT_DIR"
 
       # Harden relpath: ensure srcpath is a prefix of mdpath
       if [[ "$mdpath" == "$srcpath"* ]]; then
@@ -152,11 +177,18 @@ main() {
       # --- File-Level Sidecar Resolution ---
       # Map: home/content/path/file.md -> bones/meta/path/file.soul.md
       # Path traversal protection guard
-      if [[ "$relpath" == *"../"* ]]; then
-        log "ERROR" "Malicious directory traversal detected in path: $relpath"
-        exit 2
-      fi
       local soul_file="$META_DIR/${relpath%.md}.soul.md"
+
+      local canonical_soul=$(get_canonical_path "$soul_file")
+      if [[ -z "$canonical_soul" ]]; then
+        log "ERROR" "Failed to resolve canonical path for soul_file $soul_file; skipping."
+        continue
+      fi
+      if [[ "$canonical_soul" != "$CANONICAL_META_DIR"* ]]; then
+        log "ERROR" "Path traversal detected in soul file path: $canonical_soul escapes $CANONICAL_META_DIR; skipping."
+        continue
+      fi
+      soul_file="$canonical_soul"
       local pandoc_inputs=()
 
       # Track active inputs and extract the template target cleanly
@@ -184,8 +216,19 @@ main() {
       [[ -z "$TEMPLATE" ]] && TEMPLATE="$DEFAULT_TEMPLATE"
       log "INFO" "Rendering $rel_md with template: $TEMPLATE"
 
-      if [ ! -f "$TEMPLATE_DIR/$TEMPLATE" ]; then
-        echo "❌ ERROR: Template not found: $TEMPLATE_DIR/$TEMPLATE"
+
+      local template_file="$TEMPLATE_DIR/$TEMPLATE"
+      local canonical_template=$(get_canonical_path "$template_file")
+      if [[ -z "$canonical_template" ]]; then
+        log "ERROR" "Failed to resolve canonical path for template $template_file; skipping."
+        continue
+      fi
+      if [[ "$canonical_template" != "$CANONICAL_TEMPLATE_DIR"* ]]; then
+        log "ERROR" "Path traversal detected in template path: $canonical_template escapes $CANONICAL_TEMPLATE_DIR; skipping."
+        continue
+      fi
+      if [ ! -f "$canonical_template" ]; then
+        log "ERROR" "Template not found: $canonical_template"
         continue
       fi
 
@@ -203,7 +246,7 @@ main() {
 
       # Execute the zero-clutter in-memory aggregation pass
       # shellcheck disable=SC2086
-      run pandoc "${pandoc_inputs[@]}"         --from markdown         --to html         --template="$TEMPLATE_DIR/$TEMPLATE"         --variable=assets_root="$ASSETS_ROOT"         --lua-filter="$PROJ_ROOT/bones/scripts/rewrite-links.lua"         -o "$outfile" $PANDOC_ARGS
+      run pandoc "${pandoc_inputs[@]}"         --from markdown         --to html         --template="$canonical_template"         --variable=assets_root="$ASSETS_ROOT"         --lua-filter="$PROJ_ROOT/bones/scripts/rewrite-links.lua"         -o "$outfile" $PANDOC_ARGS
 
       pages_rendered=$((pages_rendered + 1))
       log_manifest "$outfile"
