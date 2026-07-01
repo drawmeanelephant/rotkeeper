@@ -75,7 +75,7 @@ It guides your next ritual by noon.
 -->
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-06-30T17:53:41Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-01T02:47:18Z -->
 
 
 ### Bones of the Code
@@ -86,3 +86,8 @@ If Git is not installed, it panics like a lost child. If the logs are empty, it 
 
 ### Ritual Warnings
 Do not mistake silence for health. An empty log often means the patient is already dead.
+
+## Ritual History
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-01T03:09:08Z -->
+
+- * ✅ `rc-status.sh` — fully operational rot-dashboard

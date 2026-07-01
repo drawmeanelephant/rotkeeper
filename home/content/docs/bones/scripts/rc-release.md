@@ -68,7 +68,7 @@ And deleted the docs just like that.
 -->
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-06-30T17:53:41Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-01T02:47:18Z -->
 
 
 ### Bones of the Code
@@ -79,3 +79,7 @@ The exclusion lists are a brittle defense. If a sensitive file gets created that
 
 ### Ritual Warnings
 Audit the exclusion lists regularly. Never assume that 'lite' means 'safe'—sensitive data will slip through if you aren't paying attention.
+
+## Ritual History
+<!-- DIP-HISTORY-EXTRACTED: 0000-00-00T00:00:00Z -->
+TODO: Stitch ritual history.

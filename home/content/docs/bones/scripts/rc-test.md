@@ -24,7 +24,7 @@ Integration test harness script to verify the core Rotkeeper scripts.
 ```
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-06-30T17:53:41Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-01T02:47:18Z -->
 
 
 ### Bones of the Code
@@ -35,3 +35,7 @@ Its syntax validation is merely a surface-level scan, and its environment config
 
 ### Ritual Warnings
 A passing test suite here merely means the code compiles; it does not mean the code is sane.
+
+## Ritual History
+<!-- DIP-HISTORY-EXTRACTED: 0000-00-00T00:00:00Z -->
+TODO: Stitch ritual history.

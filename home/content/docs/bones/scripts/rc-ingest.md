@@ -68,7 +68,7 @@ And now it’s the site's brightest star.
 -->
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-06-30T17:53:41Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-01T02:47:18Z -->
 
 
 ### Bones of the Code
@@ -79,3 +79,8 @@ Unpacking unverified `.tar.gz` payloads is a classic recipe for disaster. It pra
 
 ### Ritual Warnings
 Do not trust your 'friends'. Verify the contents of archives before extracting them, or risk overwriting critical files with malicious payloads.
+
+## Ritual History
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-01T03:09:08Z -->
+
+- - Enhance rc-ingest.sh to validate payload checksums safely.

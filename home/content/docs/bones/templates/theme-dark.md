@@ -16,11 +16,16 @@ HTML template for the high-contrast dark theme.
 Zero-hydration HTML template used for static rendering. It relies on standard CSS variables and structural classes.
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-06-30T17:53:41Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-01T02:47:18Z -->
 
 
 # 🏴 theme-dark Layout Soul
 
+## Architectural Intent
+Provides the standard dark presentation template designed to lower eye strain during long autonomous execution passes.
+
+## Directory / File Schema Expectations
+- Must cleanly parse standard frontmatter objects passed by the hardened rc-pack.sh array structure.
 ## Architectural Intent
 Provides the standard dark presentation template designed to lower eye strain during long autonomous execution passes.
 

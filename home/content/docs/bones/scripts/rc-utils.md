@@ -112,7 +112,7 @@ And lights up the whole Rotkeeper land.
 -->
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-06-30T17:53:41Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-01T02:47:18Z -->
 
 
 ### Bones of the Code
@@ -123,3 +123,16 @@ Its attempts at portability often fall flat when encountering ancient or obscure
 
 ### Ritual Warnings
 Do not rely on these utilities in truly hostile environments. Their portability is an illusion maintained by sheer luck.
+
+## Ritual History
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-01T03:09:08Z -->
+
+- - Updated `rc-utils.sh` to:
+- - `require_bins()` from `rc-utils.sh` is used to validate external dependencies like `pandoc`, `git`, `jq`, etc. All prior instances of legacy dependency checkers have been purged. `require_bins()` is now the sole ritual for verifying external tools.
+- - Some scripts re-implement `log()` inline rather than sourcing a shared `rc-utils.sh`.
+- - A shared library (`rc-utils.sh`) is now used across scripts, providing unified logic.
+- #### 1. Create and enforce usage of a shared `rc-utils.sh`:
+- - sourced `rc-utils.sh`
+- | Script             | main() | trap | --dry-run | log() | require_bins() | rc-utils.sh |
+- - ❌ Executable utility files (e.g., `chmod +x rc-utils.sh`) — *these must not rise*
+- 	•	Sourced rc-utils.sh
