@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-scan.sh
 #  Purpose : Audit files vs manifest, classify orphans, and write digest reports
-#  Version : 0.3.0.17
+#  Version : 0.4.0.3
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -47,7 +47,7 @@ EOF
 }
 
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
-VERSION="${ROTKEEPER_VERSION:-0.3.1.4}"
+VERSION="${ROTKEEPER_VERSION:-0.4.0.3}"
 
 rk_init_script "rc-scan" "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR OUTPUT_DIR

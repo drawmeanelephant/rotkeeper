@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-status.sh
 #  Purpose : Output a structured, human-readable status report across environment, health, and pulse.
-#  Version : 0.4.0.2
+#  Version : 0.4.0.3
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -29,7 +29,7 @@ for arg in "$@"; do
     fi
 done
 
-VERSION="${ROTKEEPER_VERSION:-0.3.1.4}"
+VERSION="${ROTKEEPER_VERSION:-0.4.0.3}"
 
 rk_init_script "rc-status" "${ARGS[@]}"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR ARCHIVE_DIR

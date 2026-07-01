@@ -3,7 +3,7 @@
 #  Project : Rotkeeper
 #  Script  : rc-test.sh
 #  Purpose : Multi-Pass Layout Integration Test Matrix
-#  Version : 0.4.1.0
+#  Version : 0.4.0.3
 # ============================================================
 
 set -euo pipefail

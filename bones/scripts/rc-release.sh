@@ -34,7 +34,7 @@ HELPEOF
 }
 
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
-VERSION="${ROTKEEPER_VERSION:-0.3.1.4}"
+VERSION="${ROTKEEPER_VERSION:-0.4.0.3}"
 
 rk_init_script "rc-release" "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR OUTPUT_DIR
@@ -66,6 +66,10 @@ for arg in "$@"; do
   esac
   PREV_ARG="$arg"
 done
+
+if [[ -n "$TARGET_VERSION" ]]; then
+  VERSION="$TARGET_VERSION"
+fi
 
 if [[ -z "$VERSION" ]]; then
   log "ERROR" "No version specified. Usage: rc-release.sh <VERSION> [options]"

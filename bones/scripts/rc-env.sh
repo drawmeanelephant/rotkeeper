@@ -10,10 +10,10 @@
 #  Project : Rotkeeper
 #  Script  : rc-env.sh
 #  Purpose : Dynamic Environment Bootstrap — Portability Hardening
-#  Version : 0.4.1.0
+#  Version : 0.4.0.3
 # ============================================================
 
-VERSION="0.4.1.0"
+VERSION="0.4.0.3"
 [[ -n "$BASH_VERSION" ]] || {
   echo "[ERROR] rc-env.sh must be sourced in Bash." >&2
   return 1 2>/dev/null || exit 1
