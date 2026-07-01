@@ -68,7 +68,7 @@ And now it’s the site's brightest star.
 -->
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-01T02:47:18Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-01T10:11:53Z -->
 
 
 ### Bones of the Code
@@ -79,8 +79,9 @@ Unpacking unverified `.tar.gz` payloads is a classic recipe for disaster. It pra
 
 ### Ritual Warnings
 Do not trust your 'friends'. Verify the contents of archives before extracting them, or risk overwriting critical files with malicious payloads.
-
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-01T03:09:08Z -->
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-01T10:32:34Z -->
 
+- - Enhance rc-ingest.sh to support multiple ingest sources.
+- - Refactor rc-ingest.sh validation steps.
 - - Enhance rc-ingest.sh to validate payload checksums safely.

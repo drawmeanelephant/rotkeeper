@@ -96,7 +96,7 @@ It restores the land,
 Ensuring no file is at frost.
 -->
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-01T02:47:18Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-01T10:11:53Z -->
 
 
 ### Bones of the Code
@@ -107,8 +107,9 @@ Its reporting mechanism for missing or orphaned files is easily confused by syml
 
 ### Ritual Warnings
 Do not treat its manifest as absolute truth. It is easily fooled by the slightest deviation in the physical realm.
-
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-01T03:09:08Z -->
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-01T10:32:34Z -->
 
+- - Optimize rc-scan.sh to run faster on large filesystems.
+- - Improve rc-scan.sh orphaned file reporting format.
 - - Optimize rc-scan.sh to quickly analyze missing references.

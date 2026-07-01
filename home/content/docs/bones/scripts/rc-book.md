@@ -56,7 +56,7 @@ All binders are written to `bones/reports/`:
 - Better collapse metadata (e.g., tags, titles, sections)
 - Potential for binder diffing or validation modes
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-01T02:47:18Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-01T10:11:53Z -->
 
 
 ### Bones of the Code
@@ -67,9 +67,8 @@ Including raw configs and logs is a fool's errand. The token weight of this mons
 
 ### Ritual Warnings
 Keep the project small, or watch this script choke on its own creation. Never feed the resulting tome to a language model without a robust token budget, lest you bankrupt your API account.
-
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-01T03:09:08Z -->
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-01T10:32:34Z -->
 
 - - `rc-book.sh` now supports `--all` mode and YAML collapse output
 - - Unified all binder generation into `rc-book.sh` (removes `rc-docbook.sh`, `rc-webbook.sh`)

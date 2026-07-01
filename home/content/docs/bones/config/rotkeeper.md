@@ -16,7 +16,7 @@ Main configuration vault for validation parameters and runtime constraints.
 Configuration file intended to be manually edited or read by Rotkeeper scripts.
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-01T02:47:18Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-01T10:11:53Z -->
 
 
 ### Architectural Intent

@@ -36,7 +36,7 @@ Directly:
 The script automatically generates proper frontmatter keys (`title`, `slug`, `template`, `version`, `updated`, etc.) so the page is immediately ready for Pandoc rendering.
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-01T02:47:18Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-01T10:11:53Z -->
 
 
 ### Bones of the Code
@@ -47,7 +47,6 @@ It is hopelessly naive about character escaping. Feed it a title with quotes, co
 
 ### Ritual Warnings
 Stick to alphanumeric titles unless you enjoy manually untangling broken YAML and shell-escaped horrors.
-
 ## Ritual History
 <!-- DIP-HISTORY-EXTRACTED: 0000-00-00T00:00:00Z -->
 TODO: Stitch ritual history.
