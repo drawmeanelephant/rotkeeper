@@ -60,9 +60,11 @@ main() {
     check_dependencies
 
     INGESTED_ARCHIVE_DIR="bones/ingested"
+    QUARANTINE_DIR="bones/quarantine"
     TARGET_CONTENT_DIR="$CONTENT_DIR/messages"
 
     mkdir -p "$INGESTED_ARCHIVE_DIR"
+    mkdir -p "$QUARANTINE_DIR"
     mkdir -p "$TARGET_CONTENT_DIR"
     mkdir -p "$INBOX_DIR"
 
@@ -83,6 +85,22 @@ main() {
       basename_archive=$(basename "$archive" .tar.gz)
       echo "📦 Ingesting: $(basename "$archive")"
       log "INFO" "Ingesting $archive"
+
+      # Validate archive paths against traversal attacks
+      safe_archive=true
+      while IFS= read -r archive_path; do
+        if [[ "$archive_path" == /* ]] || [[ "$archive_path" == *"../"* ]]; then
+          safe_archive=false
+          break
+        fi
+      done < <(tar -tf "$archive" 2>/dev/null || true)
+
+      if [[ "$safe_archive" == false ]]; then
+        log "WARN" "Unsafe path detected in $archive. Moving to quarantine."
+        echo "⚠️  WARNING: Unsafe paths (e.g. ../ or /) found in $archive. Moved to quarantine."
+        run mv "$archive" "$QUARANTINE_DIR/"
+        continue
+      fi
 
       # Create safe subdirectory for this specific payload
       SAFE_DEST="$TARGET_CONTENT_DIR/$basename_archive"
