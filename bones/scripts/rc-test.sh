@@ -148,9 +148,9 @@ MALICIOUS_EOF
     [ -f "bones/asset-manifest.yaml" ] || exit 53
 
     echo "  [+] Running validation audit tools..."
-    ./rotkeeper.sh book --fsbook > /dev/null
-    ./rotkeeper.sh autopsy --all > /dev/null
-    ./rotkeeper.sh dip > /dev/null
+    ./rotkeeper.sh book --fsbook
+    ./rotkeeper.sh autopsy --all
+    ./rotkeeper.sh dip
 
     echo "  [+] Verifying workspace status summaries..."
     ./rotkeeper.sh status --json > /dev/null
