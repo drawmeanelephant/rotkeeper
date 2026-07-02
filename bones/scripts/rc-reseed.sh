@@ -94,8 +94,15 @@ for INPUT in "${DEFAULT_BOOKS[@]}"; do
   # Pre-scan for duplicates
   declare -A file_counts
   declare -A skip_list
+  in_code_fence=false
   while IFS= read -r line || [[ -n "$line" ]]; do
-    if [[ "$line" =~ ^\<\!\-\-\ START(:)?\ ([^[:space:]:]+)(::[^[:space:]]+)?\ \-\-\>$ ]]; then
+    if [[ "$line" =~ ^\`\`\` ]]; then
+      if [[ "$in_code_fence" == true ]]; then
+        in_code_fence=false
+      else
+        in_code_fence=true
+      fi
+    elif [[ "$in_code_fence" == false && "$line" =~ ^\<\!\-\-\ START(:)?\ ([^[:space:]:]+)(::[^[:space:]]+)?\ \-\-\>$ ]]; then
       relpath="${BASH_REMATCH[2]}"
       if [[ -z "${file_counts[$relpath]:-}" ]]; then
         file_counts["$relpath"]=1

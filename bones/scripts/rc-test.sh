@@ -14,6 +14,7 @@ if [[ "${1:-}" == "--dry-run" ]]; then exit 0; fi
 echo "--- Rotkeeper Multi-Pass Layout Matrix Test Suite ---"
 
 TEST_DIR="/tmp/rotkeeper-test-env"
+# shellcheck disable=SC2329
 cleanup() {
   echo "Pruning testing footprints from the physical realm..."
   rm -rf "$TEST_DIR"
