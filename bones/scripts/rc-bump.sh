@@ -67,6 +67,10 @@ while [[ $# -gt 0 ]]; do
       else
         MESSAGE="$MESSAGE $1"
       fi
+
+if [[ -n "$(git -C "$ROOT_DIR" status --porcelain 2>/dev/null)" ]]; then
+  log "WARN" "Working tree is dirty. Proceeding with version bump, but be aware uncommitted changes exist."
+fi
       shift
       ;;
   esac
@@ -76,6 +80,10 @@ if [[ -z "$MESSAGE" ]]; then
   log "ERROR" "No update message provided."
   show_help
   exit 1
+fi
+
+if [[ -n "$(git -C "$ROOT_DIR" status --porcelain 2>/dev/null)" ]]; then
+  log "WARN" "Working tree is dirty. Proceeding with version bump, but be aware uncommitted changes exist."
 fi
 
 # Step 1: Read current version from rotkeeper.sh
