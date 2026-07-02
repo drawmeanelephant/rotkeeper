@@ -97,6 +97,10 @@ main() {
             src="$ASSETS_DIR/$relpath"
             dest="$OUTPUT_ASSET_DIR/$relpath"
             if [[ -f "$src" ]]; then
+                if [[ "$relpath" == *"../"* ]] || [[ ! "$relpath" =~ ^[a-zA-Z0-9/._-]+$ ]]; then
+                    log "ERROR" "Illegal characters in asset path"
+                    continue
+                fi
                 run mkdir -p "$(dirname "$dest")"
                 run rsync -a "$src" "$dest"
                 checksum=$(sha256sum "$src" | awk '{print $1}')
