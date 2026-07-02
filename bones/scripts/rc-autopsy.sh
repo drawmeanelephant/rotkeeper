@@ -92,7 +92,17 @@ run_help_report() {
     echo
   } > "$OUT"
 
-  mapfile -t scripts < <({ find "$SCRIPT_DIR" -maxdepth 1 -type f -name "rc-*.sh"; find "$ROOT_DIR" -maxdepth 1 -type f -name "rotkeeper.sh"; } | sort | uniq)
+    local search_script_dir="$SCRIPT_DIR"
+    local search_root_dir="$ROOT_DIR"
+
+    if [[ ! -d "$search_script_dir" ]]; then
+      search_script_dir="./bones/scripts"
+    fi
+    if [[ ! -f "$search_root_dir/rotkeeper.sh" ]]; then
+      search_root_dir="."
+    fi
+
+    mapfile -t scripts < <({ find "$search_script_dir" -maxdepth 1 -type f -name "rc-*.sh"; find "$search_root_dir" -maxdepth 1 -type f -name "rotkeeper.sh"; } | sort | uniq)
 
   for script in "${scripts[@]}"; do
     name="$(basename "$script")"
@@ -141,7 +151,17 @@ render_output_report_md() {
     fi
   done < <(env)
 
-  mapfile -t scripts < <({ find "$SCRIPT_DIR" -maxdepth 1 -type f -name "rc-*.sh"; find "$ROOT_DIR" -maxdepth 1 -type f -name "rotkeeper.sh"; } | sort | uniq)
+    local search_script_dir="$SCRIPT_DIR"
+    local search_root_dir="$ROOT_DIR"
+
+    if [[ ! -d "$search_script_dir" ]]; then
+      search_script_dir="./bones/scripts"
+    fi
+    if [[ ! -f "$search_root_dir/rotkeeper.sh" ]]; then
+      search_root_dir="."
+    fi
+
+    mapfile -t scripts < <({ find "$search_script_dir" -maxdepth 1 -type f -name "rc-*.sh"; find "$search_root_dir" -maxdepth 1 -type f -name "rotkeeper.sh"; } | sort | uniq)
 
   for script in "${scripts[@]}"; do
     name="$(basename "$script")"

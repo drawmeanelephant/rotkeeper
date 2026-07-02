@@ -97,7 +97,7 @@ if [[ -f "$AUTOPSY_REPORT" ]]; then
         fi
     done < "$AUTOPSY_REPORT"
 else
-    log "WARN" "Autopsy report not found at $AUTOPSY_REPORT. Run rc-autopsy.sh --all first."
+    log "INFO" "Autopsy report not found at $AUTOPSY_REPORT. Run rc-autopsy.sh --all first."
 fi
 
 # Hardcode some directories that should never be audited
@@ -155,8 +155,7 @@ if [[ -f "$FSBOOK_CATALOG" ]]; then
         fi
     done < "$FSBOOK_CATALOG"
 else
-    log "ERROR" "FSBook catalog could not be generated. File discovery cannot proceed. Run rc-book.sh --fsbook to debug."
-    exit 1
+    log "INFO" "FSBook catalog not found. File discovery will skip. Run rc-book.sh --fsbook to generate."
 fi
 
 declare -A EXPECTED_DOCS
