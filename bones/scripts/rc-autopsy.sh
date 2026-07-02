@@ -111,7 +111,7 @@ run_help_report() {
     echo '```text' >> "$OUT"
     
     local help_output
-    if ! help_output=$(bash "$script" --help 2>&1) || echo "$help_output" | grep -qi 'No help available' || [[ -z "$help_output" ]]; then
+    if ! help_output=$(ROT_SKIP_ENV=true bash "$script" --help 2>&1 || true) || [[ -z "$help_output" ]]; then
       help_output=$(grep -oE '\-\-[a-z][a-z-]+' "$script" | sort -u || echo "(No help available and no flags found)")
       log "WARN" "Script $name did not respond well to --help. Used fallback."
     fi

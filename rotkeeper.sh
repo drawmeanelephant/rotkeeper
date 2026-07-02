@@ -274,7 +274,7 @@ case "$command" in
 
   autopsy)
     echo "Running autopsy audit..."
-    bash "$BONES/rc-autopsy.sh" "$@"
+    bash "$BONES/rc-autopsy.sh" "$@" || true
     ;;
 
   *)
