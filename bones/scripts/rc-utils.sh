@@ -142,6 +142,13 @@ require_gawk_version() {
   fi
 }
 
+validate_config_syntax() {
+  if ! yq eval '.' "$CONFIG_DIR/rotkeeper.yaml" >/dev/null 2>&1; then
+    log "FATAL" "YAML configuration is malformed"
+    exit 1
+  fi
+}
+
 # Error trap: report error line and exit
 trap_err() {
   log "ERROR" "Error on line ${1:-unknown}"
@@ -200,6 +207,7 @@ rk_init_script() {
 
   init_log "$SCRIPTNAME"
   set_traps
+  validate_config_syntax
 
   # Save original stdout to fd 3 for MARKER bypass
   exec 3>&1
