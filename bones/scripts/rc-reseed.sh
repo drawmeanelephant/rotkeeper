@@ -94,15 +94,8 @@ for INPUT in "${DEFAULT_BOOKS[@]}"; do
   # Pre-scan for duplicates
   declare -A file_counts
   declare -A skip_list
-  in_code_fence=false
   while IFS= read -r line || [[ -n "$line" ]]; do
-    if [[ "$line" =~ ^\`\`\` ]]; then
-      if [[ "$in_code_fence" == true ]]; then
-        in_code_fence=false
-      else
-        in_code_fence=true
-      fi
-    elif [[ "$in_code_fence" == false && "$line" =~ ^\<\!\-\-\ START(:)?\ ([^[:space:]:]+)(::[^[:space:]]+)?\ \-\-\>$ ]]; then
+    if [[ "$line" =~ ^\<\!\-\-\ START(:)?\ ([^[:space:]:]+)(::[^[:space:]]+)?\ \-\-\>$ ]]; then
       relpath="${BASH_REMATCH[2]}"
       if [[ -z "${file_counts[$relpath]:-}" ]]; then
         file_counts["$relpath"]=1
@@ -119,7 +112,7 @@ for INPUT in "${DEFAULT_BOOKS[@]}"; do
     fi
   done
 
-  # State tracking variables
+  # State
   outfile=""
   active_suffix=""
   in_block=false
@@ -127,22 +120,7 @@ for INPUT in "${DEFAULT_BOOKS[@]}"; do
   skip_next=0
 
   while IFS= read -r line || [[ -n "$line" ]]; do
-    # Track whether we are inside an active markdown code block
-    if [[ "$line" =~ ^\`\`\` ]]; then
-      if [[ "$in_code_fence" == true ]]; then
-        in_code_fence=false
-      else
-        in_code_fence=true
-      fi
-      # If we're inside a file block, we still write the fence back to the script
-      if [[ "$in_block" == true && "$DRY_RUN" == false ]]; then
-        echo "$line" >> "$outfile"
-      fi
-      continue
-    fi
-
-    # ONLY catch path markers if they appear OUTSIDE of code fences
-    if [[ "$in_block" == false && "$in_code_fence" == false && "$line" =~ ^\<\!\-\-\ START(:)?\ ([^[:space:]:]+)(::[^[:space:]]+)?\ \-\-\>$ ]]; then
+    if [[ "$in_block" == false && "$line" =~ ^\<\!\-\-\ START(:)?\ ([^[:space:]:]+)(::[^[:space:]]+)?\ \-\-\>$ ]]; then
       relpath="${BASH_REMATCH[2]}"
       if [[ -n "${skip_list[$relpath]:-}" ]]; then
         continue
@@ -164,7 +142,7 @@ for INPUT in "${DEFAULT_BOOKS[@]}"; do
       continue
     fi
 
-    if [[ "$in_block" == true && "$in_code_fence" == false && "$line" =~ ^\<\!\-\-\ END(:)?\ ([^[:space:]:]+)(::[^[:space:]]+)?\ \-\-\>$ ]]; then
+    if [[ "$in_block" == true && "$line" =~ ^\<\!\-\-\ END(:)?\ ([^[:space:]:]+)(::[^[:space:]]+)?\ \-\-\>$ ]]; then
       relpath="${BASH_REMATCH[2]}"
       if [[ "$ROOT_DIR/$relpath" != "$outfile" ]]; then
         continue
