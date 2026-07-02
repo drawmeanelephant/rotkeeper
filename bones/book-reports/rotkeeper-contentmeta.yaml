@@ -1,0 +1,691 @@
+
+- path: home/content/docs/.blessed.md
+  target_file: ".blessed"
+  date: "2026-06-29T21:12:31Z"
+  template: "rotkeeper-doc.html"
+  version: "0.1.0"
+  author: "Rotkeeper DIP"
+  project: "Rotkeeper"
+
+- path: home/content/docs/.gitignore.md
+  target_file: ".gitignore"
+  date: "2026-06-29T21:12:31Z"
+  template: "rotkeeper-doc.html"
+  version: "0.1.0"
+  author: "Rotkeeper DIP"
+  project: "Rotkeeper"
+
+- path: home/content/docs/.shellcheckrc.md
+  target_file: ".shellcheckrc"
+  date: "2026-06-29T21:12:31Z"
+  template: "rotkeeper-doc.html"
+  version: "0.1.0"
+  author: "Rotkeeper DIP"
+  project: "Rotkeeper"
+
+- path: home/content/docs/architecture.md
+  title: "Architecture & Philosophy"
+  slug: architecture
+  version: "0.3.0"
+  updated: "2026-06-15"
+  description: "The Four Pillars of the Bash-Native Necropolis."
+  tags:
+    - rotkeeper
+    - architecture
+    - philosophy
+  asset_meta:
+    name: "architecture.md"
+    version: "v0.3.0"
+    author: "Rotkeeper Ritual Council"
+    project: "Rotkeeper"
+    tracked: true
+    license: "All Rights Reserved"
+
+- path: home/content/docs/bones/archive/index.md
+  title: "📦 Archives & Releases Index"
+  slug: archive-index
+  version: "0.1.0"
+  updated: "2026-06-27"
+  description: "Index of built packages and release artifacts."
+  template: "rotkeeper-doc.html"
+  status: "complete"
+  author: "Rotkeeper DIP"
+  project: "Rotkeeper"
+
+- path: home/content/docs/bones/config/dip-whitelist.md
+  title: "dip-whitelist.txt Documentation"
+  target_file: "bones/config/dip-whitelist.txt"
+  date: "2026-06-23T03:31:34Z"
+  template: "rotkeeper-doc.html"
+
+- path: home/content/docs/bones/config/index.md
+  title: "⚙️ Configurations Index"
+  slug: config-index
+  version: "0.1.0"
+  updated: "2026-06-27"
+  description: "Reference guide for configuration, whitelists, and project schemas."
+  template: "rotkeeper-doc.html"
+  status: "complete"
+  author: "Rotkeeper DIP"
+  project: "Rotkeeper"
+
+- path: home/content/docs/bones/config/rotkeeper.md
+  title: "rotkeeper.yaml Documentation"
+  target_file: "bones/config/rotkeeper.yaml"
+  date: "2026-06-23T03:31:34Z"
+  template: "rotkeeper-doc.html"
+
+- path: home/content/docs/bones/index.md
+  title: "💀 Bones Directory Index"
+  slug: bones-index
+  version: "0.1.0"
+  updated: "2026-06-27"
+  description: "Overview of the bones directory which holds Rotkeeper's configuration, templates, scripts, logs, and reports."
+  template: "rotkeeper-doc.html"
+  status: "complete"
+  author: "Rotkeeper DIP"
+  project: "Rotkeeper"
+
+- path: home/content/docs/bones/logs/index.md
+  title: "🪵 Execution Logs Index"
+  slug: logs-index
+  version: "0.1.0"
+  updated: "2026-06-27"
+  description: "Index of system output files and error logs."
+  template: "rotkeeper-doc.html"
+  status: "complete"
+  author: "Rotkeeper DIP"
+  project: "Rotkeeper"
+
+- path: home/content/docs/bones/scripts/index.md
+  title: "📜 Ritual Scripts Index"
+  slug: scripts-index
+  version: "0.1.0"
+  updated: "2026-06-27"
+  description: "Reference guide for all executable CLI commands and Lua filters in the scripts folder."
+  template: "rotkeeper-doc.html"
+  status: "complete"
+  author: "Rotkeeper DIP"
+  project: "Rotkeeper"
+
+- path: home/content/docs/bones/scripts/rc-assets.md
+  title: "🧾 rc-assets.sh Reference"
+  slug: rc-assets
+  version: "0.2.5"
+  updated: "2025-06-03"
+  description: "Documents and explains the behavior of rc-assets.sh, which scans HTML for asset links and generates a manifest."
+  tags:
+    - rotkeeper
+    - scripts
+    - assets
+    - manifest
+  asset_meta:
+    name: "rc-assets.md"
+    version: "0.2.5"
+    author: "Rotkeeper Ritual Council"
+    project: "Rotkeeper"
+    tracked: true
+    license: "All Rights Reserved"
+
+- path: home/content/docs/bones/scripts/rc-autopsy.md
+  target_file: "bones/scripts/rc-autopsy.sh"
+  date: "2026-06-27T16:16:32Z"
+  template: "rotkeeper-doc.html"
+  version: "0.1.0"
+  author: "Rotkeeper DIP"
+  project: "Rotkeeper"
+
+- path: home/content/docs/bones/scripts/rc-book.md
+  title: "rc-book — binder ritual for compiling and collapsing Rotkeeper books"
+  slug: rc-book
+  status: stable
+  version: "v0.2.5"
+  updated: 2025-06-03
+  description: "Centralizes all documentation binding; compiles or collapses Rotkeeper books from markdown and script rituals."
+  tags:
+    - rotkeeper
+    - scripts
+    - docs
+    - binders
+  asset_meta:
+    name: "rc-book.md"
+    version: "v0.2.5"
+    author: "Rotkeeper Ritual Council"
+    project: "Rotkeeper"
+    tracked: true
+    license: "All Rights Reserved"
+
+- path: home/content/docs/bones/scripts/rc-bump.md
+  title: "📈 rc-bump.sh Reference"
+  slug: rc-bump
+  version: "0.3.0"
+  updated: "2026-06-15"
+  description: "Automated microbump logging and version bumping workflow."
+  tags:
+    - rotkeeper
+    - scripts
+    - logging
+    - versioning
+  asset_meta:
+    name: "rc-bump.md"
+    version: "v0.3.0"
+    author: "Rotkeeper Ritual Council"
+    project: "Rotkeeper"
+    tracked: true
+    license: "All Rights Reserved"
+
+- path: home/content/docs/bones/scripts/rc-cleanup-bones.md
+  title: "🔄 rc-cleanup-bones.sh Reference"
+  slug: rc-cleanup-bones
+  version: "v0.2.5"
+  updated: "2025-06-03"
+  description: "Backs up and prunes outdated directories and logs from the bones/ archive system."
+  tags:
+    - rotkeeper
+    - scripts
+    - cleanup
+    - backups
+  asset_meta:
+    name: "rc-cleanup-bones.md"
+    version: "v0.2.5"
+    author: "Rotkeeper Ritual Council"
+    project: "Rotkeeper"
+    tracked: true
+    license: "All Rights Reserved"
+
+- path: home/content/docs/bones/scripts/rc-dip.md
+  title: "rc-dip.sh Documentation"
+  target_file: "bones/scripts/rc-dip.sh"
+  date: "2026-06-23T03:31:34Z"
+  template: "rotkeeper-doc.html"
+
+- path: home/content/docs/bones/scripts/rc-env.md
+  title: "🧱 rc-env.sh"
+  slug: rc-env
+  version: "0.2.5"
+  updated: "2025-06-03"
+  description: "Defines centralized environment variables and directory layout for the Rotkeeper ritual system."
+  tags:
+    - rotkeeper
+    - environment
+    - bootstrap
+    - shared
+  asset_meta:
+    name: "rc-env.md"
+    author: "Filed Systems"
+    project: "Rotkeeper"
+    license: "All Rights Reserved"
+    tracked: true
+    version: "0.2.5"
+
+- path: home/content/docs/bones/scripts/rc-glue.md
+  title: "🧴 rc-glue.sh Reference"
+  slug: rc-glue
+  version: "0.3.0"
+  updated: "2026-06-15"
+  description: "Generates missing index.md files for directories in home/content/ to create navigation glue."
+  tags:
+    - rotkeeper
+    - scripts
+    - navigation
+    - glue
+  asset_meta:
+    name: "rc-glue.md"
+    version: "v0.3.0"
+    author: "Rotkeeper Ritual Council"
+    project: "Rotkeeper"
+    tracked: true
+    license: "All Rights Reserved"
+
+- path: home/content/docs/bones/scripts/rc-ingest.md
+  title: "📥 rc-ingest.sh Reference"
+  slug: rc-ingest
+  version: "0.3.0"
+  updated: "2026-06-15"
+  description: "Unpacks decentralized payloads from the inbox and safely merges them into the content tree."
+  tags:
+    - rotkeeper
+    - scripts
+    - ingestion
+    - decentralized
+  asset_meta:
+    name: "rc-ingest.md"
+    version: "v0.3.0"
+    author: "Rotkeeper Ritual Council"
+    project: "Rotkeeper"
+    tracked: true
+    license: "All Rights Reserved"
+
+- path: home/content/docs/bones/scripts/rc-init.md
+  title: "🦴 rc-init.sh Reference"
+  slug: rc-init
+  version: "v0.2.3-pre"
+  updated: "2025-06-01"
+  description: "Initializes a new rotkeeper directory structure with all required folders, templates, and seed files."
+  tags:
+    - rotkeeper
+    - scripts
+    - init
+    - bootstrap
+  asset_meta:
+    name: "rc-init.md"
+    version: "v0.2.3-pre"
+    author: "Rotkeeper Ritual Council"
+    project: "Rotkeeper"
+    tracked: true
+    license: "All Rights Reserved"
+
+- path: home/content/docs/bones/scripts/rc-new.md
+  title: "✨ rc-new.sh Reference"
+  slug: rc-new
+  version: "0.3.0.15"
+  updated: "2026-06-15"
+  description: "Scaffold a new markdown file with YAML frontmatter."
+  tags:
+    - rotkeeper
+    - scripts
+    - scaffold
+    - content
+  asset_meta:
+    name: "rc-new.md"
+    version: "0.3.0.15"
+    author: "Rotkeeper Ritual Council"
+
+- path: home/content/docs/bones/scripts/rc-pack.md
+  title: "📦 rc-pack.sh Reference"
+  slug: rc-pack
+  version: "v0.2.3-pre"
+  updated: "2025-06-01"
+  description: "Creates a tar.gz tomb archive from the rendered directory and embeds tomb metadata into the archive."
+  tags:
+    - rotkeeper
+    - scripts
+    - packing
+    - tombs
+  asset_meta:
+    name: "rc-pack.md"
+    version: "v0.2.3-pre"
+    author: "Rotkeeper Ritual Council"
+    project: "Rotkeeper"
+    tracked: true
+    license: "All Rights Reserved"
+
+- path: home/content/docs/bones/scripts/rc-release.md
+  title: "📦 rc-release.sh Reference"
+  slug: rc-release
+  version: "0.3.0"
+  updated: "2026-06-15"
+  description: "Packages the project into 'lite' and 'full' distribution zip files."
+  tags:
+    - rotkeeper
+    - scripts
+    - packaging
+    - distribution
+  asset_meta:
+    name: "rc-release.md"
+    version: "v0.3.0"
+    author: "Rotkeeper Ritual Council"
+    project: "Rotkeeper"
+    tracked: true
+    license: "All Rights Reserved"
+
+- path: home/content/docs/bones/scripts/rc-render.md
+  title: "🖨️ rc-render.sh Reference"
+  slug: rc-render
+  version: "0.2.5-pre"
+  updated: "2025-06-02"
+  description: "Main rendering engine for converting Markdown tombs into HTML using Pandoc and custom templates. Skips any Markdown with `status: draft`."
+  tags:
+    - rotkeeper
+    - scripts
+    - rendering
+    - pandoc
+  asset_meta:
+    name: "rc-render.md"
+    version: "v0.2.3-pre"
+    author: "Rotkeeper Ritual Council"
+    project: "Rotkeeper"
+    tracked: true
+    license: "All Rights Reserved"
+
+- path: home/content/docs/bones/scripts/rc-reseed.md
+  title: "♻️ rc-reseed.sh Reference"
+  slug: rc-reseed
+  version: "v0.2.3-pre"
+  updated: "2025-06-01"
+  description: "Rebuilds a full Rotkeeper project structure from markdown ritual books or archive tombs using rc-reseed.sh."
+  tags:
+    - rotkeeper
+    - scripts
+    - restore
+    - tombs
+  asset_meta:
+    name: "rc-reseed.md"
+    version: "v0.2.3-pre"
+    author: "Rotkeeper Ritual Council"
+    project: "Rotkeeper"
+    tracked: true
+    license: "All Rights Reserved"
+
+- path: home/content/docs/bones/scripts/rc-scan.md
+  title: "🔍 rc-scan.sh Reference"
+  slug: rc-scan
+  version: "v0.2.3-pre"
+  updated: "2025-06-01"
+  description: "Scans the filesystem and rotkeeper manifest for mismatches, orphan files, and missing artifacts. Produces checksums and reports."
+  tags:
+    - rotkeeper
+    - scripts
+    - scan
+    - digests
+  asset_meta:
+    name: "rc-scan.md"
+    version: "v0.2.3-pre"
+    author: "Rotkeeper Ritual Council"
+    project: "Rotkeeper"
+    tracked: true
+    license: "All Rights Reserved"
+
+- path: home/content/docs/bones/scripts/rc-showcase.md
+  target_file: "bones/scripts/rc-showcase.sh"
+  date: "2026-06-27T16:16:32Z"
+  template: "rotkeeper-doc.html"
+  version: "0.1.0"
+  author: "Rotkeeper DIP"
+  project: "Rotkeeper"
+
+- path: home/content/docs/bones/scripts/rc-status.md
+  title: "rc-status.sh"
+  slug: rc-status
+  subtitle: "Reports the current rotkeeper project state, including logs, active version, and tomb status."
+  version: "v0.2.5"
+  updated: "2025-06-03"
+  description: "Provides a snapshot of the rotkeeper environment including changelog info, log count, manifest state, and current archive status."
+  tags:
+    - rotkeeper
+    - status
+    - logs
+    - version
+    - audit
+    - script
+  asset_meta:
+    name: "rc-status.md"
+    version: "v0.2.5"
+    author: "Filed Systems"
+    project: "Rotkeeper"
+    type: "script-doc"
+    tracked: true
+    license: "All Rights Reserved"
+
+- path: home/content/docs/bones/scripts/rc-sync-inbox.md
+  target_file: "bones/scripts/rc-sync-inbox.sh"
+  date: "2026-06-27T16:16:32Z"
+  template: "rotkeeper-doc.html"
+  version: "0.1.0"
+  status: "complete"
+  author: "Rotkeeper DIP"
+  project: "Rotkeeper"
+
+- path: home/content/docs/bones/scripts/rc-test.md
+  title: "rc-test.sh Documentation"
+  target_file: "bones/scripts/rc-test.sh"
+  date: "2026-06-23T03:31:34Z"
+  template: "rotkeeper-doc.html"
+
+- path: home/content/docs/bones/scripts/rc-utils.md
+  title: "🧩 rc-utils.sh Reference"
+  slug: rc-utils
+  version: "v0.2.5"
+  updated: "2025-06-03"
+  description: "Utility functions sourced by other rc-*.sh scripts, including logging, error handling, and dependency checks."
+  tags:
+    - rotkeeper
+    - scripts
+    - utils
+    - shared
+  asset_meta:
+    name: "rc-utils.md"
+    version: "v0.2.5"
+    author: "Rotkeeper Ritual Council"
+    project: "Rotkeeper"
+    tracked: true
+    license: "All Rights Reserved"
+
+- path: home/content/docs/bones/scripts/rewrite-links.md
+  title: "rewrite-links.lua Documentation"
+  target_file: "bones/scripts/rewrite-links.lua"
+  date: "2026-06-23T03:31:34Z"
+  template: "rotkeeper-doc.html"
+
+- path: home/content/docs/bones/templates/index.md
+  title: "🎨 Templates Index"
+  slug: templates-index
+  version: "0.1.0"
+  updated: "2026-06-27"
+  description: "Layouts, themes, and Pandoc assets."
+  template: "rotkeeper-doc.html"
+  status: "complete"
+  author: "Rotkeeper DIP"
+  project: "Rotkeeper"
+
+- path: home/content/docs/bones/templates/rotkeeper-blog.md
+  title: "rotkeeper-blog.html Documentation"
+  target_file: "bones/templates/rotkeeper-blog.html"
+  date: "2026-06-23T03:31:34Z"
+  template: "rotkeeper-doc.html"
+
+- path: home/content/docs/bones/templates/rotkeeper-doc.md
+  title: "rotkeeper-doc.html Documentation"
+  target_file: "bones/templates/rotkeeper-doc.html"
+  date: "2026-06-23T03:31:34Z"
+  template: "rotkeeper-doc.html"
+
+- path: home/content/docs/bones/templates/theme-dark.md
+  title: "theme-dark.html Documentation"
+  target_file: "bones/templates/theme-dark.html"
+  date: "2026-06-23T03:31:34Z"
+  template: "rotkeeper-doc.html"
+
+- path: home/content/docs/bones/templates/theme-kawaii.md
+  target_file: "bones/templates/theme-kawaii.html"
+  date: "2026-06-27T16:16:32Z"
+  template: "rotkeeper-doc.html"
+  version: "0.1.0"
+  author: "Rotkeeper DIP"
+  project: "Rotkeeper"
+
+- path: home/content/docs/bones/templates/theme-light.md
+  title: "theme-light.html Documentation"
+  target_file: "bones/templates/theme-light.html"
+  date: "2026-06-23T03:31:34Z"
+  template: "rotkeeper-doc.html"
+
+- path: home/content/docs/bones/templates/theme-overgrown.md
+  target_file: "bones/templates/theme-overgrown.html"
+  date: "2026-06-27T16:16:32Z"
+  template: "rotkeeper-doc.html"
+  version: "0.1.0"
+  author: "Rotkeeper DIP"
+  project: "Rotkeeper"
+
+- path: home/content/docs/bones/templates/theme-phosphor.md
+  target_file: "bones/templates/theme-phosphor.html"
+  date: "2026-06-27T16:16:32Z"
+  template: "rotkeeper-doc.html"
+  version: "0.1.0"
+  author: "Rotkeeper DIP"
+  project: "Rotkeeper"
+
+- path: home/content/docs/dip-matrix.md
+  title: "Document Improvement Project (DIP) Matrix"
+  date: "2026-07-01T10:32:34Z"
+  template: "rotkeeper-doc.html"
+
+- path: home/content/docs/index.md
+  title: "Ritual Scripts"
+  slug: scripts-index
+  version: "0.2.3-pre"
+  updated: "2025-06-01"
+  description: "Directory index for all rc-*.sh scripts used in Rotkeeper. Includes manual tools, render helpers, and archival commands."
+  tags:
+    - rotkeeper
+    - scripts
+    - cli
+    - reference
+  asset_meta:
+    name: "scripts-index.md"
+    version: "0.2.3-pre"
+    author: "Filed Systems"
+    project: "Rotkeeper"
+    tracked: true
+    license: "All Rights Reserved"
+
+- path: home/content/docs/onboarding.md
+  title: "📋 Onboarding Guide"
+  slug: onboarding
+  version: "0.2.3-pre"
+  updated: "2025-06-01"
+  description: "Internal checklist and commentary for contributors joining the Rotkeeper project. Includes environment and process notes."
+  tags:
+    - rotkeeper
+    - onboarding
+    - internal
+    - contributors
+  asset_meta:
+    name: "onboarding.md"
+    version: "0.2.3-pre"
+    author: "Filed Systems"
+    project: "Rotkeeper"
+    tracked: true
+    license: "All Rights Reserved"
+
+- path: home/content/docs/road-to-bones/index.md
+  title: "The Road to Bones"
+  slug: road-to-bones
+  subtitle: "Rotkeeper Buildlog & Resurrection Notes"
+  version: "0.2.5-pre"
+  updated: "2025-06-03"
+  description: "Buildlog, audit summary, and resurrection notes for Rotkeeper version 0.2.0-pre through 0.2.3-pre."
+  tags:
+    - rotkeeper
+    - changelog
+    - audit
+    - bootstrap
+    - logs
+  asset_meta:
+    name: "index.md"
+    version: "0.2.5-pre"
+    author: "Filed Systems"
+    project: "Rotkeeper"
+    tracked: true
+    license: "All Rights Reserved"
+
+- path: home/content/docs/rotkeeper-reference.md
+  title: "Rotkeeper Reference (Dry)"
+  slug: rotkeeper-reference
+  template: rotkeeper-doc.html
+  description: "A neutral, boring reference manual for Rotkeeper."
+
+- path: home/content/docs/rotkeeper-rituals.md
+  title: "The Book of Rituals"
+  slug: rotkeeper-rituals
+  template: rotkeeper-doc.html
+  description: "A cryptic, lore-friendly guide to the bash scripts (rituals) that power Rotkeeper."
+
+- path: home/content/docs/rotkeeper.md
+  target_file: "rotkeeper.sh"
+  date: "2026-06-30T14:45:50Z"
+  template: "rotkeeper-doc.html"
+  version: "0.1.0"
+  author: "Rotkeeper DIP"
+  project: "Rotkeeper"
+
+- path: home/content/docs/scripts/index.md
+  title: "Index of scripts"
+  template: "rotkeeper-blog.html"
+  rotkeeper_glued: true
+
+- path: home/content/docs/scripts/setup-jules.md
+  title: "setup-jules.sh"
+  slug: setup-jules
+  version: "v0.3.1.4"
+  updated: 2026-03-23
+  description: "Reference for setup-jules.sh script which installs dependencies and prepares the Jules environment."
+  tags:
+    - rotkeeper
+    - scripts
+    - init
+    - bootstrap
+    - jules
+  asset_meta:
+    name: "setup-jules.md"
+    version: "v0.3.1.4"
+    author: "Rotkeeper Ritual Council"
+    project: "Rotkeeper"
+    tracked: true
+    license: "All Rights Reserved"
+
+- path: home/content/help/index.md
+  title: "Index of help"
+  rotkeeper_glued: true
+
+- path: home/content/index.md
+  title: "Welcome to Rotkeeper"
+  slug: home
+  version: "0.3.0.4"
+  updated: "2026-06-15"
+  description: "Rotkeeper CLI landing page. Get started with decay rituals, rendering tombs, and exploring archival output."
+  tags:
+    - rotkeeper
+    - homepage
+    - cli
+    - decay
+  asset_meta:
+    name: "index.md"
+    version: "0.3.0.4"
+    author: "Filed Systems"
+    project: "Rotkeeper"
+    tracked: true
+    license: "All Rights Reserved"
+
+- path: home/content/my-first-page.md
+  title: "my-first-page"
+  slug: my-first-page
+  template: rotkeeper-blog.html
+  description: "A brief description of this page."
+
+- path: home/content/rotkeeper/index.md
+  title: "Index of rotkeeper"
+  rotkeeper_glued: true
+
+- path: home/content/showcase/index.md
+  title: "Index of showcase"
+  template: "rotkeeper-blog.html"
+  rotkeeper_glued: true
+
+- path: home/content/showcase/showcase-dark.md
+  title: "Showcase: dark"
+  slug: "showcase-dark"
+  template: "theme-dark.html"
+  description: "Programmatic description for dark"
+
+- path: home/content/showcase/showcase-kawaii.md
+  title: "Showcase: kawaii"
+  slug: "showcase-kawaii"
+  template: "theme-kawaii.html"
+
+- path: home/content/showcase/showcase-light.md
+  title: "Showcase: light"
+  slug: "showcase-light"
+  template: "theme-light.html"
+  description: "Programmatic description for light"
+
+- path: home/content/showcase/showcase-overgrown.md
+  title: "Showcase: overgrown"
+  slug: "showcase-overgrown"
+  template: "theme-overgrown.html"
+
+- path: home/content/showcase/showcase-phosphor.md
+  title: "Showcase: phosphor"
+  slug: "showcase-phosphor"
+  template: "theme-phosphor.html"

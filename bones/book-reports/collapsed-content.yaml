@@ -1,0 +1,33 @@
+
+- filename: rotkeeper-configbook.md
+  title: Rotkeeper Configbook
+  subtitle: YAML configuration and templates used by rotkeeper
+  body: |
+    title: Rotkeeper Configbook
+    subtitle: YAML configuration and templates used by rotkeeper
+- filename: rotkeeper-contentbook.md
+  title: Rotkeeper Contentbook
+  subtitle: All markdown in home/content with path markers
+  body: |
+    title: Rotkeeper Contentbook
+    subtitle: All markdown in home/content with path markers
+- filename: rotkeeper-docbook.md
+  title: Rotkeeper Docbook
+  subtitle: All markdown documentation in home/content/docs with path markers
+  body: |
+    title: Rotkeeper Docbook
+    subtitle: All markdown documentation in home/content/docs with path markers
+- filename: rotkeeper-files.md
+  title: Rotkeeper File System Catalog
+  subtitle: Complete directory listing of the project
+  body: |
+    title: Rotkeeper File System Catalog
+    subtitle: Complete directory listing of the project
+    generated: 2026-07-02 17:50:50
+- filename: rotkeeper-scriptbook-full.md
+  title: Rotkeeper Scriptbook Full
+  subtitle: All rc-*.sh rituals with relative paths and fences
+  body: |
+    title: Rotkeeper Scriptbook Full
+    subtitle: All rc-*.sh rituals with relative paths and fences
+    generated: 2026-07-02
