@@ -8,6 +8,7 @@
 SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPTDIR}/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
 
+# shellcheck disable=SC2329
 show_help() {
   cat <<EOF
 rc-sync-inbox.sh — Inbox Autopilot

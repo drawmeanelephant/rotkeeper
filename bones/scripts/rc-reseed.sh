@@ -22,7 +22,7 @@ IFS=$'\n\t'
 
 
 show_help() {
-  cat <<EOF
+  cat <<EOF2
 rc-reseed.sh — Reverse ritual for scriptbook/docbook/configbook unbinding
 
 Usage: rc-reseed.sh [--input FILE] [--dry-run] [--all]
@@ -33,7 +33,7 @@ Options:
   --dry-run          Preview actions without writing files
   --all              Reseed from all known books (scriptbook-full, docbook, configbook)
   --help, -h         Display this message
-EOF
+EOF2
   exit 0
 }
 
@@ -116,6 +116,7 @@ for INPUT in "${DEFAULT_BOOKS[@]}"; do
   outfile=""
   active_suffix=""
   in_block=false
+  in_code_fence=false
   skip_next=0
 
   while IFS= read -r line || [[ -n "$line" ]]; do
@@ -137,7 +138,7 @@ for INPUT in "${DEFAULT_BOOKS[@]}"; do
       fi
       echo "📁 Resurrecting → $relpath"
       in_block=true
-      skip_next=2
+      skip_next=0 # Frontmatter processing handled natively now
       continue
     fi
 
@@ -158,16 +159,8 @@ for INPUT in "${DEFAULT_BOOKS[@]}"; do
       continue
     fi
 
-    if (( skip_next > 0 )); then
-      ((skip_next--))
-      continue
-    fi
-
+    # Write the earthly code lines back into the resurrected files
     if [[ "$in_block" == true && "$DRY_RUN" == false ]]; then
-      # Skip markdown code fences
-      if [[ "$line" =~ ^\`\`\` ]]; then
-        continue
-      fi
       echo "$line" >> "$outfile"
     fi
   done < "$INPUT"
