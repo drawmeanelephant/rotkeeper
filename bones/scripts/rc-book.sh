@@ -34,6 +34,7 @@ MODE=""
 # shellcheck disable=SC2034
 CONFIG=""
 STRIPMODE=false
+FORCE_BIND=false
 
 showhelp() {
   cat <<EOF
@@ -48,6 +49,7 @@ Modes:
   --docbook-clean     Bind docs, frontmatter stripped
   --configbook        Bind config/templates into rotkeeper-configbook.md
   --fsbook            Bind project file system catalog into rotkeeper-files.md
+  --force-bind        Bypass memory budget safeguards when generating massive books
   --contentbook       Bind all home/content markdown into rotkeeper-contentbook.md
   --contentmeta       Extract frontmatter YAML into rotkeeper-contentmeta.yaml
   --collapse          Collapse all rotkeeper-*.md into collapsed-content.yaml
@@ -78,6 +80,7 @@ parseflags() {
       --config)            CONFIG="$2"; shift 2 ;;
       --dry-run)           shift ;;
       --strip-frontmatter) STRIPMODE=true; shift ;;
+      --force-bind)        FORCE_BIND=true; shift ;;
       --verbose)           shift ;;
       --help|-h)           showhelp; exit 0 ;;
       *) echo "Unknown option: $1"; showhelp; exit 1 ;;
@@ -324,6 +327,17 @@ collapse() {
 }
 
 runmode() {
+  local total_size
+  total_size=$( { find "$DOCS_DIR" "$CONTENT_DIR" -type f -name "*.md" 2>/dev/null || true; } | sort -u | tr "\n" "\0" | xargs -0 wc -c 2>/dev/null | awk 'END{print $1}' )
+  [[ -z "$total_size" ]] && total_size=0
+  if [[ "$total_size" -gt 5242880 ]]; then
+    if [[ "$FORCE_BIND" != "true" ]]; then
+      log "ERROR" "Resulting binder will be massive (>5MB). Aborting. Append --force-bind to proceed."
+      exit 1
+    else
+      log "WARN" "Resulting binder will be massive (>5MB). Proceeding because --force-bind is set."
+    fi
+  fi
   case "$MODE" in
     scriptbookfull) runscriptbookfull ;;
     docbook)        rundocbook ;;
