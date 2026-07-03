@@ -1,11 +1,11 @@
 ---
 title: "Image Assets"
-description: "Static images, logos, and splashes"
-status: "OK"
+description: "Static imagery for the content estate."
+status: "complete"
 ---
 
 ### Architectural Intent
-This directory serves static visuals without requiring processing pipelines. It contains base visual assets referenced by HTML templates or core project readmes.
+The `home/assets/images/` directory stores static images referenced by markdown content or HTML templates.
 
 ### Directory / File Schema Expectations
-Raw image formats (`.png`, `.jpg`, `.svg`).
+Images (e.g., `.png`, `.jpg`, `.svg`) are kept here.

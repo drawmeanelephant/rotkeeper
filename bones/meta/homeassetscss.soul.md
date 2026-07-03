@@ -1,11 +1,11 @@
 ---
 title: "CSS Stylesheets"
-description: "Base and theme styling for the site"
-status: "OK"
+description: "Brutalist CSS layouts for framework-less HTML templates."
+status: "complete"
 ---
 
 ### Architectural Intent
-These files define standards-compliant CSS variables and structural classes used by Rotkeeper templates. No CSS frameworks are used, adhering to the brutalist 'no framework' constraint of the project.
+The `home/assets/css/` directory stores standard CSS files that power the zero-hydration aesthetic of Rotkeeper. Themes like `theme-phosphor` and `theme-dark` reside here, emphasizing stability via standard CSS variables and cascade fallbacks.
 
 ### Directory / File Schema Expectations
-Files should be raw `.css`. `rotkeeper.css` provides baseline structural layouts (like `rk-page`, `rk-shell`) and reset variables. Theme files provide specific color palettes and font families.
+Standard `.css` files only. Avoid SCSS/SASS compilation logic here; this is the final delivery location.
