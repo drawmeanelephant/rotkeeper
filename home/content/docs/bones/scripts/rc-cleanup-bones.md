@@ -94,7 +94,7 @@ It culled what’s confined,
 And kept your bones tidy and grand.
 -->
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-01T10:11:53Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-03T03:26:37Z -->
 
 
 ### Bones of the Code
@@ -106,6 +106,6 @@ This script wields `find ... -delete` and `rm -rf` like a blind man swinging a s
 ### Ritual Warnings
 Ensure all path variables are strictly validated before running. One unset variable and you'll be restoring from backups while the script cackles in the void.
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-01T10:32:34Z -->
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-03T03:26:37Z -->
 
 - * ✅ `rc-cleanup-bones.sh` — dry-run-safe graveyard cleanup

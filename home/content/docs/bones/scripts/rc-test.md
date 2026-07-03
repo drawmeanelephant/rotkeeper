@@ -24,7 +24,7 @@ Integration test harness script to verify the core Rotkeeper scripts.
 ```
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-01T10:11:53Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-03T03:26:37Z -->
 
 
 ### Bones of the Code

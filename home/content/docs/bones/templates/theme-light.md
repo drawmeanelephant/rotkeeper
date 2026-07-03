@@ -16,7 +16,7 @@ HTML template for the high-contrast light theme.
 Zero-hydration HTML template used for static rendering. It relies on standard CSS variables and structural classes.
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-01T10:11:53Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-03T03:26:37Z -->
 
 
 ### Architectural Intent
