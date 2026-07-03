@@ -16,10 +16,18 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+
 if [[ "${1:-}" == "--dry-run" ]]; then exit 0; fi
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  echo "rc-test.sh — Run layout integration tests"
+  echo "Usage: rc-test.sh [options]"
+  exit 0
+fi
 
 echo "--- Rotkeeper Multi-Pass Layout Matrix Test Suite ---"
 
+ORIG_DIR="$(pwd)"
 TEST_DIR="/tmp/rotkeeper-test-env"
 # shellcheck disable=SC2329
 cleanup() {
@@ -83,80 +91,82 @@ CONF_EOF
   esac
 
   # 2. Enter target workspace boundary and execute lifecycle loops
-  (
-    cd "$pass_dir"
-    export ROT_SKIP_ENV=false # Enforce fresh boots
+  cd "$pass_dir"
+  echo "DEBUG PWD: $(pwd)"
+  echo "DEBUG LS:"
+  ls -la
+  export ROT_SKIP_ENV=false # Enforce fresh boots
 
-    echo "  [+] Initializing environment..."
-    ./rotkeeper.sh init --with-sample > /dev/null
+  echo "  [+] Initializing environment..."
+  ./rotkeeper.sh init --with-sample > /dev/null
 
-    # Assert structural content scaffolding placement matches criteria
-    case "$mode" in
-      "busy")    [ -f "home/content/test-file.md" ] || exit 40 ;;
-      "sterile") [ -f "src/content/test-file.md" ] || exit 41 ;;
-      "crypt")   [ -f "home/content/test-file.md" ] || exit 42 ;;
-    esac
+  # Assert structural content scaffolding placement matches criteria
+  case "$mode" in
+    "busy")    [ -f "home/content/test-file.md" ] || exit 40 ;;
+    "sterile") [ -f "src/content/test-file.md" ] || exit 41 ;;
+    "crypt")   [ -f "home/content/test-file.md" ] || exit 42 ;;
+  esac
 
-    echo "  [+] Testing 'new' scaffold ritual..."
-    ./rotkeeper.sh new "custom-page" > /dev/null
+  echo "  [+] Testing 'new' scaffold ritual..."
+  ./rotkeeper.sh new "custom-page" > /dev/null
 
-    echo "  [+] Testing path traversal hardening..."
-    local_content_dir="home/content"
-    if [[ "$mode" == "sterile" ]]; then
-      local_content_dir="src/content"
-    fi
-    cat << 'MALICIOUS_EOF' > "$local_content_dir/malicious-file.md"
+  echo "  [+] Testing path traversal hardening..."
+  local_content_dir="home/content"
+  if [[ "$mode" == "sterile" ]]; then
+    local_content_dir="src/content"
+  fi
+  cat << 'MALICIOUS_EOF' > "$local_content_dir/malicious-file.md"
 ---
 template: ../../../../../etc/passwd
 ---
 This file should not be rendered successfully.
 MALICIOUS_EOF
-    ./rotkeeper.sh render > /dev/null
+  ./rotkeeper.sh render > /dev/null
 
-    # Assert that no HTML was generated for malicious file
-    if [[ "$mode" == "sterile" ]]; then
-      if [[ -f "dist/malicious-file.html" ]]; then
-        echo "❌ Path traversal failed: malicious-file.html was generated."
-        exit 60
-      fi
-    else
-      if [[ -f "output/malicious-file.html" ]]; then
-        echo "❌ Path traversal failed: malicious-file.html was generated."
-        exit 60
-      fi
+  # Assert that no HTML was generated for malicious file
+  if [[ "$mode" == "sterile" ]]; then
+    if [[ -f "dist/malicious-file.html" ]]; then
+      echo "❌ Path traversal failed: malicious-file.html was generated."
+      exit 60
     fi
-
-    # Verify ERROR log was created
-    if ! grep -q "Path traversal detected in template path" bones/logs/rc-render-*.log; then
-      echo "❌ Path traversal failed: No ERROR log found."
-      exit 61
+  else
+    if [[ -f "output/malicious-file.html" ]]; then
+      echo "❌ Path traversal failed: malicious-file.html was generated."
+      exit 60
     fi
-    rm "$local_content_dir/malicious-file.md"
+  fi
 
-    echo "  [+] Compiling and running Pandoc Forge passes..."
-    ./rotkeeper.sh render > /dev/null
+  # Verify ERROR log was created
+  if ! grep -q "Path traversal detected in template path" bones/logs/rc-render-*.log; then
+    echo "❌ Path traversal failed: No ERROR log found."
+    exit 61
+  fi
+  rm "$local_content_dir/malicious-file.md"
 
-    # Validate output targets match criteria
-    case "$mode" in
-      "busy")    [ -f "output/custom-page.html" ] || exit 50 ;;
-      "sterile") [ -f "dist/custom-page.html" ] || exit 51 ;;
-      "crypt")   [ -f "output/custom-page.html" ] || exit 52 ;;
-    esac
+  echo "  [+] Compiling and running Pandoc Forge passes..."
+  ./rotkeeper.sh render > /dev/null
 
-    echo "  [+] Auditing asset mapping constraints..."
-    ./rotkeeper.sh assets > /dev/null
-    [ -f "bones/asset-manifest.yaml" ] || exit 53
+  # Validate output targets match criteria
+  case "$mode" in
+    "busy")    [ -f "output/custom-page.html" ] || exit 50 ;;
+    "sterile") [ -f "dist/custom-page.html" ] || exit 51 ;;
+    "crypt")   [ -f "output/custom-page.html" ] || exit 52 ;;
+  esac
 
-    echo "  [+] Running validation audit tools..."
-    ./rotkeeper.sh book --fsbook
-    ./rotkeeper.sh autopsy --all
-    ./rotkeeper.sh dip
+  echo "  [+] Auditing asset mapping constraints..."
+  ./rotkeeper.sh assets > /dev/null
+  [ -f "bones/asset-manifest.yaml" ] || exit 53
 
-    echo "  [+] Verifying workspace status summaries..."
-    ./rotkeeper.sh status --json > /dev/null
+  echo "  [+] Running validation audit tools..."
+  ./rotkeeper.sh book --fsbook
+  ./rotkeeper.sh autopsy --all
+  ./rotkeeper.sh dip
 
-    echo "  🎉 Pass [$mode] successful and structurally coherent."
-  )
+  echo "  [+] Verifying workspace status summaries..."
+  ./rotkeeper.sh status --json > /dev/null
+
+  echo "  🎉 Pass [$mode] successful and structurally coherent."
+  cd "$ORIG_DIR"
 done
 
 echo "======================================================================"
