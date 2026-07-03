@@ -81,3 +81,13 @@ This script executes arbitrary commands and downloads binaries as root or sudo, 
 
 ### Ritual Warnings
 Do not run this script on developer local macOS/Windows environments as it expects `apt-get` and a Linux distribution. Ensure internet access is available to fetch the remote `yq` binary.
+
+## 🤖 AI Agent (Jules) Expectations
+
+The `setup-jules.sh` script prepares the environment specifically for Jules, an AI agent interacting with the Rotkeeper repository.
+
+Jules is expected to:
+- Understand that this script provisions system-level dependencies required for core Rotkeeper rituals (`pandoc`, `jq`, `rsync`, `gawk`, `yq`).
+- Execute this script seamlessly in non-interactive CI/CD pipelines or isolated sandboxes without prompt failures.
+- Recognize that modifying the environment through this script is the authorized method for dependency management before running rituals like `./rotkeeper.sh smoke` or `./rotkeeper.sh init`.
+- Ensure strict adherence to the project's brutalist architecture (relying on bash and flat files) by not introducing unnecessary package managers or frameworks during setup.
