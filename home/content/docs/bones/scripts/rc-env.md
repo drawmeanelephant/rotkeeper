@@ -75,7 +75,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 Every script should source `rc-env.sh` to avoid path chaos.
 ```
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-01T10:11:53Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-03T03:26:37Z -->
 
 
 ### Bones of the Code
@@ -87,7 +87,7 @@ Sourcing dynamic shell scripts is basically inviting vampires in through the fro
 ### Ritual Warnings
 Never trust the environment. Validate `ROOT_DIR` as if your life depends on it, because the lifespan of your filesystem certainly does.
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-01T10:32:34Z -->
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-03T03:26:37Z -->
 
 - - Optimize rc-env.sh variable resolution order.
 - - Remove redundant subshells from rc-env.sh.

@@ -4,3 +4,12 @@ home/content/docs/rotkeeper-rituals.md
 home/content/docs/rotkeeper-reference.md
 home/content/docs/index.md
 home/content/docs/road-to-bones/index.md
+home/content/docs/README.md
+home/content/docs/CHANGELOG.md
+home/content/docs/CONTRIBUTING.md
+home/content/docs/CREDITS.md
+home/content/docs/GEMINI.md
+home/content/docs/AGENTS.md
+home/content/docs/patch.md
+home/content/docs/pre-commit.md
+home/content/docs/rotkeeper.md

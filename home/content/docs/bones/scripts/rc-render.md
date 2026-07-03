@@ -118,7 +118,7 @@ And edges apart,
 Leaving no page in pending doom.
 -->
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-01T10:11:53Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-03T03:26:37Z -->
 
 
 ### Bones of the Code
@@ -139,7 +139,7 @@ This script is a masterclass in bureaucratic necromancy. I deeply appreciate the
 * The fallback template selection is reliant on whatever file globbing decides is first; one day, it will grab a template meant for internal torture rather than public display.
 * If `ROOT_DIR` or `OUTPUT_DIR` somehow become unassigned or point to `/`, the recursive `mkdir -p` and path string replacements (`${mdpath#"$PROJ_ROOT"/}`) might attempt to entomb the entire operating system.
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-01T10:32:34Z -->
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-03T03:26:37Z -->
 
 - - Improve rc-render.sh error handling during template fallback.
 - - Added parallel processing to rc-render.sh.
