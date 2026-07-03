@@ -35,10 +35,10 @@ EOF2
 
 # Source shared Rotkeeper helpers
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
-VERSION="${ROTKEEPER_VERSION:-0.4.0.6}"
+VERSION="${ROTKEEPER_VERSION:-0.4.0.3}"
 
 rk_init_script "rc-init" "$@"
-require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR CONTENT_DIR DOCS_DIR OUTPUT_DIR
+require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR CONTENT_DIR DOCS_DIR
 
 set -euo pipefail
 IFS=$'\n\t'
@@ -96,13 +96,13 @@ main() {
     fi
 
     # Create core directories non-destructively
-    mkdir -p "$CONTENT_DIR"
-    mkdir -p "$OUTPUT_DIR"
+    mkdir -p "$PROJECT_ROOT/home/content"
+    mkdir -p "$PROJECT_ROOT/output"
     mkdir -p "$PROJECT_ROOT/bones/config"
     log "INFO" "✅ Verified core directories exist."
 
     if [[ "$WITH_SAMPLE" == true ]]; then
-        cat << 'EOF_HELLO' > "$CONTENT_DIR/test-file.md"
+        cat << 'EOF_HELLO' > "$PROJECT_ROOT/home/content/test-file.md"
 ---
 title: "Test File"
 slug: test-file
@@ -114,7 +114,7 @@ description: "A simple starter page to demonstrate YAML frontmatter in Rotkeeper
 
 This is a demonstration page created during initialization.
 EOF_HELLO
-        log "INFO" "📄 Generated starter content at $CONTENT_DIR/test-file.md"
+        log "INFO" "📄 Generated starter content at home/content/test-file.md"
     fi
 
     if [[ "$WITH_ASSETS" == true ]]; then
