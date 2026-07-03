@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-bump.sh
 #  Purpose : Automated microbump logging and version bumping workflow
-#  Version : 0.4.0.3
+#  Version : 0.4.0.6
 # ------------------------------------------------------------
 
 set -euo pipefail
@@ -24,7 +24,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 source "$SCRIPT_DIR/rc-utils.sh"
-VERSION="${ROTKEEPER_VERSION:-0.4.0.3}"
+VERSION="${ROTKEEPER_VERSION:-0.4.0.6}"
 
 rk_init_script "rc-bump" "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR

@@ -28,6 +28,7 @@ This is your consolidated status snapshot: what’s working, what’s stubbed, a
 
 ## 📡 Living Buildlog (Micro Updates)
 <!-- LIVING_BUILDLOG_START -->
+* `v0.4.0.6` - (2026-07-03 18:32) - release v0.4.0.6
 * `v0.4.0.3` - (2026-07-01 17:19) - release
 * `v0.4.0.2` - (2026-06-30 12:13) - Optimize rc-env subshell parsing and harden sidecar path traversal boundaries
 * `v0.4.0.1` - (2026-06-29 11:40) - Enforce 3-tier verbosity, prune redundant render backups, and optimize JSON AST packaging
