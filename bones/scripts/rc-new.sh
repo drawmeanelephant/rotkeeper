@@ -134,16 +134,16 @@ main() {
         fi
     fi
 
-    # Ensure it's in home/content
-    if [[ "$FILE" != *"home/content/"* ]]; then
+    # Ensure it's in CONTENT_DIR
+    if [[ "$FILE" != *"$CONTENT_DIR"* ]]; then
         if [[ "$FILE" == /* ]]; then
-            # absolute path provided, check if it's within home/content
-            if [[ "$FILE" != *"/home/content/"* ]]; then
-                 log "ERROR" "File must be created within home/content/"
+            # absolute path provided, check if it's within CONTENT_DIR
+            if [[ "$FILE" != *"$CONTENT_DIR"* ]]; then
+                 log "ERROR" "File must be created within $CONTENT_DIR"
                  exit 1
             fi
         else
-            FILE="home/content/$FILE"
+            FILE="$CONTENT_DIR/$FILE"
         fi
     fi
 
