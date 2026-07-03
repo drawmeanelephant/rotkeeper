@@ -31,7 +31,7 @@ EOF
   exit 0
 }
 
-VERSION="${ROTKEEPER_VERSION:-0.4.0.3}"
+VERSION="${ROTKEEPER_VERSION:-0.4.0.6}"
 rk_init_script "rc-sync-inbox" "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONTENT_DIR LOG_DIR
 set -euo pipefail

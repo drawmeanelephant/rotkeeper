@@ -11,7 +11,7 @@
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-new.sh
 #  Purpose : Scaffold a new markdown file with YAML frontmatter
-#  Version : 0.4.0.3
+#  Version : 0.4.0.6
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -41,7 +41,7 @@ EOF
 }
 
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
-VERSION="${ROTKEEPER_VERSION:-0.4.0.3}"
+VERSION="${ROTKEEPER_VERSION:-0.4.0.6}"
 
 rk_init_script "rc-new" "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR CONTENT_DIR DOCS_DIR
@@ -134,16 +134,16 @@ main() {
         fi
     fi
 
-    # Ensure it's in home/content
-    if [[ "$FILE" != *"home/content/"* ]]; then
+    # Ensure it's in CONTENT_DIR
+    if [[ "$FILE" != *"$CONTENT_DIR"* ]]; then
         if [[ "$FILE" == /* ]]; then
-            # absolute path provided, check if it's within home/content
-            if [[ "$FILE" != *"/home/content/"* ]]; then
-                 log "ERROR" "File must be created within home/content/"
+            # absolute path provided, check if it's within CONTENT_DIR
+            if [[ "$FILE" != *"$CONTENT_DIR"* ]]; then
+                 log "ERROR" "File must be created within $CONTENT_DIR"
                  exit 1
             fi
         else
-            FILE="home/content/$FILE"
+            FILE="$CONTENT_DIR/$FILE"
         fi
     fi
 
