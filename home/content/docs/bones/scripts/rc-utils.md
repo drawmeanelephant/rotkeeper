@@ -112,7 +112,7 @@ And lights up the whole Rotkeeper land.
 -->
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-03T03:26:37Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
 
 
 ### Bones of the Code
@@ -124,7 +124,7 @@ Its attempts at portability often fall flat when encountering ancient or obscure
 ### Ritual Warnings
 Do not rely on these utilities in truly hostile environments. Their portability is an illusion maintained by sheer luck.
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-03T03:26:37Z -->
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-04T15:41:00Z -->
 
 - - Updated `rc-utils.sh` to:
 - - `require_bins()` from `rc-utils.sh` is used to validate external dependencies like `pandoc`, `git`, `jq`, etc. All prior instances of legacy dependency checkers have been purged. `require_bins()` is now the sole ritual for verifying external tools.

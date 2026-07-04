@@ -24,9 +24,17 @@ TODO: Stitch extracted help block.
 TODO: Stitch environment variables.
 
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-03T03:49:54Z -->
-TODO: Stitch ritual history.
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-04T15:41:00Z -->
 
+- * ✅ `rotkeeper.sh` — version bumped, full dispatch implemented
+- | Set `VERSION="0.2.0-pre"` in `rotkeeper.sh`               | Locks in your timeline           |
+- └── rotkeeper.sh
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-03T03:49:54Z -->
-TODO: Stitch necromancer notes.
+<!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
+
+
+### Architectural Intent
+The primary dispatcher for the Rotkeeper system. It acts as the gateway cli to bootstrap the environment, invoke scripts like `rc-init.sh`, `rc-render.sh`, `rc-dip.sh`, and `rc-release.sh`, and coordinate test suites.
+
+### Directory / File Schema Expectations
+It is a wrapper with high expectations. It requires `rc-utils.sh` and `rc-env.sh` to exist in the same directory, failing immediately if the environment variables are not populated. If child scripts exit with unhandled errors, it occasionally fails to report the specific failure origin. Always execute `rotkeeper.sh` from the workspace root or ensure script directories are accessible. Verify environment paths, or the dispatcher will fail to bootstrap.

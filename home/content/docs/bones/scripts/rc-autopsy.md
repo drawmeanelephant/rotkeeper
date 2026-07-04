@@ -44,7 +44,7 @@ TODO: Stitch extracted help block.
 No changelog entries found. This ritual has lived and died in silence.
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-03T03:26:37Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
 
 
 ### Bones of the Code
