@@ -14,6 +14,7 @@
 # ============================================================
 
 set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 IFS=$'\n\t'
 
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES

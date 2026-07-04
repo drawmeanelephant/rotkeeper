@@ -13,6 +13,9 @@
 #  Version : 0.4.0.3
 # ============================================================
 
+set -euo pipefail
+
+
 VERSION="0.4.0.3"
 [[ -n "$BASH_VERSION" ]] || {
   echo "[ERROR] rc-env.sh must be sourced in Bash." >&2

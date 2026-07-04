@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 # ============================================================
 #  ██████╗  ██████╗ ████████╗██╗  ██╗███████╗███████╗██████╗
 #  ██╔══██╗██╔═══██╗╚══██╔══╝██║ ██╔╝██╔════╝██╔════╝██╔══██╗
@@ -23,6 +24,7 @@ IFS=$'\n\t'
 VERSION="0.4.0.3"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BONES="$SCRIPT_DIR/bones/scripts"
+source "$BONES/rc-utils.sh"
 
 trap 'echo "Unexpected error on line $LINENO"; exit 1' ERR
 
