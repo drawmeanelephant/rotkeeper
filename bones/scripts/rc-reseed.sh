@@ -43,6 +43,12 @@ VERSION="${ROTKEEPER_VERSION:-0.4.0.3}"
 rk_init_script "rc-reseed" "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR CONTENT_DIR DOCS_DIR
 
+get_canonical_path() {
+  local path="$1"
+  realpath -m "$path" 2>/dev/null || readlink -f "$path" 2>/dev/null
+}
+
+
 # Use current directory as root — assume script and inputs live together
 ROOT_DIR="$(pwd)"
 
@@ -87,6 +93,7 @@ else
   DEFAULT_BOOKS=("$INPUT")
 fi
 
+CANONICAL_ROOT_DIR=$(get_canonical_path "$ROOT_DIR")
 for INPUT in "${DEFAULT_BOOKS[@]}"; do
   [[ -f "$INPUT" ]] || { echo "⚠️  Skipping missing input: $INPUT"; continue; }
   echo "📖 Reading from: $INPUT"
@@ -161,6 +168,14 @@ for INPUT in "${DEFAULT_BOOKS[@]}"; do
 
     # Write the earthly code lines back into the resurrected files
     if [[ "$in_block" == true && "$DRY_RUN" == false ]]; then
+      outfile=$(get_canonical_path "$ROOT_DIR/$relpath")
+
+      # Defensive Boundary Enforcement: Prevent absolute path escaping
+      if [[ "$outfile" != "$CANONICAL_ROOT_DIR"* || -z "$relpath" ]]; then
+        log "ERROR" "Path traversal boundary escape blocked: $relpath"
+        exit 1
+      fi
+
       echo "$line" >> "$outfile"
     fi
   done < "$INPUT"
