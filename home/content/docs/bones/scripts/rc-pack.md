@@ -125,7 +125,7 @@ Then logged what survived,
 Ensuring no relic would stray.
 -->
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-03T03:26:37Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
 
 
 ### Bones of the Code
@@ -137,7 +137,7 @@ Its absolute reliance on `jq` means that without it, the metadata creation proce
 ### Ritual Warnings
 Ensure `jq` is installed and functioning. Beware of injecting raw, unescaped text into the JSON metadata fields.
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-03T03:26:37Z -->
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-04T15:41:00Z -->
 
 - - Update rc-pack.sh to include all config variations.
 - - Enhance rc-pack.sh compression algorithm for smaller tarballs.

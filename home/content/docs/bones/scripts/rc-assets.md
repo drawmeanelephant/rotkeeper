@@ -103,7 +103,7 @@ In tabular fate,
 Ensuring no file fades from sight.
 -->
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-03T03:26:37Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
 
 
 ### Bones of the Code
@@ -115,6 +115,6 @@ The reliance on `sha256sum` or `shasum` preflights is a fragile pact; if the hos
 ### Ritual Warnings
 Do not feed it untrusted zip files or chaotic directory structures unless you enjoy directory traversal exploits. Ensure `sha256sum` or `shasum` is bound to the environment before invoking this fragile magic.
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-03T03:26:37Z -->
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-04T15:41:00Z -->
 
 - * ✅ `rc-assets.sh` — generates selective YAML manifests

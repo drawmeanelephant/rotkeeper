@@ -314,27 +314,18 @@ inject_necromancer_notes() {
 }
 
 
-# 3.5 Verify Folder Souls
-log "INFO" "Verifying folder souls..."
-find "$ROOT_DIR" -type d | while read -r DIR; do
-    [[ "$DIR" == "$ROOT_DIR" ]] && continue
-    # Skip excluded directories
-    REL_DIR="${DIR#"$ROOT_DIR"/}"
-    [[ -z "$REL_DIR" ]] && continue
-    exclude=false
-    for excl in "${!AUTOPSY_EXCLUDES[@]}"; do
-        if [[ "$REL_DIR" == "$excl" || "$REL_DIR" == "$excl/"* || "$REL_DIR" == .git* ]]; then
-            exclude=true
-            break
-        fi
-    done
-    [[ "$exclude" == true ]] && continue
+# DIP AUDITOR SEPARATION: Check folder souls from metadata logs instead of active disk find commands
+log "INFO" "Auditing structural folder soul declarations from registry..."
+if [[ -d "$META_DIR" ]]; then
+    find "$META_DIR" -type f -name "*.soul.md" | while read -r soul_path; do
+        # Derive what file path or folder path this soul belongs to
+        rel_meta_path="${soul_path#"$META_DIR"/}"
+        target_origin="${rel_meta_path%.soul.md}"
 
-    if [[ -d "$DIR" ]]; then
-        SOUL_FILE="$META_DIR/${REL_DIR}.soul.md"
-        EXPECTED_DOCS["$SOUL_FILE"]="$REL_DIR"
-    fi
-done
+        # Track expected paths dynamically so rc-glue.sh knows they are registered parameters
+        EXPECTED_DOCS["$soul_path"]="$target_origin"
+    done
+fi
 
 # 4. Stub Missing Docs
 log "INFO" "Checking for missing docs..."

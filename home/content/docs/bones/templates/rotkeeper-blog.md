@@ -16,7 +16,7 @@ HTML template for rendering blog posts.
 Zero-hydration HTML template used for static rendering. It relies on standard CSS variables and structural classes.
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-03T03:26:37Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
 
 
 ### Architectural Intent
