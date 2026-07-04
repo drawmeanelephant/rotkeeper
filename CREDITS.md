@@ -1,19 +1,14 @@
-# 📜 Asset Credits
+---
+title: "The Archival Ledger"
+template: "rotkeeper-doc.html"
+status: "complete"
+---
 
-This project includes external assets used under open licenses:
+# 💀 Ledger of the Reanimated
 
-***
+Rotkeeper is permanently sustained by the contributions of human scholars and autonomous CLI delegates who refused to let their flat-file content rot under the weight of the modern web.
 
-## 🎨 OpenMoji
-
-Emoji symbols provided by [OpenMoji](https://openmoji.org/).
-License: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
-© OpenMoji – the open-source emoji and icon project.
-
-***
-
-## 🔠 IBM Plex Font
-
-IBM Plex is licensed under the [SIL Open Font License 1.1](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL).
-
-© 2017 IBM Corp.
+## 🏛️ Foundational Council
+- **The Pilot:** For managing the cockpit, logging intensive stick time, and engineering the core `rc-glue.sh` non-destructive link engine out of pure spite for corporate software bloat.
+- **Jules (Lite Tier):** The autonomous sandbox delegate. For ingesting sterile payloads, holding configuration stacks, and trying its absolute best to parse visual text prompts through standard shell filters.
+- **Pandoc (`pandoc`):** The non-negotiable compile golem bending markdown into pristine static HTML tombs.
