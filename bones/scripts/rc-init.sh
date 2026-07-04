@@ -107,7 +107,7 @@ main() {
         # Explicitly map the active folder locations straight into the target yaml config
         yq eval ".paths.ROOT_DIR = \"$ROOT_DIR\"" -i "$CONFIG_TARGET"
         yq eval ".paths.BONES_DIR = \"$BONES_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.SCRIPT_DIR = \"$SCRIPT_DIR\"" -i "$CONFIG_TARGET"
+        yq eval ".paths.SCRIPT_DIR = \"$SCRIPTDIR\"" -i "$CONFIG_TARGET"
         yq eval ".paths.CONFIG_DIR = \"$CONFIG_DIR\"" -i "$CONFIG_TARGET"
         yq eval ".paths.LOG_DIR = \"$LOG_DIR\"" -i "$CONFIG_TARGET"
         yq eval ".paths.TMP_DIR = \"$TMP_DIR\"" -i "$CONFIG_TARGET"
