@@ -118,6 +118,18 @@ AUTOPSY_EXCLUDES["bones/book-reports"]=1
 AUTOPSY_EXCLUDES["output"]=1
 AUTOPSY_EXCLUDES["bones/asset-manifest.yaml"]=1
 
+declare -a BLESSED_PATHS=()
+BLESSED_FILE="$ROOT_DIR/.blessed"
+if [[ -f "$BLESSED_FILE" ]]; then
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        [[ -z "$line" || "$line" =~ ^# ]] && continue
+        line=$(echo "$line" | sed -E 's/^[[:space:]]+//;s/[[:space:]]+$//')
+        BLESSED_PATHS+=("$line")
+        AUTOPSY_EXCLUDES["$line"]=1
+    done < "$BLESSED_FILE"
+fi
+
+
 # 2. Discover Core Files from fsbook catalog
 CORE_FILES=()
 if [[ ! -f "$FSBOOK_CATALOG" ]]; then
@@ -187,6 +199,25 @@ declare -a UNOWNED_DOCS=()
 for doc in "${EXISTING_DOCS[@]}"; do
     [[ "$doc" == "$MATRIX_FILE" ]] && continue
     [[ -n "${WHITELIST["$doc"]:-}" ]] && continue
+
+    is_blessed=false
+    rel_doc="${doc#"$ROOT_DIR"/}"
+    target_file_check=""
+    if grep -q "^target_file:" "$doc"; then
+        target_file_check=$(sed -n 's/^target_file: *"\(.*\)"/\1/p' "$doc" | head -n 1)
+    fi
+
+    for blessed_path in "${BLESSED_PATHS[@]}"; do
+        if [[ "$rel_doc" == "$blessed_path" || "$rel_doc" == "$blessed_path/"* ]]; then
+            is_blessed=true
+            break
+        fi
+        if [[ -n "$target_file_check" ]] && [[ "$target_file_check" == "$blessed_path" || "$target_file_check" == "$blessed_path/"* ]]; then
+            is_blessed=true
+            break
+        fi
+    done
+    [[ "$is_blessed" == true ]] && continue
 
     if [[ -z "${EXPECTED_DOCS["$doc"]:-}" ]]; then
         if ! grep -q "^target_file:" "$doc"; then
