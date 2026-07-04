@@ -146,7 +146,15 @@ main() {
   log INFO "Removing non-essential files and folders in bones/"
   for d in "tmp" "archive" "reports" "book-reports" "ingested"; do
     target="$ROOT_DIR/bones/$d"
+
+    # CRITICAL: Prevent empty or root-level evaluation paths
+    if [[ -z "${ROOT_DIR:-}" || "$ROOT_DIR" == "/" ]]; then
+      log ERROR "Safety boundary breached: ROOT_DIR is unsafe ($ROOT_DIR). Aborting cleanup."
+      exit 1
+    fi
+
     if [[ -d "$target" ]]; then
+      log INFO "Pruning ephemeral crypt: $target"
       run rm -rf "$target"
     fi
   done
