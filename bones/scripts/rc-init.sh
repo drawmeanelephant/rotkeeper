@@ -101,6 +101,31 @@ main() {
     mkdir -p "$PROJECT_ROOT/bones/config"
     log "INFO" "✅ Verified core directories exist."
 
+    if [[ "$DRY_RUN" == false ]]; then
+        log "INFO" "📦 Serializing environment directory configurations to rotkeeper.yaml..."
+
+        # Explicitly map the active folder locations straight into the target yaml config
+        yq eval ".paths.ROOT_DIR = \"$ROOT_DIR\"" -i "$CONFIG_TARGET"
+        yq eval ".paths.BONES_DIR = \"$BONES_DIR\"" -i "$CONFIG_TARGET"
+        yq eval ".paths.SCRIPT_DIR = \"$SCRIPT_DIR\"" -i "$CONFIG_TARGET"
+        yq eval ".paths.CONFIG_DIR = \"$CONFIG_DIR\"" -i "$CONFIG_TARGET"
+        yq eval ".paths.LOG_DIR = \"$LOG_DIR\"" -i "$CONFIG_TARGET"
+        yq eval ".paths.TMP_DIR = \"$TMP_DIR\"" -i "$CONFIG_TARGET"
+        yq eval ".paths.ARCHIVE_DIR = \"$ARCHIVE_DIR\"" -i "$CONFIG_TARGET"
+        yq eval ".paths.REPORT_DIR = \"$REPORT_DIR\"" -i "$CONFIG_TARGET"
+        yq eval ".paths.BOOK_REPORT_DIR = \"$BOOK_REPORT_DIR\"" -i "$CONFIG_TARGET"
+        yq eval ".paths.META_DIR = \"$META_DIR\"" -i "$CONFIG_TARGET"
+        yq eval ".paths.TEMPLATE_DIR = \"$TEMPLATE_DIR\"" -i "$CONFIG_TARGET"
+        yq eval ".paths.ASSETS_DIR = \"$ASSETS_DIR\"" -i "$CONFIG_TARGET"
+        yq eval ".paths.CONTENT_DIR = \"$CONTENT_DIR\"" -i "$CONFIG_TARGET"
+        yq eval ".paths.OUTPUT_DIR = \"$OUTPUT_DIR\"" -i "$CONFIG_TARGET"
+        yq eval ".paths.DOCS_DIR = \"$DOCS_DIR\"" -i "$CONFIG_TARGET"
+        yq eval ".paths.HELP_DIR = \"$HELP_DIR\"" -i "$CONFIG_TARGET"
+        yq eval ".paths.WEB_DIR = \"$WEB_DIR\"" -i "$CONFIG_TARGET"
+
+        log "INFO" "✅ Path mappings successfully written to configuration profile."
+    fi
+
     if [[ "$WITH_SAMPLE" == true ]]; then
         cat << 'EOF_HELLO' > "$CONTENT_DIR/test-file.md"
 ---
