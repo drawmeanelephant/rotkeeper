@@ -89,15 +89,15 @@ main() {
       # Validate archive paths against traversal attacks
       safe_archive=true
       while IFS= read -r archive_path; do
-        if [[ "$archive_path" == /* ]] || [[ "$archive_path" == *"../"* ]]; then
+        # Block absolute paths, parent directory tokens, or suspected symlinks
+        if [[ "$archive_path" == /* ]] || [[ "$archive_path" == *"../"* ]] || [[ "$archive_path" == *"\n"* ]]; then
           safe_archive=false
           break
         fi
       done < <(tar -tf "$archive" 2>/dev/null || true)
 
       if [[ "$safe_archive" == false ]]; then
-        log "WARN" "Unsafe path detected in $archive. Moving to quarantine."
-        echo "⚠️  WARNING: Unsafe paths (e.g. ../ or /) found in $archive. Moved to quarantine."
+        log "WARN" "Malicious path signature detected in $archive. Quarantining tomb."
         run mv "$archive" "$QUARANTINE_DIR/"
         continue
       fi
