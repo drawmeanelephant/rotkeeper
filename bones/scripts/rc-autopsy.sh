@@ -104,8 +104,21 @@ run_help_report() {
 
     mapfile -t scripts < <({ find "$search_script_dir" -maxdepth 1 -type f -name "rc-*.sh"; find "$search_root_dir" -maxdepth 1 -type f -name "rotkeeper.sh"; } | sort | uniq)
 
+  # Static white-list tracking to enforce zero execution drift constraints
+  declare -A PERMITTED_RITUALS
+  for r in rc-assets rc-autopsy rc-book rc-bump rc-cleanup-bones rc-dip rc-env rc-glue rc-ingest rc-init rc-new rc-pack rc-release rc-render rc-reseed rc-scan rc-showcase rc-status rc-sync-inbox rc-test rc-utils; do
+    PERMITTED_RITUALS["$r.sh"]=1
+  done
+  PERMITTED_RITUALS["rotkeeper.sh"]=1
+
   for script in "${scripts[@]}"; do
     name="$(basename "$script")"
+
+    if [[ -z "${PERMITTED_RITUALS[$name]:-}" ]]; then
+      log "WARN" "Untrusted or rogue script trace skipped from execution cycle: $name"
+      continue
+    fi
+
     echo "## $name" >> "$OUT"
     echo >> "$OUT"
     echo '```text' >> "$OUT"

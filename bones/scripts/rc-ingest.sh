@@ -88,16 +88,25 @@ main() {
 
       # Validate archive paths against traversal attacks
       safe_archive=true
-      while IFS= read -r archive_path; do
-        # Block absolute paths, parent directory tokens, or suspected symlinks
-        if [[ "$archive_path" == /* ]] || [[ "$archive_path" == *"../"* ]] || [[ "$archive_path" == *"\n"* ]]; then
+      while IFS= read -r header_line; do
+        # Parse standard tar long listing formatting strings safely
+        # Block explicitly if file type indicates a link (l), hardlink (h), or direct path escape sequence
+        if [[ "$header_line" =~ ^[lh] ]] || [[ "$header_line" == *" -> "* ]]; then
+          log "ERROR" "Malicious link structure detected inside payload."
           safe_archive=false
           break
         fi
-      done < <(tar -tf "$archive" 2>/dev/null || true)
+
+        # Extract the clean file path from the tar long line format
+        archive_path=$(echo "$header_line" | awk '{print $NF}')
+        if [[ "$archive_path" == /* ]] || [[ "$archive_path" == *"../"* ]]; then
+          safe_archive=false
+          break
+        fi
+      done < <(tar -tvf "$archive" 2>/dev/null || true)
 
       if [[ "$safe_archive" == false ]]; then
-        log "WARN" "Malicious path signature detected in $archive. Quarantining tomb."
+        log "WARN" "Malicious signature or structural traversal detected in $archive. Quarantining payload."
         run mv "$archive" "$QUARANTINE_DIR/"
         continue
       fi

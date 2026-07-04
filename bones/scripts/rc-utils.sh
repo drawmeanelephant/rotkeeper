@@ -143,8 +143,14 @@ require_gawk_version() {
 }
 
 validate_config_syntax() {
-  if ! yq eval '.' "$CONFIG_DIR/rotkeeper.yaml" >/dev/null 2>&1; then
-    log "FATAL" "YAML configuration is malformed"
+  local target_config="$CONFIG_DIR/rotkeeper.yaml"
+  # Non-destructive fallback check to prevent initial bootstrap deadlocks
+  if [[ ! -f "$target_config" ]]; then
+    return 0
+  fi
+
+  if ! yq eval '.' "$target_config" >/dev/null 2>&1; then
+    log "FATAL" "YAML configuration is malformed at $target_config"
     exit 1
   fi
 }
@@ -257,11 +263,22 @@ get_sidecar_path() {
     local base_no_ext
     base_no_ext=$(get_base_no_ext "$target")
 
-    # If it's a directory, point to path.soul.md, else file.soul.md
+    local derived_path
     if [[ -d "$ROOT_DIR/$target" ]]; then
-        echo "${META_DIR}/${target}.soul.md"
+        derived_path="${META_DIR}/${target}.soul.md"
     else
-        echo "${META_DIR}/${base_no_ext}.soul.md"
+        derived_path="${META_DIR}/${base_no_ext}.soul.md"
+    fi
+
+    # Flatten out-of-bounds traversal mappings cleanly
+    local canonical_soul
+    canonical_soul=$(realpath -m "$derived_path" 2>/dev/null || readlink -f "$derived_path" 2>/dev/null)
+
+    if [[ "$canonical_soul" != "$META_DIR"* ]]; then
+        log "ERROR" "Path traversal attempted via sidecar metadata mapping: $target"
+        echo "${META_DIR}/null.soul.md"
+    else
+        echo "$canonical_soul"
     fi
 }
 
