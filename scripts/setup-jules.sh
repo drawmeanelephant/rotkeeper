@@ -13,6 +13,7 @@
 # ============================================================
 
 set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/../bones/scripts/rc-utils.sh"
 
 echo "============================================================"
 echo " Starting Rotkeeper Setup for Jules..."
