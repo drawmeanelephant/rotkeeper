@@ -61,32 +61,24 @@ CONF_EOF
     ./rotkeeper.sh init --with-sample > /dev/null
 
     echo "  [+] Executing release packager assertions..."
-    ./rotkeeper.sh release "0.4.0.3" > /dev/null
+    ./rotkeeper.sh release "0.4.0.4" > /dev/null
 
-    echo "  [+] Asserting three-tier distribution model matching criteria..."
-    if [[ ! -f "bones/releases/rotkeeper-0.4.0.3-lite.zip" ]]; then
-       echo "❌ Assertion Failed: Lite distribution package missing."
+    echo "  [+] Asserting single archive model matching criteria..."
+    if [[ ! -f "bones/releases/rotkeeper-0.4.0.4.zip" ]]; then
+       echo "❌ Assertion Failed: Canonical distribution package missing or multi-tier leaks found."
        exit 99
     fi
-    if [[ ! -f "bones/releases/rotkeeper-0.4.0.3-full.zip" ]]; then
-       echo "❌ Assertion Failed: Full distribution package missing."
+
+    if [[ -f "bones/releases/rotkeeper-0.4.0.4-lite.zip" || -f "bones/releases/rotkeeper-0.4.0.4-full.zip" ]]; then
+       echo "❌ Assertion Failed: Deprecated multi-tier packages still generated."
        exit 100
     fi
-    if [[ ! -f "bones/releases/rotkeeper-0.4.0.3-dev.zip" ]]; then
-       echo "❌ Assertion Failed: Dev distribution package missing."
-       exit 101
-    fi
 
-    if [[ -f "bones/releases/rotkeeper-0.4.0.3.zip" ]]; then
-       echo "❌ Assertion Failed: Single-tier distribution package should not be generated."
-       exit 102
-    fi
-
-    echo "  🎉 Pass [$mode] successful: three-tier distribution payload matches criteria."
+    echo "  🎉 Pass [$mode] successful: canonical distribution payload matches criteria."
   )
 done
 
 echo "======================================================================"
-echo "✅ ALL THREE-TIER DISTRIBUTION ARCHIVE VERIFICATIONS COMPLETED SUCCESSFULLY."
+echo "✅ ALL SINGLE-TIER CANONICAL ARCHIVE VERIFICATIONS COMPLETED SUCCESSFULLY."
 echo "======================================================================"
 exit 0

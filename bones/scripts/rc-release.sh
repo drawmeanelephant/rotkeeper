@@ -7,40 +7,22 @@
 #  ██║     ███████╗██║     ███████╗███████╗███████╗
 #  ╚═╝     ╚══════╝╚═╝     ╚══════╝╚══════╝╚══════╝
 # ============================================================
-# ============================================================
 #  Project : Rotkeeper
 #  Script  : rc-release.sh
-#  Purpose : Package the project into versioned lite, full, and dev distribution zips
-#  Version : 0.4.0.3
+#  Purpose : Streamline multi-tier models down to a single-tier canonical framework distribution zip
+#  Version : 0.4.0.4
 # ============================================================
 
-show_help() {
-  cat << HELPEOF
-rc-release.sh — Release Packager (Three-Tier)
-
-Usage: rc-release.sh <VERSION> [options]
-
-Options:
-  --version, -v    Show script version and quit
-  --help, -h       Show this help message and exit
-  --dry-run        Preview actions without writing files
-  --verbose        Enable detailed debug logging
-  --tier <name>    Build only one tier: lite | full | dev (default: all three)
-HELPEOF
-  exit 0
-}
-
-source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
-VERSION="${ROTKEEPER_VERSION:-0.4.0.3}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
+VERSION="${ROTKEEPER_VERSION:-0.4.0.4}"
 
 rk_init_script "rc-release" "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR OUTPUT_DIR
 set -euo pipefail
 IFS=$'\n\t'
 
-LOG_FILE="$PWD/$LOG_FILE"
 TARGET_VERSION=""
-BUILD_TIER="all"
 PREV_ARG=""
 
 for arg in "$@"; do
@@ -48,12 +30,9 @@ for arg in "$@"; do
     --dry-run)   DRY_RUN=true ;;
     --verbose)   VERBOSE=true ;;
     --help|-h)   show_help ;;
-    --tier)      : ;;
-    -*) log "ERROR" "Unknown flag: $arg"; exit 1 ;;
+    -*) log "ERROR" "Unknown flag or legacy option deprecated: $arg"; exit 1 ;;
     *)
-      if [[ "$PREV_ARG" == "--tier" ]]; then
-        BUILD_TIER="$arg"
-      elif [[ -z "$TARGET_VERSION" ]]; then
+      if [[ -z "$TARGET_VERSION" ]]; then
         TARGET_VERSION="$arg"
       fi
       ;;
@@ -73,165 +52,73 @@ fi
 check_dependencies
 require_bins rsync zip
 
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+PROJECT_ROOT="$ROOT_DIR"
 RELEASE_DIR="$PROJECT_ROOT/bones/releases"
 STAGING_DIR="$PROJECT_ROOT/bones/tmp/release-staging"
 
 cleanup() {
-    log "INFO" "Cleaning up temporary staging directory..."
+    log "INFO" "Cleaning up temporary staging directories from the physical realm..."
     if [[ -d "$STAGING_DIR" ]]; then
         rm -rf "$STAGING_DIR"
     fi
 }
-trap cleanup EXIT
+trap cleanup EXIT INT TERM
 
-DEV_EXCLUDES=(
-    "bones/scripts/rc-release.sh"
-    "bones/scripts/rc-test.sh"
-    "bones/scripts/rc-bump.sh"
-    "bones/scripts/rc-book.sh"
-    "bones/scripts/rc-dip.sh"
-    "home/obsolete"
-    ".github"
-    ".shellcheckrc"
-    "AGENTS.md"
-    "GEMINI.md"
-)
-
-LITE_ADDITIONAL_EXCLUDES=(
-    "home/content/docs"
-    "home/content/help"
-    "home/content/rotkeeper"
-    "home/assets/images/rotkeeper-splash.png"
-    "README.md"
-    "CHANGELOG.md"
-    "CONTRIBUTING.md"
-    "CREDITS.md"
-)
-
-stage_base() {
-    local dest="$1"
-    log "INFO" "Staging base project into $(basename "$dest") ..."
-    [[ "$DRY_RUN" == true ]] && return
-    mkdir -p "$dest"
-    rsync -a \
-        --exclude='.git' \
-        --exclude='output' \
-        --exclude='bones/logs' \
-        --exclude='bones/tmp' \
-        --exclude='bones/releases' \
-        --exclude='bones/archive' \
-        --exclude='.DS_Store' \
-        --exclude='.vscode' \
-        --exclude='todo.md' \
-        --exclude='*_temp.md' \
-        "$PROJECT_ROOT/" "$dest/"
-}
-
-apply_excludes() {
-    local dir="$1"; shift
-    local excludes=("$@")
-    [[ "$DRY_RUN" == true ]] && { log "DRYRUN" "Would strip ${#excludes[@]} items from $(basename "$dir")"; return; }
-    for item in "${excludes[@]}"; do
-        local target="$dir/$item"
-        if [[ -e "$target" || -d "$target" ]]; then
-            rm -rf "$target"
-            log "INFO" "  Stripped: $item"
-        fi
-    done
-}
-
-make_zip() {
-    local tier_dir="$1"
-    local zip_path="$2"
-    [[ "$DRY_RUN" == true ]] && { log "DRYRUN" "Would zip $(basename "$tier_dir") -> $(basename "$zip_path")"; return; }
-    local orig_dir; orig_dir="$(pwd)"
-    cd "$STAGING_DIR"
-    rm -f "$zip_path"
-    zip -rq "$zip_path" "$(basename "$tier_dir")"
-    cd "$orig_dir"
-    log "INFO" "  ✅ $(basename "$zip_path") — $(du -sh "$zip_path" | cut -f1)"
-}
-
-inject_lite_readme() {
-    local lite_dir="$1"
-    [[ "$DRY_RUN" == true ]] && return
-    cat << 'EOF_README' > "$lite_dir/README.md"
-# Welcome to Rotkeeper (Lite Distribution)
-
-This is the lean, runtime-only distribution of Rotkeeper.
-No documentation, no dev scripts, no heavy assets.
-
-**Quickstart:**
-1. Initialize the workspace: `./rotkeeper.sh init`
-2. Create markdown files in `home/content/` with YAML frontmatter.
-3. Render your output: `./rotkeeper.sh render`
-
-For full documentation, use the Full or Dev distribution.
-EOF_README
-}
-
-inject_lite_index() {
-    local lite_dir="$1"
-    [[ "$DRY_RUN" == true ]] && return
-    cat << 'EOF_INDEX' > "$lite_dir/home/content/index.md"
----
-title: "Welcome to Rotkeeper (Lite)"
-slug: home
-template: rotkeeper-blog.html
-description: "Rotkeeper CLI landing page for the Lite distribution."
----
-
-# Rotkeeper: A Ritual CLI for Flat-File Decay
-
-Welcome to the Lite distribution of Rotkeeper.
-
-To start rendering tombs, run:
-`./rotkeeper.sh render`
-
-*Note: Documentation and sample blogs have been stripped from this lite version.*
-EOF_INDEX
+validate_boundary() {
+  local target_path="$1"
+  if [[ "$target_path" != "$STAGING_DIR"* && "$target_path" != "$RELEASE_DIR"* ]]; then
+    log "ERROR" "Boundary violation: Operation attempted outside staging or release bounds."
+    exit 3
+  fi
 }
 
 main() {
-    log "INFO" "Starting release packaging for version: $VERSION (tiers: $BUILD_TIER)"
-    [[ "$DRY_RUN" == false ]] && mkdir -p "$RELEASE_DIR" "$STAGING_DIR"
+    log "INFO" "Collapsing package model down to canonical single framework distribution: version $VERSION"
 
-    if [[ "$BUILD_TIER" == "all" || "$BUILD_TIER" == "dev" ]]; then
-        local DEV_DIR="$STAGING_DIR/rotkeeper-dev"
-        local DEV_ZIP="$RELEASE_DIR/rotkeeper-$VERSION-dev.zip"
-        log "INFO" "Building dev tier..."
-        stage_base "$DEV_DIR"
-        make_zip "$DEV_DIR" "$DEV_ZIP"
+    if [[ "$DRY_RUN" == false ]]; then
+        mkdir -p "$RELEASE_DIR" "$STAGING_DIR"
     fi
 
-    if [[ "$BUILD_TIER" == "all" || "$BUILD_TIER" == "full" ]]; then
-        local FULL_DIR="$STAGING_DIR/rotkeeper-full"
-        local FULL_ZIP="$RELEASE_DIR/rotkeeper-$VERSION-full.zip"
-        log "INFO" "Building full tier..."
-        stage_base "$FULL_DIR"
-        apply_excludes "$FULL_DIR" "${DEV_EXCLUDES[@]}"
-        make_zip "$FULL_DIR" "$FULL_ZIP"
+    local CANONICAL_DIR="$STAGING_DIR/rotkeeper"
+    local ZIP_PATH="$RELEASE_DIR/rotkeeper-$VERSION.zip"
+
+    validate_boundary "$CANONICAL_DIR"
+    validate_boundary "$ZIP_PATH"
+
+    log "INFO" "Staging repository via strict exclusions..."
+    if [[ "$DRY_RUN" == true ]]; then
+        log "DRYRUN" "Would stage elements and filter exclusions into $CANONICAL_DIR"
+        log "DRYRUN" "Would zip compiled architecture safely into $ZIP_PATH"
+        return 0
     fi
 
-    if [[ "$BUILD_TIER" == "all" || "$BUILD_TIER" == "lite" ]]; then
-        local LITE_DIR="$STAGING_DIR/rotkeeper-lite"
-        local LITE_ZIP="$RELEASE_DIR/rotkeeper-$VERSION-lite.zip"
-        log "INFO" "Building lite tier..."
-        if [[ -d "$STAGING_DIR/rotkeeper-full" && "$BUILD_TIER" == "all" ]]; then
-            [[ "$DRY_RUN" == false ]] && cp -a "$STAGING_DIR/rotkeeper-full" "$LITE_DIR"
-        else
-            stage_base "$LITE_DIR"
-            apply_excludes "$LITE_DIR" "${DEV_EXCLUDES[@]}"
-        fi
-        apply_excludes "$LITE_DIR" "${LITE_ADDITIONAL_EXCLUDES[@]}"
-        inject_lite_readme "$LITE_DIR"
-        inject_lite_index "$LITE_DIR"
-        make_zip "$LITE_DIR" "$LITE_ZIP"
-    fi
+    mkdir -p "$CANONICAL_DIR"
 
-    log "INFO" "All requested tiers packaged in $RELEASE_DIR"
-    echo "✅ Release packaging complete — see bones/releases/"
+    rsync -a \
+        --exclude='.git/' \
+        --exclude='output/' \
+        --exclude='bones/logs/' \
+        --exclude='bones/tmp/' \
+        --exclude='bones/releases/' \
+        --exclude='bones/archive/' \
+        --exclude='bones/ingested/' \
+        --exclude='bones/reports/' \
+        --exclude='bones/book-reports/' \
+        --exclude='messages-from-my-friends/' \
+        --exclude='home/content/messages/' \
+        --exclude='.DS_Store' \
+        --exclude='*_temp.md' \
+        "$PROJECT_ROOT/" "$CANONICAL_DIR/"
+
+    local orig_dir; orig_dir="$(pwd)"
+    cd "$STAGING_DIR"
+    rm -f "$ZIP_PATH"
+
+    zip -rq "$ZIP_PATH" "rotkeeper"
+    cd "$orig_dir"
+
+    log "INFO" "✅ Canonical single distribution created: $ZIP_PATH — $(du -sh "$ZIP_PATH" | cut -f1)"
+    echo "✅ Release packaging complete — see bones/releases/rotkeeper-[VERSION].zip"
 }
 
 main "$@"
