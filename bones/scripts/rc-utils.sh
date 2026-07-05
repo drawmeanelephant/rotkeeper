@@ -166,8 +166,12 @@ validate_layout_alignment() {
       has_paths=$(yq eval 'has("paths")' "$target_config" 2>/dev/null || echo "false")
 
       if [[ "$has_paths" == "true" ]]; then
-          expected_content=$(yq eval '.paths.CONTENT_DIR // ""' "$target_config" 2>/dev/null)
-          expected_output=$(yq eval '.paths.OUTPUT_DIR // ""' "$target_config" 2>/dev/null)
+          local saved_root
+          saved_root=$(yq eval '.paths.ROOT_DIR // ""' "$target_config" 2>/dev/null)
+          if [[ "$saved_root" == "$root_fallback" ]]; then
+              expected_content=$(yq eval '.paths.CONTENT_DIR // ""' "$target_config" 2>/dev/null)
+              expected_output=$(yq eval '.paths.OUTPUT_DIR // ""' "$target_config" 2>/dev/null)
+          fi
       fi
   fi
 
