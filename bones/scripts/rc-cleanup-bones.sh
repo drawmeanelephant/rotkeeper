@@ -103,6 +103,7 @@ main() {
     echo "Would create backup: $BACKUPPATH"
     echo "Would prune backups older than $RETAINDAYS days from $BACKUPDIR"
     echo "Would prune logs older than $RETAINDAYS days from bones/logs"
+    echo "Would prune quarantined files older than $RETAINDAYS days from bones/quarantine"
     echo "Would explicitly delete the following ephemeral directories under $ROOT_DIR/bones/:"
     for d in "tmp" "archive" "reports" "book-reports" "ingested"; do
       echo "  - $ROOT_DIR/bones/$d"
@@ -142,6 +143,16 @@ main() {
   LOGDIR="bones/logs"
   log INFO "Pruning logs older than $RETAINDAYS days in $LOGDIR"
   run find "$LOGDIR" -type f -mtime +"$RETAINDAYS" -print -delete
+
+  QUARANTINEDIR="$ROOT_DIR/bones/quarantine"
+  log INFO "Pruning quarantined files older than $RETAINDAYS days in $QUARANTINEDIR"
+  if [[ -z "${ROOT_DIR:-}" || "$ROOT_DIR" == "/" ]]; then
+    log ERROR "Safety boundary breached: ROOT_DIR is unsafe ($ROOT_DIR). Aborting cleanup."
+    exit 1
+  fi
+  if [[ -d "$QUARANTINEDIR" ]]; then
+    run find "$QUARANTINEDIR" -type f -mtime +"$RETAINDAYS" -print -delete
+  fi
 
   log INFO "Removing non-essential files and folders in bones/"
   for d in "tmp" "archive" "reports" "book-reports" "ingested"; do
