@@ -118,6 +118,32 @@ main() {
 
     log "MARKER" "📄 Reanimating..."
 
+    # Read layout scope isolation flags from centralized config
+    local render_sys_docs
+    render_sys_docs=$(yq eval '.render_system_docs // true' "$CONFIG_FILE" 2>/dev/null || echo "true")
+
+    log "INFO" "Evaluating layout scope (render_system_docs: $render_sys_docs)"
+
+    # Establish an array to collect markdown tombs non-destructively
+    local md_corpses=()
+
+    if [[ "$render_sys_docs" == "false" ]]; then
+        log "INFO" "Surgically pruning internal system docs and platform messages from user space."
+        # Use -prune to discard internal system architecture before walking files
+        while IFS= read -r -d '' corpse; do
+            md_corpses+=("$corpse")
+        done < <(find "$CONTENT_DIR" \
+            -type d \( -name "docs" -o -name "messages" -o -name "help" \) -prune \
+            -o -type f -name "*.md" -print0)
+    else
+        while IFS= read -r -d '' corpse; do
+            md_corpses+=("$corpse")
+        done < <(find "$CONTENT_DIR" -type f -name "*.md" -print0)
+    fi
+
+    log "INFO" "Discovered ${#md_corpses[@]} markdown files for compilation."
+
+
     # Helper for canonicalization
     get_canonical_path() {
       local path="$1"
@@ -134,8 +160,8 @@ main() {
     CANONICAL_META_DIR=$(get_canonical_path "$META_DIR")
     CANONICAL_TEMPLATE_DIR=$(get_canonical_path "$TEMPLATE_DIR")
 
-        # Iterate over all markdown files in CONTENT_DIR
-    while IFS= read -r mdfile; do
+    # Iterate over the safe compiled array instead of an open find subshell stream
+    for mdfile in "${md_corpses[@]}"; do
       [ -f "$mdfile" ] || continue
 
       [[ "$VERBOSE" == true ]] && log "DEBUG" "Found markdown file: $mdfile"
@@ -250,7 +276,7 @@ main() {
 
       pages_rendered=$((pages_rendered + 1))
       log_manifest "$outfile"
-    done < <(find "$CONTENT_DIR" -type f -name "*.md" -print)
+    done
     log "MARKER" "✓ Exorcism complete."
 
 
