@@ -142,6 +142,61 @@ require_gawk_version() {
   fi
 }
 
+
+
+validate_layout_alignment() {
+  local target_config="${CONFIG_DIR:-${ROOT_DIR:-$PWD}/bones/config}/rotkeeper.yaml"
+  if [[ ! -f "$target_config" ]]; then
+    target_config="${ROOT_DIR:-$PWD}/config/rotkeeper.yaml"
+  fi
+  if [[ ! -f "$target_config" ]]; then
+    target_config="${PWD}/bones/config/rotkeeper.yaml"
+  fi
+
+  local style="crypt"
+  local expected_content
+  local expected_output
+  local root_fallback="${ROOT_DIR:-$PWD}"
+  local expected_bones="${root_fallback}/bones"
+
+  if [[ -f "$target_config" ]]; then
+      style=$(yq eval '.layout_style // "crypt"' "$target_config" 2>/dev/null || echo "crypt")
+
+      local has_paths
+      has_paths=$(yq eval 'has("paths")' "$target_config" 2>/dev/null || echo "false")
+
+      if [[ "$has_paths" == "true" ]]; then
+          expected_content=$(yq eval '.paths.CONTENT_DIR // ""' "$target_config" 2>/dev/null)
+          expected_output=$(yq eval '.paths.OUTPUT_DIR // ""' "$target_config" 2>/dev/null)
+      fi
+  fi
+
+  # Fallback logic if yaml didn't specify paths explicitly
+  if [[ -z "${expected_content:-}" ]]; then
+      case "${style,,}" in
+        "busy")
+          expected_content="$root_fallback/home/content"
+          expected_output="$root_fallback/output"
+          ;;
+        "sterile")
+          expected_content="$root_fallback/src/content"
+          expected_output="$root_fallback/dist"
+          ;;
+        "crypt"|*)
+          expected_content="$root_fallback/home/content"
+          expected_output="$root_fallback/output"
+          ;;
+      esac
+  fi
+
+  if [[ -z "${CONTENT_DIR:-}" ]] || [[ "$CONTENT_DIR" != "$expected_content" ]] || \
+     [[ -z "${OUTPUT_DIR:-}" ]] || [[ "$OUTPUT_DIR" != "$expected_output" ]] || \
+     [[ -z "${BONES_DIR:-}" ]] || [[ "$BONES_DIR" != "$expected_bones" ]]; then
+    echo "[ERROR] Environment conflict detected. Expected context for layout '${style}' not fully resolved." >&2
+    exit 1
+  fi
+}
+
 validate_config_syntax() {
   local target_config="$CONFIG_DIR/rotkeeper.yaml"
   # Non-destructive fallback check to prevent initial bootstrap deadlocks
@@ -214,6 +269,7 @@ rk_init_script() {
   init_log "$SCRIPTNAME"
   set_traps
   validate_config_syntax
+  validate_layout_alignment
 
   # Save original stdout to fd 3 for MARKER bypass
   exec 3>&1
