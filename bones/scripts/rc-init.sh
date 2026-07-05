@@ -7,13 +7,15 @@
 #  ██║██║ ╚████║██║   ██║
 #  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝
 # ============================================================
-#  Project : Rotkeeper (Jules Compat Prototype)
+# ============================================================
+#  Project : Rotkeeper
 #  Script  : rc-init.sh
 #  Purpose : Minimal, non-destructive environment initialization
+#  Version : 0.4.0.3
 # ============================================================
 
 show_help() {
-  cat << EOF2
+  cat << EOF
 rc-init.sh — Initialize environment
 
 Usage: rc-init.sh [options]
@@ -28,34 +30,28 @@ Initialization Flags:
   --with-sample    Generate starter test-file.md
   --with-assets    Run assets generation
   --with-render    Run the render ritual
-  --full           Perform full reseed, sample, assets, render, and scan
-EOF2
-  return 0
+  --full           Full initialization (sample, assets, render, and scan)
+EOF
+  exit 0
 }
 
-# Source shared Rotkeeper helpers
 source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 VERSION="${ROTKEEPER_VERSION:-0.4.0.3}"
 
 rk_init_script "rc-init" "$@"
-require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR CONTENT_DIR DOCS_DIR OUTPUT_DIR
+require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR CONTENT_DIR DOCS_DIR
 
 set -euo pipefail
 IFS=$'\n\t'
 
-# shellcheck disable=SC2034
-
 SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RESEED_CMD="$SCRIPTDIR/rc-reseed.sh"
 PROJECT_ROOT="$SCRIPTDIR/../.."
 
-# Flags
 WITH_SAMPLE=false
 WITH_ASSETS=false
 WITH_RENDER=false
 FULL=false
 
-# Parse custom flags
 for arg in "$@"; do
     case "$arg" in
         --with-sample) WITH_SAMPLE=true ;;
@@ -71,63 +67,27 @@ if [[ "$FULL" == true ]]; then
     WITH_RENDER=true
 fi
 
-# Make all rc-*.sh and rc-utils.bats scripts executable
 log "INFO" "🔐 Blessing scripts with +x permissions..."
 find "$SCRIPTDIR" -type f \( -name "rc-*.sh" -o -name "rc-*.bats" \) -exec chmod +x {} \;
 
 main() {
-    # Verify required tools
     check_dependencies
     $VERBOSE && log "INFO" "Dependencies verified."
 
     if [[ ! -d "$PROJECT_ROOT/bones/templates" ]]; then
-        # This check might fail in pure sandbox without templates, but keeping the logic
-        log "WARN" "bones/templates directory is missing (ignored in prototype if not rendering)."
+        log "WARN" "bones/templates directory is missing."
     fi
 
-    log "INFO" "🔄 Starting initialization (Minimal mode by default)..."
-
-    if [[ "$FULL" == true ]]; then
-        if [[ -f "$RESEED_CMD" ]]; then
-            run "$RESEED_CMD" --force
-        else
-            log "WARN" "rc-reseed.sh not found in prototype, skipping reseed."
-        fi
-    fi
+    log "INFO" "🔄 Starting initialization..."
 
     # Create core directories non-destructively
-    mkdir -p "$CONTENT_DIR"
-    mkdir -p "$OUTPUT_DIR"
+    mkdir -p "$PROJECT_ROOT/home/content"
+    mkdir -p "$PROJECT_ROOT/output"
     mkdir -p "$PROJECT_ROOT/bones/config"
     log "INFO" "✅ Verified core directories exist."
 
-    if [[ "$DRY_RUN" == false ]]; then
-        log "INFO" "📦 Serializing environment directory configurations to rotkeeper.yaml..."
-
-        # Explicitly map the active folder locations straight into the target yaml config
-        yq eval ".paths.ROOT_DIR = \"$ROOT_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.BONES_DIR = \"$BONES_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.SCRIPT_DIR = \"$SCRIPTDIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.CONFIG_DIR = \"$CONFIG_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.LOG_DIR = \"$LOG_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.TMP_DIR = \"$TMP_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.ARCHIVE_DIR = \"$ARCHIVE_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.REPORT_DIR = \"$REPORT_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.BOOK_REPORT_DIR = \"$BOOK_REPORT_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.META_DIR = \"$META_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.TEMPLATE_DIR = \"$TEMPLATE_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.ASSETS_DIR = \"$ASSETS_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.CONTENT_DIR = \"$CONTENT_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.OUTPUT_DIR = \"$OUTPUT_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.DOCS_DIR = \"$DOCS_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.HELP_DIR = \"$HELP_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.WEB_DIR = \"$WEB_DIR\"" -i "$CONFIG_TARGET"
-
-        log "INFO" "✅ Path mappings successfully written to configuration profile."
-    fi
-
     if [[ "$WITH_SAMPLE" == true ]]; then
-        cat << 'EOF_HELLO' > "$CONTENT_DIR/test-file.md"
+        cat << 'EOF_HELLO' > "$PROJECT_ROOT/home/content/test-file.md"
 ---
 title: "Test File"
 slug: test-file
@@ -139,14 +99,14 @@ description: "A simple starter page to demonstrate YAML frontmatter in Rotkeeper
 
 This is a demonstration page created during initialization.
 EOF_HELLO
-        log "INFO" "📄 Generated starter content at $CONTENT_DIR/test-file.md"
+        log "INFO" "📄 Generated starter content at home/content/test-file.md"
     fi
 
     if [[ "$WITH_ASSETS" == true ]]; then
         if [[ -f "$SCRIPTDIR/rc-assets.sh" ]]; then
             run "$SCRIPTDIR/rc-assets.sh"
         else
-            log "WARN" "rc-assets.sh not found in prototype, skipping."
+            log "WARN" "rc-assets.sh not found, skipping."
         fi
     fi
 
@@ -154,7 +114,7 @@ EOF_HELLO
         if [[ -f "$SCRIPTDIR/rc-render.sh" ]]; then
             run "$SCRIPTDIR/rc-render.sh" --verbose
         else
-            log "WARN" "rc-render.sh not found in prototype, skipping."
+            log "WARN" "rc-render.sh not found, skipping."
         fi
     fi
 
@@ -162,14 +122,13 @@ EOF_HELLO
         if [[ -f "$SCRIPTDIR/rc-scan.sh" ]]; then
             run "$SCRIPTDIR/rc-scan.sh"
         else
-            log "WARN" "rc-scan.sh not found in prototype, skipping scan."
+            log "WARN" "rc-scan.sh not found, skipping scan."
         fi
     fi
 
     log "INFO" "✅ Initialization complete."
 }
 
-# Only run main if executed directly
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main "$@"
 fi
