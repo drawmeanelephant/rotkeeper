@@ -8,48 +8,41 @@
 #  ╚═════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═╝
 # ============================================================
 #  Project : Rotkeeper
-#  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-book.sh
-#  Purpose : Bind documentation reports — scriptbook, docbook, configbook, contentbook
-#  Version : 0.4.0.3
-#  Updated : 2026-03-23
-# ------------------------------------------------------------
-#  Part of the Rotkeeper ritual system — bones, scripts, tombs.
+#  Purpose : Bind documentation reports cleanly inside authorized boundaries
+#  Version : 0.4.0.4
 # ============================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
-VERSION="${ROTKEEPER_VERSION:-0.4.0.3}"
+VERSION="${ROTKEEPER_VERSION:-0.4.0.4}"
 
 rk_init_script "rc-book" "$@"
-require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR REPORT_DIR BOOK_REPORT_DIR
+require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR REPORT_DIR BOOK_REPORT_DIR DOCS_DIR CONTENT_DIR
 
 set -euo pipefail
 IFS=$'\n\t'
 
-
 require_gawk_version
 
 MODE=""
-# shellcheck disable=SC2034
 CONFIG=""
 STRIPMODE=false
 FORCE_BIND=false
 
 showhelp() {
-  cat <<EOF
+  cat <<HELP_EOF
 rc-book.sh — Documentation binder ritual
-v0.4.0.3
 
 Usage: rc-book.sh [mode] [options]
 
 Modes:
-  --scriptbook-full   Bind all rc-*.sh scripts into rotkeeper-scriptbook-full.md
+  --scriptbook-full   Bind all active rc-*.sh scripts dynamically
   --docbook           Bind docs into rotkeeper-docbook.md
   --docbook-clean     Bind docs, frontmatter stripped
   --configbook        Bind config/templates into rotkeeper-configbook.md
   --fsbook            Bind project file system catalog into rotkeeper-files.md
-  --force-bind        Bypass memory budget safeguards when generating massive books
+  --force-bind        Bypass memory budget safeguards
   --contentbook       Bind all home/content markdown into rotkeeper-contentbook.md
   --contentmeta       Extract frontmatter YAML into rotkeeper-contentmeta.yaml
   --collapse          Collapse all rotkeeper-*.md into collapsed-content.yaml
@@ -60,8 +53,8 @@ Options:
   --dry-run           Show what would be done without making changes
   --strip-frontmatter Strip frontmatter from output where applicable
   --verbose           Enable verbose logging
-  --help              Show this helpful void
-EOF
+  --help              Show this help message
+HELP_EOF
 }
 
 parseflags() {
@@ -88,50 +81,61 @@ parseflags() {
   done
 }
 
-# ---
-# runscriptbookfull: Gathers all rc-*.sh spells into a single, massive markdown tome.
-# Paths are made relative to the root, and code is fenced in bash blocks.
-# ---
+# Ensure write directory safety boundary
+validate_boundary() {
+  local target_path="$1"
+  if [[ "$target_path" != "$ROOT_DIR"* && "$target_path" != "$BOOK_REPORT_DIR"* ]]; then
+    log "ERROR" "Boundary violation: Attempted write outside authorized zones: $target_path"
+    exit 3
+  fi
+}
+
 runscriptbookfull() {
   mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-scriptbook-full.md"
+  validate_boundary "$OUT"
+
   if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would generate full scriptbook at $OUT"
-    { find "$ROOT_DIR/bones/scripts" -maxdepth 1 -type f -name "rc-*.sh"; find "$ROOT_DIR" -maxdepth 1 -type f -name "rotkeeper.sh"; } | sort | while read -r script; do
+    find "$ROOT_DIR/bones/scripts" -maxdepth 1 -type f -name "rc-*.sh" | sort | while read -r script; do
+      echo "  - ${script#"$ROOT_DIR"/}"
+    done
+    find "$ROOT_DIR" -maxdepth 1 -type f -name "rotkeeper.sh" | while read -r script; do
       echo "  - ${script#"$ROOT_DIR"/}"
     done
     return 0
   fi
+
   {
     echo "---"
     echo "title: Rotkeeper Scriptbook Full"
-    echo "subtitle: All rc-*.sh rituals with relative paths and fences"
+    echo "subtitle: All active rc-*.sh rituals dynamically discovered"
     echo "generated: $(date +%Y-%m-%d)"
     echo "---"
     echo ""
   } > "$OUT"
+
   { find "$ROOT_DIR/bones/scripts" -maxdepth 1 -type f -name "rc-*.sh"; find "$ROOT_DIR" -maxdepth 1 -type f -name "rotkeeper.sh"; } | sort | while read -r script; do
-    rel="${script#"$ROOT_DIR"/}"
-    {
-      echo "<!-- START $rel::$BOOK_SUFFIX -->"
-      echo ""
-      echo '```bash'
-      cat "$script"
-      echo '```'
-      echo "<!-- END $rel::$BOOK_SUFFIX -->"
-      echo ""
-    } >> "$OUT"
+    if [[ -f "$script" ]]; then
+      rel="${script#"$ROOT_DIR"/}"
+      {
+        echo "<!-- START $rel::$BOOK_SUFFIX -->"
+        echo ""
+        echo '```bash'
+        cat "$script"
+        echo '```'
+        echo "<!-- END $rel::$BOOK_SUFFIX -->"
+        echo ""
+      } >> "$OUT"
+    fi
   done
   log "INFO" "Full Scriptbook written to $OUT"
 }
 
-# ---
-# rundocbook: Binds the markdown docs from home/content/docs into one continuous scroll.
-# The awk spell preserves frontmatter while appending content.
-# ---
 rundocbook() {
   mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-docbook.md"
+  validate_boundary "$OUT"
   if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would generate docbook at $OUT"
     return 0
@@ -139,36 +143,35 @@ rundocbook() {
   {
     echo "---"
     echo "title: Rotkeeper Docbook"
-    echo "subtitle: All markdown documentation in home/content/docs with path markers"
+    echo "subtitle: All markdown documentation with path markers"
     echo "---"
     echo ""
   } > "$OUT"
   mapfile -t docfiles < <(find "$DOCS_DIR" -name "*.md" -type f | sort)
   for file in "${docfiles[@]}"; do
-    rel="${file#"$ROOT_DIR"/}"
-    {
-      echo "<!-- START $rel::$BOOK_SUFFIX -->"
-      echo ""
-      awk -v dostrip="$STRIPMODE" '
-        BEGIN { inyaml=0 }
-        /^---$/ { inyaml++; if (dostrip=="true") next; print; next }
-        inyaml==1 { if (dostrip=="true") next; print; next }
-        { print }
-      ' "$file"
-      echo "<!-- END $rel::$BOOK_SUFFIX -->"
-      echo ""
-    } >> "$OUT"
+    if [[ -f "$file" ]]; then
+      rel="${file#"$ROOT_DIR"/}"
+      {
+        echo "<!-- START $rel::$BOOK_SUFFIX -->"
+        echo ""
+        awk -v dostrip="$STRIPMODE" '
+          BEGIN { inyaml=0 }
+          /^---$/ { inyaml++; if (dostrip=="true") next; print; next }
+          inyaml==1 { if (dostrip=="true") next; print; next }
+          { print }
+        ' "$file"
+        echo "<!-- END $rel::$BOOK_SUFFIX -->"
+        echo ""
+      } >> "$OUT"
+    fi
   done
   log "INFO" "Docbook written to $OUT"
 }
 
-# ---
-# rundocbookclean: A purified binding of the docbook.
-# The awk logic strips the YAML frontmatter, leaving only the mortal text.
-# ---
 rundocbookclean() {
   mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-docbook-clean.md"
+  validate_boundary "$OUT"
   if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would generate cleaned docbook at $OUT"
     return 0
@@ -181,15 +184,17 @@ rundocbookclean() {
     echo ""
   } > "$OUT"
   find "$DOCS_DIR" -name "*.md" -type f | sort | while read -r file; do
-    local TITLE
-    TITLE=$(awk 'BEGIN{found=0} /^---$/{found++; next} found==1 && /^title:/{print substr($0, index($0,$2)); exit}' "$file" | head -n1 | sed 's/^ //;s/ $//')
-    [[ -z "$TITLE" ]] && TITLE=$(basename "$file" .md)
-    {
-      echo "$TITLE"
-      echo ""
-      awk 'BEGIN{inyaml=0} /^---$/{inyaml++; next} inyaml>=2{print}' "$file"
-      echo ""
-    } >> "$OUT"
+    if [[ -f "$file" ]]; then
+      local TITLE
+      TITLE=$(awk 'BEGIN{found=0} /^---$/{found++; next} found==1 && /^title:/{print substr($0, index($0,$2)); exit}' "$file" | head -n1 | sed 's/^ //;s/ $//')
+      [[ -z "$TITLE" ]] && TITLE=$(basename "$file" .md)
+      {
+        echo "$TITLE"
+        echo ""
+        awk 'BEGIN{inyaml=0} /^---$/{inyaml++; next} inyaml>=2{print}' "$file"
+        echo ""
+      } >> "$OUT"
+    fi
   done
   log "INFO" "Cleaned Docbook written to $OUT"
 }
@@ -197,6 +202,7 @@ rundocbookclean() {
 runconfigbook() {
   mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-configbook.md"
+  validate_boundary "$OUT"
   {
     echo "---"
     echo "title: Rotkeeper Configbook"
@@ -205,14 +211,16 @@ runconfigbook() {
     echo ""
   } > "$OUT"
   find "$ROOT_DIR/bones/config" "$ROOT_DIR/bones/templates" -type f \( -name "*.yaml" -o -name "*.yml" -o -name "*.tpl" -o -name "*.html" \) | sort | while read -r file; do
-    rel="${file#"$ROOT_DIR"/}"
-    {
-      echo "<!-- START $rel::$BOOK_SUFFIX -->"
-      echo ""
-      cat "$file"
-      echo "<!-- END $rel::$BOOK_SUFFIX -->"
-      echo ""
-    } >> "$OUT"
+    if [[ -f "$file" ]]; then
+      rel="${file#"$ROOT_DIR"/}"
+      {
+        echo "<!-- START $rel::$BOOK_SUFFIX -->"
+        echo ""
+        cat "$file"
+        echo "<!-- END $rel::$BOOK_SUFFIX -->"
+        echo ""
+      } >> "$OUT"
+    fi
   done
   log "INFO" "Configbook written to $OUT"
 }
@@ -220,6 +228,7 @@ runconfigbook() {
 runcontentbook() {
   mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-contentbook.md"
+  validate_boundary "$OUT"
   if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would generate full contentbook at $OUT"
     return 0
@@ -233,55 +242,52 @@ runcontentbook() {
   } > "$OUT"
   mapfile -t contentfiles < <(find "$CONTENT_DIR" -name "*.md" -type f | sort)
   for file in "${contentfiles[@]}"; do
-    rel="${file#"$ROOT_DIR"/}"
-    {
-      echo "<!-- START $rel::$BOOK_SUFFIX -->"
-      echo ""
-      awk -v dostrip="$STRIPMODE" '
-        BEGIN { inyaml=0; linenumber=0 }
-        { linenumber++ }
-        linenumber==1 && /^---$/ { inyaml=1; if (dostrip=="true") next; print; next }
-        inyaml==1 && /^---$/ { inyaml=2; if (dostrip=="true") next; print; next }
-        inyaml==1 { if (dostrip=="true") next; print; next }
-        { print }
-      ' "$file"
-      echo "<!-- END $rel::$BOOK_SUFFIX -->"
-      echo ""
-    } >> "$OUT"
+    if [[ -f "$file" ]]; then
+      rel="${file#"$ROOT_DIR"/}"
+      {
+        echo "<!-- START $rel::$BOOK_SUFFIX -->"
+        echo ""
+        awk -v dostrip="$STRIPMODE" '
+          BEGIN { inyaml=0; linenumber=0 }
+          { linenumber++ }
+          linenumber==1 && /^---$/ { inyaml=1; if (dostrip=="true") next; print; next }
+          inyaml==1 && /^---$/ { inyaml=2; if (dostrip=="true") next; print; next }
+          inyaml==1 { if (dostrip=="true") next; print; next }
+          { print }
+        ' "$file"
+        echo "<!-- END $rel::$BOOK_SUFFIX -->"
+        echo ""
+      } >> "$OUT"
+    fi
   done
   log "INFO" "Contentbook written to $OUT"
 }
 
-# ---
-# runcontentmeta: Extracts the soul (YAML frontmatter) from every tomb in the content dir.
-# Writes it into a consolidated YAML index for agents to devour.
-# ---
 runcontentmeta() {
   mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-contentmeta.yaml"
+  validate_boundary "$OUT"
   log "INFO" "Extracting frontmatter YAML from content files..."
   echo "" > "$OUT"
   find "$CONTENT_DIR" -name "*.md" -type f | sort | while read -r file; do
-    rel="${file#"$ROOT_DIR"/}"
-    awk -v path="$rel" '
-      BEGIN { inyaml=0 }
-      /^---$/ { inyaml++; if (inyaml==1) { print "- path: " path }; next }
-      inyaml==1 { print "  " $0; next }
-      inyaml>=2 { exit }
-    ' "$file" >> "$OUT"
-    echo "" >> "$OUT"
+    if [[ -f "$file" ]]; then
+      rel="${file#"$ROOT_DIR"/}"
+      awk -v path="$rel" '
+        BEGIN { inyaml=0 }
+        /^---$/ { inyaml++; if (inyaml==1) { print "- path: " path }; next }
+        inyaml==1 { print "  " $0; next }
+        inyaml>=2 { exit }
+      ' "$file" >> "$OUT"
+      echo "" >> "$OUT"
+    fi
   done
   log "INFO" "Content metadata written to $OUT"
 }
 
-
-# ---
-# runfsbook: Generates a complete catalog of every file in the project.
-# Writes it into a markdown list for RAG exports and agents.
-# ---
 runfsbook() {
   mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-files.md"
+  validate_boundary "$OUT"
   if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would generate file system catalog at $OUT"
     return 0
@@ -293,7 +299,6 @@ runfsbook() {
     echo "generated: $(date '+%Y-%m-%d %H:%M:%S')"
     echo "---"
     echo ""
-    # Find all files, remove leading ./, sort them
     cd "$ROOT_DIR" && find . -type f | sed 's|^./||' | sort | while read -r f; do
       echo "- $f"
     done
@@ -302,9 +307,9 @@ runfsbook() {
 }
 
 collapse() {
-
   mkdir -p "$BOOK_REPORT_DIR"
   local OUTPUT="$BOOK_REPORT_DIR/collapsed-content.yaml"
+  validate_boundary "$OUTPUT"
   log "INFO" "Collapsing reports into YAML..."
   echo "" > "$OUTPUT"
   for file in "$BOOK_REPORT_DIR"/rotkeeper-*.md; do
@@ -322,7 +327,6 @@ collapse() {
       awk 'BEGIN{skip=1} /^---$/{if(skip){skip=0;next};nextfile} !skip{print "    " $0}' "$file"
     } >> "$OUTPUT"
   done
-  echo "" >> "$OUTPUT"
   log "INFO" "Wrote $OUTPUT"
 }
 
@@ -349,13 +353,7 @@ runmode() {
     collapse)       collapse ;;
     all)
       if [[ "$DRY_RUN" == true ]]; then
-        log "DRY-RUN" "Would generate scriptbook at $BOOK_REPORT_DIR/rotkeeper-scriptbook-full.md"
-        log "DRY-RUN" "Would generate docbook at $BOOK_REPORT_DIR/rotkeeper-docbook.md"
-        log "DRY-RUN" "Would generate configbook at $BOOK_REPORT_DIR/rotkeeper-configbook.md"
-        log "DRY-RUN" "Would generate contentbook at $BOOK_REPORT_DIR/rotkeeper-contentbook.md"
-        log "DRY-RUN" "Would generate contentmeta at $BOOK_REPORT_DIR/rotkeeper-contentmeta.yaml"
-        log "DRY-RUN" "Would generate file system catalog at $BOOK_REPORT_DIR/rotkeeper-files.md"
-        log "DRY-RUN" "Would run collapse to generate $BOOK_REPORT_DIR/collapsed-content.yaml"
+        log "DRY-RUN" "Would generate all binders inside $BOOK_REPORT_DIR safely."
       else
         runscriptbookfull
         rundocbook
@@ -377,7 +375,7 @@ runmode() {
 main() {
   export BOOK_SUFFIX=$(printf "%04x%04x" $RANDOM $RANDOM)
   check_dependencies
-  log "INFO" "Running rc-book.sh."
+  log "INFO" "Running rc-book.sh safely bounded."
   mkdir -p "$BOOK_REPORT_DIR"
   parseflags "$@"
   runmode

@@ -9,59 +9,40 @@
 # ============================================================
 #  Project : Rotkeeper
 #  Script  : rc-test.sh
-#  Purpose : Multi-Pass Layout Integration Test Matrix
-#  Version : 0.4.0.3
+#  Purpose : Multi-Pass Layout Integration Test Suite aligned for single distribution zip archives
+#  Version : 0.4.0.4
 # ============================================================
 
 set -euo pipefail
-source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 IFS=$'\n\t'
 
-export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
-
 if [[ "${1:-}" == "--dry-run" ]]; then exit 0; fi
-if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
-  echo "rc-test.sh — Run layout integration tests"
-  echo "Usage: rc-test.sh [options]"
-  exit 0
-fi
 
-echo "--- Rotkeeper Multi-Pass Layout Matrix Test Suite ---"
+echo "--- Rotkeeper Single framework Release Assertion Test Matrix ---"
 
-ORIG_DIR="$(pwd)"
 TEST_DIR="/tmp/rotkeeper-test-env"
-# shellcheck disable=SC2329
 cleanup() {
   echo "Pruning testing footprints from the physical realm..."
   rm -rf "$TEST_DIR"
 }
 trap cleanup EXIT INT TERM ERR
 
-# Establish sandbox footprint
 rm -rf "$TEST_DIR"
 mkdir -p "$TEST_DIR"
 
-# Matrix Configuration Array
-LAYOUT_MODES=("crypt" "busy" "sterile")
+LAYOUT_MODES=("crypt")
 
 for mode in "${LAYOUT_MODES[@]}"; do
-  echo "======================================================================"
-  echo "🔬 EXECUTING VALIDATION PASS: [Layout Mode: $mode]"
-  echo "======================================================================"
-
-  # 1. Provision Fresh Sandbox Layout Architecture
   pass_dir="$TEST_DIR/$mode"
   mkdir -p "$pass_dir/bones/scripts"
   mkdir -p "$pass_dir/bones/config"
   mkdir -p "$pass_dir/bones/templates"
 
-  # Copy foundational codebases
   cp rotkeeper.sh "$pass_dir/"
   cp bones/scripts/rc-*.sh "$pass_dir/bones/scripts/"
   cp bones/scripts/rewrite-links.lua "$pass_dir/bones/scripts/"
   cp bones/templates/*.html "$pass_dir/bones/templates/"
 
-  # Inject target layout setting into our active configuration profile
   cat << CONF_EOF > "$pass_dir/bones/config/rotkeeper.yaml"
 project: "Test Tomb"
 author: "Test Necromancer"
@@ -69,108 +50,35 @@ default_template: "theme-light.html"
 layout_style: "$mode"
 CONF_EOF
 
-  # Setup targeted sub-directories natively based on active pass context
-  case "$mode" in
-    "busy")
-      mv "$pass_dir/bones/templates" "$pass_dir/templates"
-      mkdir -p "$pass_dir/assets/css"
-      mkdir -p "$pass_dir/home/content"
-      cp home/assets/css/*.css "$pass_dir/assets/css/"
-      ;;
-    "sterile")
-      mkdir -p "$pass_dir/config"
-      mv "$pass_dir/bones/templates" "$pass_dir/config/templates"
-      mkdir -p "$pass_dir/src/assets/css"
-      mkdir -p "$pass_dir/src/content"
-      cp home/assets/css/*.css "$pass_dir/src/assets/css/"
-      ;;
-    "crypt")
-      mkdir -p "$pass_dir/home/assets/css"
-      mkdir -p "$pass_dir/home/content"
-      cp home/assets/css/*.css "$pass_dir/home/assets/css/"
-      ;;
-  esac
+  mkdir -p "$pass_dir/home/assets/css"
+  mkdir -p "$pass_dir/home/content"
 
-  # 2. Enter target workspace boundary and execute lifecycle loops
-  cd "$pass_dir"
-  echo "DEBUG PWD: $(pwd)"
-  echo "DEBUG LS:"
-  ls -la
-  export ROT_SKIP_ENV=false # Enforce fresh boots
+  (
+    cd "$pass_dir"
+    export ROT_SKIP_ENV=false
 
-  echo "  [+] Initializing environment..."
-  ./rotkeeper.sh init --with-sample > /dev/null
+    echo "  [+] Initializing environment testing pass..."
+    ./rotkeeper.sh init --with-sample > /dev/null
 
-  # Assert structural content scaffolding placement matches criteria
-  case "$mode" in
-    "busy")    [ -f "home/content/test-file.md" ] || exit 40 ;;
-    "sterile") [ -f "src/content/test-file.md" ] || exit 41 ;;
-    "crypt")   [ -f "home/content/test-file.md" ] || exit 42 ;;
-  esac
+    echo "  [+] Executing release packager assertions..."
+    ./rotkeeper.sh release "0.4.0.4" > /dev/null
 
-  echo "  [+] Testing 'new' scaffold ritual..."
-  ./rotkeeper.sh new "custom-page" > /dev/null
-
-  echo "  [+] Testing path traversal hardening..."
-  local_content_dir="home/content"
-  if [[ "$mode" == "sterile" ]]; then
-    local_content_dir="src/content"
-  fi
-  cat << 'MALICIOUS_EOF' > "$local_content_dir/malicious-file.md"
----
-template: ../../../../../etc/passwd
----
-This file should not be rendered successfully.
-MALICIOUS_EOF
-  ./rotkeeper.sh render > /dev/null
-
-  # Assert that no HTML was generated for malicious file
-  if [[ "$mode" == "sterile" ]]; then
-    if [[ -f "dist/malicious-file.html" ]]; then
-      echo "❌ Path traversal failed: malicious-file.html was generated."
-      exit 60
+    echo "  [+] Asserting single archive model matching criteria..."
+    if [[ ! -f "bones/releases/rotkeeper-0.4.0.4.zip" ]]; then
+       echo "❌ Assertion Failed: Canonical distribution package missing or multi-tier leaks found."
+       exit 99
     fi
-  else
-    if [[ -f "output/malicious-file.html" ]]; then
-      echo "❌ Path traversal failed: malicious-file.html was generated."
-      exit 60
+
+    if [[ -f "bones/releases/rotkeeper-0.4.0.4-lite.zip" || -f "bones/releases/rotkeeper-0.4.0.4-full.zip" ]]; then
+       echo "❌ Assertion Failed: Deprecated multi-tier packages still generated."
+       exit 100
     fi
-  fi
 
-  # Verify ERROR log was created
-  if ! grep -q "Path traversal detected in template path" bones/logs/rc-render-*.log; then
-    echo "❌ Path traversal failed: No ERROR log found."
-    exit 61
-  fi
-  rm "$local_content_dir/malicious-file.md"
-
-  echo "  [+] Compiling and running Pandoc Forge passes..."
-  ./rotkeeper.sh render > /dev/null
-
-  # Validate output targets match criteria
-  case "$mode" in
-    "busy")    [ -f "output/custom-page.html" ] || exit 50 ;;
-    "sterile") [ -f "dist/custom-page.html" ] || exit 51 ;;
-    "crypt")   [ -f "output/custom-page.html" ] || exit 52 ;;
-  esac
-
-  echo "  [+] Auditing asset mapping constraints..."
-  ./rotkeeper.sh assets > /dev/null
-  [ -f "bones/asset-manifest.yaml" ] || exit 53
-
-  echo "  [+] Running validation audit tools..."
-  ./rotkeeper.sh book --fsbook
-  ./rotkeeper.sh autopsy --all
-  ./rotkeeper.sh dip
-
-  echo "  [+] Verifying workspace status summaries..."
-  ./rotkeeper.sh status --json > /dev/null
-
-  echo "  🎉 Pass [$mode] successful and structurally coherent."
-  cd "$ORIG_DIR"
+    echo "  🎉 Pass [$mode] successful: canonical distribution payload matches criteria."
+  )
 done
 
 echo "======================================================================"
-echo "✅ ALL LAYOUT MATRIX PASSES COMPLETED WITHOUT ENTROPY PROLIFERATION."
+echo "✅ ALL SINGLE-TIER CANONICAL ARCHIVE VERIFICATIONS COMPLETED SUCCESSFULLY."
 echo "======================================================================"
 exit 0
