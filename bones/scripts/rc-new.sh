@@ -168,13 +168,27 @@ main() {
         TAGS_YAML="[${TAGS//,/, }]"
     fi
 
+    # Sanitize and escape double quotes for frontmatter strings
+    SAFE_TITLE="${TITLE//\"/\\\"}"
+
+    # Handle multi-line and newline-containing descriptions via block scalar
+    if [[ "$DESCRIPTION" == *$'\n'* ]] || [[ "$DESCRIPTION" == *'\n'* ]]; then
+        # Format the description string: replace literal "\n" strings with actual newlines
+        # then pad each line with two spaces for YAML block syntax
+        FORMATTED_DESC="${DESCRIPTION//\\n/$'\n'}"
+        DESC_BLOCK="description: |"$'\n'"$(printf '%s\n' "$FORMATTED_DESC" | sed 's/^/  /')"
+    else
+        SAFE_DESC="${DESCRIPTION//\"/\\\"}"
+        DESC_BLOCK="description: \"${SAFE_DESC}\""
+    fi
+
     if [[ "$DRY_RUN" == false ]]; then
         cat << EOF > "$FILE"
 ---
-title: "$TITLE"
+title: "${SAFE_TITLE}"
 slug: $SLUG
 template: $TEMPLATE_OVERRIDE
-description: "${DESCRIPTION}"
+${DESC_BLOCK}
 EOF
 
         if [[ -n "$AUTHOR" ]]; then
