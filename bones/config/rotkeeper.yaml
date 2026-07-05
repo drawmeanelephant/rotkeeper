@@ -1,3 +1,21 @@
 title: "Rotkeeper Config"
 description: "Minimal valid config for rendering tests"
 default_template: "theme-light.html"
+paths:
+  ROOT_DIR: /app
+  BONES_DIR: /app/bones
+  SCRIPT_DIR: /app/bones/scripts
+  CONFIG_DIR: /app/bones/config
+  LOG_DIR: /app/bones/logs
+  TMP_DIR: /app/bones/tmp
+  ARCHIVE_DIR: /app/bones/archive
+  REPORT_DIR: /app/bones/reports
+  BOOK_REPORT_DIR: /app/bones/book-reports
+  META_DIR: /app/bones/meta
+  TEMPLATE_DIR: /app/bones/templates
+  ASSETS_DIR: /app/home/assets
+  CONTENT_DIR: /app/home/content
+  OUTPUT_DIR: /app/output
+  DOCS_DIR: /app/home/content/docs
+  HELP_DIR: /app/home/content/help
+  WEB_DIR: /app/output
