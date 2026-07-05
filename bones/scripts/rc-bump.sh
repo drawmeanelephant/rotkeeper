@@ -119,6 +119,10 @@ if [[ "$DRY_RUN" == true ]]; then
 else
   for f in "$ROOT_DIR/rotkeeper.sh" "$SCRIPT_DIR"/*.sh; do
     awk -v old_ver="$CURRENT_VERSION" -v new_ver="$NEW_VERSION" '
+      BEGIN {
+        # Escape literal dots for regex matching
+        gsub(/\./, "\\.", old_ver)
+      }
       {
         gsub("VERSION=\"" old_ver "\"", "VERSION=\"" new_ver "\"")
         gsub(/VERSION="\$\{ROTKEEPER_VERSION:-[0-9.]+\}"/, "VERSION=\"${ROTKEEPER_VERSION:-" new_ver "}\"")
