@@ -25,10 +25,8 @@ Gathers scattered fragments (scripts, docs, or configuration files) and binds th
 ### 🔍 `rc-scan.sh` (The Audit)
 Scans your earthly files against the eternal `bones/manifest.txt`. It seeks out orphans, missing files, and mismatched SHA256 checksums, ensuring the integrity of your graveyard.
 
-### 🕸️ `rc-ingest.sh` (The Calling)
 When decentralized payloads (`.tar.gz` files) arrive from external agents in the `messages-from-my-friends/` inbox, this ritual safely unpacks and merges them into `home/content/messages/`.
 
-### 🧹 `rc-cleanup-bones.sh` (The Purge)
 A dangerous but necessary act. It sweeps away old logs and backups from `bones/`, enforcing a retention window (default 30 days) to prevent your system from choking on its own history.
 
 ---

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
 # ============================================================
 #   ██████╗ ██╗     ██╗   ██╗███████╗
 #  ██╔════╝ ██║     ██║   ██║██╔════╝
@@ -20,9 +22,11 @@ FORCE_GLUE=false
 # shellcheck disable=SC2034
 
 
-source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 VERSION="${ROTKEEPER_VERSION:-0.4.0.3}"
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
+source_rc_env || { echo "FATAL: cannot source rc-env.sh" >&2; exit 1; }
 rk_init_script "rc-glue" "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR CONTENT_DIR DOCS_DIR
 
@@ -81,7 +85,8 @@ main() {
     fi
 
     # Initialize frontmatter template baseline mappings
-    DEFAULT_YAML="title: \"Index of $DIR_NAME\"
+    SAFE_TITLE="${DIR_NAME//\"/\\\"}"
+    DEFAULT_YAML="title: \"Index of $SAFE_TITLE\"
 template: \"rotkeeper-doc.html\"
 rotkeeper_glued: true"
 
@@ -105,14 +110,17 @@ ${DEFAULT_YAML}
     GLUE_CONTENT="<!-- ROTKEEPER-GLUE-START -->"
     while IFS= read -r -d '' SUBDIR; do
       SUBDIR_NAME=$(basename "$SUBDIR")
-      GLUE_CONTENT+=$'\n'"- [$SUBDIR_NAME/](<$SUBDIR_NAME/index.html>)"
+      GLUE_CONTENT+=$'
+'"- [$SUBDIR_NAME/](<$SUBDIR_NAME/index.html>)"
     done < <(find "$DIR" -maxdepth 1 -mindepth 1 -type d -print0 2>/dev/null | sort -z)
 
     while IFS= read -r -d '' FILE; do
       FILE_NAME=$(basename "$FILE" .md)
-      GLUE_CONTENT+=$'\n'"- [$FILE_NAME](<$FILE_NAME.html>)"
+      GLUE_CONTENT+=$'
+'"- [$FILE_NAME](<$FILE_NAME.html>)"
     done < <(find "$DIR" -maxdepth 1 -mindepth 1 -type f -name "*.md" ! -name "index.md" -print0 2>/dev/null | sort -z)
-    GLUE_CONTENT+=$'\n'"<!-- ROTKEEPER-GLUE-END -->"
+    GLUE_CONTENT+=$'
+'"<!-- ROTKEEPER-GLUE-END -->"
 
     # Inject the structural mapping data into the target index file
     if [[ "$IS_EXISTING_CUSTOM" == true ]]; then
