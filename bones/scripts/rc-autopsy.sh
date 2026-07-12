@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 IFS=$'\n\t'
-# shellcheck disable=SC2129
 # ============================================================
 #  ██████╗  ██████╗  ██████╗ ██╗  ██╗
 #  ██╔══██╗██╔═══██╗██╔═══██╗██║ ██╔╝
@@ -121,19 +120,18 @@ run_help_report() {
       continue
     fi
 
-    echo "## $name" >> "$OUT"
-    echo >> "$OUT"
-    echo '```text' >> "$OUT"
-    
     local help_output
     if ! help_output=$(ROT_SKIP_ENV=true bash "$script" --help 2>&1 || true) || [[ -z "$help_output" ]]; then
       help_output=$(grep -oE '\-\-[a-z][a-z-]+' "$script" | sort -u || echo "(No help available and no flags found)")
       log "WARN" "Script $name did not respond well to --help. Used fallback."
     fi
-    echo "$help_output" >> "$OUT"
     
-    echo '```' >> "$OUT"
-    echo >> "$OUT"
+    {
+      printf '## %s\n\n' "$name"
+      printf '%s\n' '```text'
+      printf '%s\n' "$help_output"
+      printf '%s\n\n' '```'
+    } >> "$OUT"
     log "INFO" "Extracted help: $name"
   done
 
@@ -185,10 +183,11 @@ render_output_report_md() {
     matches=$(grep -nE '(>\s*\$[A-Z_]+|>>\s*\$[A-Z_]+|tee\s+\$[A-Z_]+|mv\s+.*\$[A-Z_]+|cp\s+.*\$[A-Z_]+|tar\s+.*-[cf]f?\s)' "$script" || true)
 
     if [[ -n "$matches" ]]; then
-      echo "## $name" >> "$OUT"
-      echo "" >> "$OUT"
-      echo "| Line | Operation | Resolved Path |" >> "$OUT"
-      echo "|------|-----------|---------------|" >> "$OUT"
+      {
+        printf '## %s\n\n' "$name"
+        printf '| Line | Operation | Resolved Path |\n'
+        printf '|------|-----------|---------------|\n'
+      } >> "$OUT"
 
       while IFS= read -r line_match; do
         local line_num="${line_match%%:*}"
