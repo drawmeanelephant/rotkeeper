@@ -1,0 +1,8 @@
+1. Implement Deliverable 1 (MAINTAINER.md + comments in rc-utils.sh, rc-env.sh)
+2. Implement Deliverable 2 (focused helper tests in a new file, e.g. bones/scripts/rc-test-helpers.sh)
+3. Implement Deliverable 3 (doctor command in rotkeeper.sh & bones/scripts/rc-doctor.sh)
+4. Implement Deliverable 4 (docs-check in rotkeeper.sh & bones/scripts/rc-docs-check.sh)
+5. Implement Deliverable 5 (check command in rotkeeper.sh)
+6. Implement Deliverable 6 (decision records)
+7. Implement Deliverable 7 (CI changes)
+8. Run checks
