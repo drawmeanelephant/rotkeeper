@@ -245,7 +245,9 @@ cleanup() {
 # Binds the err and exit hooks to ensure graceful demise upon failure
 set_traps() {
   trap 'trap_err $LINENO' ERR
-  trap 'cleanup' EXIT INT TERM
+  trap 'cleanup; trap - EXIT' EXIT
+  trap 'cleanup; exit 130' INT
+  trap 'cleanup; exit 143' TERM
 }
 
 # Load rc-env.sh from script root

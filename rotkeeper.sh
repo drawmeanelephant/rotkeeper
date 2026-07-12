@@ -20,7 +20,15 @@ VERSION="0.4.0.4"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BONES="$SCRIPT_DIR/bones/scripts"
 
-trap 'echo "Unexpected error on line $LINENO"; exit 1' ERR
+on_err() {
+  local status=$?
+  printf 'ERROR: status=%s file=%s line=%s function=%s command=%q\n' \
+    "$status" "${BASH_SOURCE[1]:-${BASH_SOURCE[0]}}" \
+    "${BASH_LINENO[0]:-$LINENO}" "${FUNCNAME[1]:-MAIN}" \
+    "$BASH_COMMAND" >&2
+  return "$status"
+}
+trap 'on_err' ERR
 
 command="${1:-}"
 if [[ $# -gt 0 ]]; then shift; fi

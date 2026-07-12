@@ -37,11 +37,39 @@ exit 0; fi
 echo "--- Rotkeeper Single framework Release Assertion Test Matrix ---"
 
 TEST_DIR="/tmp/rotkeeper-test-env"
+cleanup_ran=false
+
 cleanup() {
-  echo "Pruning testing footprints from the physical realm..."
-  rm -rf "$TEST_DIR"
+  local status=$?
+  if [[ "${cleanup_ran:-false}" == true ]]; then
+    return "$status"
+  fi
+  cleanup_ran=true
+
+  trap - ERR EXIT INT TERM
+  set +e
+
+  if [[ -n "${TEST_DIR:-}" && -d "${TEST_DIR}" ]]; then
+    echo "Pruning testing footprints from the physical realm..."
+    rm -rf "$TEST_DIR" || true
+  fi
+
+  return "$status"
 }
-trap cleanup EXIT INT TERM ERR
+
+on_err() {
+  local status=$?
+  printf 'ERROR: status=%s file=%s line=%s function=%s command=%q\n' \
+    "$status" "${BASH_SOURCE[1]:-${BASH_SOURCE[0]}}" \
+    "${BASH_LINENO[0]:-$LINENO}" "${FUNCNAME[1]:-MAIN}" \
+    "$BASH_COMMAND" >&2
+  return "$status"
+}
+
+trap 'on_err' ERR
+trap 'cleanup' EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 rm -rf "$TEST_DIR"
 mkdir -p "$TEST_DIR"
