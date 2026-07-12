@@ -13,6 +13,7 @@ output/
 # Backup logs, test junk, and generated reports
 # Reports are locally generated and not tracked
 bones/reports/
+bones/book-reports/
 bones/logs/
 bones/archive/
 bones/backups/
