@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
+source_rc_env || { echo "FATAL: cannot source rc-env.sh" >&2; exit 1; }
+
+source_rc_env || { echo "FATAL: cannot source rc-env.sh" >&2; exit 1; }
 # ============================================================
 #  ████████╗███████╗███████╗████████╗
 #  ╚══██╔══╝██╔════╝██╔════╝╚══██╔══╝
@@ -50,8 +58,11 @@ cleanup() {
   set +e
 
   if [[ -n "${TEST_DIR:-}" && -d "${TEST_DIR}" ]]; then
-    echo "Pruning testing footprints from the physical realm..."
-    rm -rf "$TEST_DIR" || true
+    CANONICAL_TEST_DIR=$(realpath -m "$TEST_DIR")
+    if [[ "${CANONICAL_TEST_DIR}/" == "${ROOT_DIR}/"* ]]; then
+      echo "Pruning testing footprints from the physical realm..."
+      rm -rf "$CANONICAL_TEST_DIR" || true
+    fi
   fi
 
   return "$status"
@@ -71,7 +82,12 @@ trap 'cleanup' EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
-rm -rf "$TEST_DIR"
+if [[ -n "${TEST_DIR:-}" ]]; then
+    CANONICAL_TEST_DIR=$(realpath -m "$TEST_DIR")
+    if [[ "${CANONICAL_TEST_DIR}/" == "${ROOT_DIR}/"* ]]; then
+        rm -rf "$CANONICAL_TEST_DIR" || true
+    fi
+fi
 mkdir -p "$TEST_DIR"
 
 LAYOUT_MODES=("crypt" "busy" "sterile")

@@ -20,7 +20,6 @@ This page tracks the documentation status of core project files.
 | `bones/scripts/rc-release.sh` | [home/content/docs/bones/scripts/rc-release.md](home/content/docs/bones/scripts/rc-release.md) | 2026-07-04 | 2026-07-04 | unknown |
 | `scripts/setup-jules.sh` | [home/content/docs/scripts/setup-jules.md](home/content/docs/scripts/setup-jules.md) | 2026-07-04 | 2026-07-04 | unknown |
 | `.agentignore` | [home/content/docs/.agentignore.md](home/content/docs/.agentignore.md) | 2026-07-04 | 2026-07-04 | unknown |
-| `bones/scripts/rc-ingest.sh` | [home/content/docs/bones/scripts/rc-ingest.md](home/content/docs/bones/scripts/rc-ingest.md) | 2026-07-04 | 2026-07-04 | unknown |
 | `bones/scripts/rc-env.sh` | [home/content/docs/bones/scripts/rc-env.md](home/content/docs/bones/scripts/rc-env.md) | 2026-07-04 | 2026-07-04 | unknown |
 | `.blessed` | [home/content/docs/.blessed.md](home/content/docs/.blessed.md) | 2026-07-04 | 2026-07-04 | stub |
 | `bones/scripts/rc-utils.sh` | [home/content/docs/bones/scripts/rc-utils.md](home/content/docs/bones/scripts/rc-utils.md) | 2026-07-04 | 2026-07-04 | unknown |
@@ -30,11 +29,9 @@ This page tracks the documentation status of core project files.
 | `bones/scripts/rc-glue.sh` | [home/content/docs/bones/scripts/rc-glue.md](home/content/docs/bones/scripts/rc-glue.md) | 2026-07-04 | 2026-07-04 | unknown |
 | `rotkeeper.sh` | [home/content/docs/rotkeeper.md](home/content/docs/rotkeeper.md) | 2026-07-04 | 2026-07-04 | unknown |
 | `bones/config/rotkeeper.yaml` | [home/content/docs/bones/config/rotkeeper.md](home/content/docs/bones/config/rotkeeper.md) | 2026-07-04 | 2026-07-04 | unknown |
-| `bones/scripts/rc-sync-inbox.sh` | [home/content/docs/bones/scripts/rc-sync-inbox.md](home/content/docs/bones/scripts/rc-sync-inbox.md) | 2026-07-04 | 2026-07-04 | complete |
 | `.gitignore` | [home/content/docs/.gitignore.md](home/content/docs/.gitignore.md) | 2026-07-04 | 2026-07-04 | stub |
 | `bones/templates/rotkeeper-blog.html` | [home/content/docs/bones/templates/rotkeeper-blog.md](home/content/docs/bones/templates/rotkeeper-blog.md) | 2026-07-04 | 2026-07-04 | unknown |
 | `bones/scripts/rc-init.sh` | [home/content/docs/bones/scripts/rc-init.md](home/content/docs/bones/scripts/rc-init.md) | 2026-07-04 | 2026-07-04 | unknown |
-| `bones/scripts/rc-cleanup-bones.sh` | [home/content/docs/bones/scripts/rc-cleanup-bones.md](home/content/docs/bones/scripts/rc-cleanup-bones.md) | 2026-07-04 | 2026-07-04 | unknown |
 | `bones/scripts/rc-assets.sh` | [home/content/docs/bones/scripts/rc-assets.md](home/content/docs/bones/scripts/rc-assets.md) | 2026-07-04 | 2026-07-04 | unknown |
 | `bones/templates/theme-phosphor.html` | [home/content/docs/bones/templates/theme-phosphor.md](home/content/docs/bones/templates/theme-phosphor.md) | 2026-07-04 | 2026-07-04 | unknown |
 | `bones/scripts/rc-dip.sh` | [home/content/docs/bones/scripts/rc-dip.md](home/content/docs/bones/scripts/rc-dip.md) | 2026-07-04 | 2026-07-04 | unknown |
@@ -46,7 +43,6 @@ This page tracks the documentation status of core project files.
 | `bones/templates/theme-overgrown.html` | [home/content/docs/bones/templates/theme-overgrown.md](home/content/docs/bones/templates/theme-overgrown.md) | 2026-07-04 | 2026-07-04 | unknown |
 | `bones/templates/theme-kawaii.html` | [home/content/docs/bones/templates/theme-kawaii.md](home/content/docs/bones/templates/theme-kawaii.md) | 2026-07-04 | 2026-07-04 | unknown |
 | `bones/scripts/rewrite-links.lua` | [home/content/docs/bones/scripts/rewrite-links.md](home/content/docs/bones/scripts/rewrite-links.md) | 2026-07-04 | 2026-07-04 | unknown |
-| `bones/scripts/rc-reseed.sh` | [home/content/docs/bones/scripts/rc-reseed.md](home/content/docs/bones/scripts/rc-reseed.md) | 2026-07-04 | 2026-07-04 | unknown |
 | `bones/scripts/rc-test.sh` | [home/content/docs/bones/scripts/rc-test.md](home/content/docs/bones/scripts/rc-test.md) | 2026-07-04 | 2026-07-04 | unknown |
 | `bones/templates/theme-light.html` | [home/content/docs/bones/templates/theme-light.md](home/content/docs/bones/templates/theme-light.md) | 2026-07-04 | 2026-07-04 | unknown |
 | `Unknown` | [home/content/docs/bones/templates/index.md](home/content/docs/bones/templates/index.md) | Missing | 2026-07-04 | unowned-doc |

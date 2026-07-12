@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
 # ============================================================
 #  ██████╗ ██╗   ██╗███╗   ███╗██████╗
 #  ██╔══██╗██║   ██║████╗ ████║██╔══██╗
@@ -20,12 +22,13 @@ IFS=$'\n\t'
 
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-source "$SCRIPT_DIR/rc-utils.sh"
 VERSION="${ROTKEEPER_VERSION:-0.4.0.3}"
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
+source_rc_env || { echo "FATAL: cannot source rc-env.sh" >&2; exit 1; }
 rk_init_script "rc-bump" "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR
 
@@ -120,16 +123,20 @@ else
   for f in "$ROOT_DIR/rotkeeper.sh" "$SCRIPT_DIR"/*.sh; do
     awk -v old_ver="$CURRENT_VERSION" -v new_ver="$NEW_VERSION" '
       BEGIN {
-        # Escape literal dots for regex matching
         gsub(/\./, "\\.", old_ver)
       }
       {
-        gsub("VERSION=\"" old_ver "\"", "VERSION=\"" new_ver "\"")
-        gsub(/VERSION="\$\{ROTKEEPER_VERSION:-[0-9.]+\}"/, "VERSION=\"${ROTKEEPER_VERSION:-" new_ver "}\"")
-        gsub("#  Version : " old_ver, "#  Version : " new_ver)
-        gsub("# Version: " old_ver, "# Version: " new_ver)
-        gsub("\\(v" old_ver "\\)", "(v" new_ver ")")
-        gsub("v" old_ver, "v" new_ver)
+        if ($0 ~ "^VERSION=\"" old_ver "\"") {
+          sub("VERSION=\"" old_ver "\"", "VERSION=\"" new_ver "\"")
+        } else if ($0 ~ "^VERSION=\"\\$\{ROTKEEPER_VERSION:-[0-9.]+\}\"" || $0 ~ "^VERSION=\"\\$\{ROTKEEPER_VERSION:-" old_ver "\}\"") {
+          sub(/VERSION="\$\{ROTKEEPER_VERSION:-[0-9.]+\}"/, "VERSION=\"${ROTKEEPER_VERSION:-" new_ver "}\"")
+        } else if ($0 ~ "^#  Version : " old_ver) {
+          sub("#  Version : " old_ver, "#  Version : " new_ver)
+        } else if ($0 ~ "^# Version: " old_ver) {
+          sub("# Version: " old_ver, "# Version: " new_ver)
+        } else if ($0 ~ "\\(v" old_ver "\\)") {
+          sub("\\(v" old_ver "\\)", "(v" new_ver ")")
+        }
         print
       }
     ' "$f" > "${f}.tmp" && mv "${f}.tmp" "$f" && chmod +x "$f"

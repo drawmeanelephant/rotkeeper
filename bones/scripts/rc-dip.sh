@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
 # ============================================================
 #  ██████╗ ██╗██████╗
 #  ██╔══██╗██║██╔══██╗
@@ -19,24 +21,14 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-if [[ -f "$SCRIPT_DIR/rc-utils.sh" ]]; then
-    source "$SCRIPT_DIR/rc-utils.sh"
-else
-    echo "FATAL: cannot source rc-utils.sh" >&2
-    return 1
-fi
 
-if [[ -f "$SCRIPT_DIR/rc-env.sh" ]]; then
-    source "$SCRIPT_DIR/rc-env.sh"
-else
-    echo "FATAL: cannot source rc-env.sh" >&2
-    return 1
-fi
 
 VERSION="${ROTKEEPER_VERSION:-0.4.0.3}"
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
+source_rc_env || { echo "FATAL: cannot source rc-env.sh" >&2; exit 1; }
 rk_init_script rc-dip "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR CONTENT_DIR DOCS_DIR REPORT_DIR BOOK_REPORT_DIR
 
@@ -243,7 +235,6 @@ inject_env() {
     local doc_path="$1"
 
     # Source rc-env.sh to get the variables
-    source "${SCRIPT_DIR}/rc-env.sh"
 
     local env_list
     env_list=$(cat <<INNER_EOF

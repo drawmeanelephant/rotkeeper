@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
 # ============================================================
 #  ██╗███╗   ██╗██╗████████╗
 #  ██║████╗  ██║██║╚══██╔══╝
@@ -39,13 +41,10 @@ IFS=$'
 	'
 
 # Source shared Rotkeeper helpers
-SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if ! source "$SCRIPTDIR/rc-utils.sh"; then
-  printf 'FATAL: cannot source rc-utils.sh
-' >&2
-  exit 1
-fi
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
+source_rc_env || { echo "FATAL: cannot source rc-env.sh" >&2; exit 1; }
 declare -F rk_init_script >/dev/null || { printf 'FATAL: rc-utils.sh loaded without rk_init_script
 ' >&2; exit 1; }
 
@@ -107,7 +106,7 @@ fi
 
 # Make all rc-*.sh and rc-utils.bats scripts executable
 log "INFO" "🔐 Blessing scripts with +x permissions..."
-find "$SCRIPTDIR" -type f \( -name "rc-*.sh" -o -name "rc-*.bats" \) -exec chmod +x {} \;
+find "$SCRIPT_DIR" -type f \( -name "rc-*.sh" -o -name "rc-*.bats" \) -exec chmod +x {} \;
 
 main() {
     # Verify required tools
@@ -142,7 +141,7 @@ main() {
         # Explicitly map the active folder locations straight into the target yaml config
         yq eval ".paths.ROOT_DIR = \"$ROOT_DIR\"" -i "$CONFIG_TARGET"
         yq eval ".paths.BONES_DIR = \"$BONES_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.SCRIPT_DIR = \"$SCRIPTDIR\"" -i "$CONFIG_TARGET"
+        yq eval ".paths.SCRIPT_DIR = \"$SCRIPT_DIR\"" -i "$CONFIG_TARGET"
         yq eval ".paths.CONFIG_DIR = \"$CONFIG_DIR\"" -i "$CONFIG_TARGET"
         yq eval ".paths.LOG_DIR = \"$LOG_DIR\"" -i "$CONFIG_TARGET"
         yq eval ".paths.TMP_DIR = \"$TMP_DIR\"" -i "$CONFIG_TARGET"
@@ -181,24 +180,24 @@ EOF_HELLO
     fi
 
     if [[ "$WITH_ASSETS" == true ]]; then
-        if [[ -f "$SCRIPTDIR/rc-assets.sh" ]]; then
-            run "$SCRIPTDIR/rc-assets.sh"
+        if [[ -f "$SCRIPT_DIR/rc-assets.sh" ]]; then
+            run "$SCRIPT_DIR/rc-assets.sh"
         else
             log "WARN" "rc-assets.sh not found in prototype, skipping."
         fi
     fi
 
     if [[ "$WITH_RENDER" == true ]]; then
-        if [[ -f "$SCRIPTDIR/rc-render.sh" ]]; then
-            run "$SCRIPTDIR/rc-render.sh" --verbose
+        if [[ -f "$SCRIPT_DIR/rc-render.sh" ]]; then
+            run "$SCRIPT_DIR/rc-render.sh" --verbose
         else
             log "WARN" "rc-render.sh not found in prototype, skipping."
         fi
     fi
 
     if [[ "$FULL" == true ]]; then
-        if [[ -f "$SCRIPTDIR/rc-scan.sh" ]]; then
-            run "$SCRIPTDIR/rc-scan.sh"
+        if [[ -f "$SCRIPT_DIR/rc-scan.sh" ]]; then
+            run "$SCRIPT_DIR/rc-scan.sh"
         else
             log "WARN" "rc-scan.sh not found in prototype, skipping scan."
         fi

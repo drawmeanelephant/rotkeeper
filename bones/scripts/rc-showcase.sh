@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
 # ============================================================
 #  Project : Rotkeeper
 #  Script  : rc-showcase.sh
@@ -7,9 +9,10 @@
 
 set -euo pipefail
 
-source "$(dirname "${BASH_SOURCE[0]}")/rc-env.sh"
-source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
+source_rc_env || { echo "FATAL: cannot source rc-env.sh" >&2; exit 1; }
 rk_init_script "rc-showcase" "$@"
 
 main() {

@@ -57,9 +57,7 @@ Ritual types include:
 - [`rc-scan.sh`](bones/scripts/rc-scan.md)
 - [`rc-assets.sh`](bones/scripts/rc-assets.md)
 - [`rc-status.sh`](bones/scripts/rc-status.md)
-- [`rc-reseed.sh`](bones/scripts/rc-reseed.md)
 - [`rc-glue.sh`](bones/scripts/rc-glue.md)
-- [`rc-ingest.sh`](bones/scripts/rc-ingest.md)
 - [`rc-bump.sh`](bones/scripts/rc-bump.md)
 - [`rc-release.sh`](bones/scripts/rc-release.md)
 

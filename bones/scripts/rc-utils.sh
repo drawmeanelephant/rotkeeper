@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
-
+set -euo pipefail
+IFS=$'\n\t'
+source_rc_env() {
+  local ENV_FILE="$(dirname "${BASH_SOURCE[0]:-$0}")/rc-env.sh"
+  if [[ -f "$ENV_FILE" ]]; then
+    source "$ENV_FILE"
+  else
+    log "WARN" "rc-env.sh not found at $ENV_FILE"
+  fi
+}
 rk_load_env() {
   local mode="${1:-strict}"
 
@@ -20,7 +29,6 @@ rk_load_env() {
   fi
 }
 
-#!/usr/bin/env bash
 # ============================================================
 #  ██╗   ██╗████████╗██╗██╗     ███████╗
 #  ██║   ██║╚══██╔══╝██║██║     ██╔════╝
@@ -251,14 +259,7 @@ set_traps() {
 }
 
 # Load rc-env.sh from script root
-source_rc_env() {
-  local ENV_FILE="$(dirname "${BASH_SOURCE[0]:-$0}")/rc-env.sh"
-  if [[ -f "$ENV_FILE" ]]; then
-    source "$ENV_FILE"
-  else
-    log "WARN" "rc-env.sh not found at $ENV_FILE"
-  fi
-}
+
 
 # Initialize log file with script name
 init_log() {

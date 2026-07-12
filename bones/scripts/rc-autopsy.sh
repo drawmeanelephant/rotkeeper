@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2129
+set -euo pipefail
+IFS=$'\n\t'
 # ============================================================
 #  ██████╗  ██████╗  ██████╗ ██╗  ██╗
 #  ██╔══██╗██╔═══██╗██╔═══██╗██║ ██╔╝
@@ -18,9 +19,6 @@
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; return 1; }
-source "$SCRIPT_DIR/rc-env.sh"   || { echo "FATAL: cannot source rc-env.sh" >&2; return 1; }
 
 
 show_help() { cat <<HELP_EOF
@@ -42,6 +40,9 @@ HELP_EOF
 
 VERSION="${ROTKEEPER_VERSION:-0.4.0.3}"
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
+source_rc_env || { echo "FATAL: cannot source rc-env.sh" >&2; exit 1; }
 rk_init_script rc-autopsy "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR REPORT_DIR
 
@@ -119,19 +120,18 @@ run_help_report() {
       continue
     fi
 
-    echo "## $name" >> "$OUT"
-    echo >> "$OUT"
-    echo '```text' >> "$OUT"
-    
     local help_output
     if ! help_output=$(ROT_SKIP_ENV=true bash "$script" --help 2>&1 || true) || [[ -z "$help_output" ]]; then
       help_output=$(grep -oE '\-\-[a-z][a-z-]+' "$script" | sort -u || echo "(No help available and no flags found)")
       log "WARN" "Script $name did not respond well to --help. Used fallback."
     fi
-    echo "$help_output" >> "$OUT"
     
-    echo '```' >> "$OUT"
-    echo >> "$OUT"
+    {
+      printf '## %s\n\n' "$name"
+      printf '%s\n' '```text'
+      printf '%s\n' "$help_output"
+      printf '%s\n\n' '```'
+    } >> "$OUT"
     log "INFO" "Extracted help: $name"
   done
 
@@ -183,10 +183,11 @@ render_output_report_md() {
     matches=$(grep -nE '(>\s*\$[A-Z_]+|>>\s*\$[A-Z_]+|tee\s+\$[A-Z_]+|mv\s+.*\$[A-Z_]+|cp\s+.*\$[A-Z_]+|tar\s+.*-[cf]f?\s)' "$script" || true)
 
     if [[ -n "$matches" ]]; then
-      echo "## $name" >> "$OUT"
-      echo "" >> "$OUT"
-      echo "| Line | Operation | Resolved Path |" >> "$OUT"
-      echo "|------|-----------|---------------|" >> "$OUT"
+      {
+        printf '## %s\n\n' "$name"
+        printf '| Line | Operation | Resolved Path |\n'
+        printf '|------|-----------|---------------|\n'
+      } >> "$OUT"
 
       while IFS= read -r line_match; do
         local line_num="${line_match%%:*}"

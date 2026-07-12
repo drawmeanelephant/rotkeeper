@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
 # ============================================================
 #  ██████╗  █████╗  ██████╗██╗  ██╗
 #  ██╔══██╗██╔══██╗██╔════╝██║ ██╔╝
@@ -33,9 +35,11 @@ EOF
   exit 0
 }
 
-source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
 VERSION="${ROTKEEPER_VERSION:-0.4.0.3}"
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
+source_rc_env || { echo "FATAL: cannot source rc-env.sh" >&2; exit 1; }
 rk_init_script "rc-pack" "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR CONTENT_DIR DOCS_DIR OUTPUT_DIR
 set -euo pipefail
@@ -192,10 +196,10 @@ main() {
 
       if [[ "$DRY_RUN" == false ]]; then
         echo "🧬 Exporting .md from \"$SOURCE_DIR\" to JSON: \"$EXPORT_JSON\""
-        TMP_EXPORT=$(mktemp)
+                TMP_EXPORT="$(mktemp)"
         echo "[" > "$TMP_EXPORT"
         FIRST=true
-        find "$SOURCE_DIR" -name '*.md' | while read -r mdfile; do
+        while IFS= read -r -d '' mdfile; do
           if ! AST_CONTENT=$(pandoc "$mdfile" -t json 2>/dev/null); then
             log "ERROR" "Pandoc failed on $mdfile, skipping."
             continue
@@ -214,11 +218,19 @@ main() {
             echo "," >> "$TMP_EXPORT"
           fi
           echo "$JSON_ENTRY" >> "$TMP_EXPORT"
-        done
+        done < <(find "$SOURCE_DIR" -name '*.md' -print0)
         echo "]" >> "$TMP_EXPORT"
-        run mv "$TMP_EXPORT" "$EXPORT_JSON"
-        echo "$EXPORT_JSON" >> "$MANIFEST_FILE"
-        echo "✅ Export complete: \"$EXPORT_JSON\""
+
+        if jq empty "$TMP_EXPORT" >/dev/null 2>&1; then
+            cp "$TMP_EXPORT" "$TMP_EXPORT.final"
+            run mv "$TMP_EXPORT.final" "$EXPORT_JSON"
+            echo "$EXPORT_JSON" >> "$MANIFEST_FILE"
+            echo "✅ Export complete: \"$EXPORT_JSON\""
+        else
+            log "ERROR" "Generated JSON is invalid, aborting export."
+            exit 1
+        fi
+        rm -f "$TMP_EXPORT" "$TMP_EXPORT.final" || true
       else
         log "DRYRUN" "Would export markdown from \"$SOURCE_DIR\" to JSON: \"$EXPORT_JSON\""
       fi
