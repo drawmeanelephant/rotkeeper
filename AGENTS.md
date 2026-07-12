@@ -7,7 +7,7 @@ Welcome to the Rotkeeper repository. If you are an autonomous AI agent, LLM, or 
 Rotkeeper is a terminal-based toolkit for rendering, archiving, and preserving the remains of Markdown-driven projects.
 - **Inputs** are Markdown files (called "tombs") with YAML frontmatter.
 - **Outputs** are rendered HTML files and `.tar.gz` archives.
-- **Rituals** are bash scripts (`rc-*.sh`) that perform operations (rendering, packaging, scanning, ingesting).
+- **Rituals** are bash scripts (`rc-*.sh`) that perform operations (rendering, packaging, scanning).
 - **The Dispatcher** is `rotkeeper.sh` — the single CLI entry point. Always use it.
 
 ## 📂 Architecture
@@ -26,12 +26,10 @@ Rotkeeper is a terminal-based toolkit for rendering, archiving, and preserving t
 │   ├── templates/               # Pandoc HTML templates for rendering
 │   ├── archive/                 # Pack archives (tomb-*.tar.gz, tombkit-*.tar.gz)
 │   ├── releases/                # Versioned lite/full distribution .zip files
-│   ├── ingested/                # Processed inbox .tar.gz files (moved here after ingest)
 │   ├── reports/                 # Generated reports, binders, sitemaps, indexes
 │   ├── logs/                    # Timestamped ritual logs
 │   ├── tmp/                     # Temporary staging (used by release builds)
 │   └── meta/                    # Extracted frontmatter metadata
-├── messages-from-my-friends/    # Decentralized inbox — drop .tar.gz payloads here
 ├── AGENTS.md                    # This file
 ├── GEMINI.md                    # Gemini-specific agent directives
 └── CHANGELOG.md                 # Version history
@@ -57,7 +55,7 @@ If you are running in a short-lived VM environment (like Jules/Ubuntu), follow t
    ```bash
    bash rotkeeper.sh init --with-sample
    ```
-   The `init` command is lightweight by default. It creates required directories. Using `--with-sample` generates a starter `test-file.md` in `home/content/`. To run the full initialization suite (reseed, assets, render, scan), use `--full`.
+   The `init` command is lightweight by default. It creates required directories. Using `--with-sample` generates a starter `test-file.md` in `home/content/`. To run the full initialization suite (sample, assets, render, scan), use `--full`.
 
 ## 📋 Canonical Safe Commands
 
@@ -74,20 +72,11 @@ Here are the canonical, highly-safe commands you should prefer during your workf
 ### ⚠️ Constraints & Safety Rules
 
 - **Never invoke `rc-*.sh` scripts directly.** Always use `bash rotkeeper.sh <command>`.
-- **`rotkeeper.sh cleanup` is destructive.** It prunes most of `bones/` contents. Avoid using it unless specifically requested.
 - **Do not edit `output/` files directly.** Trace the changes back to the source `.md` files in `home/content/` and re-run `render`.
 - Setup must remain finite and non-interactive. Use `setup-jules.sh` and `smoke` to guarantee readiness.
 
 ## 📬 Decentralized Ingestion Pipeline
 
-If you are generating content or auditing the system, you can use Rotkeeper's ingestion pipeline to permanently save and share your work:
-
-1. Ensure your generated markdown files have proper YAML frontmatter. Include a `report.md` or `audit.md` summarizing your methods and findings.
-2. Run `./rotkeeper.sh pack --content`. This bundles `home/content/` into a `.tar.gz` archive.
-3. The resulting `.tar.gz` is saved in `bones/archive/`.
-4. **To submit:** Copy the `.tar.gz` file into `messages-from-my-friends/`.
-5. **Ingest:** Run `./rotkeeper.sh ingest` to extract payloads safely.
-6. **After ingestion**, run `./rotkeeper.sh render` to compile the new content.
 
 ## 📌 Version
 

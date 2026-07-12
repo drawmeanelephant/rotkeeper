@@ -107,7 +107,6 @@ AUTOPSY_EXCLUDES[".vscode"]=1
 AUTOPSY_EXCLUDES[".idea"]=1
 AUTOPSY_EXCLUDES["home/content"]=1
 AUTOPSY_EXCLUDES["home/assets"]=1
-AUTOPSY_EXCLUDES["messages-from-my-friends"]=1
 AUTOPSY_EXCLUDES["tmp"]=1
 AUTOPSY_EXCLUDES["${ARCHIVE_DIR#"$ROOT_DIR"/}/releases"]=1
 AUTOPSY_EXCLUDES["${TMP_DIR#"$ROOT_DIR"/}"]=1

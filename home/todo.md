@@ -21,7 +21,6 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [ ] Note side effects like file writes, deletes, archiving, and Git operations.
 
 ### 3. Security Audit Pass
-- [ ] Audit archive extraction; validate filenames and prevent path traversal in ingest/reseed flows.
 - [ ] Review manifest parsing and add preflight checks before delete (`rm -rf`) operations.
 - [ ] Harden temporary directory handling (e.g., consistent `mktemp` usage).
 - [ ] Ensure all destructive commands strictly honor `--dry-run`.
@@ -34,8 +33,8 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [ ] Extract `safe_tar_gz()` into `rc-utils.sh` and standardize archive logic.
 
 ### 5. Smoke-Test Scaffolding
-- [ ] Finalize `rc-test.sh` with `bats` support and shell-only smoke tests for core workflows (init, render, scan, pack, release, reseed).
-- [ ] Create `tests/` directory for fixture content trees and archive ingest fixtures.
+- [ ] Finalize `rc-test.sh` with `bats` support and shell-only smoke tests for core workflows (init, render, scan, pack, release).
+- [ ] Create `tests/` directory for fixture content trees.
 - [ ] Add golden-output comparisons for rendered HTML files and Lua filters.
 
 ### 6. Release & Checklist Improvements

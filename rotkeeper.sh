@@ -45,7 +45,6 @@ Commands:
   glue        Auto-generate navigation glue for unindexed content directories
   dip         Audit documentation coverage via DIP
   book        Generate aggregated documentation book targets
-  cleanup     Backup and prune bones/ archives and logs
   status      Display environment health status reports
 HELP_EOF
 }
@@ -93,8 +92,21 @@ case "$command" in
   book)
     bash "$BONES/rc-book.sh" "$@"
     ;;
-  cleanup)
-    bash "$BONES/rc-cleanup-bones.sh" "$@"
+cleanup)
+    echo "ERROR: The 'cleanup' command has been permanently removed. Rotkeeper no longer owns aggressive deletion workflows."
+    exit 1
+    ;;
+  ingest)
+    echo "ERROR: The 'ingest' command has been permanently removed. Rotkeeper no longer owns message ingestion workflows."
+    exit 1
+    ;;
+  sync-inbox)
+    echo "ERROR: The 'sync-inbox' command has been permanently removed. Rotkeeper no longer owns message ingestion workflows."
+    exit 1
+    ;;
+  reseed)
+    echo "ERROR: The 'reseed' command has been permanently removed. Rotkeeper initialization is now non-destructive and layout-driven."
+    exit 1
     ;;
   status)
     bash "$BONES/rc-status.sh" "$@"
