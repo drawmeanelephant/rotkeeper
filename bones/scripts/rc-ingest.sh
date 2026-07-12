@@ -59,8 +59,8 @@ main() {
     log "INFO" "Running rc-ingest.sh"
     check_dependencies
 
-    INGESTED_ARCHIVE_DIR="bones/ingested"
-    QUARANTINE_DIR="bones/quarantine"
+    INGESTED_ARCHIVE_DIR="${ARCHIVE_DIR#"$ROOT_DIR"/}/ingested"
+    QUARANTINE_DIR="${TMP_DIR#"$ROOT_DIR"/}/quarantine"
     TARGET_CONTENT_DIR="$CONTENT_DIR/messages"
 
     mkdir -p "$INGESTED_ARCHIVE_DIR"

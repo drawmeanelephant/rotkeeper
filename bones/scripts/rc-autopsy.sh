@@ -96,7 +96,7 @@ run_help_report() {
     local search_root_dir="$ROOT_DIR"
 
     if [[ ! -d "$search_script_dir" ]]; then
-      search_script_dir="./bones/scripts"
+      search_script_dir="./${SCRIPT_DIR#"$ROOT_DIR"/}"
     fi
     if [[ ! -f "$search_root_dir/rotkeeper.sh" ]]; then
       search_root_dir="."
@@ -168,7 +168,7 @@ render_output_report_md() {
     local search_root_dir="$ROOT_DIR"
 
     if [[ ! -d "$search_script_dir" ]]; then
-      search_script_dir="./bones/scripts"
+      search_script_dir="./${SCRIPT_DIR#"$ROOT_DIR"/}"
     fi
     if [[ ! -f "$search_root_dir/rotkeeper.sh" ]]; then
       search_root_dir="."

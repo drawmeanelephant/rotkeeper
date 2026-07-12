@@ -138,7 +138,7 @@ else
 fi
 
 # Step 4: Inject into Living Buildlog
-ROADMAP_FILE="$ROOT_DIR/home/content/docs/road-to-bones/index.md"
+ROADMAP_FILE="$DOCS_DIR/road-to-bones/index.md"
 DATE_STR=$(date +"%Y-%m-%d %H:%M")
 ENTRY="* \`v$NEW_VERSION\` - ($DATE_STR) - $MESSAGE"
 
@@ -193,12 +193,12 @@ fi
 
 log "INFO" "Staging touched files..."
 git add "rotkeeper.sh"
-git add bones/scripts/*.sh
+git add "${SCRIPT_DIR#"$ROOT_DIR"/}/*.sh"
 if [[ -f "CHANGELOG.md" ]]; then
   git add "CHANGELOG.md"
 fi
-if [[ -f "home/content/docs/road-to-bones/index.md" ]]; then
-  git add "home/content/docs/road-to-bones/index.md"
+if [[ -f "${DOCS_DIR#"$ROOT_DIR"/}/road-to-bones/index.md" ]]; then
+  git add "${DOCS_DIR#"$ROOT_DIR"/}/road-to-bones/index.md"
 fi
 
 if git diff --quiet --cached; then

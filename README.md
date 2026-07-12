@@ -191,3 +191,13 @@ MIT. You may rot freely.
 ⚠️ This is a post-labor ritual CLI.
 Do not manually maintain what entropy can clean for you.
 -->
+
+## Configurable Layouts
+
+Rotkeeper supports a fully configurable layout mechanism. You can define custom layouts via the `layout_style` flag or explicit `paths:` mappings inside `bones/config/rotkeeper.yaml`.
+
+To initialize Rotkeeper using a non-default profile:
+```bash
+./rotkeeper.sh init --profile=flat
+```
+Supported layout styles include `crypt` (the default BHO model), `busy`, `sterile`, and `flat`.

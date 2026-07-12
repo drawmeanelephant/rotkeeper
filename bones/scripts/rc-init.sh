@@ -33,21 +33,56 @@ EOF2
   return 0
 }
 
-# Source shared Rotkeeper helpers
-source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
-VERSION="${ROTKEEPER_VERSION:-0.4.0.3}"
-
-rk_init_script "rc-init" "$@"
-require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR CONTENT_DIR DOCS_DIR OUTPUT_DIR
 
 set -euo pipefail
-IFS=$'\n\t'
+IFS=$'
+	'
 
-# shellcheck disable=SC2034
-
+# Source shared Rotkeeper helpers
 SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if ! source "$SCRIPTDIR/rc-utils.sh"; then
+  printf 'FATAL: cannot source rc-utils.sh
+' >&2
+  exit 1
+fi
+
+declare -F rk_init_script >/dev/null || { printf 'FATAL: rc-utils.sh loaded without rk_init_script
+' >&2; exit 1; }
+
+# Parse profile first
+PROFILE=""
+WITH_SAMPLE=false
+WITH_ASSETS=false
+WITH_RENDER=false
+FULL=false
+
+for arg in "$@"; do
+    case "$arg" in
+        --with-sample) WITH_SAMPLE=true ;;
+        --with-assets) WITH_ASSETS=true ;;
+        --with-render) WITH_RENDER=true ;;
+        --full)        FULL=true ;;
+        --profile=*)   PROFILE="${arg#*=}" ;;
+    esac
+done
+
+if [[ "$FULL" == true ]]; then
+    WITH_SAMPLE=true
+    WITH_ASSETS=true
+    WITH_RENDER=true
+fi
+
+if [[ -n "$PROFILE" && "$PROFILE" != "default" ]]; then
+    export LAYOUT_STYLE="$PROFILE"
+fi
+
+rk_load_env bootstrap
+rk_init_script "rc-init" "$@"
+
+require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR CONTENT_DIR DOCS_DIR OUTPUT_DIR
+
 RESEED_CMD="$SCRIPTDIR/rc-reseed.sh"
-PROJECT_ROOT="$SCRIPTDIR/../.."
+
 
 # Flags
 WITH_SAMPLE=false
@@ -80,7 +115,7 @@ main() {
     check_dependencies
     $VERBOSE && log "INFO" "Dependencies verified."
 
-    if [[ ! -d "$PROJECT_ROOT/bones/templates" ]]; then
+    if [[ ! -d "$TEMPLATE_DIR" ]]; then
         # This check might fail in pure sandbox without templates, but keeping the logic
         log "WARN" "bones/templates directory is missing (ignored in prototype if not rendering)."
     fi
@@ -98,11 +133,20 @@ main() {
     # Create core directories non-destructively
     mkdir -p "$CONTENT_DIR"
     mkdir -p "$OUTPUT_DIR"
-    mkdir -p "$PROJECT_ROOT/bones/config"
+    mkdir -p "$CONFIG_DIR"
     log "INFO" "✅ Verified core directories exist."
+
 
     if [[ "$DRY_RUN" == false ]]; then
         log "INFO" "📦 Serializing environment directory configurations to rotkeeper.yaml..."
+
+        if [[ ! -f "$CONFIG_TARGET" || ! -s "$CONFIG_TARGET" ]]; then
+           echo "title: \"Rotkeeper Config\"" > "$CONFIG_TARGET"
+        fi
+
+        if [[ -n "$PROFILE" && "$PROFILE" != "default" ]]; then
+           yq eval ".layout_style = \"$PROFILE\"" -i "$CONFIG_TARGET"
+        fi
 
         # Explicitly map the active folder locations straight into the target yaml config
         yq eval ".paths.ROOT_DIR = \"$ROOT_DIR\"" -i "$CONFIG_TARGET"
@@ -122,6 +166,8 @@ main() {
         yq eval ".paths.DOCS_DIR = \"$DOCS_DIR\"" -i "$CONFIG_TARGET"
         yq eval ".paths.HELP_DIR = \"$HELP_DIR\"" -i "$CONFIG_TARGET"
         yq eval ".paths.WEB_DIR = \"$WEB_DIR\"" -i "$CONFIG_TARGET"
+
+        rk_load_env strict
 
         log "INFO" "✅ Path mappings successfully written to configuration profile."
     fi

@@ -50,7 +50,7 @@ main() {
     check_dependencies
     log "INFO" "Running rc-render.sh."
 
-    if [[ ! -d "$ROOT_DIR/output" ]] || [[ ! -f "$ROOT_DIR/bones/asset-manifest.yaml" ]]; then
+    if [[ ! -d "$OUTPUT_DIR" ]] || [[ ! -f "$META_DIR/asset-manifest.yaml" ]]; then
       log "WARN" "Workspace may not be initialized. Run ./rotkeeper.sh init first if assets are missing."
       echo -e "\n⚠️  Warning: Workspace not initialized or missing core assets. Run './rotkeeper.sh init' first to avoid rendering issues.\n" >&2
     fi
@@ -272,7 +272,7 @@ main() {
 
       # Execute the zero-clutter in-memory aggregation pass
       # shellcheck disable=SC2086
-      run pandoc "${pandoc_inputs[@]}"         --from markdown         --to html         --template="$canonical_template"         --variable=assets_root="$ASSETS_ROOT"         --lua-filter="$PROJ_ROOT/bones/scripts/rewrite-links.lua"         -o "$outfile" $PANDOC_ARGS
+      run pandoc "${pandoc_inputs[@]}"         --from markdown         --to html         --template="$canonical_template"         --variable=assets_root="$ASSETS_ROOT"         --lua-filter="$SCRIPT_DIR/rewrite-links.lua"         -o "$outfile" $PANDOC_ARGS
 
       pages_rendered=$((pages_rendered + 1))
       log_manifest "$outfile"

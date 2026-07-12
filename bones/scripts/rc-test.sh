@@ -30,28 +30,57 @@ trap cleanup EXIT INT TERM ERR
 rm -rf "$TEST_DIR"
 mkdir -p "$TEST_DIR"
 
-LAYOUT_MODES=("crypt")
+LAYOUT_MODES=("crypt" "busy" "sterile")
 
 for mode in "${LAYOUT_MODES[@]}"; do
   pass_dir="$TEST_DIR/$mode"
-  mkdir -p "$pass_dir/bones/scripts"
-  mkdir -p "$pass_dir/bones/config"
-  mkdir -p "$pass_dir/bones/templates"
+
+  # Derive test structure map exactly as the flat path loader handles it
+  case "${mode,,}" in
+    "busy")
+      b_scripts="bones/scripts"
+      b_config="bones/config"
+      b_templates="templates"
+      b_css="assets/css"
+      b_content="home/content"
+      b_archive="bones/archive"
+      ;;
+    "sterile")
+      b_scripts="bones/scripts"
+      b_config="bones/config"
+      b_templates="config/templates"
+      b_css="src/assets/css"
+      b_content="src/content"
+      b_archive="bones/archive"
+      ;;
+    "crypt"|*)
+      b_scripts="bones/scripts"
+      b_config="bones/config"
+      b_templates="bones/templates"
+      b_css="home/assets/css"
+      b_content="home/content"
+      b_archive="bones/archive"
+      ;;
+  esac
+
+  mkdir -p "$pass_dir/$b_scripts"
+  mkdir -p "$pass_dir/$b_config"
+  mkdir -p "$pass_dir/$b_templates"
 
   cp rotkeeper.sh "$pass_dir/"
-  cp bones/scripts/rc-*.sh "$pass_dir/bones/scripts/"
-  cp bones/scripts/rewrite-links.lua "$pass_dir/bones/scripts/"
-  cp bones/templates/*.html "$pass_dir/bones/templates/"
+  cp bones/scripts/rc-*.sh "$pass_dir/$b_scripts/"
+  cp bones/scripts/rewrite-links.lua "$pass_dir/$b_scripts/"
+  cp bones/templates/*.html "$pass_dir/$b_templates/"
 
-  cat << CONF_EOF > "$pass_dir/bones/config/rotkeeper.yaml"
+  cat << CONF_EOF > "$pass_dir/$b_config/rotkeeper.yaml"
 project: "Test Tomb"
 author: "Test Necromancer"
 default_template: "theme-light.html"
 layout_style: "$mode"
 CONF_EOF
 
-  mkdir -p "$pass_dir/home/assets/css"
-  mkdir -p "$pass_dir/home/content"
+  mkdir -p "$pass_dir/$b_css"
+  mkdir -p "$pass_dir/$b_content"
 
   (
     cd "$pass_dir"
@@ -64,12 +93,12 @@ CONF_EOF
     ./rotkeeper.sh release "0.4.0.4" > /dev/null
 
     echo "  [+] Asserting single archive model matching criteria..."
-    if [[ ! -f "bones/releases/rotkeeper-0.4.0.4.zip" ]]; then
+    if [[ ! -f "$b_archive/releases/rotkeeper-0.4.0.4.zip" ]]; then
        echo "❌ Assertion Failed: Canonical distribution package missing or multi-tier leaks found."
        exit 99
     fi
 
-    if [[ -f "bones/releases/rotkeeper-0.4.0.4-lite.zip" || -f "bones/releases/rotkeeper-0.4.0.4-full.zip" ]]; then
+    if [[ -f "$b_archive/releases/rotkeeper-0.4.0.4-lite.zip" || -f "$b_archive/releases/rotkeeper-0.4.0.4-full.zip" ]]; then
        echo "❌ Assertion Failed: Deprecated multi-tier packages still generated."
        exit 100
     fi

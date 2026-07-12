@@ -97,7 +97,7 @@ runscriptbookfull() {
 
   if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would generate full scriptbook at $OUT"
-    find "$ROOT_DIR/bones/scripts" -maxdepth 1 -type f -name "rc-*.sh" | sort | while read -r script; do
+    find "$SCRIPT_DIR" -maxdepth 1 -type f -name "rc-*.sh" | sort | while read -r script; do
       echo "  - ${script#"$ROOT_DIR"/}"
     done
     find "$ROOT_DIR" -maxdepth 1 -type f -name "rotkeeper.sh" | while read -r script; do
@@ -115,7 +115,7 @@ runscriptbookfull() {
     echo ""
   } > "$OUT"
 
-  { find "$ROOT_DIR/bones/scripts" -maxdepth 1 -type f -name "rc-*.sh"; find "$ROOT_DIR" -maxdepth 1 -type f -name "rotkeeper.sh"; } | sort | while read -r script; do
+  { find "$SCRIPT_DIR" -maxdepth 1 -type f -name "rc-*.sh"; find "$ROOT_DIR" -maxdepth 1 -type f -name "rotkeeper.sh"; } | sort | while read -r script; do
     if [[ -f "$script" ]]; then
       rel="${script#"$ROOT_DIR"/}"
       {
@@ -210,7 +210,7 @@ runconfigbook() {
     echo "---"
     echo ""
   } > "$OUT"
-  find "$ROOT_DIR/bones/config" "$ROOT_DIR/bones/templates" -type f \( -name "*.yaml" -o -name "*.yml" -o -name "*.tpl" -o -name "*.html" \) | sort | while read -r file; do
+  find "$CONFIG_DIR" "$TEMPLATE_DIR" -type f \( -name "*.yaml" -o -name "*.yml" -o -name "*.tpl" -o -name "*.html" \) | sort | while read -r file; do
     if [[ -f "$file" ]]; then
       rel="${file#"$ROOT_DIR"/}"
       {
