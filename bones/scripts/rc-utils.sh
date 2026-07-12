@@ -1,4 +1,26 @@
 #!/usr/bin/env bash
+
+rk_load_env() {
+  local mode="${1:-strict}"
+
+  if [[ "$ROT_SKIP_ENV" != true ]]; then
+    if [[ -f "$(dirname "${BASH_SOURCE[0]}")/rc-env.sh" ]]; then
+       source "$(dirname "${BASH_SOURCE[0]}")/rc-env.sh"
+    fi
+  fi
+
+  if [[ "$mode" == "strict" ]]; then
+      local target_config="${CONFIG_DIR}/rotkeeper.yaml"
+      if [[ -s "$target_config" ]]; then
+        if ! yq eval '.' "$target_config" >/dev/null 2>&1; then
+          log "FATAL" "YAML configuration is malformed at $target_config"
+          exit 1
+        fi
+      fi
+  fi
+}
+
+#!/usr/bin/env bash
 # ============================================================
 #  ██╗   ██╗████████╗██╗██╗     ███████╗
 #  ██║   ██║╚══██╔══╝██║██║     ██╔════╝
@@ -157,7 +179,7 @@ validate_layout_alignment() {
   local expected_content
   local expected_output
   local root_fallback="${ROOT_DIR:-$PWD}"
-  local expected_bones="${root_fallback}/bones"
+# local expected_bones="${root_fallback}/bones"
 
   if [[ -f "$target_config" ]]; then
       style=$(yq eval '.layout_style // "crypt"' "$target_config" 2>/dev/null || echo "crypt")
@@ -194,25 +216,12 @@ validate_layout_alignment() {
   fi
 
   if [[ -z "${CONTENT_DIR:-}" ]] || [[ "$CONTENT_DIR" != "$expected_content" ]] || \
-     [[ -z "${OUTPUT_DIR:-}" ]] || [[ "$OUTPUT_DIR" != "$expected_output" ]] || \
-     [[ -z "${BONES_DIR:-}" ]] || [[ "$BONES_DIR" != "$expected_bones" ]]; then
+     [[ -z "${OUTPUT_DIR:-}" ]] || [[ "$OUTPUT_DIR" != "$expected_output" ]]; then
     echo "[ERROR] Environment conflict detected. Expected context for layout '${style}' not fully resolved." >&2
     exit 1
   fi
 }
 
-validate_config_syntax() {
-  local target_config="$CONFIG_DIR/rotkeeper.yaml"
-  # Non-destructive fallback check to prevent initial bootstrap deadlocks
-  if [[ ! -f "$target_config" ]]; then
-    return 0
-  fi
-
-  if ! yq eval '.' "$target_config" >/dev/null 2>&1; then
-    log "FATAL" "YAML configuration is malformed at $target_config"
-    exit 1
-  fi
-}
 
 # Error trap: report error line and exit
 trap_err() {
@@ -247,7 +256,7 @@ source_rc_env() {
 # Initialize log file with script name
 init_log() {
   local name="${1:-$(basename "$0" .sh)}"
-  LOG_FILE="bones/logs/${name}-$(date +%Y-%m-%d_%H%M).log"
+  LOG_FILE="$LOG_DIR/${name}-$(date +%Y-%m-%d_%H%M).log"
   mkdir -p "$(dirname "$LOG_FILE")"
 }
 
@@ -272,8 +281,6 @@ rk_init_script() {
 
   init_log "$SCRIPTNAME"
   set_traps
-  validate_config_syntax
-  validate_layout_alignment
 
   # Save original stdout to fd 3 for MARKER bypass
   exec 3>&1

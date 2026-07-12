@@ -53,8 +53,8 @@ check_dependencies
 require_bins rsync zip
 
 PROJECT_ROOT="$ROOT_DIR"
-RELEASE_DIR="$PROJECT_ROOT/bones/releases"
-STAGING_DIR="$PROJECT_ROOT/bones/tmp/release-staging"
+RELEASE_DIR="$ARCHIVE_DIR/releases"
+STAGING_DIR="$TMP_DIR/release-staging"
 
 cleanup() {
     log "INFO" "Cleaning up temporary staging directories from the physical realm..."
@@ -97,15 +97,15 @@ main() {
     rsync -a \
         --exclude='.git/' \
         --exclude='output/' \
-        --exclude='bones/logs/' \
-        --exclude='bones/tmp/' \
-        --exclude='bones/releases/' \
-        --exclude='bones/archive/' \
-        --exclude='bones/ingested/' \
-        --exclude='bones/reports/' \
-        --exclude='bones/book-reports/' \
+        --exclude="${LOG_DIR#"$ROOT_DIR"/}/" \
+        --exclude="${TMP_DIR#"$ROOT_DIR"/}/" \
+        --exclude="${ARCHIVE_DIR#"$ROOT_DIR"/}/releases/" \
+        --exclude="${ARCHIVE_DIR#"$ROOT_DIR"/}/" \
+        --exclude="${ARCHIVE_DIR#"$ROOT_DIR"/}/ingested/" \
+        --exclude="${REPORT_DIR#"$ROOT_DIR"/}/" \
+        --exclude="${BOOK_REPORT_DIR#"$ROOT_DIR"/}/" \
         --exclude='messages-from-my-friends/' \
-        --exclude='home/content/messages/' \
+        --exclude="${CONTENT_DIR#"$ROOT_DIR"/}/messages/" \
         --exclude='.DS_Store' \
         --exclude='*_temp.md' \
         "$PROJECT_ROOT/" "$CANONICAL_DIR/"
@@ -118,7 +118,7 @@ main() {
     cd "$orig_dir"
 
     log "INFO" "✅ Canonical single distribution created: $ZIP_PATH — $(du -sh "$ZIP_PATH" | cut -f1)"
-    echo "✅ Release packaging complete — see bones/releases/rotkeeper-[VERSION].zip"
+    echo "✅ Release packaging complete — see ${ARCHIVE_DIR#"$ROOT_DIR"/}/releases/rotkeeper-[VERSION].zip"
 }
 
 main "$@"

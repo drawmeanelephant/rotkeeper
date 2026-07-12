@@ -97,7 +97,7 @@ else
 fi
 
 # --- Section 2: Script Health ---
-scripts_list=("$BONES_DIR/scripts"/rc-*.sh "$ROOT_DIR/rotkeeper.sh")
+scripts_list=("$SCRIPT_DIR"/rc-*.sh "$ROOT_DIR/rotkeeper.sh")
 total_scripts=0
 
 if [[ "$JSON_MODE" == true ]]; then
@@ -150,7 +150,7 @@ fi
 # --- Section 3: RAG Exports (book-reports) ---
 if [[ "$JSON_MODE" == true ]]; then
     if [[ ! -d "$BOOK_REPORT_DIR" ]]; then
-        JSON_RAG='"rag_exports": {"status": "skipped", "reason": "bones/book-reports/ does not exist"}'
+        JSON_RAG='"rag_exports": {"status": "skipped", "reason": "'"${BOOK_REPORT_DIR#"$ROOT_DIR"/}"'/ does not exist"}'
     else
         mapfile -t rag_files < <(find "$BOOK_REPORT_DIR" -maxdepth 1 -type f 2>/dev/null || true)
         if [[ ${#rag_files[@]} -eq 0 ]]; then
@@ -184,7 +184,7 @@ if [[ "$JSON_MODE" == true ]]; then
 else
     echo "=== RAG Exports (book-reports) ==="
     if [[ ! -d "$BOOK_REPORT_DIR" ]]; then
-        echo "[SKIP] bones/book-reports/ does not exist"
+        echo "[SKIP] ${BOOK_REPORT_DIR#"$ROOT_DIR"/}/ does not exist"
     else
         mapfile -t rag_files < <(find "$BOOK_REPORT_DIR" -maxdepth 1 -type f 2>/dev/null || true)
         if [[ ${#rag_files[@]} -eq 0 ]]; then
@@ -222,10 +222,10 @@ fi
 
 
 # --- Section 4: Releases ---
-RELEASES_DIR="bones/releases"
+RELEASES_DIR="${ARCHIVE_DIR#"$ROOT_DIR"/}/releases"
 if [[ "$JSON_MODE" == true ]]; then
     if [[ ! -d "$RELEASES_DIR" ]]; then
-        JSON_RELEASES='"releases": {"status": "skipped", "reason": "bones/releases/ does not exist"}'
+        JSON_RELEASES='"releases": {"status": "skipped", "reason": "'"${ARCHIVE_DIR#"$ROOT_DIR"/}"'/releases/ does not exist"}'
     else
         mapfile -t rel_files < <(find "$RELEASES_DIR" -maxdepth 1 -type f -name '*.zip' 2>/dev/null | sort -r || true)
         if [[ ${#rel_files[@]} -eq 0 ]]; then
@@ -255,7 +255,7 @@ if [[ "$JSON_MODE" == true ]]; then
 else
     echo "=== Releases ==="
     if [[ ! -d "$RELEASES_DIR" ]]; then
-        echo "[SKIP] bones/releases/ does not exist"
+        echo "[SKIP] ${ARCHIVE_DIR#"$ROOT_DIR"/}/releases/ does not exist"
     else
         mapfile -t rel_files < <(find "$RELEASES_DIR" -maxdepth 1 -type f -name '*.zip' 2>/dev/null | sort -r || true)
         if [[ ${#rel_files[@]} -eq 0 ]]; then
@@ -282,7 +282,7 @@ fi
 # --- Section 4b: Recent Tombs ---
 if [[ "$JSON_MODE" == true ]]; then
     if [[ ! -d "$ARCHIVE_DIR" ]]; then
-        JSON_TOMBS='"recent_tombs": {"status": "skipped", "reason": "bones/archive/ does not exist"}'
+        JSON_TOMBS='"recent_tombs": {"status": "skipped", "reason": "'"${ARCHIVE_DIR#"$ROOT_DIR"/}"'/ does not exist"}'
     else
         mapfile -t tomb_files < <(find "$ARCHIVE_DIR" -maxdepth 1 -type f -name '*.tar.gz' 2>/dev/null | sort -r | head -n 5 || true)
         if [[ ${#tomb_files[@]} -eq 0 ]]; then
@@ -312,7 +312,7 @@ if [[ "$JSON_MODE" == true ]]; then
 else
     echo "=== Recent Tombs ==="
     if [[ ! -d "$ARCHIVE_DIR" ]]; then
-        echo "[SKIP] bones/archive/ does not exist"
+        echo "[SKIP] ${ARCHIVE_DIR#"$ROOT_DIR"/}/ does not exist"
     else
         mapfile -t tomb_files < <(find "$ARCHIVE_DIR" -maxdepth 1 -type f -name '*.tar.gz' 2>/dev/null | sort -r | head -n 5 || true)
         if [[ ${#tomb_files[@]} -eq 0 ]]; then
@@ -451,10 +451,10 @@ fi
 CONFIG_FILE="$CONFIG_DIR/rotkeeper.yaml"
 if [[ ! -f "$CONFIG_FILE" ]]; then
     if [[ "$JSON_MODE" == true ]]; then
-        JSON_CONFIG='"config_summary": {"status": "skipped", "reason": "bones/config/rotkeeper.yaml does not exist"}'
+        JSON_CONFIG='"config_summary": {"status": "skipped", "reason": "'"${CONFIG_DIR#"$ROOT_DIR"/}"'/rotkeeper.yaml does not exist"}'
     else
         echo "=== Config Summary ==="
-        echo "[SKIP] bones/config/rotkeeper.yaml does not exist"
+        echo "[SKIP] ${CONFIG_DIR#"$ROOT_DIR"/}/rotkeeper.yaml does not exist"
         echo ""
     fi
 else

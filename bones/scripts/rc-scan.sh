@@ -80,10 +80,10 @@ main() {
 # --- Configuration ---
 # Set up default file paths, directories, and file type filters.
 # Default configurations
-MANIFEST_FILE="bones/manifest.txt"
-SCAN_DIRS=("home/" "bones/" "output/")
-REPORT_DIR="bones/reports"
-LOG_DIR="bones/logs"
+MANIFEST_FILE="${META_DIR#"$ROOT_DIR"/}/manifest.txt"
+SCAN_DIRS=("${CONTENT_DIR#"$ROOT_DIR"/}/" "${BONES_DIR#"$ROOT_DIR"/}/" "${OUTPUT_DIR#"$ROOT_DIR"/}/")
+REPORT_DIR="${REPORT_DIR#"$ROOT_DIR"/}"
+LOG_DIR="${LOG_DIR#"$ROOT_DIR"/}"
 INCLUDE_EXT=("png" "jpg" "svg" "css" "js" "md" "html" "json" "yaml")
 EXCLUDE_PATTERNS=()
 

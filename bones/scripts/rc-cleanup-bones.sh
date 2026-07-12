@@ -93,7 +93,7 @@ main() {
   checkdependencies
   log INFO "Running rc-cleanup-bones.sh."
 
-  BACKUPDIR="bones/backups"
+  BACKUPDIR="${ARCHIVE_DIR#"$ROOT_DIR"/}/backups"
   TIMESTAMP=$(date +%Y-%m-%d_%H%M)
   BACKUPNAME="bones-backup-${TIMESTAMP}.tar.gz"
   BACKUPPATH="${BACKUPDIR}/${BACKUPNAME}"
@@ -102,8 +102,8 @@ main() {
     log INFO "Dry run / preview mode: simulating backup and cleanup actions"
     echo "Would create backup: $BACKUPPATH"
     echo "Would prune backups older than $RETAINDAYS days from $BACKUPDIR"
-    echo "Would prune logs older than $RETAINDAYS days from bones/logs"
-    echo "Would prune quarantined files older than $RETAINDAYS days from bones/quarantine"
+    echo "Would prune logs older than $RETAINDAYS days from $LOGDIR"
+    echo "Would prune quarantined files older than $RETAINDAYS days from ${QUARANTINEDIR#"$ROOT_DIR"/}"
     echo "Would explicitly delete the following ephemeral directories under $ROOT_DIR/bones/:"
     for d in "tmp" "archive" "reports" "book-reports" "ingested"; do
       echo "  - $ROOT_DIR/bones/$d"
@@ -127,7 +127,7 @@ main() {
   log INFO "Backing up bones to $BACKUPPATH"
 
   # FIX: use -C "$ROOT_DIR" so archive paths are relative (bones/...) not absolute
-  run tar --exclude="$BACKUPDIR" -czf "$BACKUPPATH" -C "$ROOT_DIR" bones
+  run tar --exclude="$BACKUPDIR" -czf "$BACKUPPATH" -C "$ROOT_DIR" "${BONES_DIR#"$ROOT_DIR"/}"
 
   if [[ ! -s "$BACKUPPATH" ]]; then
     log ERROR "Backup tarball appears to be missing or empty: $BACKUPNAME"
@@ -140,11 +140,12 @@ main() {
   log INFO "Pruning backups older than $RETAINDAYS days in $BACKUPDIR"
   run find "$BACKUPDIR" -type f -name "bones-backup-*.tar.gz" -mtime +"$RETAINDAYS" -print -delete
 
-  LOGDIR="bones/logs"
+  LOGDIR="${LOG_DIR:-${ROOT_DIR:-$PWD}/bones/logs}"
+  LOGDIR="${LOGDIR#"$ROOT_DIR"/}"
   log INFO "Pruning logs older than $RETAINDAYS days in $LOGDIR"
   run find "$LOGDIR" -type f -mtime +"$RETAINDAYS" -print -delete
 
-  QUARANTINEDIR="$ROOT_DIR/bones/quarantine"
+  QUARANTINEDIR="$TMP_DIR/quarantine"
   log INFO "Pruning quarantined files older than $RETAINDAYS days in $QUARANTINEDIR"
   if [[ -z "${ROOT_DIR:-}" || "$ROOT_DIR" == "/" ]]; then
     log ERROR "Safety boundary breached: ROOT_DIR is unsafe ($ROOT_DIR). Aborting cleanup."

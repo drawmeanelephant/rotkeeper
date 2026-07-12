@@ -84,7 +84,7 @@ main() {
     $VERBOSE && log "DEBUG" "Dependencies verified."
 
     # --- Shared Configuration ---
-    CONFIG_DIR="$BONES_DIR"
+    CONFIG_DIR="$CONFIG_DIR"
     ARCHIVE_DIR="$ARCHIVE_DIR"
     SOURCE_DIR="$CONTENT_DIR"
     OUTPUT_DIR="$OUTPUT_DIR"
@@ -162,7 +162,7 @@ main() {
     if [[ "$SELF_MODE" == true ]]; then
       SELF_ARCHIVE="tombkit-$TIMESTAMP_VERSION.tar"
       echo "📦 Packing full rotkeeper system into \"$SELF_ARCHIVE\""
-      run tar --exclude="$ARCHIVE_DIR" -cf "$ARCHIVE_DIR/$SELF_ARCHIVE" rotkeeper.sh bones/ home/ output/
+      run tar --exclude="$ARCHIVE_DIR" -cf "$ARCHIVE_DIR/$SELF_ARCHIVE" rotkeeper.sh "${BONES_DIR#"$ROOT_DIR"/}/" "${CONTENT_DIR#"$ROOT_DIR"/}/" "${OUTPUT_DIR#"$ROOT_DIR"/}/"
       count=$(tar -tf "$ARCHIVE_DIR/$SELF_ARCHIVE" | wc -l)
       log "INFO" "Packaged $count files into $SELF_ARCHIVE"
       SHA=$(sha256sum "$ARCHIVE_DIR/$SELF_ARCHIVE" | cut -d' ' -f1)
