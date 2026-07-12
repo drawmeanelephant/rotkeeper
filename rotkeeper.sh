@@ -20,7 +20,15 @@ VERSION="0.4.0.4"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BONES="$SCRIPT_DIR/bones/scripts"
 
-trap 'echo "Unexpected error on line $LINENO"; exit 1' ERR
+on_err() {
+  local status=$?
+  printf 'ERROR: status=%s file=%s line=%s function=%s command=%q\n' \
+    "$status" "${BASH_SOURCE[1]:-${BASH_SOURCE[0]}}" \
+    "${BASH_LINENO[0]:-$LINENO}" "${FUNCNAME[1]:-MAIN}" \
+    "$BASH_COMMAND" >&2
+  return "$status"
+}
+trap 'on_err' ERR
 
 command="${1:-}"
 if [[ $# -gt 0 ]]; then shift; fi
@@ -45,7 +53,6 @@ Commands:
   glue        Auto-generate navigation glue for unindexed content directories
   dip         Audit documentation coverage via DIP
   book        Generate aggregated documentation book targets
-  cleanup     Backup and prune bones/ archives and logs
   status      Display environment health status reports
 HELP_EOF
 }
@@ -94,7 +101,20 @@ case "$command" in
     bash "$BONES/rc-book.sh" "$@"
     ;;
   cleanup)
-    bash "$BONES/rc-cleanup-bones.sh" "$@"
+    echo "ERROR: The 'cleanup' command has been permanently removed. Rotkeeper no longer owns aggressive deletion workflows."
+    exit 1
+    ;;
+  ingest)
+    echo "ERROR: The 'ingest' command has been permanently removed. Rotkeeper no longer owns message ingestion workflows."
+    exit 1
+    ;;
+  sync-inbox)
+    echo "ERROR: The 'sync-inbox' command has been permanently removed. Rotkeeper no longer owns message ingestion workflows."
+    exit 1
+    ;;
+  reseed)
+    echo "ERROR: The 'reseed' command has been permanently removed. Rotkeeper initialization is now non-destructive and layout-driven."
+    exit 1
     ;;
   status)
     bash "$BONES/rc-status.sh" "$@"

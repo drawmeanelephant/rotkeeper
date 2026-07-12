@@ -225,8 +225,13 @@ validate_layout_alignment() {
 
 # Error trap: report error line and exit
 trap_err() {
-  log "ERROR" "Error on line ${1:-unknown}"
-  exit 2
+  local status=$?
+  local line=${1:-unknown}
+  local file=${BASH_SOURCE[1]:-unknown}
+  local func=${FUNCNAME[1]:-MAIN}
+  local cmd=${BASH_COMMAND:-unknown}
+  log "ERROR" "Command '$cmd' failed with status $status in function '$func' at $file:$line"
+  exit "$status"
 }
 
 # Cleanup hook: override in scripts to perform teardown
@@ -240,7 +245,9 @@ cleanup() {
 # Binds the err and exit hooks to ensure graceful demise upon failure
 set_traps() {
   trap 'trap_err $LINENO' ERR
-  trap 'cleanup' EXIT INT TERM
+  trap 'cleanup; trap - EXIT' EXIT
+  trap 'cleanup; exit 130' INT
+  trap 'cleanup; exit 143' TERM
 }
 
 # Load rc-env.sh from script root

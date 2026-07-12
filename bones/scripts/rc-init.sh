@@ -28,7 +28,7 @@ Initialization Flags:
   --with-sample    Generate starter test-file.md
   --with-assets    Run assets generation
   --with-render    Run the render ritual
-  --full           Perform full reseed, sample, assets, render, and scan
+  --full           Perform full sample, assets, render, and scan
 EOF2
   return 0
 }
@@ -79,9 +79,8 @@ fi
 rk_load_env bootstrap
 rk_init_script "rc-init" "$@"
 
-require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR CONTENT_DIR DOCS_DIR OUTPUT_DIR
+require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR CONTENT_DIR DOCS_DIR OUTPUT_DIR RELEASE_DIR
 
-RESEED_CMD="$SCRIPTDIR/rc-reseed.sh"
 
 
 # Flags
@@ -122,14 +121,6 @@ main() {
 
     log "INFO" "🔄 Starting initialization (Minimal mode by default)..."
 
-    if [[ "$FULL" == true ]]; then
-        if [[ -f "$RESEED_CMD" ]]; then
-            run "$RESEED_CMD" --force
-        else
-            log "WARN" "rc-reseed.sh not found in prototype, skipping reseed."
-        fi
-    fi
-
     # Create core directories non-destructively
     mkdir -p "$CONTENT_DIR"
     mkdir -p "$OUTPUT_DIR"
@@ -156,6 +147,7 @@ main() {
         yq eval ".paths.LOG_DIR = \"$LOG_DIR\"" -i "$CONFIG_TARGET"
         yq eval ".paths.TMP_DIR = \"$TMP_DIR\"" -i "$CONFIG_TARGET"
         yq eval ".paths.ARCHIVE_DIR = \"$ARCHIVE_DIR\"" -i "$CONFIG_TARGET"
+        yq eval ".paths.RELEASE_DIR = \"$RELEASE_DIR\"" -i "$CONFIG_TARGET"
         yq eval ".paths.REPORT_DIR = \"$REPORT_DIR\"" -i "$CONFIG_TARGET"
         yq eval ".paths.BOOK_REPORT_DIR = \"$BOOK_REPORT_DIR\"" -i "$CONFIG_TARGET"
         yq eval ".paths.META_DIR = \"$META_DIR\"" -i "$CONFIG_TARGET"

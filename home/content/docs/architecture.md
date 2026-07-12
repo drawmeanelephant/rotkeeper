@@ -50,8 +50,7 @@ The Courier guarantees that your words can travel securely through time and spac
 
 ### 4. The Receiver (Ingest & Glue)
 The Receiver allows Rotkeeper to act as a decentralized communications node. It unpacks payloads from external sources and dynamically weaves them into the site's navigation.
-- **Key Rituals:** `rc-ingest.sh`, `rc-glue.sh`
-- **Purpose:** Safely extract incoming `.tar.gz` payloads from the `messages-from-my-friends/` inbox and apply "navigation glue" so they are immediately accessible.
+- **Data Principle:** All content is local Markdown chosen by user-configured layout. Rotkeeper does not operate as an ingestion channel for incoming data.
 
 ---
 

@@ -18,7 +18,7 @@ source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&
 VERSION="${ROTKEEPER_VERSION:-0.4.0.4}"
 
 rk_init_script "rc-release" "$@"
-require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR OUTPUT_DIR
+require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR OUTPUT_DIR RELEASE_DIR
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -53,14 +53,15 @@ check_dependencies
 require_bins rsync zip
 
 PROJECT_ROOT="$ROOT_DIR"
-RELEASE_DIR="$ARCHIVE_DIR/releases"
 STAGING_DIR="$TMP_DIR/release-staging"
 
 cleanup() {
+    local status=$?
     log "INFO" "Cleaning up temporary staging directories from the physical realm..."
     if [[ -d "$STAGING_DIR" ]]; then
         rm -rf "$STAGING_DIR"
     fi
+    exit "$status"
 }
 trap cleanup EXIT INT TERM
 
@@ -101,10 +102,8 @@ main() {
         --exclude="${TMP_DIR#"$ROOT_DIR"/}/" \
         --exclude="${ARCHIVE_DIR#"$ROOT_DIR"/}/releases/" \
         --exclude="${ARCHIVE_DIR#"$ROOT_DIR"/}/" \
-        --exclude="${ARCHIVE_DIR#"$ROOT_DIR"/}/ingested/" \
         --exclude="${REPORT_DIR#"$ROOT_DIR"/}/" \
         --exclude="${BOOK_REPORT_DIR#"$ROOT_DIR"/}/" \
-        --exclude='messages-from-my-friends/' \
         --exclude="${CONTENT_DIR#"$ROOT_DIR"/}/messages/" \
         --exclude='.DS_Store' \
         --exclude='*_temp.md' \

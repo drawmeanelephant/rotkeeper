@@ -57,7 +57,6 @@ JSON_RELEASES=""
 JSON_TOMBS=""
 JSON_PULSE=""
 JSON_RENDER=""
-JSON_INBOX=""
 JSON_CONFIG=""
 
 escape_json() {
@@ -415,37 +414,6 @@ else
 fi
 
 
-# --- Section 7: Inbox ---
-INBOX_DIR="messages-from-my-friends"
-if [[ ! -d "$INBOX_DIR" ]]; then
-    if [[ "$JSON_MODE" == true ]]; then
-        JSON_INBOX='"inbox": {"status": "skipped", "reason": "messages-from-my-friends/ does not exist"}'
-    else
-        echo "=== Inbox ==="
-        echo "[SKIP] messages-from-my-friends/ does not exist"
-        echo ""
-    fi
-else
-    inbox_count=$(find "$INBOX_DIR" -maxdepth 1 -type f -name '*.tar.gz' | wc -l | tr -d ' ' || echo 0)
-    if [[ "$inbox_count" -eq 0 ]]; then
-        inbox_msg="[OK] inbox empty"
-        inbox_status="ok"
-    else
-        inbox_msg="[WAITING] $inbox_count payload(s) pending — run: ./rotkeeper.sh ingest"
-        inbox_status="waiting"
-    fi
-    if [[ "$JSON_MODE" == true ]]; then
-        JSON_INBOX="  \"inbox\": {
-    \"status\": \"$inbox_status\",
-    \"count\": $inbox_count,
-    \"message\": \"$inbox_msg\"
-  }"
-    else
-        echo "=== Inbox ==="
-        echo "$inbox_msg"
-        echo ""
-    fi
-fi
 
 # --- Section 8: Config Summary ---
 CONFIG_FILE="$CONFIG_DIR/rotkeeper.yaml"
@@ -500,7 +468,6 @@ if [[ "$JSON_MODE" == true ]]; then
     echo "  $JSON_TOMBS,"
     echo "$JSON_PULSE,"
     echo "$JSON_RENDER,"
-    echo "$JSON_INBOX,"
     echo "$JSON_CONFIG"
     echo "}"
 fi
