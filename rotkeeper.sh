@@ -92,7 +92,7 @@ case "$command" in
   book)
     bash "$BONES/rc-book.sh" "$@"
     ;;
-cleanup)
+  cleanup)
     echo "ERROR: The 'cleanup' command has been permanently removed. Rotkeeper no longer owns aggressive deletion workflows."
     exit 1
     ;;
