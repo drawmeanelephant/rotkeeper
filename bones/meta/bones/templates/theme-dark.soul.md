@@ -11,3 +11,15 @@ Provides the standard dark presentation template designed to lower eye strain du
 
 ## Directory / File Schema Expectations
 - Must cleanly parse standard frontmatter objects passed by the hardened rc-pack.sh array structure.
+
+## Necromancer's Notes
+<!-- DIP-SOUL-EXTRACTED: 2026-07-13T23:16:45Z -->
+
+
+# 🏴 theme-dark Layout Soul
+
+## Architectural Intent
+Provides the standard dark presentation template designed to lower eye strain during long autonomous execution passes.
+
+## Directory / File Schema Expectations
+- Must cleanly parse standard frontmatter objects passed by the hardened rc-pack.sh array structure.

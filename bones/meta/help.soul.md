@@ -9,3 +9,13 @@ The `help/` directory provides onboarding material, tutorials, and frequently as
 
 ### Directory / File Schema Expectations
 Stores standard `.md` content. Files should focus on pragmatic troubleshooting and step-by-step guides. No auto-generated logs or reports should be placed here.
+
+## Necromancer's Notes
+<!-- DIP-SOUL-EXTRACTED: 2026-07-13T23:16:45Z -->
+
+
+### Architectural Intent
+The `help/` directory provides onboarding material, tutorials, and frequently asked questions for users interacting with the Rotkeeper CLI and output estate. This folder is dedicated to reducing friction and flattening the learning curve for the brutalist toolchain.
+
+### Directory / File Schema Expectations
+Stores standard `.md` content. Files should focus on pragmatic troubleshooting and step-by-step guides. No auto-generated logs or reports should be placed here.

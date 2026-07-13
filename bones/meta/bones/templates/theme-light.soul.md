@@ -9,3 +9,13 @@ An HTML layout file that includes the light theme styles, establishing the stand
 
 ### Directory / File Schema Expectations
 If colors are edited without reviewing dark-mode overrides, theme switching widgets will break. Verify contrast ratios on all text and code blocks.
+
+## Necromancer's Notes
+<!-- DIP-SOUL-EXTRACTED: 2026-07-13T23:16:45Z -->
+
+
+### Architectural Intent
+An HTML layout file that includes the light theme styles, establishing the standard light-mode aesthetic for rendered documents.
+
+### Directory / File Schema Expectations
+If colors are edited without reviewing dark-mode overrides, theme switching widgets will break. Verify contrast ratios on all text and code blocks.

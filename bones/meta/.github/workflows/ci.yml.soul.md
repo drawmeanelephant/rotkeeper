@@ -20,3 +20,7 @@ The workflow heavily depends on `scripts/setup-jules.sh`, meaning any failure in
 
 ### Ritual Warnings
 Do not add complex logic or custom shell blocks directly into this YAML file. All execution logic should be housed within `rotkeeper.sh` or the `scripts/` directory to maintain local testability.
+
+## Necromancer's Notes
+<!-- DIP-SOUL-EXTRACTED: 0000-00-00T00:00:00Z -->
+TODO: Stitch necromancer notes.
