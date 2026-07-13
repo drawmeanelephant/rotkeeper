@@ -24,6 +24,14 @@ VERSION="0.4.0.3"
   return 1 2>/dev/null || exit 1
 }
 
+# Idempotency guard: prevent duplicate evaluation and variable reset, unless forced.
+# We also ensure that if the script is run in a different ROOT_DIR context (like in test subshells), it correctly reloads.
+current_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+if [[ "${ROTKEEPER_ENV_LOADED:-false}" == "true" && "${FORCE_ENV_RELOAD:-false}" != "true" && "${ROOT_DIR:-}" == "$current_root" && -n "${CONFIG_DIR:-}" && -n "${BONES_DIR:-}" ]]; then
+  return 0 2>/dev/null || exit 0
+fi
+export ROTKEEPER_ENV_LOADED="true"
+
 # Core structural bounds
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BONES_DIR="$ROOT_DIR/bones"
@@ -100,4 +108,5 @@ fi
 
 export ROOT_DIR BONES_DIR OUTPUT_DIR CONTENT_DIR ASSETS_DIR DOCS_DIR HELP_DIR
 export LOG_DIR TMP_DIR CONFIG_DIR ARCHIVE_DIR RELEASE_DIR REPORT_DIR BOOK_REPORT_DIR SCRIPT_DIR TEMPLATE_DIR META_DIR
+
 export WEB_DIR LAYOUT_STYLE

@@ -44,7 +44,6 @@ IFS=$'
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
-source_rc_env || { echo "FATAL: cannot source rc-env.sh" >&2; exit 1; }
 declare -F rk_init_script >/dev/null || { printf 'FATAL: rc-utils.sh loaded without rk_init_script
 ' >&2; exit 1; }
 
@@ -158,7 +157,7 @@ main() {
         yq eval ".paths.HELP_DIR = \"$HELP_DIR\"" -i "$CONFIG_TARGET"
         yq eval ".paths.WEB_DIR = \"$WEB_DIR\"" -i "$CONFIG_TARGET"
 
-        rk_load_env strict
+        FORCE_ENV_RELOAD=true rk_load_env strict
 
         log "INFO" "✅ Path mappings successfully written to configuration profile."
     fi

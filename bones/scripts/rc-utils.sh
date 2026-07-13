@@ -1,24 +1,26 @@
 #!/usr/bin/env bash
 set -euo pipefail
 IFS=$'\n\t'
-source_rc_env() {
-  local ENV_FILE="$(dirname "${BASH_SOURCE[0]:-$0}")/rc-env.sh"
-  if [[ -f "$ENV_FILE" ]]; then
-    source "$ENV_FILE"
-  else
-    log "WARN" "rc-env.sh not found at $ENV_FILE"
-  fi
-}
+# ---
+# rk_load_env: The canonical sequence to load the environment.
+# Callers source rc-utils.sh, which automatically calls rk_load_env strict (unless ROT_SKIP_ENV=true) when initializing via rk_init_script.
+# ---
 rk_load_env() {
   local mode="${1:-strict}"
 
-  if [[ "$ROT_SKIP_ENV" != true ]]; then
-    if [[ -f "$(dirname "${BASH_SOURCE[0]}")/rc-env.sh" ]]; then
-       source "$(dirname "${BASH_SOURCE[0]}")/rc-env.sh"
-    fi
+  local env_file
+  env_file="$(dirname "${BASH_SOURCE[0]:-$0}")/rc-env.sh"
+  if [[ -f "$env_file" ]]; then
+     source "$env_file"
+  else
+     log "WARN" "rc-env.sh not found at $env_file"
   fi
 
+  # Policy validation is kept separate from environment derivation.
   if [[ "$mode" == "strict" ]]; then
+      # Ensure environment load validates that required layout-derived variables are set
+      require_env_vars ROOT_DIR BONES_DIR CONTENT_DIR OUTPUT_DIR TEMPLATE_DIR ASSETS_DIR DOCS_DIR HELP_DIR META_DIR LOG_DIR TMP_DIR CONFIG_DIR ARCHIVE_DIR RELEASE_DIR REPORT_DIR BOOK_REPORT_DIR SCRIPT_DIR WEB_DIR
+
       local target_config="${CONFIG_DIR}/rotkeeper.yaml"
       if [[ -s "$target_config" ]]; then
         if ! yq eval '.' "$target_config" >/dev/null 2>&1; then
@@ -288,8 +290,14 @@ rk_init_script() {
     exit 0
   fi
 
-  init_log "$SCRIPTNAME"
   set_traps
+
+  # Ensure the environment is canonically loaded before continuing so logs can write to LOG_DIR
+  if [[ "${ROT_SKIP_ENV:-false}" != true ]]; then
+    rk_load_env strict
+  fi
+
+  init_log "$SCRIPTNAME"
 
   # Save original stdout to fd 3 for MARKER bypass
   exec 3>&1
@@ -400,11 +408,6 @@ require_env_vars() {
   done
 }
 
-# Auto-load environment unless explicitly skipped
-: "${ROT_SKIP_ENV:=false}"
-if [[ "$ROT_SKIP_ENV" != true ]]; then
-  source_rc_env
-fi
 
 # Run main only if script is executed directly
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
