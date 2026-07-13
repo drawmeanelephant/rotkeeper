@@ -163,7 +163,7 @@ main() {
     CANONICAL_TEMPLATE_DIR=$(get_canonical_path "$TEMPLATE_DIR")
 
     # Iterate over the safe compiled array instead of an open find subshell stream
-    for mdfile in "${md_corpses[@]}"; do
+    for mdfile in ${md_corpses[@]+"${md_corpses[@]}"}; do
       [ -f "$mdfile" ] || continue
 
       [[ "$VERBOSE" == true ]] && log "DEBUG" "Found markdown file: $mdfile"
@@ -274,7 +274,7 @@ main() {
 
       # Execute the zero-clutter in-memory aggregation pass
       # shellcheck disable=SC2086
-      run pandoc "${pandoc_inputs[@]}"         --from markdown         --to html         --template="$canonical_template"         --variable=assets_root="$ASSETS_ROOT"         --lua-filter="$SCRIPT_DIR/rewrite-links.lua"         -o "$outfile" $PANDOC_ARGS
+      run pandoc ${pandoc_inputs[@]+"${pandoc_inputs[@]}"}         --from markdown         --to html         --template="$canonical_template"         --variable=assets_root="$ASSETS_ROOT"         --lua-filter="$SCRIPT_DIR/rewrite-links.lua"         -o "$outfile" $PANDOC_ARGS
 
       pages_rendered=$((pages_rendered + 1))
       log_manifest "$outfile"

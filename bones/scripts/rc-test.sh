@@ -92,7 +92,7 @@ mkdir -p "$TEST_DIR"
 
 LAYOUT_MODES=("crypt" "busy" "sterile")
 
-for mode in "${LAYOUT_MODES[@]}"; do
+for mode in ${LAYOUT_MODES[@]+"${LAYOUT_MODES[@]}"}; do
   pass_dir="$TEST_DIR/$mode"
 
   # Derive test structure map exactly as the flat path loader handles it

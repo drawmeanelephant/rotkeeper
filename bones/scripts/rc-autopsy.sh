@@ -112,7 +112,7 @@ run_help_report() {
   done
   PERMITTED_RITUALS["rotkeeper.sh"]=1
 
-  for script in "${scripts[@]}"; do
+  for script in ${scripts[@]+"${scripts[@]}"}; do
     name="$(basename "$script")"
 
     if [[ -z "${PERMITTED_RITUALS[$name]:-}" ]]; then
@@ -176,7 +176,7 @@ render_output_report_md() {
 
     mapfile -t scripts < <({ find "$search_script_dir" -maxdepth 1 -type f -name "rc-*.sh"; find "$search_root_dir" -maxdepth 1 -type f -name "rotkeeper.sh"; } | sort | uniq)
 
-  for script in "${scripts[@]}"; do
+  for script in ${scripts[@]+"${scripts[@]}"}; do
     name="$(basename "$script")"
     
     local matches
