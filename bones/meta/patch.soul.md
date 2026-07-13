@@ -9,3 +9,13 @@ A lightweight, dependency-free AWK script designed to apply dynamic text substit
 
 ### Directory / File Schema Expectations
 Expected at the root of the repository. Must remain pure AWK and executable within a standard POSIX environment.
+
+## Necromancer's Notes
+<!-- DIP-SOUL-EXTRACTED: 2026-07-13T23:16:45Z -->
+
+
+### Architectural Intent
+A lightweight, dependency-free AWK script designed to apply dynamic text substitutions or structural patches without relying on complex external parsing engines.
+
+### Directory / File Schema Expectations
+Expected at the root of the repository. Must remain pure AWK and executable within a standard POSIX environment.

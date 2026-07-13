@@ -9,3 +9,13 @@ The `home/assets/js/` directory allows users to supply custom client-side behavi
 
 ### Directory / File Schema Expectations
 Standard `.js` files. Must strictly avoid overriding framework hydration paradigms to comply with Rotkeeper's zero-hydration constraint.
+
+## Necromancer's Notes
+<!-- DIP-SOUL-EXTRACTED: 2026-07-13T23:16:45Z -->
+
+
+### Architectural Intent
+The `home/assets/js/` directory allows users to supply custom client-side behavior, though Rotkeeper fundamentally avoids relying on JS for structural layout.
+
+### Directory / File Schema Expectations
+Standard `.js` files. Must strictly avoid overriding framework hydration paradigms to comply with Rotkeeper's zero-hydration constraint.

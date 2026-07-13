@@ -9,3 +9,13 @@ Outlines the strict architectural constraints (POSIX compliance, zero hydration,
 
 ### Directory / File Schema Expectations
 Expected at the root of the repository. Serves as human-readable policy documentation.
+
+## Necromancer's Notes
+<!-- DIP-SOUL-EXTRACTED: 2026-07-13T23:16:45Z -->
+
+
+### Architectural Intent
+Outlines the strict architectural constraints (POSIX compliance, zero hydration, brutalist design) and the expected workflows for anyone attempting to modify the codebase.
+
+### Directory / File Schema Expectations
+Expected at the root of the repository. Serves as human-readable policy documentation.

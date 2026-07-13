@@ -15,3 +15,19 @@ Manages the visual bones of the compiled estate. This directory forces a strict 
 
 ## Preservation Notes
 Templates are designed to outlive modern browser specifications. Stick to native CSS variables and standard layout flows.
+
+## Necromancer's Notes
+<!-- DIP-SOUL-EXTRACTED: 2026-07-13T23:16:45Z -->
+
+
+# 🎨 Presentation Layer Layouts
+
+## Architectural Intent
+Manages the visual bones of the compiled estate. This directory forces a strict zero-hydration rule across all generated pages.
+
+## Directory / File Schema Expectations
+- Layout files must be plain valid HTML containing valid Pandoc variables (e.g., `$title$`, `$description$`, `$body$`).
+- BANNED: client-side reactive hydration scripts, framework runtimes, tracking bloat, or blocking assets.
+
+## Preservation Notes
+Templates are designed to outlive modern browser specifications. Stick to native CSS variables and standard layout flows.

@@ -20,3 +20,7 @@ If an upstream Action introduces a breaking change in a minor version bump, Depe
 
 ### Ritual Warnings
 Do not expand this to monitor arbitrary ecosystems (like npm or pip) since Rotkeeper strictly avoids frameworks and non-bash/pandoc dependencies.
+
+## Necromancer's Notes
+<!-- DIP-SOUL-EXTRACTED: 0000-00-00T00:00:00Z -->
+TODO: Stitch necromancer notes.
