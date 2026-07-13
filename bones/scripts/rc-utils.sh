@@ -16,6 +16,7 @@ rk_load_env() {
      log "WARN" "rc-env.sh not found at $env_file"
   fi
 
+
   # Policy validation is kept separate from environment derivation.
   if [[ "$mode" == "strict" ]]; then
       # Ensure environment load validates that required layout-derived variables are set
@@ -28,6 +29,10 @@ rk_load_env() {
           exit 1
         fi
       fi
+
+      validate_layout_alignment "strict"
+  elif [[ "$mode" == "bootstrap" ]]; then
+      validate_layout_alignment "bootstrap"
   fi
 }
 
@@ -176,7 +181,14 @@ require_gawk_version() {
 
 
 
+
+
+# ---
+# validate_layout_alignment: Validates configured path cache against current runtime context.
+# Ensures the repository has not been broken, moved, or corrupted since initialization.
+# ---
 validate_layout_alignment() {
+  local mode="${1:-strict}"
   local target_config="${CONFIG_DIR:-${ROOT_DIR:-$PWD}/bones/config}/rotkeeper.yaml"
   if [[ ! -f "$target_config" ]]; then
     target_config="${ROOT_DIR:-$PWD}/config/rotkeeper.yaml"
@@ -186,10 +198,16 @@ validate_layout_alignment() {
   fi
 
   local style="crypt"
+  local root_fallback="${ROOT_DIR:-$PWD}"
+  local config_source="layout default"
+
   local expected_content
   local expected_output
-  local root_fallback="${ROOT_DIR:-$PWD}"
-# local expected_bones="${root_fallback}/bones"
+  local expected_bones
+  local expected_templates
+  local expected_assets
+  local expected_docs
+  local expected_meta
 
   if [[ -f "$target_config" ]]; then
       style=$(yq eval '.layout_style // "crypt"' "$target_config" 2>/dev/null || echo "crypt")
@@ -198,39 +216,208 @@ validate_layout_alignment() {
       has_paths=$(yq eval 'has("paths")' "$target_config" 2>/dev/null || echo "false")
 
       if [[ "$has_paths" == "true" ]]; then
+          config_source="config paths"
           local saved_root
           saved_root=$(yq eval '.paths.ROOT_DIR // ""' "$target_config" 2>/dev/null)
-          if [[ "$saved_root" == "$root_fallback" ]]; then
-              expected_content=$(yq eval '.paths.CONTENT_DIR // ""' "$target_config" 2>/dev/null)
-              expected_output=$(yq eval '.paths.OUTPUT_DIR // ""' "$target_config" 2>/dev/null)
+
+          if [[ -n "$saved_root" && "$saved_root" != "$root_fallback" ]]; then
+              if [[ "$mode" != "bootstrap" ]]; then
+                  echo "[ERROR] Environment relocation mismatch detected." >&2
+                  echo "  -> Expected Root (from config) : $saved_root" >&2
+                  echo "  -> Actual Root (runtime)       : $root_fallback" >&2
+                  echo "  -> Fix: Reinitialize environment using './rotkeeper.sh init' to repair paths." >&2
+                  exit 1
+              fi
+          fi
+
+          expected_content=$(yq eval '.paths.CONTENT_DIR // ""' "$target_config" 2>/dev/null)
+          expected_output=$(yq eval '.paths.OUTPUT_DIR // ""' "$target_config" 2>/dev/null)
+          expected_bones=$(yq eval '.paths.BONES_DIR // ""' "$target_config" 2>/dev/null)
+          expected_templates=$(yq eval '.paths.TEMPLATE_DIR // ""' "$target_config" 2>/dev/null)
+          expected_assets=$(yq eval '.paths.ASSETS_DIR // ""' "$target_config" 2>/dev/null)
+          expected_docs=$(yq eval '.paths.DOCS_DIR // ""' "$target_config" 2>/dev/null)
+          expected_meta=$(yq eval '.paths.META_DIR // ""' "$target_config" 2>/dev/null)
+
+          # Validate internal path coherency: ensure paths are within ROOT_DIR
+          if [[ "$mode" != "bootstrap" ]]; then
+              for p_name in CONTENT_DIR OUTPUT_DIR BONES_DIR TEMPLATE_DIR ASSETS_DIR DOCS_DIR META_DIR; do
+                  local p_val="${!p_name:-}"
+                  if [[ "$p_name" == "CONTENT_DIR" ]]; then p_val="$expected_content"; fi
+                  if [[ "$p_name" == "OUTPUT_DIR" ]]; then p_val="$expected_output"; fi
+                  if [[ "$p_name" == "BONES_DIR" ]]; then p_val="$expected_bones"; fi
+                  if [[ "$p_name" == "TEMPLATE_DIR" ]]; then p_val="$expected_templates"; fi
+                  if [[ "$p_name" == "ASSETS_DIR" ]]; then p_val="$expected_assets"; fi
+                  if [[ "$p_name" == "DOCS_DIR" ]]; then p_val="$expected_docs"; fi
+                  if [[ "$p_name" == "META_DIR" ]]; then p_val="$expected_meta"; fi
+
+                  if [[ -z "$p_val" || "$p_val" == "null" ]]; then
+                      echo "[ERROR] Corrupted path cache." >&2
+                      echo "  -> Expected value for $p_name is empty or missing in config paths." >&2
+                      echo "  -> Fix: Configuration state is corrupted. Run './rotkeeper.sh init' to heal." >&2
+                      exit 1
+                  fi
+
+                  local canon_val
+                  canon_val=$(realpath -m "$p_val" 2>/dev/null || readlink -m "$p_val" 2>/dev/null || echo "$p_val")
+                  local canon_root
+                  canon_root=$(realpath -m "$root_fallback" 2>/dev/null || readlink -m "$root_fallback" 2>/dev/null || echo "$root_fallback")
+
+                  # Boundary check using strict path suffix to prevent "repo-malicious" substring matching "repo"
+                  if [[ -n "$canon_val" && "$canon_val" != "$canon_root" && "$canon_val" != "$canon_root/"* ]]; then
+                      echo "[ERROR] Structural coherence violation." >&2
+                      echo "  -> $p_name ($canon_val) escapes Root Dir ($canon_root)." >&2
+                      echo "  -> Fix: Ensure paths remain inside the repository boundary." >&2
+                      exit 1
+                  fi
+              done
           fi
       fi
   fi
 
-  # Fallback logic if yaml didn't specify paths explicitly
-  if [[ -z "${expected_content:-}" ]]; then
+  # Fallback BHO baseline checks if paths aren't explicitly serialized
+  if [[ "$config_source" == "layout default" ]]; then
       case "${style,,}" in
         "busy")
+          expected_bones="$root_fallback/bones"
           expected_content="$root_fallback/home/content"
           expected_output="$root_fallback/output"
+          expected_templates="$root_fallback/templates"
+          expected_assets="$root_fallback/assets"
+          expected_docs="$expected_content/docs"
+          expected_meta="$expected_bones/meta"
           ;;
         "sterile")
+          expected_bones="$root_fallback/bones"
           expected_content="$root_fallback/src/content"
           expected_output="$root_fallback/dist"
+          expected_templates="$root_fallback/config/templates"
+          expected_assets="$root_fallback/src/assets"
+          expected_docs="$expected_content/docs"
+          expected_meta="$expected_bones/meta"
           ;;
         "crypt"|*)
+          expected_bones="$root_fallback/bones"
           expected_content="$root_fallback/home/content"
           expected_output="$root_fallback/output"
+          expected_templates="$expected_bones/templates"
+          expected_assets="$root_fallback/home/assets"
+          expected_docs="$expected_content/docs"
+          expected_meta="$expected_bones/meta"
           ;;
       esac
   fi
 
-  if [[ -z "${CONTENT_DIR:-}" ]] || [[ "$CONTENT_DIR" != "$expected_content" ]] || \
-     [[ -z "${OUTPUT_DIR:-}" ]] || [[ "$OUTPUT_DIR" != "$expected_output" ]]; then
-    echo "[ERROR] Environment conflict detected. Expected context for layout '${style}' not fully resolved." >&2
-    exit 1
+  # Validate runtime BHO values against expectations
+  if [[ "$mode" != "bootstrap" ]]; then
+      for p_name in CONTENT_DIR OUTPUT_DIR BONES_DIR TEMPLATE_DIR ASSETS_DIR DOCS_DIR META_DIR; do
+          local runtime_val="${!p_name:-}"
+          local expected_val=""
+          if [[ "$p_name" == "CONTENT_DIR" ]]; then expected_val="$expected_content"; fi
+          if [[ "$p_name" == "OUTPUT_DIR" ]]; then expected_val="$expected_output"; fi
+          if [[ "$p_name" == "BONES_DIR" ]]; then expected_val="$expected_bones"; fi
+          if [[ "$p_name" == "TEMPLATE_DIR" ]]; then expected_val="$expected_templates"; fi
+          if [[ "$p_name" == "ASSETS_DIR" ]]; then expected_val="$expected_assets"; fi
+          if [[ "$p_name" == "DOCS_DIR" ]]; then expected_val="$expected_docs"; fi
+          if [[ "$p_name" == "META_DIR" ]]; then expected_val="$expected_meta"; fi
+
+          # Use canonical paths for validation to avoid symlink/relative path false mismatches
+          local c_runtime c_expected
+          c_runtime=$(realpath -m "$runtime_val" 2>/dev/null || readlink -m "$runtime_val" 2>/dev/null || echo "$runtime_val")
+          c_expected=$(realpath -m "$expected_val" 2>/dev/null || readlink -m "$expected_val" 2>/dev/null || echo "$expected_val")
+
+          if [[ -n "$c_runtime" && -n "${c_expected:-}" && "$c_runtime" != "$c_expected" ]]; then
+              echo "[ERROR] Environment layout mismatch detected for $p_name." >&2
+              echo "  -> Expected (from $config_source) : $c_expected" >&2
+              echo "  -> Actual (runtime)       : $c_runtime" >&2
+              echo "  -> Fix: Configuration state is corrupted. Run './rotkeeper.sh init' to heal." >&2
+              exit 1
+          fi
+      done
+
+      # Strict Mid-flight layout change check (when paths exist but layout differs)
+      if [[ "$config_source" == "config paths" ]]; then
+          local layout_expected_content layout_expected_output layout_expected_templates layout_expected_assets layout_expected_docs layout_expected_meta layout_expected_bones
+          case "${style,,}" in
+            "busy")
+              layout_expected_content="$root_fallback/home/content"
+              layout_expected_output="$root_fallback/output"
+              layout_expected_templates="$root_fallback/templates"
+              layout_expected_assets="$root_fallback/assets"
+              layout_expected_docs="$layout_expected_content/docs"
+              layout_expected_bones="$root_fallback/bones"
+              layout_expected_meta="$layout_expected_bones/meta"
+              ;;
+            "sterile")
+              layout_expected_content="$root_fallback/src/content"
+              layout_expected_output="$root_fallback/dist"
+              layout_expected_templates="$root_fallback/config/templates"
+              layout_expected_assets="$root_fallback/src/assets"
+              layout_expected_docs="$layout_expected_content/docs"
+              layout_expected_bones="$root_fallback/bones"
+              layout_expected_meta="$layout_expected_bones/meta"
+              ;;
+            "crypt"|*)
+              layout_expected_content="$root_fallback/home/content"
+              layout_expected_output="$root_fallback/output"
+              layout_expected_templates="$root_fallback/bones/templates"
+              layout_expected_assets="$root_fallback/home/assets"
+              layout_expected_docs="$layout_expected_content/docs"
+              layout_expected_bones="$root_fallback/bones"
+              layout_expected_meta="$layout_expected_bones/meta"
+              ;;
+          esac
+
+          local layout_mismatch=false
+          local changed_prop=""
+          local c_cached c_layout
+
+          for chk in "CONTENT_DIR:$layout_expected_content:$expected_content" "OUTPUT_DIR:$layout_expected_output:$expected_output" "TEMPLATE_DIR:$layout_expected_templates:$expected_templates" "ASSETS_DIR:$layout_expected_assets:$expected_assets" "DOCS_DIR:$layout_expected_docs:$expected_docs" "META_DIR:$layout_expected_meta:$expected_meta"; do
+              local p_name="${chk%%:*}"
+              local rest="${chk#*:}"
+              local l_exp="${rest%%:*}"
+              local c_exp="${rest#*:}"
+
+              c_layout=$(realpath -m "$l_exp" 2>/dev/null || echo "$l_exp")
+              c_cached=$(realpath -m "$c_exp" 2>/dev/null || echo "$c_exp")
+
+              if [[ "$c_layout" != "$c_cached" ]]; then
+                  layout_mismatch=true
+                  changed_prop="$p_name"
+                  break
+              fi
+          done
+
+          if [[ "$layout_mismatch" == "true" ]]; then
+              echo "[ERROR] Mid-flight layout change detected." >&2
+              echo "  -> Layout Style   : $style" >&2
+              echo "  -> Conflict found in $changed_prop" >&2
+              echo "  -> Cached : $c_cached" >&2
+              echo "  -> Layout : $c_layout" >&2
+              echo "  -> Fix: Reinitialize environment using './rotkeeper.sh init' to rebuild paths." >&2
+              exit 1
+          fi
+      fi
+  fi
+
+  if [[ "$mode" == "strict" ]]; then
+      # don't strictly require outputs/archives before we run, only core things if they exist
+      for p_name in CONTENT_DIR BONES_DIR TEMPLATE_DIR ASSETS_DIR; do
+          local p_val="${!p_name:-}"
+          if [[ -n "$p_val" && ! -d "$p_val" ]]; then
+              # Allow first-run to succeed by skipping strict directory checks if we're clearly not initialized at all yet.
+              if [[ ! -d "${BONES_DIR:-}" || ! -d "${CONFIG_DIR:-}" ]]; then
+                  continue
+              fi
+              echo "[ERROR] Runtime readiness failure: Directory for $p_name not found." >&2
+              echo "  -> Missing: $p_val" >&2
+              echo "  -> Fix: Initialize directories using './rotkeeper.sh init'." >&2
+              exit 1
+          fi
+      done
   fi
 }
+
+
 
 
 # Error trap: report error line and exit
