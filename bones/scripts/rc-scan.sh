@@ -141,7 +141,7 @@ fi
 # --- Step 2: Disk Scan ---
 # Walk specified directories, apply include/exclude filters.
 if [[ "${MANIFEST_ONLY:-false}" != true ]]; then
-  for dir in "${SCAN_DIRS[@]}"; do
+  for dir in ${SCAN_DIRS[@]+"${SCAN_DIRS[@]}"}; do
     [[ -d "$dir" ]] || continue
     while IFS= read -r file; do
       ext="${file##*.}"
@@ -152,7 +152,7 @@ if [[ "${MANIFEST_ONLY:-false}" != true ]]; then
       fi
       # check exclude
       skip=false
-      for pat in "${EXCLUDE_PATTERNS[@]}"; do
+      for pat in ${EXCLUDE_PATTERNS[@]+"${EXCLUDE_PATTERNS[@]}"}; do
         [[ "$file" == $pat ]] && skip=true
       done
       $skip && { $VERBOSE && echo "[SKIP] Excluded by pattern: $file"; continue; }
@@ -166,7 +166,7 @@ fi
 # --- Step 3: Compare Manifest vs Disk ---
 # Determine missing and orphaned files by comparing arrays.
 missing=(); orphans=()
-for f in "${manifest_list[@]}"; do
+for f in ${manifest_list[@]+"${manifest_list[@]}"}; do
   [[ ! -e "$f" ]] && missing+=("$f")
 done
 
@@ -177,10 +177,10 @@ if [[ ${#disk_list[@]} -eq 0 ]]; then
   log "WARN" "No files found during disk scan; disk_list is empty."
 fi
 
-for f in "${disk_list[@]}"; do
+for f in ${disk_list[@]+"${disk_list[@]}"}; do
   [[ -z "$f" ]] && continue
   rel="${f#./}"
-  if ! printf '%s\n' "${manifest_list[@]}" | grep -xq "$rel"; then
+  if ! printf '%s\n' ${manifest_list[@]+"${manifest_list[@]}"} | grep -xq "$rel"; then
     orphans+=("$rel")
   fi
 done
@@ -190,7 +190,7 @@ done
 # Compute SHA256 checksums for each scanned file.
 # Requires bash — file path to SHA256 digest
 declare -A file_checksums
-for f in "${disk_list[@]}"; do
+for f in ${disk_list[@]+"${disk_list[@]}"}; do
   f_clean=$(echo "$f" | tr -d '\r' | xargs)
   [[ -z "$f_clean" ]] && continue
   if [[ -f "$f_clean" ]]; then
@@ -237,9 +237,9 @@ if [[ "$JSON_ONLY" == false ]]; then
     cat > "$md_report" <<EOF
 # Scan Report - $(date)
 ## Missing Files
-$(for f in "${missing[@]}"; do echo "- $f"; done)
+$(for f in ${missing[@]+"${missing[@]}"}; do echo "- $f"; done)
 ## Orphan Files
-$(for f in "${orphans[@]}"; do echo "- $f"; done)
+$(for f in ${orphans[@]+"${orphans[@]}"}; do echo "- $f"; done)
 ## File Digests
 $(for f in "${!file_checksums[@]}"; do echo "- \`$f\`: ${file_checksums[$f]}"; done)
 EOF

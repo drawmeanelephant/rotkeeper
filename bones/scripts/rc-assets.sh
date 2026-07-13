@@ -97,7 +97,7 @@ main() {
         run cp "$REPORT" "$MANIFEST"
         log "INFO" "Empty manifest generated at: $MANIFEST"
     else
-        echo "$ASSET_PATHS" | while read -r relpath; do
+        while read -r relpath; do
             src="$ASSETS_DIR/$relpath"
             dest="$OUTPUT_ASSET_DIR/$relpath"
             if [[ -f "$src" ]]; then

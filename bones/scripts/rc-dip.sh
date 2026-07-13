@@ -162,7 +162,7 @@ else
 fi
 
 declare -A EXPECTED_DOCS
-for file in "${CORE_FILES[@]}"; do
+for file in ${CORE_FILES[@]+"${CORE_FILES[@]}"}; do
     BASE_NO_EXT=$(get_base_no_ext "$file")
     if [ "$BASE_NO_EXT" == "$file" ]; then
         DOC_PATH="${DOCS_DIR}/${file}.md"
@@ -187,7 +187,7 @@ fi
 
 declare -a UNOWNED_DOCS=()
 
-for doc in "${EXISTING_DOCS[@]}"; do
+for doc in ${EXISTING_DOCS[@]+"${EXISTING_DOCS[@]}"}; do
     [[ "$doc" == "$MATRIX_FILE" ]] && continue
     [[ -n "${WHITELIST["$doc"]:-}" ]] && continue
 
@@ -198,7 +198,7 @@ for doc in "${EXISTING_DOCS[@]}"; do
         target_file_check=$(sed -n 's/^target_file: *"\(.*\)"/\1/p' "$doc" | head -n 1)
     fi
 
-    for blessed_path in "${BLESSED_PATHS[@]}"; do
+    for blessed_path in ${BLESSED_PATHS[@]+"${BLESSED_PATHS[@]}"}; do
         if [[ "$rel_doc" == "$blessed_path" || "$rel_doc" == "$blessed_path/"* ]]; then
             is_blessed=true
             break
@@ -338,14 +338,14 @@ inject_necromancer_notes() {
 # DIP AUDITOR SEPARATION: Check folder souls from metadata logs instead of active disk find commands
 log "INFO" "Auditing structural folder soul declarations from registry..."
 if [[ -d "$META_DIR" ]]; then
-    find "$META_DIR" -type f -name "*.soul.md" | while read -r soul_path; do
+    while read -r soul_path; do
         # Derive what file path or folder path this soul belongs to
         rel_meta_path="${soul_path#"$META_DIR"/}"
         target_origin="${rel_meta_path%.soul.md}"
 
         # Track expected paths dynamically so rc-glue.sh knows they are registered parameters
         EXPECTED_DOCS["$soul_path"]="$target_origin"
-    done
+    done < <(find "$META_DIR" -type f -name "*.soul.md")
 fi
 
 # 4. Stub Missing Docs
@@ -556,7 +556,7 @@ for doc_path in "${!EXPECTED_DOCS[@]}"; do
     fi
 done
 
-for doc_path in "${UNOWNED_DOCS[@]}"; do
+for doc_path in ${UNOWNED_DOCS[@]+"${UNOWNED_DOCS[@]}"}; do
     rel_doc="${doc_path#"$ROOT_DIR"/}"
     doc_date=$(get_fs_date "$doc_path")
     status="unowned-doc"

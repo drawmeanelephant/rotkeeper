@@ -47,7 +47,7 @@ main() {
   log "INFO" "Applying navigation glue to unindexed tombs in $CONTENT_DIR..."
 
   # Process bottom-up to ensure nested directory chains inherit properties cleanly
-  find "$CONTENT_DIR" -type d -print0 | while IFS= read -r -d '' DIR; do
+  while IFS= read -r -d '' DIR; do
     INDEX_FILE="$DIR/index.md"
 
     # Absolute path safety bounds checking
@@ -133,7 +133,7 @@ ${DEFAULT_YAML}
     else
         printf '%s\n\n# %s\n\n%s\n' "$FRONTMATTER" "$SOUL_TITLE" "$GLUE_CONTENT" > "$INDEX_FILE"
     fi
-  done
+  done < <(find "$CONTENT_DIR" -type d -print0)
   log "INFO" "Navigation glue applied successfully."
 }
 

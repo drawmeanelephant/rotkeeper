@@ -100,12 +100,12 @@ runscriptbookfull() {
 
   if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would generate full scriptbook at $OUT"
-    find "$SCRIPT_DIR" -maxdepth 1 -type f -name "rc-*.sh" | sort | while read -r script; do
+    while read -r script; do
       echo "  - ${script#"$ROOT_DIR"/}"
-    done
-    find "$ROOT_DIR" -maxdepth 1 -type f -name "rotkeeper.sh" | while read -r script; do
+    done < <(find "$SCRIPT_DIR" -maxdepth 1 -type f -name "rc-*.sh" | sort)
+    while read -r script; do
       echo "  - ${script#"$ROOT_DIR"/}"
-    done
+    done < <(find "$ROOT_DIR" -maxdepth 1 -type f -name "rotkeeper.sh")
     return 0
   fi
 
@@ -118,7 +118,7 @@ runscriptbookfull() {
     echo ""
   } > "$OUT"
 
-  { find "$SCRIPT_DIR" -maxdepth 1 -type f -name "rc-*.sh"; find "$ROOT_DIR" -maxdepth 1 -type f -name "rotkeeper.sh"; } | sort | while read -r script; do
+  while read -r script; do
     if [[ -f "$script" ]]; then
       rel="${script#"$ROOT_DIR"/}"
       {
@@ -151,7 +151,7 @@ rundocbook() {
     echo ""
   } > "$OUT"
   mapfile -t docfiles < <(find "$DOCS_DIR" -name "*.md" -type f | sort)
-  for file in "${docfiles[@]}"; do
+  for file in ${docfiles[@]+"${docfiles[@]}"}; do
     if [[ -f "$file" ]]; then
       rel="${file#"$ROOT_DIR"/}"
       {
@@ -186,7 +186,7 @@ rundocbookclean() {
     echo "---"
     echo ""
   } > "$OUT"
-  find "$DOCS_DIR" -name "*.md" -type f | sort | while read -r file; do
+  while read -r file; do
     if [[ -f "$file" ]]; then
       local TITLE
       TITLE=$(awk 'BEGIN{found=0} /^---$/{found++; next} found==1 && /^title:/{print substr($0, index($0,$2)); exit}' "$file" | head -n1 | sed 's/^ //;s/ $//')
@@ -213,7 +213,7 @@ runconfigbook() {
     echo "---"
     echo ""
   } > "$OUT"
-  find "$CONFIG_DIR" "$TEMPLATE_DIR" -type f \( -name "*.yaml" -o -name "*.yml" -o -name "*.tpl" -o -name "*.html" \) | sort | while read -r file; do
+  while read -r file; do
     if [[ -f "$file" ]]; then
       rel="${file#"$ROOT_DIR"/}"
       {
@@ -244,7 +244,7 @@ runcontentbook() {
     echo ""
   } > "$OUT"
   mapfile -t contentfiles < <(find "$CONTENT_DIR" -name "*.md" -type f | sort)
-  for file in "${contentfiles[@]}"; do
+  for file in ${contentfiles[@]+"${contentfiles[@]}"}; do
     if [[ -f "$file" ]]; then
       rel="${file#"$ROOT_DIR"/}"
       {
@@ -272,7 +272,7 @@ runcontentmeta() {
   validate_boundary "$OUT"
   log "INFO" "Extracting frontmatter YAML from content files..."
   echo "" > "$OUT"
-  find "$CONTENT_DIR" -name "*.md" -type f | sort | while read -r file; do
+  while read -r file; do
     if [[ -f "$file" ]]; then
       rel="${file#"$ROOT_DIR"/}"
       awk -v path="$rel" '
@@ -302,9 +302,9 @@ runfsbook() {
     echo "generated: $(date '+%Y-%m-%d %H:%M:%S')"
     echo "---"
     echo ""
-    cd "$ROOT_DIR" && find . -type f | sed 's|^./||' | sort | while read -r f; do
+    while read -r f; do
       echo "- $f"
-    done
+    done < <(cd "$ROOT_DIR" && find . -type f | sed 's|^./||' | sort)
   } > "$OUT"
   log "INFO" "File system catalog written to $OUT"
 }

@@ -35,7 +35,7 @@ VERSION="${ROTKEEPER_VERSION:-0.4.0.3}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
 source_rc_env || { echo "FATAL: cannot source rc-env.sh" >&2; exit 1; }
-rk_init_script "rc-status" "${ARGS[@]}"
+rk_init_script "rc-status" ${ARGS[@]+"${ARGS[@]}"}
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR ARCHIVE_DIR
 set -euo pipefail
 IFS=$'\n\t'
@@ -112,7 +112,7 @@ else
 fi
 
 first_script=true
-for script in "${scripts_list[@]}"; do
+for script in ${scripts_list[@]+"${scripts_list[@]}"}; do
     [[ ! -f "$script" ]] && continue
     total_scripts=$((total_scripts + 1))
     s_name=$(basename "$script")
@@ -161,7 +161,7 @@ if [[ "$JSON_MODE" == true ]]; then
         else
             json_rag_arr="["
             first_rag=true
-            for f in "${rag_files[@]}"; do
+            for f in ${rag_files[@]+"${rag_files[@]}"}; do
                 fn=$(basename "$f")
                 sz=$(du -h "$f" | cut -f1)
                 ch=$(wc -c < "$f")
@@ -197,7 +197,7 @@ else
             echo "--------------------------------------------------------------------------------"
             tot_ch=0
             tot_tk=0
-            for f in "${rag_files[@]}"; do
+            for f in ${rag_files[@]+"${rag_files[@]}"}; do
                 fn=$(basename "$f")
                 sz=$(du -h "$f" | cut -f1)
                 ch=$(wc -c < "$f")
@@ -236,7 +236,7 @@ if [[ "$JSON_MODE" == true ]]; then
         else
             json_rel_arr="["
             first_rel=true
-            for f in "${rel_files[@]}"; do
+            for f in ${rel_files[@]+"${rel_files[@]}"}; do
                 fn=$(basename "$f")
                 sz=$(du -h "$f" | cut -f1)
                 mod=$(date -r "$f" '+%Y-%m-%d %H:%M:%S')
@@ -267,7 +267,7 @@ else
             if [[ "$VERBOSE" == true ]]; then
                 printf "%-30s | %-10s | %s\n" "Filename" "Size" "Date"
                 echo "----------------------------------------------------------------------"
-                for f in "${rel_files[@]}"; do
+                for f in ${rel_files[@]+"${rel_files[@]}"}; do
                     fn=$(basename "$f")
                     sz=$(du -h "$f" | cut -f1)
                     mod=$(date -r "$f" '+%Y-%m-%d %H:%M:%S')
@@ -293,7 +293,7 @@ if [[ "$JSON_MODE" == true ]]; then
         else
             json_tomb_arr="["
             first_tomb=true
-            for f in "${tomb_files[@]}"; do
+            for f in ${tomb_files[@]+"${tomb_files[@]}"}; do
                 fn=$(basename "$f")
                 sz=$(du -h "$f" | cut -f1)
                 mod=$(date -r "$f" '+%Y-%m-%d %H:%M:%S')
@@ -323,7 +323,7 @@ else
         else
             printf "%-30s | %-10s | %s\n" "Filename" "Size" "Date"
             echo "----------------------------------------------------------------------"
-            for f in "${tomb_files[@]}"; do
+            for f in ${tomb_files[@]+"${tomb_files[@]}"}; do
                 fn=$(basename "$f")
                 sz=$(du -h "$f" | cut -f1)
                 mod=$(date -r "$f" '+%Y-%m-%d %H:%M:%S')
@@ -363,8 +363,8 @@ else
     stubs=0
     drafts=0
     if [[ $total_md -gt 0 ]]; then
-        stubs=$(grep -l '^status: stub' "${c_files[@]}" 2>/dev/null | wc -l | tr -d ' ' || true)
-        drafts=$(grep -l '^status: draft' "${c_files[@]}" 2>/dev/null | wc -l | tr -d ' ' || true)
+        stubs=$(grep -l '^status: stub' ${c_files[@]+"${c_files[@]}"} 2>/dev/null | wc -l | tr -d ' ' || true)
+        drafts=$(grep -l '^status: draft' ${c_files[@]+"${c_files[@]}"} 2>/dev/null | wc -l | tr -d ' ' || true)
     fi
 
     docs_stubs=0
