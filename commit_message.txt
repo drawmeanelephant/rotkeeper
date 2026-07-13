@@ -1,0 +1,7 @@
+refactor: Centralize and harden dynamic environment loading sequence
+
+- Move all direct `source rc-env.sh` calls in caller scripts to a single canonical invocation in `rc-utils.sh` via `rk_load_env strict` inside `rk_init_script`.
+- Implemented idempotency guard in `rc-env.sh` that securely evaluates `$ROOT_DIR` mismatch to seamlessly preserve cross-process loading during subshell test runs.
+- Isolated strict mode environmental verification to explicitly use `require_env_vars` instead of a crash-prone bad substitution fallback.
+- Added explicit `export ROT_SKIP_ENV=true` back inside `rc-init.sh` to allow configuration bootstrapping via non-strict mode without validation failures blocking directory mapping logic.
+- Patched subshell redirect log-swallowing which previously obscured dependency failures during the regression suite runs.
