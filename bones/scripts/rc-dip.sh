@@ -13,85 +13,353 @@ IFS=$'\n\t'
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-dip.sh
 #  Purpose : Document Improvement Project - audits and fixes docs
-#  Version : 0.4.0.3
-#  Updated : 2026-03-23
+#  Version : 0.4.0.5
+#  Updated : 2026-07-15
 # ------------------------------------------------------------
-#  Part of the Rotkeeper ritual system — bones, scripts, tombs.
+#  DIP state model (generated vs authored vs stub vs stale vs obsolete):
+#  - generated : per-file reference doc under DOCS_DIR mirroring a core
+#                path, with target_file frontmatter and DIP markers
+#  - authored  : handwritten conceptual docs (whitelist / no target_file
+#                ownership); never auto-moved
+#  - stub      : generated doc still carrying TODO placeholders / status stub
+#  - stale     : code mtime newer than doc mtime
+#  - obsolete  : generated reference whose target_file is no longer a core
+#                file — moved only with strong evidence (explicit target_file)
+#  - unowned   : present under DOCS_DIR with uncertain ownership; reported,
+#                never silently discarded
 # ============================================================
 
-set -euo pipefail
-
-
-
-
-VERSION="${ROTKEEPER_VERSION:-0.4.0.3}"
+VERSION="${ROTKEEPER_VERSION:-0.4.0.5}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
 rk_init_script rc-dip "$@"
-require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR CONTENT_DIR DOCS_DIR REPORT_DIR BOOK_REPORT_DIR
+require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR CONTENT_DIR DOCS_DIR REPORT_DIR BOOK_REPORT_DIR META_DIR
+
+# Surface dry-run actions even when QUIET defaults true
+if [[ "${DRY_RUN:-false}" == true ]]; then
+  QUIET=false
+fi
 
 OBSOLETE_DIR="${ROOT_DIR}/home/obsolete/docs"
 MATRIX_FILE="${DOCS_DIR}/dip-matrix.md"
 DATE_STR=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+DEGRADED_AUTOPSY=false
+DEGRADED_FSBOOK=false
+
+# --- helpers ---------------------------------------------------------------
 
 get_fs_date() {
-    local file=$1
-    if [ -f "$file" ]; then
-        if stat --version >/dev/null 2>&1; then date -u -d "@$(stat -c %Y "$file")" "+%Y-%m-%d"; else TZ=UTC stat -f "%Sm" -t "%Y-%m-%d" "$file"; fi
+  local file=$1
+  if [[ -f "$file" ]]; then
+    if stat --version >/dev/null 2>&1; then
+      date -u -d "@$(stat -c %Y "$file")" "+%Y-%m-%d"
     else
-        echo "Missing"
+      TZ=UTC stat -f "%Sm" -t "%Y-%m-%d" "$file"
     fi
+  else
+    echo "Missing"
+  fi
 }
 
 get_fs_iso() {
-    local file=$1
-    if [ -f "$file" ]; then
-        if stat --version >/dev/null 2>&1; then date -u -d "@$(stat -c %Y "$file")" "+%Y-%m-%dT%H:%M:%SZ"; else TZ=UTC stat -f "%Sm" -t "%Y-%m-%dT%H:%M:%SZ" "$file"; fi
+  local file=$1
+  if [[ -f "$file" ]]; then
+    if stat --version >/dev/null 2>&1; then
+      date -u -d "@$(stat -c %Y "$file")" "+%Y-%m-%dT%H:%M:%SZ"
     else
-        echo "0000-00-00T00:00:00Z"
+      TZ=UTC stat -f "%Sm" -t "%Y-%m-%dT%H:%M:%SZ" "$file"
     fi
+  else
+    echo "0000-00-00T00:00:00Z"
+  fi
+}
+
+# Path-prefix match with component boundary (excl is exact or parent of path).
+path_is_under() {
+  local path="$1"
+  local prefix="$2"
+  [[ -n "$prefix" ]] || return 1
+  [[ "$path" == "$prefix" || "$path" == "$prefix"/* ]]
+}
+
+# True if candidate is strictly under root (no .. escape after join).
+path_stays_under() {
+  local root="$1"
+  local candidate="$2"
+  local root_abs cand_abs
+  root_abs=$(cd "$root" 2>/dev/null && pwd -P) || return 1
+  # Reject absolute or parent-traversal relatives before joining
+  if [[ "$candidate" == /* || "$candidate" == *".."* ]]; then
+    return 1
+  fi
+  cand_abs=$(cd "$(dirname -- "$root/$candidate")" 2>/dev/null && pwd -P)/$(basename -- "$candidate") || return 1
+  [[ "$cand_abs" == "$root_abs" || "$cand_abs" == "$root_abs"/* ]]
+}
+
+# Atomic write from stdin → dest (temp sibling, then mv).
+atomic_write() {
+  local dest="$1"
+  local dir tmp
+  dir=$(dirname -- "$dest")
+  mkdir -p "$dir" || {
+    log "ERROR" "Cannot create directory for atomic write: $dir"
+    return 1
+  }
+  tmp="${dest}.tmp.$$"
+  cat >"$tmp" || {
+    rm -f "$tmp"
+    return 1
+  }
+  mv -f "$tmp" "$dest"
+}
+
+# Extract target_file frontmatter value (quoted or bare).
+read_target_file() {
+  local doc="$1"
+  awk '
+    BEGIN { in_fm=0 }
+    NR==1 && /^---[[:space:]]*$/ { in_fm=1; next }
+    in_fm && /^---[[:space:]]*$/ { exit }
+    in_fm && /^target_file:[[:space:]]*/ {
+      sub(/^target_file:[[:space:]]*/, "")
+      gsub(/^["'\'']|["'\'']$/, "")
+      gsub(/[[:space:]]+$/, "")
+      print
+      exit
+    }
+  ' "$doc"
+}
+
+# Extract status frontmatter value.
+read_status_field() {
+  local doc="$1"
+  awk '
+    BEGIN { in_fm=0 }
+    NR==1 && /^---[[:space:]]*$/ { in_fm=1; next }
+    in_fm && /^---[[:space:]]*$/ { exit }
+    in_fm && /^status:[[:space:]]*/ {
+      sub(/^status:[[:space:]]*/, "")
+      gsub(/^["'\'']|["'\'']$/, "")
+      gsub(/[[:space:]]+$/, "")
+      print
+      exit
+    }
+  ' "$doc"
+}
+
+# Count TODO: lines outside fenced code blocks.
+count_todo_lines() {
+  local doc="$1"
+  awk '
+    BEGIN { fence=0; c=0 }
+    /^```/ { fence = !fence; next }
+    !fence && /^TODO:/ { c++ }
+    END { print c+0 }
+  ' "$doc"
+}
+
+# True if line is a DIP pillar section boundary (not generic ## — soul bodies use those).
+is_dip_section_header_line() {
+  [[ "$1" =~ ^##[[:space:]]+Environment([[:space:]]|$) ]] \
+    || [[ "$1" =~ ^##[[:space:]]+Ritual[[:space:]]+History ]] \
+    || [[ "$1" =~ ^##[[:space:]]+Necromancer ]] \
+    || [[ "$1" =~ ^######[[:space:]]+CLI[[:space:]]+Usage ]] \
+    || [[ "$1" =~ ^##[[:space:]]+Overview([[:space:]]|$) ]]
+}
+
+# Extract body currently stitched under a DIP marker until the next pillar boundary.
+extract_marker_body() {
+  local doc="$1"
+  local marker="$2"
+  awk -v marker="$marker" '
+    function is_boundary(line) {
+      return line ~ /^##[[:space:]]+Environment([[:space:]]|$)/ \
+          || line ~ /^##[[:space:]]+Ritual[[:space:]]+History/ \
+          || line ~ /^##[[:space:]]+Necromancer/ \
+          || line ~ /^######[[:space:]]+CLI[[:space:]]+Usage/ \
+          || line ~ /^##[[:space:]]+Overview([[:space:]]|$)/ \
+          || line ~ /^<!-- DIP-[A-Z0-9-]+-EXTRACTED:/
+    }
+    BEGIN { grab=0 }
+    $0 ~ ("<!-- " marker ":") {
+      if (grab) exit
+      grab=1
+      next
+    }
+    grab && is_boundary($0) { exit }
+    grab { print }
+  ' "$doc"
+}
+
+# Normalize whitespace for content comparison (trim trailing space / blank edges).
+normalize_body() {
+  printf '%s\n' "$1" | sed -e 's/[[:space:]]*$//' | awk '
+    { buf[NR]=$0; last=NR }
+    END {
+      start=0
+      for (i=1; i<=last; i++) if (buf[i] ~ /[^[:space:]]/) { start=i; break }
+      end=0
+      for (i=last; i>=1; i--) if (buf[i] ~ /[^[:space:]]/) { end=i; break }
+      if (start==0) exit
+      for (i=start; i<=end; i++) print buf[i]
+    }
+  '
+}
+
+# Map marker name → its section header pattern (for duplicate-section collapse).
+marker_section_regex() {
+  case "$1" in
+    DIP-ENV-EXTRACTED) echo '^##[[:space:]]+Environment([[:space:]]|$)' ;;
+    DIP-HELP-EXTRACTED) echo '^######[[:space:]]+CLI[[:space:]]+Usage' ;;
+    DIP-HISTORY-EXTRACTED) echo '^##[[:space:]]+Ritual[[:space:]]+History' ;;
+    DIP-SOUL-EXTRACTED) echo '^##[[:space:]]+Necromancer' ;;
+    *) echo '^$' ;;
+  esac
+}
+
+# Idempotent pillar stitch: rewrite marker block only when content changes
+# (or when duplicate markers/sections need collapsing).
+stitch_pillar() {
+  local doc_path="$1"
+  local marker="$2"
+  local new_content="$3"
+
+  if [[ ! -f "$doc_path" ]]; then
+    return 0
+  fi
+  if ! grep -q "<!-- ${marker}:" "$doc_path"; then
+    return 0
+  fi
+
+  local old_body old_norm new_norm marker_count
+  old_body=$(extract_marker_body "$doc_path" "$marker" || true)
+  old_norm=$(normalize_body "$old_body")
+  new_norm=$(normalize_body "$new_content")
+  marker_count=$(grep -c "<!-- ${marker}:" "$doc_path" || true)
+
+  if [[ "$old_norm" == "$new_norm" && "$marker_count" -eq 1 ]]; then
+    return 0
+  fi
+
+  if [[ "${DRY_RUN:-false}" == true ]]; then
+    log "DRY-RUN" "Would stitch pillar $marker in $doc_path"
+    return 0
+  fi
+
+  local tmp_file="${doc_path}.tmp.$$"
+  local content_file="${doc_path}.dipcontent.$$"
+  local section_re
+  section_re=$(marker_section_regex "$marker")
+  # Preserve exact body bytes (avoid env size / newline stripping issues)
+  printf '%s\n' "$new_content" >"$content_file"
+  export DATE_STR
+  export MARKER="$marker"
+  export SECTION_RE="$section_re"
+  export CONTENT_FILE="$content_file"
+
+  awk '
+    function is_boundary(line) {
+      return line ~ /^##[[:space:]]+Environment([[:space:]]|$)/ \
+          || line ~ /^##[[:space:]]+Ritual[[:space:]]+History/ \
+          || line ~ /^##[[:space:]]+Necromancer/ \
+          || line ~ /^######[[:space:]]+CLI[[:space:]]+Usage/ \
+          || line ~ /^##[[:space:]]+Overview([[:space:]]|$)/ \
+          || line ~ /^<!-- DIP-[A-Z0-9-]+-EXTRACTED:/
+    }
+    BEGIN {
+      skip=0
+      emitted=0
+      section_re = ENVIRON["SECTION_RE"]
+    }
+    # Consume duplicate section headers + bodies for this pillar while skipping
+    skip {
+      if ($0 ~ ("<!-- " ENVIRON["MARKER"] ":")) next
+      if (section_re != "" && $0 ~ section_re) next
+      if (is_boundary($0)) {
+        skip=0
+        # fall through to process this boundary line
+      } else {
+        next
+      }
+    }
+    $0 ~ ("<!-- " ENVIRON["MARKER"] ":") {
+      if (emitted) {
+        # Duplicate marker of same type: drop until next foreign boundary
+        skip=1
+        next
+      }
+      print "<!-- " ENVIRON["MARKER"] ": " ENVIRON["DATE_STR"] " -->"
+      print ""
+      while ((getline cline < ENVIRON["CONTENT_FILE"]) > 0) print cline
+      close(ENVIRON["CONTENT_FILE"])
+      emitted=1
+      skip=1
+      next
+    }
+    { print }
+  ' "$doc_path" >"$tmp_file"
+  rm -f "$content_file"
+  mv -f "$tmp_file" "$doc_path"
+}
+
+expected_doc_for_core() {
+  local file="$1"
+  local base_no_ext
+  base_no_ext=$(get_base_no_ext "$file")
+  if [[ "$base_no_ext" == "$file" ]]; then
+    echo "${DOCS_DIR}/${file}.md"
+  else
+    echo "${DOCS_DIR}/${base_no_ext}.md"
+  fi
 }
 
 log "INFO" "Starting Document Improvement Project audit..."
 
+# --- 1. File discovery -----------------------------------------------------
+
 AUTOPSY_REPORT="$REPORT_DIR/autopsy-outputs.md"
 FSBOOK_CATALOG="$BOOK_REPORT_DIR/rotkeeper-files.md"
 
-# 1. Read autopsy report to build artifact exclusions
-declare -A AUTOPSY_EXCLUDES
-if [[ ! -f "$AUTOPSY_REPORT" ]]; then
-    log "WARN" "Autopsy report not found at $AUTOPSY_REPORT. Run rc-autopsy.sh --all first. Proceeding with limited exclusions."
-else
-    log "INFO" "Reading autopsy outputs report for artifact exclusions..."
-    while IFS= read -r line; do
-        [[ "$line" =~ ^\|[[:space:]]+[0-9] ]] || continue
-        path_col=$(echo "$line" | awk -F'|' '{print $4}' | sed -E 's/^[[:space:]]+//;s/[[:space:]]+$//;s/`//g')
-        path_col=$(echo "$path_col" | awk '{print $1}')
-        
-        # Add the exact path or its prefix
-        if [[ ! "$path_col" =~ \(unresolved: ]]; then
-            AUTOPSY_EXCLUDES["$path_col"]=1
-            first_dir=$(echo "$path_col" | cut -d/ -f1)
-            if [[ -n "$first_dir" ]] && [[ ! "$first_dir" =~ ^- ]] && [[ ${#first_dir} -ge 4 ]]; then
-                AUTOPSY_EXCLUDES["$first_dir"]=1
-            fi
-            dir_path=$(dirname -- "$path_col")
-            if [[ "$dir_path" != "." ]] && [[ ! "$dir_path" =~ ^- ]] && [[ ${#dir_path} -ge 4 ]]; then
-               AUTOPSY_EXCLUDES["$dir_path"]=1
-            fi
-        else
-            if [[ "$path_col" =~ ^([^ ]+)/\(unresolved: ]]; then
-                known_dir="${BASH_REMATCH[1]}"
-                if [[ ! "$known_dir" =~ ^- ]]; then
-                    AUTOPSY_EXCLUDES["$known_dir"]=1
-                fi
-            fi
+declare -A AUTOPSY_EXCLUDES=()
+
+if [[ -f "$AUTOPSY_REPORT" ]]; then
+  log "INFO" "Reading autopsy outputs report for artifact exclusions..."
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    [[ "$line" =~ ^\|[[:space:]]+[0-9] ]] || continue
+    path_col=$(printf '%s\n' "$line" | awk -F'|' '{print $4}' | sed -E 's/^[[:space:]]+//;s/[[:space:]]+$//;s/`//g')
+    path_col=$(printf '%s\n' "$path_col" | awk '{print $1}')
+
+    if [[ "$path_col" =~ \(unresolved: ]]; then
+      if [[ "$path_col" =~ ^([^[:space:]]+)/\((unresolved:) ]]; then
+        known_dir="${BASH_REMATCH[1]}"
+        if [[ -n "$known_dir" && ! "$known_dir" =~ ^- ]]; then
+          AUTOPSY_EXCLUDES["$known_dir"]=1
         fi
-    done < "$AUTOPSY_REPORT"
+      fi
+      continue
+    fi
+
+    [[ -z "$path_col" || "$path_col" == "-" ]] && continue
+    # Exact artifact path only — do NOT promote first path component
+    # (that excluded entire trees like "bones/" incorrectly).
+    AUTOPSY_EXCLUDES["$path_col"]=1
+    dir_path=$(dirname -- "$path_col")
+    if [[ "$dir_path" != "." && ! "$dir_path" =~ ^- && ${#dir_path} -ge 2 ]]; then
+      # Only exclude leaf artifact parent dirs under known output-like roots
+      case "$dir_path" in
+        output|output/*|tmp|tmp/*|bones/tmp|bones/tmp/*|bones/logs|bones/logs/*|bones/reports|bones/reports/*|bones/archive|bones/archive/*|bones/book-reports|bones/book-reports/*|bones/releases|bones/releases/*)
+          AUTOPSY_EXCLUDES["$dir_path"]=1
+          ;;
+      esac
+    fi
+  done <"$AUTOPSY_REPORT"
+else
+  DEGRADED_AUTOPSY=true
+  log "WARN" "Autopsy report missing at $AUTOPSY_REPORT — artifact exclusion degraded. Run: ./rotkeeper.sh autopsy --all"
 fi
 
-# Hardcode some directories that should never be audited
+# Hard excludes: never treat as core sources for per-file docs
 AUTOPSY_EXCLUDES[".git"]=1
 AUTOPSY_EXCLUDES[".github"]=1
 AUTOPSY_EXCLUDES[".vscode"]=1
@@ -99,172 +367,391 @@ AUTOPSY_EXCLUDES[".idea"]=1
 AUTOPSY_EXCLUDES["home/content"]=1
 AUTOPSY_EXCLUDES["home/assets"]=1
 AUTOPSY_EXCLUDES["tmp"]=1
-AUTOPSY_EXCLUDES["${ARCHIVE_DIR#"$ROOT_DIR"/}/releases"]=1
-AUTOPSY_EXCLUDES["${TMP_DIR#"$ROOT_DIR"/}"]=1
-AUTOPSY_EXCLUDES["${ARCHIVE_DIR#"$ROOT_DIR"/}"]=1
-AUTOPSY_EXCLUDES["${LOG_DIR#"$ROOT_DIR"/}"]=1
-AUTOPSY_EXCLUDES["${REPORT_DIR#"$ROOT_DIR"/}"]=1
-AUTOPSY_EXCLUDES["${BOOK_REPORT_DIR#"$ROOT_DIR"/}"]=1
 AUTOPSY_EXCLUDES["output"]=1
-AUTOPSY_EXCLUDES["${META_DIR#"$ROOT_DIR"/}/asset-manifest.yaml"]=1
+if [[ -n "${ARCHIVE_DIR:-}" ]]; then
+  AUTOPSY_EXCLUDES["${ARCHIVE_DIR#"$ROOT_DIR"/}"]=1
+  AUTOPSY_EXCLUDES["${ARCHIVE_DIR#"$ROOT_DIR"/}/releases"]=1
+fi
+if [[ -n "${TMP_DIR:-}" ]]; then
+  AUTOPSY_EXCLUDES["${TMP_DIR#"$ROOT_DIR"/}"]=1
+fi
+if [[ -n "${LOG_DIR:-}" ]]; then
+  AUTOPSY_EXCLUDES["${LOG_DIR#"$ROOT_DIR"/}"]=1
+fi
+if [[ -n "${REPORT_DIR:-}" ]]; then
+  AUTOPSY_EXCLUDES["${REPORT_DIR#"$ROOT_DIR"/}"]=1
+fi
+if [[ -n "${BOOK_REPORT_DIR:-}" ]]; then
+  AUTOPSY_EXCLUDES["${BOOK_REPORT_DIR#"$ROOT_DIR"/}"]=1
+fi
+if [[ -n "${META_DIR:-}" ]]; then
+  AUTOPSY_EXCLUDES["${META_DIR#"$ROOT_DIR"/}"]=1
+fi
 
 declare -a BLESSED_PATHS=()
 BLESSED_FILE="$ROOT_DIR/.blessed"
 if [[ -f "$BLESSED_FILE" ]]; then
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "$line" || "$line" =~ ^# ]] && continue
-        line=$(echo "$line" | sed -E 's/^[[:space:]]+//;s/[[:space:]]+$//')
-        BLESSED_PATHS+=("$line")
-        AUTOPSY_EXCLUDES["$line"]=1
-    done < "$BLESSED_FILE"
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+    line=$(printf '%s\n' "$line" | sed -E 's/^[[:space:]]+//;s/[[:space:]]+$//')
+    [[ -z "$line" ]] && continue
+    # Only treat path-like blessed entries as paths (skip bare version tags)
+    if [[ "$line" == */* || "$line" == .* || "$line" == *.* || -e "$ROOT_DIR/$line" ]]; then
+      BLESSED_PATHS+=("$line")
+      AUTOPSY_EXCLUDES["$line"]=1
+    else
+      log "DEBUG" "Ignoring non-path .blessed entry: $line"
+    fi
+  done <"$BLESSED_FILE"
 fi
 
+is_excluded_core_path() {
+  local file_path="$1"
+  local excl
+  for excl in "${!AUTOPSY_EXCLUDES[@]}"; do
+    if path_is_under "$file_path" "$excl"; then
+      return 0
+    fi
+  done
+  return 1
+}
 
-# 2. Discover Core Files from fsbook catalog
+# --- 2. Discover core files from fsbook catalog ----------------------------
+
 CORE_FILES=()
+declare -A CORE_FILE_SET=()
+
 if [[ ! -f "$FSBOOK_CATALOG" ]]; then
-    log "WARN" "FSBook catalog not found at $FSBOOK_CATALOG. Run rc-book.sh --fsbook first. File discovery will be skipped."
-else
-    log "INFO" "Reading fsbook catalog for file discovery..."
-    while IFS= read -r line; do
-        if [[ "$line" =~ ^-[[:space:]]+(.*) ]]; then
-            file_path="${BASH_REMATCH[1]}"
-            file_path=$(echo "$file_path" | sed -E 's/^[[:space:]]+//;s/[[:space:]]+$//')
-            
-            # Remove leading ./ if present
-            file_path="${file_path#./}"
-            
-            # Ensure it is a valid path that wasn't excluded
-            exclude=false
-            for excl in "${!AUTOPSY_EXCLUDES[@]}"; do
-                if [[ "$file_path" == "$excl" || "$file_path" == "$excl/"* ]]; then
-                    exclude=true
-                    break
-                fi
-            done
-            
-            if [[ "$exclude" == false ]]; then
-                if [[ "$file_path" =~ \.(png|css|md|DS_Store|db)$ ]]; then
-                    continue
-                fi
-                if [[ -n "$file_path" ]]; then
-                   CORE_FILES+=("$file_path")
-                fi
-            fi
-        fi
-    done < "$FSBOOK_CATALOG"
+  log "WARN" "FSBook catalog not found at $FSBOOK_CATALOG. Attempting one-shot generation via rc-book --fsbook..."
+  if [[ "${DRY_RUN:-false}" == true ]]; then
+    log "DRY-RUN" "Would generate fsbook catalog at $FSBOOK_CATALOG"
+  else
+    bash "$SCRIPT_DIR/rc-book.sh" --fsbook || log "WARN" "rc-book --fsbook failed"
+  fi
 fi
 
-declare -A EXPECTED_DOCS
-for file in "${CORE_FILES[@]+"${CORE_FILES[@]}"}"; do
-    BASE_NO_EXT=$(get_base_no_ext "$file")
-    if [ "$BASE_NO_EXT" == "$file" ]; then
-        DOC_PATH="${DOCS_DIR}/${file}.md"
-    else
-        DOC_PATH="${DOCS_DIR}/${BASE_NO_EXT}.md"
+if [[ -f "$FSBOOK_CATALOG" ]]; then
+  log "INFO" "Reading fsbook catalog for file discovery..."
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    if [[ "$line" =~ ^-[[:space:]]+(.*)$ ]]; then
+      file_path="${BASH_REMATCH[1]}"
+      file_path=$(printf '%s\n' "$file_path" | sed -E 's/^[[:space:]]+//;s/[[:space:]]+$//')
+      file_path="${file_path#./}"
+      [[ -z "$file_path" ]] && continue
+
+      if is_excluded_core_path "$file_path"; then
+        continue
+      fi
+
+      # Skip non-source artifacts by extension
+      if [[ "$file_path" =~ \.(png|css|jpg|jpeg|gif|svg|ico|woff2?|ttf|map|DS_Store|db)$ ]]; then
+        continue
+      fi
+      # Skip markdown tombs themselves (docs are outputs of DIP, not cores)
+      if [[ "$file_path" =~ \.md$ ]]; then
+        continue
+      fi
+
+      CORE_FILES+=("$file_path")
+      CORE_FILE_SET["$file_path"]=1
     fi
-    if [[ -n "${EXPECTED_DOCS["$DOC_PATH"]:-}" && "${EXPECTED_DOCS["$DOC_PATH"]}" != "$file" ]]; then
-        log "WARN" "Collision detected: $DOC_PATH maps to both ${EXPECTED_DOCS["$DOC_PATH"]} and $file"
-    else
-        EXPECTED_DOCS["$DOC_PATH"]="$file"
-    fi
+  done <"$FSBOOK_CATALOG"
+else
+  DEGRADED_FSBOOK=true
+  log "WARN" "FSBook catalog still missing — core discovery skipped. Run: ./rotkeeper.sh book --fsbook. Audit will not move/stub based on incomplete inventory."
+fi
+
+# Ownership map: expected doc path → core relative path
+declare -A EXPECTED_DOCS=()
+declare -a OWNERSHIP_COLLISIONS=()
+
+for file in ${CORE_FILES[@]+"${CORE_FILES[@]}"}; do
+  doc_path=$(expected_doc_for_core "$file")
+  if [[ -n "${EXPECTED_DOCS[$doc_path]:-}" && "${EXPECTED_DOCS[$doc_path]}" != "$file" ]]; then
+    prev="${EXPECTED_DOCS[$doc_path]}"
+    log "ERROR" "Ownership collision: '$prev' and '$file' both map to doc path '$doc_path'"
+    OWNERSHIP_COLLISIONS+=("$doc_path|$prev|$file")
+    # Keep first mapping; do not silently overwrite
+    continue
+  fi
+  EXPECTED_DOCS["$doc_path"]="$file"
 done
 
-# 3. Whisk Obsolete Docs
-log "INFO" "Checking for obsolete docs..."
-mapfile -d '' EXISTING_DOCS < <(find "$DOCS_DIR" -type f -name "*.md" -print0)
+if ((${#OWNERSHIP_COLLISIONS[@]} > 0)); then
+  log "WARN" "Detected ${#OWNERSHIP_COLLISIONS[@]} ownership collision(s); first mapping retained, extras reported."
+fi
 
-declare -A WHITELIST
+# Soul sidecars inform stitching only — never enter EXPECTED_DOCS (they are not docs).
+declare -A SOUL_TARGETS=()
+if [[ -d "$META_DIR" ]]; then
+  log "INFO" "Indexing structural soul sidecars from metadata registry..."
+  while IFS= read -r -d '' soul_path; do
+    rel_meta_path="${soul_path#"$META_DIR"/}"
+    target_origin="${rel_meta_path%.soul.md}"
+    SOUL_TARGETS["$target_origin"]="$soul_path"
+  done < <(find "$META_DIR" -type f -name "*.soul.md" -print0 2>/dev/null || true)
+fi
+
+# --- 3. Obsolete-document handling -----------------------------------------
+
+log "INFO" "Checking for obsolete docs..."
+mapfile -d '' EXISTING_DOCS < <(find "$DOCS_DIR" -type f -name "*.md" -print0 2>/dev/null || true)
+
+declare -A WHITELIST=()
 WHITELIST_FILE="$CONFIG_DIR/dip-whitelist.txt"
 if [[ -f "$WHITELIST_FILE" ]]; then
-    while IFS= read -r line; do
-        [[ -z "$line" || "$line" =~ ^# ]] && continue
-        WHITELIST["$ROOT_DIR/$line"]=1
-    done < "$WHITELIST_FILE"
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+    line=$(printf '%s\n' "$line" | sed -E 's/^[[:space:]]+//;s/[[:space:]]+$//')
+    [[ -z "$line" ]] && continue
+    WHITELIST["$ROOT_DIR/$line"]=1
+  done <"$WHITELIST_FILE"
 fi
+
+is_blessed_doc() {
+  local doc="$1"
+  local rel_doc="${doc#"$ROOT_DIR"/}"
+  local target_file_check="$2"
+  local blessed_path
+  for blessed_path in ${BLESSED_PATHS[@]+"${BLESSED_PATHS[@]}"}; do
+    if path_is_under "$rel_doc" "$blessed_path"; then
+      return 0
+    fi
+    if [[ -n "$target_file_check" ]] && path_is_under "$target_file_check" "$blessed_path"; then
+      return 0
+    fi
+  done
+  return 1
+}
 
 declare -a UNOWNED_DOCS=()
+declare -a OBSOLETE_MOVED=()
 
-for doc in "${EXISTING_DOCS[@]+"${EXISTING_DOCS[@]}"}"; do
-    [[ "$doc" == "$MATRIX_FILE" ]] && continue
-    [[ -n "${WHITELIST["$doc"]:-}" ]] && continue
+# In degraded fsbook mode, refuse obsolete moves (inventory incomplete).
+for doc in ${EXISTING_DOCS[@]+"${EXISTING_DOCS[@]}"}; do
+  [[ "$doc" == "$MATRIX_FILE" ]] && continue
+  [[ -n "${WHITELIST[$doc]:-}" ]] && continue
 
-    is_blessed=false
-    rel_doc="${doc#"$ROOT_DIR"/}"
-    target_file_check=""
-    if grep -q "^target_file:" "$doc"; then
-        target_file_check=$(sed -n 's/^target_file: *"\(.*\)"/\1/p' "$doc" | head -n 1)
+  target_file_check=""
+  if grep -q '^target_file:' "$doc" 2>/dev/null; then
+    target_file_check=$(read_target_file "$doc" || true)
+  fi
+
+  if is_blessed_doc "$doc" "$target_file_check"; then
+    continue
+  fi
+
+  # Already mapped as the expected doc for a live core file
+  if [[ -n "${EXPECTED_DOCS[$doc]:-}" ]]; then
+    continue
+  fi
+
+  # Strong evidence required to move:
+  #   explicit target_file frontmatter AND that target is not a current core file.
+  # No target_file → authored/uncertain → unowned, never move.
+  if [[ -z "$target_file_check" ]]; then
+    UNOWNED_DOCS+=("$doc")
+    continue
+  fi
+
+  if [[ -n "${CORE_FILE_SET[$target_file_check]:-}" ]]; then
+    # Target still core, but doc path is not the expected mirror path → misplaced, not obsolete
+    UNOWNED_DOCS+=("$doc")
+    log "WARN" "Misplaced doc (target still core, unexpected path): $doc → target_file=$target_file_check"
+    continue
+  fi
+
+  if [[ "$DEGRADED_FSBOOK" == true ]]; then
+    log "WARN" "Skipping obsolete move (fsbook degraded, inventory incomplete): $doc"
+    UNOWNED_DOCS+=("$doc")
+    continue
+  fi
+
+  # Strong evidence: generated-style reference with target_file no longer in core set
+  REL_PATH="${doc#"$DOCS_DIR"/}"
+  if [[ "$REL_PATH" == "$doc" ]]; then
+    log "ERROR" "Refuse obsolete move — doc not under DOCS_DIR: $doc"
+    continue
+  fi
+  if [[ "$REL_PATH" == /* || "$REL_PATH" == *".."* ]]; then
+    log "ERROR" "Refuse obsolete move — unsafe relative path: $REL_PATH"
+    continue
+  fi
+  if ! path_stays_under "$OBSOLETE_DIR" "$REL_PATH"; then
+    # path_stays_under needs parent dirs to exist for cd; fall back to string check
+    DEST_PROBE="${OBSOLETE_DIR}/${REL_PATH}"
+    case "$DEST_PROBE" in
+      "${OBSOLETE_DIR}"/*) ;;
+      *)
+        log "ERROR" "Refuse obsolete move — destination would escape OBSOLETE_DIR: $DEST_PROBE"
+        continue
+        ;;
+    esac
+  fi
+
+  DEST_PATH="${OBSOLETE_DIR}/${REL_PATH}"
+  DEST_DIR=$(dirname -- "$DEST_PATH")
+
+  if [[ "${DRY_RUN:-false}" == true ]]; then
+    log "DRY-RUN" "Would whisk obsolete doc: $doc -> $DEST_PATH"
+    OBSOLETE_MOVED+=("$REL_PATH")
+  else
+    if ! mkdir -p "$DEST_DIR"; then
+      log "ERROR" "Cannot create obsolete dest dir (move aborted, source kept): $DEST_DIR"
+      continue
     fi
-
-    for blessed_path in "${BLESSED_PATHS[@]+"${BLESSED_PATHS[@]}"}"; do
-        if [[ "$rel_doc" == "$blessed_path" || "$rel_doc" == "$blessed_path/"* ]]; then
-            is_blessed=true
-            break
-        fi
-        if [[ -n "$target_file_check" ]] && [[ "$target_file_check" == "$blessed_path" || "$target_file_check" == "$blessed_path/"* ]]; then
-            is_blessed=true
-            break
-        fi
-    done
-    [[ "$is_blessed" == true ]] && continue
-
-    if [[ -z "${EXPECTED_DOCS["$doc"]:-}" ]]; then
-        if ! grep -q "^target_file:" "$doc"; then
-            UNOWNED_DOCS+=("$doc")
-            continue
-        fi
-
-        # Require strong evidence: target file must not exist on disk
-        target_file_check=$(sed -n 's/^target_file: *"\(.*\)"/\1/p' "$doc" | head -n 1)
-        if [[ -n "$target_file_check" && -f "$ROOT_DIR/$target_file_check" ]]; then
-            # File exists but not in EXPECTED_DOCS (maybe ignored/excluded), don't whisk
-            continue
-        fi
-
-        REL_PATH="${doc#"$DOCS_DIR"/}"
-        DEST_PATH="${OBSOLETE_DIR}/${REL_PATH}"
-        DEST_DIR=$(dirname "$DEST_PATH")
-
-        if [[ "${DRY_RUN:-false}" == true ]]; then
-            log "DRY-RUN" "Would whisk obsolete doc: $doc -> $DEST_PATH"
-        else
-            mkdir -p "$DEST_DIR"
-            mv "$doc" "$DEST_PATH"
-            log "INFO" "Whisked obsolete doc: $REL_PATH"
-        fi
+    if ! mv -n "$doc" "$DEST_PATH" 2>/dev/null; then
+      # -n may be unsupported; try without clobber semantics after existence check
+      if [[ -e "$DEST_PATH" ]]; then
+        log "ERROR" "Obsolete dest already exists (move aborted, source kept): $DEST_PATH"
+        continue
+      fi
+      if ! mv "$doc" "$DEST_PATH"; then
+        log "ERROR" "Failed to move obsolete doc (source kept): $doc"
+        continue
+      fi
     fi
+    log "INFO" "Whisked obsolete doc: $REL_PATH (target_file=$target_file_check no longer core)"
+    OBSOLETE_MOVED+=("$REL_PATH")
+  fi
 done
 
+# --- pillar content builders -----------------------------------------------
 
+build_env_list() {
+  cat <<INNER_EOF
+- **\$ROOT_DIR**: $ROOT_DIR
+- **\$OUTPUT_DIR**: ${OUTPUT_DIR:-}
+- **\$CONTENT_DIR**: $CONTENT_DIR
+- **\$ASSETS_DIR**: ${ASSETS_DIR:-}
+- **\$DOCS_DIR**: $DOCS_DIR
+- **\$HELP_DIR**: ${HELP_DIR:-}
+- **\$BONES_DIR**: $BONES_DIR
+- **\$SCRIPT_DIR**: $SCRIPT_DIR
+- **\$CONFIG_DIR**: $CONFIG_DIR
+- **\$LOG_DIR**: $LOG_DIR
+- **\$TMP_DIR**: $TMP_DIR
+- **\$ARCHIVE_DIR**: ${ARCHIVE_DIR:-}
+- **\$REPORT_DIR**: $REPORT_DIR
+- **\$BOOK_REPORT_DIR**: $BOOK_REPORT_DIR
+- **\$TEMPLATE_DIR**: ${TEMPLATE_DIR:-}
+- **\$META_DIR**: $META_DIR
+- **\$WEB_DIR**: ${WEB_DIR:-}
+INNER_EOF
+}
 
-# DIP AUDITOR SEPARATION: Check folder souls from metadata logs instead of active disk find commands
-log "INFO" "Auditing structural folder soul declarations from registry..."
-if [[ -d "$META_DIR" ]]; then
-    while read -r soul_path; do
-        # Derive what file path or folder path this soul belongs to
-        rel_meta_path="${soul_path#"$META_DIR"/}"
-        target_origin="${rel_meta_path%.soul.md}"
+build_help_content() {
+  local target_script="$1"
+  local help_report="$REPORT_DIR/autopsy-help.md"
+  local script_name help_content
 
-        # Track expected paths dynamically so rc-glue.sh knows they are registered parameters
-        if [[ -n "${EXPECTED_DOCS["$soul_path"]:-}" && "${EXPECTED_DOCS["$soul_path"]}" != "$target_origin" ]]; then
-            log "WARN" "Collision detected: $soul_path maps to both ${EXPECTED_DOCS["$soul_path"]} and $target_origin"
-        else
-            EXPECTED_DOCS["$soul_path"]="$target_origin"
-        fi
-    done < <(find "$META_DIR" -type f -name "*.soul.md")
-fi
+  script_name=$(basename -- "$target_script")
+  if [[ ! -f "$help_report" ]]; then
+    printf '%s\n' "*Not found: autopsy help report missing (\`$help_report\`). Run: ./rotkeeper.sh autopsy --help-scan*"
+    return 0
+  fi
 
-# 4. Stub Missing Docs
+  help_content=$(sed -n "/^## ${script_name}\$/,/^## /{ /^## /d; p; }" "$help_report" 2>/dev/null \
+    | sed -e '1{/^$/d;}' -e '${/^$/d;}' || true)
+
+  if [[ -z "${help_content//[[:space:]]/}" ]]; then
+    printf '%s\n' "*Not found: no help block for \`$script_name\` in autopsy help report.*"
+  else
+    printf '%s\n' "$help_content"
+  fi
+}
+
+build_history_content() {
+  local script_name="$1"
+  local history_content="" matches
+  local log_file
+
+  for log_file in "$ROOT_DIR/CHANGELOG.md" "$DOCS_DIR/road-to-bones/index.md"; do
+    if [[ -f "$log_file" ]]; then
+      matches=$(grep -i -- "$script_name" "$log_file" | sed 's/^/- /' || true)
+      if [[ -n "$matches" ]]; then
+        history_content+="$matches"$'\n'
+      fi
+    fi
+  done
+  history_content=$(printf '%s' "$history_content" | grep -v '^$' || true)
+  if [[ -z "${history_content//[[:space:]]/}" ]]; then
+    printf '%s\n' "*Not found: no changelog/history entries matching \`$script_name\`.*"
+  else
+    printf '%s\n' "$history_content"
+  fi
+}
+
+build_soul_content() {
+  local target_file="$1"
+  local soulbody
+  soulbody=$(read_meta_sidecar_body "$target_file" || true)
+  if [[ -z "${soulbody//[[:space:]]/}" ]]; then
+    printf '%s\n' "*Not found: no soul sidecar for \`$target_file\`.*"
+  else
+    printf '%s\n' "$soulbody"
+  fi
+}
+
+# Ensure required marker scaffolding exists without clobbering authored body.
+ensure_dip_markers() {
+  local doc_path="$1"
+  local needs=()
+
+  grep -q '<!-- DIP-ENV-EXTRACTED:' "$doc_path" 2>/dev/null || needs+=("env")
+  grep -q '<!-- DIP-HELP-EXTRACTED:' "$doc_path" 2>/dev/null || needs+=("help")
+  grep -q '<!-- DIP-HISTORY-EXTRACTED:' "$doc_path" 2>/dev/null || needs+=("history")
+  grep -q '<!-- DIP-SOUL-EXTRACTED:' "$doc_path" 2>/dev/null || needs+=("soul")
+
+  if ((${#needs[@]} == 0)); then
+    return 0
+  fi
+
+  if [[ "${DRY_RUN:-false}" == true ]]; then
+    local needs_csv
+    needs_csv=$(IFS=','; echo "${needs[*]}")
+    log "DRY-RUN" "Would append missing DIP markers (${needs_csv}) to $doc_path"
+    return 0
+  fi
+
+  local append=""
+  for n in "${needs[@]}"; do
+    case "$n" in
+      env)
+        append+=$'\n## Environment\n<!-- DIP-ENV-EXTRACTED: 0000-00-00T00:00:00Z -->\n*Not found: environment not yet stitched.*\n'
+        ;;
+      help)
+        append+=$'\n###### CLI Usage\n<!-- DIP-HELP-EXTRACTED: 0000-00-00T00:00:00Z -->\n*Not found: help not yet stitched.*\n'
+        ;;
+      history)
+        append+=$'\n## Ritual History\n<!-- DIP-HISTORY-EXTRACTED: 0000-00-00T00:00:00Z -->\n*Not found: history not yet stitched.*\n'
+        ;;
+      soul)
+        append+=$'\n## Necromancer'\''s Notes\n<!-- DIP-SOUL-EXTRACTED: 0000-00-00T00:00:00Z -->\n*Not found: soul not yet stitched.*\n'
+        ;;
+    esac
+  done
+  printf '%s' "$append" >>"$doc_path"
+}
+
+# --- 4. Stub missing docs --------------------------------------------------
+
 log "INFO" "Checking for missing docs..."
 for doc_path in "${!EXPECTED_DOCS[@]}"; do
-    target_file="${EXPECTED_DOCS["$doc_path"]}"
-    if [ ! -f "$doc_path" ]; then
-        if [[ "${DRY_RUN:-false}" == true ]]; then
-            log "DRY-RUN" "Would stub missing doc: $doc_path"
-        else
-            mkdir -p "$(dirname "$doc_path")"
-            TITLE=$(basename "$doc_path" .md)
-            cat << STUB > "$doc_path"
+  target_file="${EXPECTED_DOCS[$doc_path]}"
+  if [[ -f "$doc_path" ]]; then
+    continue
+  fi
+
+  if [[ "${DRY_RUN:-false}" == true ]]; then
+    log "DRY-RUN" "Would stub missing doc: $doc_path (target_file=$target_file)"
+    continue
+  fi
+
+  mkdir -p "$(dirname -- "$doc_path")"
+  TITLE=$(basename -- "$doc_path" .md)
+  stub_tmp="${doc_path}.tmp.$$"
+  cat <<STUB >"$stub_tmp"
 ---
 target_file: "$target_file"
 date: "$DATE_STR"
@@ -284,6 +771,7 @@ Documentation for \`$target_file\`. This file was auto-generated by the Document
 TODO: Provide a brief overview of what this file does.
 
 ###### CLI Usage
+<!-- DIP-HELP-EXTRACTED: 0000-00-00T00:00:00Z -->
 TODO: Stitch extracted help block.
 
 ## Environment
@@ -298,178 +786,141 @@ TODO: Stitch ritual history.
 <!-- DIP-SOUL-EXTRACTED: 0000-00-00T00:00:00Z -->
 TODO: Stitch necromancer notes.
 STUB
-            log "INFO" "Stubbed missing doc: $doc_path"
-        fi
-    fi
+  mv -f "$stub_tmp" "$doc_path"
+  log "INFO" "Stubbed missing doc: $doc_path"
 done
 
-# 5. Stitch Frankenstein Pillars
+# --- 5. Stitch Frankenstein pillars ----------------------------------------
+
 log "INFO" "Stitching dynamic content into Frankenstein pillars..."
 
-stitch_pillar() {
-    local doc_path="$1"
-    local marker="$2"
-    local new_content="$3"
-    local source_mtime="$4"
-    
-    if ! grep -q "<!-- $marker:" "$doc_path"; then
-        return
-    fi
-    
-    local doc_mtime
-    doc_mtime=$(grep -o "<!-- $marker: [0-9TZ:-]* -->" "$doc_path" | grep -o "[0-9TZ:-]\{10,\}") || true
-    
-    # If no content, write explicit placeholder
-    if [[ -z "$new_content" ]]; then
-        if [[ "$marker" == "DIP-HELP-EXTRACTED" ]]; then
-            new_content="TODO: Stitch extracted help block."
-        elif [[ "$marker" == "DIP-ENV-EXTRACTED" ]]; then
-            new_content="TODO: Stitch environment variables."
-        elif [[ "$marker" == "DIP-HISTORY-EXTRACTED" ]]; then
-            new_content="TODO: Stitch ritual history."
-        elif [[ "$marker" == "DIP-SOUL-EXTRACTED" ]]; then
-            new_content="TODO: Stitch necromancer notes."
-        fi
-    fi
-
-    if [[ -z "$doc_mtime" || "$source_mtime" > "$doc_mtime" ]]; then
-        local tmp_file="${doc_path}.tmp"
-        export NEW_CONTENT="$new_content"
-        export DATE_STR="$DATE_STR"
-        export MARKER="$marker"
-        
-        awk '
-        BEGIN { skip=0 }
-        skip && /^## / { skip=0 }
-        skip && /^###### / { skip=0 }
-        $0 ~ "<!-- " ENVIRON["MARKER"] ":" {
-            sub(/<!-- [^:]+:.*-->/, "<!-- " ENVIRON["MARKER"] ": " ENVIRON["DATE_STR"] " -->")
-            print $0
-            print ""
-            print ENVIRON["NEW_CONTENT"]
-            skip=1
-            next
-        }
-        !skip { print $0 }
-        ' "$doc_path" > "$tmp_file"
-
-        if [[ -s "$tmp_file" ]]; then
-            mv "$tmp_file" "$doc_path"
-        else
-            rm -f "$tmp_file"
-        fi
-    fi
-}
+ENV_LIST_CONTENT=$(build_env_list)
 
 for doc_path in "${!EXPECTED_DOCS[@]}"; do
-    if [[ ! -f "$doc_path" ]]; then continue; fi
-    target_file="${EXPECTED_DOCS["$doc_path"]}"
-    script_name=$(basename "$target_file")
+  [[ -f "$doc_path" ]] || continue
+  target_file="${EXPECTED_DOCS[$doc_path]}"
+  script_name=$(basename -- "$target_file")
 
-    # Pillar 1: CLI Usage
-    help_content=""
-    help_mtime="0000-00-00"
-    help_report="$REPORT_DIR/autopsy-help.md"
-    if [[ -f "$help_report" ]]; then
-        help_mtime=$(get_fs_iso "$help_report")
-        help_content=$(sed -n "/^## $script_name\$/,/^## /{ /^## /d; p; }" "$help_report" | sed -e '1{/^$/d;}' | sed -e '${/^$/d;}')
+  # Only stitch generated reference docs that already carry DIP markers,
+  # or stubs we just created. Do not inject markers into pure authored docs
+  # that happen to share a path key (should not happen for EXPECTED_DOCS).
+  if ! grep -qE '<!-- DIP-(ENV|HELP|HISTORY|SOUL)-EXTRACTED:' "$doc_path" 2>/dev/null; then
+    # If status is stub or target_file matches, scaffold markers once
+    local_status=$(read_status_field "$doc_path" || true)
+    tf=$(read_target_file "$doc_path" || true)
+    if [[ "${local_status,,}" == "stub" || "$tf" == "$target_file" ]]; then
+      ensure_dip_markers "$doc_path"
+    else
+      continue
     fi
-    # Auto-upgrade legacy documentation files to include the marker if missing
-    if grep -q "^###### CLI Usage" "$doc_path" && ! grep -q "<!-- DIP-HELP-EXTRACTED:" "$doc_path"; then
-        sed -i 's/^###### CLI Usage/###### CLI Usage\n<!-- DIP-HELP-EXTRACTED: 0000-00-00T00:00:00Z -->/' "$doc_path"
-    fi
-    stitch_pillar "$doc_path" "DIP-HELP-EXTRACTED" "$help_content" "$help_mtime"
+  else
+    ensure_dip_markers "$doc_path"
+  fi
 
-    # Pillar 1.5: Environment
-    env_content=""
-    env_mtime="$DATE_STR"
-    env_mtime=$(get_fs_iso "$ROOT_DIR/$target_file")
+  help_content=$(build_help_content "$target_file")
+  history_content=$(build_history_content "$script_name")
+  soul_content=$(build_soul_content "$target_file")
 
-    env_content=$(cat <<INNER_EOF
-- **\$ROOT_DIR**: $ROOT_DIR
-- **\$OUTPUT_DIR**: $OUTPUT_DIR
-- **\$CONTENT_DIR**: $CONTENT_DIR
-- **\$ASSETS_DIR**: $ASSETS_DIR
-- **\$DOCS_DIR**: $DOCS_DIR
-- **\$HELP_DIR**: $HELP_DIR
-- **\$BONES_DIR**: $BONES_DIR
-- **\$SCRIPT_DIR**: $SCRIPT_DIR
-- **\$CONFIG_DIR**: $CONFIG_DIR
-- **\$LOG_DIR**: $LOG_DIR
-- **\$TMP_DIR**: $TMP_DIR
-- **\$ARCHIVE_DIR**: $ARCHIVE_DIR
-- **\$REPORT_DIR**: $REPORT_DIR
-- **\$BOOK_REPORT_DIR**: $BOOK_REPORT_DIR
-- **\$TEMPLATE_DIR**: $TEMPLATE_DIR
-- **\$META_DIR**: $META_DIR
-- **\$WEB_DIR**: $WEB_DIR
-INNER_EOF
-)
-    # Auto-upgrade legacy
-    if grep -q "^## Environment" "$doc_path" && ! grep -q "<!-- DIP-ENV-EXTRACTED:" "$doc_path"; then
-        sed -i 's/^## Environment/## Environment\n<!-- DIP-ENV-EXTRACTED: 0000-00-00T00:00:00Z -->/' "$doc_path"
-    fi
-    stitch_pillar "$doc_path" "DIP-ENV-EXTRACTED" "$env_content" "$env_mtime"
-
-    # Pillar 2: Ritual History
-    history_content=""
-    history_mtime="0000-00-00"
-    for log_file in "$ROOT_DIR/CHANGELOG.md" "$DOCS_DIR/road-to-bones/index.md"; do
-        if [[ -f "$log_file" ]]; then
-            fm_mtime=$(get_fs_iso "$log_file")
-            [[ "$fm_mtime" > "$history_mtime" ]] && history_mtime="$fm_mtime"
-            matches=$(grep -i "$script_name" "$log_file" | sed 's/^/- /' || true)
-            if [[ -n "$matches" ]]; then
-                history_content+="$matches"$'\n'
-            fi
-        fi
-    done
-    history_content=$(echo "$history_content" | grep -v '^$' || true)
-    if [[ -n "$history_content" ]]; then
-        stitch_pillar "$doc_path" "DIP-HISTORY-EXTRACTED" "$history_content" "$history_mtime"
-    fi
-
-    # Pillar 3: Necromancer's Notes
-    soulbody=""
-    soulmtime="0000-00-00"
-    if [[ -d "$CONTENT_DIR/messages" ]]; then
-        for msg_file in "$CONTENT_DIR/messages"/*.md; do
-            [[ -f "$msg_file" ]] || continue
-            if grep -q 'report_type: "necromancer-notes"' "$msg_file" && grep -q "subject_script: \"$script_name\"" "$msg_file"; then
-                soulbody=$(sed '1{/^---$/!q;}; 1,/^---$/d' "$msg_file")
-                soulmtime=$(get_fs_iso "$msg_file")
-                break
-            fi
-        done
-    fi
-    if [[ -z "$soulbody" ]]; then
-        soulbody=$(read_meta_sidecar_body "$target_file")
-        if [[ -n "$soulbody" ]]; then
-            soulmtime=$(get_fs_iso "$(get_sidecar_path "$target_file")")
-        fi
-    fi
-
-    # Auto-upgrade legacy documentation files to include the marker if missing
-    if grep -q "^## Necromancer's Notes" "$doc_path" && ! grep -q "<!-- DIP-SOUL-EXTRACTED:" "$doc_path"; then
-        sed -i 's/^## Necromancer'"'"'s Notes/## Necromancer'"'"'s Notes\n<!-- DIP-SOUL-EXTRACTED: 0000-00-00T00:00:00Z -->/' "$doc_path"
-    elif ! grep -q "^## Necromancer's Notes" "$doc_path"; then
-        echo -e "\n## Necromancer's Notes\n<!-- DIP-SOUL-EXTRACTED: 0000-00-00T00:00:00Z -->\nTODO: Stitch necromancer notes." >> "$doc_path"
-    fi
-
-    stitch_pillar "$doc_path" "DIP-SOUL-EXTRACTED" "$soulbody" "$soulmtime"
-
+  stitch_pillar "$doc_path" "DIP-ENV-EXTRACTED" "$ENV_LIST_CONTENT"
+  stitch_pillar "$doc_path" "DIP-HELP-EXTRACTED" "$help_content"
+  stitch_pillar "$doc_path" "DIP-HISTORY-EXTRACTED" "$history_content"
+  stitch_pillar "$doc_path" "DIP-SOUL-EXTRACTED" "$soul_content"
 done
 
-# 6. Check Formatting & Generate Matrix
+# --- 6. Matrix generation --------------------------------------------------
+
 log "INFO" "Generating DIP Matrix at $MATRIX_FILE..."
 
+declare -A STAT_COUNTS=(
+  ["OK"]=0
+  ["Stub"]=0
+  ["Missing"]=0
+  ["Stale"]=0
+  ["Unowned"]=0
+)
+
+declare -a MATRIX_ROWS=()
+
+# Stable iteration for deterministic matrix output
+mapfile -t SORTED_DOC_PATHS < <(printf '%s\n' "${!EXPECTED_DOCS[@]}" | LC_ALL=C sort)
+
+for doc_path in ${SORTED_DOC_PATHS[@]+"${SORTED_DOC_PATHS[@]}"}; do
+  target_file="${EXPECTED_DOCS[$doc_path]}"
+  status="Missing"
+  base_stat="Missing"
+
+  if [[ -f "$doc_path" ]]; then
+    status=$(read_status_field "$doc_path" || true)
+    [[ -z "$status" ]] && status="unknown"
+
+    # Normalize known status labels
+    case "${status,,}" in
+      stub) status="Stub"; base_stat="Stub" ;;
+      missing) status="Missing"; base_stat="Missing" ;;
+      stale) status="Stale"; base_stat="Stale" ;;
+      complete|ok) status="OK"; base_stat="OK" ;;
+      *)
+        # Heuristic: still a stub if DIP placeholders remain
+        if grep -qE '^TODO: (Provide a brief overview|Stitch )' "$doc_path" 2>/dev/null \
+          || grep -q 'status: "stub"' "$doc_path" 2>/dev/null \
+          || grep -q '^status: stub' "$doc_path" 2>/dev/null; then
+          status="Stub"
+          base_stat="Stub"
+        else
+          status="OK"
+          base_stat="OK"
+        fi
+        ;;
+    esac
+
+    code_date=$(get_fs_date "$ROOT_DIR/$target_file")
+    doc_date=$(get_fs_date "$doc_path")
+
+    if [[ "$code_date" != "Missing" && "$doc_date" != "Missing" && "$code_date" > "$doc_date" ]]; then
+      status="Stale"
+      base_stat="Stale"
+    fi
+
+    if [[ "$base_stat" == "OK" ]]; then
+      todo_count=$(count_todo_lines "$doc_path")
+      if [[ "$todo_count" -gt 0 ]]; then
+        status="OK, ${todo_count} TODOs remain"
+        base_stat="OK"
+      fi
+    fi
+  else
+    code_date=$(get_fs_date "$ROOT_DIR/$target_file")
+    doc_date="Missing"
+    status="Missing"
+    base_stat="Missing"
+  fi
+
+  STAT_COUNTS["$base_stat"]=$((${STAT_COUNTS[$base_stat]:-0} + 1))
+  rel_doc="${doc_path#"$ROOT_DIR"/}"
+  MATRIX_ROWS+=("| \`$target_file\` | [$rel_doc]($rel_doc) | $code_date | $doc_date | $status |")
+done
+
+mapfile -t SORTED_UNOWNED < <(printf '%s\n' ${UNOWNED_DOCS[@]+"${UNOWNED_DOCS[@]}"} | LC_ALL=C sort -u)
+for doc_path in ${SORTED_UNOWNED[@]+"${SORTED_UNOWNED[@]}"}; do
+  rel_doc="${doc_path#"$ROOT_DIR"/}"
+  doc_date=$(get_fs_date "$doc_path")
+  status="Unowned"
+  STAT_COUNTS["Unowned"]=$((STAT_COUNTS["Unowned"] + 1))
+  MATRIX_ROWS+=("| \`Unknown\` | [$rel_doc]($rel_doc) | Missing | $doc_date | $status |")
+done
+
+total_rows=$((${STAT_COUNTS[OK]:-0} + ${STAT_COUNTS[Stub]:-0} + ${STAT_COUNTS[Missing]:-0} + ${STAT_COUNTS[Stale]:-0} + ${STAT_COUNTS[Unowned]:-0}))
+totals_line="**Totals:** OK: ${STAT_COUNTS[OK]:-0} | Stub: ${STAT_COUNTS[Stub]:-0} | Missing: ${STAT_COUNTS[Missing]:-0} | Stale: ${STAT_COUNTS[Stale]:-0} | Unowned: ${STAT_COUNTS[Unowned]:-0} | Rows: ${total_rows}"
+
 if [[ "${DRY_RUN:-false}" == true ]]; then
-    log "DRY-RUN" "Would generate DIP matrix at $MATRIX_FILE"
+  log "DRY-RUN" "Would generate DIP matrix at $MATRIX_FILE (${#MATRIX_ROWS[@]} rows)"
 else
-    cat << 'MATRIX' > "$MATRIX_FILE"
+  matrix_tmp="${MATRIX_FILE}.tmp.$$"
+  {
+    cat <<MATRIX
 ---
 title: "Document Improvement Project (DIP) Matrix"
-date: "GENERATED_DATE"
+date: "$DATE_STR"
 template: "rotkeeper-doc.html"
 ---
 
@@ -480,83 +931,46 @@ This page tracks the documentation status of core project files.
 | Target File | Doc Page | Last Code Edit | Last Doc Edit | Status |
 |-------------|----------|----------------|---------------|--------|
 MATRIX
+    printf '%s\n' ${MATRIX_ROWS[@]+"${MATRIX_ROWS[@]}"}
+    echo ""
+    echo "$totals_line"
+    if ((${#OWNERSHIP_COLLISIONS[@]} > 0)); then
+      echo ""
+      echo "## Ownership collisions"
+      echo ""
+      for c in "${OWNERSHIP_COLLISIONS[@]}"; do
+        IFS='|' read -r dpath a b <<<"$c"
+        echo "- \`$dpath\`: \`$a\` vs \`$b\`"
+      done
+    fi
+    if [[ "$DEGRADED_AUTOPSY" == true || "$DEGRADED_FSBOOK" == true ]]; then
+      echo ""
+      echo "## Degraded inputs"
+      echo ""
+      [[ "$DEGRADED_AUTOPSY" == true ]] && echo "- Autopsy report missing — artifact excludes incomplete."
+      [[ "$DEGRADED_FSBOOK" == true ]] && echo "- FSBook catalog missing — core inventory incomplete; obsolete moves skipped."
+    fi
+  } >"$matrix_tmp"
 
-    content=$(<"$MATRIX_FILE")
-    printf '%s\n' "${content//GENERATED_DATE/$DATE_STR}" > "$MATRIX_FILE"
-fi
-
-
-
-declare -A STAT_COUNTS
-STAT_COUNTS=(["OK"]=0 ["Stub"]=0 ["Missing"]=0 ["Stale"]=0 ["unowned-doc"]=0)
-
-for doc_path in "${!EXPECTED_DOCS[@]}"; do
-    target_file="${EXPECTED_DOCS["$doc_path"]}"
-    
-    # Read status from doc frontmatter
-    status="unknown"
-    if [ -f "$doc_path" ]; then
-        # Check if file has frontmatter
-        if grep -q "^---$" "$doc_path"; then
-            status=$(sed -n 's/^status: "\(.*\)"/\1/p' "$doc_path" | head -n 1)
-        fi
+  # Idempotent matrix write: if only the date frontmatter would change, keep prior file.
+  if [[ -f "$MATRIX_FILE" ]]; then
+    old_norm=$(grep -v '^date: ' "$MATRIX_FILE" || true)
+    new_norm=$(grep -v '^date: ' "$matrix_tmp" || true)
+    if [[ "$old_norm" == "$new_norm" ]]; then
+      rm -f "$matrix_tmp"
+      log "INFO" "DIP matrix unchanged (content identical); preserving existing file."
     else
-        status="missing"
+      mv -f "$matrix_tmp" "$MATRIX_FILE"
+      log "INFO" "DIP audit complete. See $MATRIX_FILE for details."
     fi
-    [[ -z "$status" ]] && status="unknown"
-
-    code_date=$(get_fs_date "$ROOT_DIR/$target_file")
-    doc_date=$(get_fs_date "$doc_path")
-
-    # Stale/Needs Review Detection
-    if [[ "$code_date" != "Missing" && "$doc_date" != "Missing" && "$code_date" > "$doc_date" ]]; then
-        status="Stale"
-    fi
-
-    # TODO Cross-Check
-    if [[ "$status" == "complete" || "$status" == "OK" ]]; then
-        todo_count=$(grep -c "^TODO:" "$doc_path" || true)
-        if [[ "$todo_count" -gt 0 ]]; then
-            status="OK (${todo_count} TODOs remain)"
-        fi
-    elif [[ "${status,,}" == "stub" ]]; then
-        todo_count=$(grep -c "^TODO:" "$doc_path" || true)
-        if [[ "$todo_count" -gt 0 ]]; then
-            status="Stub (${todo_count} TODOs)"
-        else
-            status="Stub (Ready)"
-        fi
-    fi
-
-    base_stat="$status"
-    if [[ "$status" =~ ^OK ]]; then base_stat="OK"; fi
-    if [[ "$status" =~ ^Stub ]]; then base_stat="Stub"; fi
-    if [[ "${status,,}" == "stub" ]]; then base_stat="Stub"; fi
-    if [[ "${status,,}" == "stale" ]]; then base_stat="Stale"; fi
-    if [[ "${status,,}" == "missing" ]]; then base_stat="Missing"; fi
-    if [[ "${status,,}" == "unknown" ]]; then base_stat="Missing"; fi
-    STAT_COUNTS["$base_stat"]=$(( ${STAT_COUNTS["$base_stat"]:-0} + 1 ))
-
-    # Format paths relative to ROOT_DIR for matrix display
-    rel_doc="${doc_path#"$ROOT_DIR"/}"
-    
-    if [[ "${DRY_RUN:-false}" == false ]]; then
-        echo "| \`$target_file\` | [$rel_doc]($rel_doc) | $code_date | $doc_date | $status |" >> "$MATRIX_FILE"
-    fi
-done
-
-for doc_path in "${UNOWNED_DOCS[@]+"${UNOWNED_DOCS[@]}"}"; do
-    rel_doc="${doc_path#"$ROOT_DIR"/}"
-    doc_date=$(get_fs_date "$doc_path")
-    status="unowned-doc"
-    STAT_COUNTS["unowned-doc"]=$((STAT_COUNTS["unowned-doc"] + 1))
-    if [[ "${DRY_RUN:-false}" == false ]]; then
-        echo "| \`Unknown\` | [$rel_doc]($rel_doc) | Missing | $doc_date | $status |" >> "$MATRIX_FILE"
-    fi
-done
-
-if [[ "${DRY_RUN:-false}" == false ]]; then
-    echo "" >> "$MATRIX_FILE"
-    echo "**Totals:** OK: ${STAT_COUNTS["OK"]:-0} | Stub: ${STAT_COUNTS["Stub"]:-0} | Missing: ${STAT_COUNTS["Missing"]:-0} | Stale: ${STAT_COUNTS["Stale"]:-0} | Unowned: ${STAT_COUNTS["unowned-doc"]:-0}" >> "$MATRIX_FILE"
+  else
+    mv -f "$matrix_tmp" "$MATRIX_FILE"
     log "INFO" "DIP audit complete. See $MATRIX_FILE for details."
+  fi
 fi
+
+if ((${#OWNERSHIP_COLLISIONS[@]} > 0)); then
+  log "WARN" "Ownership collisions remain unresolved (see matrix / logs)."
+fi
+
+log "INFO" "DIP finished. OK=${STAT_COUNTS[OK]:-0} Stub=${STAT_COUNTS[Stub]:-0} Missing=${STAT_COUNTS[Missing]:-0} Stale=${STAT_COUNTS[Stale]:-0} Unowned=${STAT_COUNTS[Unowned]:-0} Collisions=${#OWNERSHIP_COLLISIONS[@]} ObsoleteActions=${#OBSOLETE_MOVED[@]}"
