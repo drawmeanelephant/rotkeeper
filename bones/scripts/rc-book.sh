@@ -20,7 +20,7 @@ VERSION="${ROTKEEPER_VERSION:-0.4.0.4}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
 rk_init_script "rc-book" "$@"
-require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR REPORT_DIR BOOK_REPORT_DIR DOCS_DIR CONTENT_DIR
+require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR TEMPLATE_DIR LOG_DIR TMP_DIR REPORT_DIR BOOK_REPORT_DIR DOCS_DIR CONTENT_DIR
 
 set -euo pipefail
 IFS=$'\n\t'
@@ -130,7 +130,7 @@ runscriptbookfull() {
         echo ""
       } >> "$OUT"
     fi
-  done
+  done < <({ find "$SCRIPT_DIR" -maxdepth 1 -type f -name "rc-*.sh"; find "$ROOT_DIR" -maxdepth 1 -type f -name "rotkeeper.sh"; } | sort)
   log "INFO" "Full Scriptbook written to $OUT"
 }
 
@@ -197,7 +197,7 @@ rundocbookclean() {
         echo ""
       } >> "$OUT"
     fi
-  done
+  done < <(find "$DOCS_DIR" -name "*.md" -type f | sort)
   log "INFO" "Cleaned Docbook written to $OUT"
 }
 
@@ -223,7 +223,7 @@ runconfigbook() {
         echo ""
       } >> "$OUT"
     fi
-  done
+  done < <(find "$CONFIG_DIR" "$TEMPLATE_DIR" -type f \( -name "*.yaml" -o -name "*.yml" -o -name "*.tpl" -o -name "*.html" \) 2>/dev/null | sort)
   log "INFO" "Configbook written to $OUT"
 }
 
@@ -282,7 +282,7 @@ runcontentmeta() {
       ' "$file" >> "$OUT"
       echo "" >> "$OUT"
     fi
-  done
+  done < <(find "$CONTENT_DIR" -name "*.md" -type f | sort)
   log "INFO" "Content metadata written to $OUT"
 }
 
@@ -326,7 +326,14 @@ collapse() {
       echo "  title: $title"
       echo "  subtitle: $subtitle"
       echo "  body: |"
-      awk 'BEGIN{skip=1} /^---$/{if(skip){skip=0;next};nextfile} !skip{print "    " $0}' "$file"
+      # Strip YAML frontmatter (opening --- ... closing ---), keep the body.
+      awk '
+        BEGIN { in_fm=0; past_fm=0 }
+        NR==1 && /^---[[:space:]]*$/ { in_fm=1; next }
+        in_fm && /^---[[:space:]]*$/ { in_fm=0; past_fm=1; next }
+        in_fm { next }
+        { print "    " $0 }
+      ' "$file"
     } >> "$OUTPUT"
   done
   log "INFO" "Wrote $OUTPUT"
@@ -359,6 +366,7 @@ runmode() {
       else
         runscriptbookfull
         rundocbook
+        rundocbookclean
         runconfigbook
         runcontentbook
         runcontentmeta
