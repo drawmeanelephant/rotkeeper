@@ -57,12 +57,26 @@ Before considering a change complete, run the checks that apply:
 
 Report any unavailable tool, unsupported flag, or unrelated pre-existing test failure; do not conceal it by weakening checks.
 
+The dispatcher maps `test` and `smoke` to the same harness. With `--dry-run`, the harness runs only its removed-command regression checks. A full `test` builds temporary `crypt`, `busy`, and `sterile` fixtures, initializes each with sample content, runs the release packager, verifies the canonical archive, verifies that deprecated `-lite` and `-full` archives are absent, and checks removed legacy commands. On macOS, report a failure at the harness's `realpath -m` preflight as a portability issue; do not weaken the test to make it pass.
+
+## Binder and retrieval artifacts
+
+Use the dispatcher for book generation:
+
+- `bash rotkeeper.sh book --fsbook` creates the filesystem catalog consumed by DIP for core-file discovery.
+- `--docbook` and `--docbook-clean` bind documentation; `--scriptbook-full` binds active scripts; `--configbook` binds configuration/templates.
+- `--contentbook`, `--contentmeta`, and `--collapse` create content-oriented retrieval artifacts.
+- Outputs belong under `bones/book-reports`; the binder enforces its write boundary and has a size safeguard. Use `--force-bind` only when the larger artifact is intentional.
+
+Book outputs are generated retrieval aids, not authoritative policy. Verify the source scripts and configuration when a binder conflicts with them.
+
 ## Read before making assumptions
 
 - `bones/scripts/rc-utils.sh`: shared helpers, canonical environment loading, traps, and `validate_layout_alignment`.
 - `bones/scripts/rc-env.sh`: path derivation, layout styles, cached paths, and the environment idempotency guard.
 - `bones/config/rotkeeper.yaml`: active configuration and any saved `paths` cache.
 - `rotkeeper.sh`: supported dispatcher commands and their script mappings.
+- `bones/scripts/rc-book.sh`: binder modes, report destinations, boundary checks, and size safeguards.
 - `bones/scripts/rc-dip.sh`: documentation discovery, ownership, obsolete handling, pillar stitching, and matrix generation. Read its output critically.
 
 ## Project-specific gotchas
