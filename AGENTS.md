@@ -1,85 +1,77 @@
-# 🤖 Agent Guide to Rotkeeper
+# Rotkeeper Agent Operating Manual
 
-Welcome to the Rotkeeper repository. If you are an autonomous AI agent, LLM, or programmatic assistant exploring this project, this file serves as your comprehensive onboarding guide to the architecture, commands, and workflows.
+## What this project is
 
-## 🧭 The Core Philosophy
+Rotkeeper is a Bash-native, Pandoc-driven static site and content system. Markdown with YAML frontmatter is its source format; it has no Node or application-framework runtime requirement.
 
-Rotkeeper is a terminal-based toolkit for rendering, archiving, and preserving the remains of Markdown-driven projects.
-- **Inputs** are Markdown files (called "tombs") with YAML frontmatter.
-- **Outputs** are rendered HTML files and `.tar.gz` archives.
-- **Rituals** are bash scripts (`rc-*.sh`) that perform operations (rendering, packaging, scanning).
-- **The Dispatcher** is `rotkeeper.sh` — the single CLI entry point. Always use it.
+Use the dispatcher for project work:
 
-## 📂 Architecture
-
-```
-.
-├── rotkeeper.sh                 # CLI dispatcher — always start here
-├── home/
-│   ├── content/                 # Markdown source files — write your .md files here
-│   │   └── messages/            # Ingested content from decentralized payloads
-│   └── assets/                  # Static assets (CSS, images, JS) bundled into output
-├── output/                      # Rendered HTML output — never edit directly
-├── bones/                       # Internal system directory
-│   ├── scripts/                 # Bash rituals (rc-*.sh) — the actual logic
-│   ├── config/                  # System configs (rotkeeper.yaml)
-│   ├── templates/               # Pandoc HTML templates for rendering
-│   ├── archive/                 # Pack archives (tomb-*.tar.gz, tombkit-*.tar.gz)
-│   ├── releases/                # Versioned lite/full distribution .zip files
-│   ├── reports/                 # Generated reports, binders, sitemaps, indexes
-│   ├── logs/                    # Timestamped ritual logs
-│   ├── tmp/                     # Temporary staging (used by release builds)
-│   └── meta/                    # Extracted frontmatter metadata
-├── AGENTS.md                    # This file
-├── GEMINI.md                    # Gemini-specific agent directives
-└── CHANGELOG.md                 # Version history
+```bash
+bash rotkeeper.sh <command>
 ```
 
-## 🚀 Bootstrap Path for Jules (and Ephemeral Environments)
+Do not invoke `bones/scripts/rc-*.sh` directly.
 
-If you are running in a short-lived VM environment (like Jules/Ubuntu), follow this deterministic bootstrap path before running any `rotkeeper.sh` commands:
+## The BHO model
 
-1. **Run the deterministic setup script:**
-   ```bash
-   bash scripts/setup-jules.sh
-   ```
-   This will use `apt-get` to install `pandoc`, `jq`, `rsync`, `zip`, and `gawk`, while safely downloading the required `yq` v4 binary from GitHub releases. It will also ensure all scripts in `bones/scripts/` have execution permissions. Note: Always use this rather than guessing the environment state.
+- `bones/` is the system: scripts, configuration, templates, reports, logs, archives, and metadata.
+- `home/` is author-managed content and assets.
+- `output/` is generated site output. Do not edit it directly; change source content and render again.
 
-2. **Run the smoke test:**
-   ```bash
-   bash rotkeeper.sh smoke
-   ```
-   This performs a fast, non-destructive verification of dependencies, core directories, asset manifests, and runs a mock scan to ensure the repository is healthy.
+The active layout is derived from `bones/config/rotkeeper.yaml` and `rc-env.sh`. Layout styles change layout-dependent paths only:
 
-3. **Initialize safely:**
-   ```bash
-   bash rotkeeper.sh init --with-sample
-   ```
-   The `init` command is lightweight by default. It creates required directories. Using `--with-sample` generates a starter `test-file.md` in `home/content/`. To run the full initialization suite (sample, assets, render, scan), use `--full`.
+| Style | Content | Templates | Assets | Output |
+| --- | --- | --- | --- | --- |
+| `crypt` | `home/content` | `bones/templates` | `home/assets` | `output` |
+| `busy` | `home/content` | `templates` | `assets` | `output` |
+| `sterile` | `src/content` | `config/templates` | `src/assets` | `dist` |
 
-## 📋 Canonical Safe Commands
+`bones/` remains the system root in every layout. A serialized `paths` block, when present, is validated against the active layout and repository root.
 
-Here are the canonical, highly-safe commands you should prefer during your workflow:
+## Hard rules
 
-- `bash rotkeeper.sh init` — Prepares directories safely. Use `--with-render` or `--full` for heavier workflows.
-- `bash rotkeeper.sh smoke` — Non-destructive verification and environment test.
-- `bash rotkeeper.sh render` — Convert Markdown tombs to HTML safely. Output lives in `output/`.
-- `bash rotkeeper.sh scan --dry-run` — Test file constraints without side effects.
-- `bash rotkeeper.sh pack --content` — Safe export method to send `home/content/` to external sources.
-- `bash rotkeeper.sh status` — Get real-time status of the project state.
-- `bash rotkeeper.sh help` — Always available.
+- Do not add scripts, dispatcher commands, dependencies, or architectural subsystems without explicit human approval.
+- Modify existing files only unless the task explicitly authorizes a new file.
+- Preserve `set -euo pipefail` and `IFS=$'\n\t'` in Bash scripts. Quote expansions unless deliberate shell semantics require otherwise.
+- Use the established script bootstrap: source `rc-utils.sh` and call `rk_init_script`. Do not add direct `source rc-env.sh` calls; `rk_init_script` invokes `rk_load_env`.
+- Treat DIP-generated documentation as incomplete reference material, not ground truth. A stub or `TODO:` marker is evidence that the document needs verification.
+- Do not edit generated `output/` artifacts or rely on generated reports as the sole source of operational truth.
+- Keep ShellCheck's current project exemptions intact. Do not add blanket exemptions for quoting, strict-mode, or subshell warnings.
 
-### ⚠️ Constraints & Safety Rules
+### Repository control files
 
-- **Never invoke `rc-*.sh` scripts directly.** Always use `bash rotkeeper.sh <command>`.
-- **Do not edit `output/` files directly.** Trace the changes back to the source `.md` files in `home/content/` and re-run `render`.
-- Setup must remain finite and non-interactive. Use `setup-jules.sh` and `smoke` to guarantee readiness.
+- `.agentignore` currently names `bones/book-reports`. No Rotkeeper runtime script reads this file; avoid treating that generated directory as ordinary source work unless the task requires it.
+- `.blessed` currently contains only the version tag `v0.2.0`. `rc-dip.sh` ignores non-path entries, so it presently protects no paths.
+- `bones/config/dip-whitelist.txt` exempts listed documentation pages from DIP's obsolete-document move check. It is not a general exemption from matrix reporting or pillar stitching.
+- `.shellcheckrc` has targeted exemptions: `SC1090`, `SC1091`, `SC2034`, `SC2317`, `SC2181`, `SC2076`, `SC2053`, `SC2155`, and `SC2269`.
 
-## 📬 Decentralized Ingestion Pipeline
+## Required validation
 
+Before considering a change complete, run the checks that apply:
 
-## 📌 Version
+- `bash -n` on every modified Bash script.
+- `shellcheck` on every modified Bash script, using the repository `.shellcheckrc`.
+- `bash rotkeeper.sh test`.
+- `bash rotkeeper.sh status`.
+- The relevant dispatcher command with `--dry-run`, where that command supports it.
 
-Current version: `v0.3.1.3` (as defined in `rotkeeper.sh`).
+Report any unavailable tool, unsupported flag, or unrelated pre-existing test failure; do not conceal it by weakening checks.
 
-Good luck!
+## Read before making assumptions
+
+- `bones/scripts/rc-utils.sh`: shared helpers, canonical environment loading, traps, and `validate_layout_alignment`.
+- `bones/scripts/rc-env.sh`: path derivation, layout styles, cached paths, and the environment idempotency guard.
+- `bones/config/rotkeeper.yaml`: active configuration and any saved `paths` cache.
+- `rotkeeper.sh`: supported dispatcher commands and their script mappings.
+- `bones/scripts/rc-dip.sh`: documentation discovery, ownership, obsolete handling, pillar stitching, and matrix generation. Read its output critically.
+
+## Project-specific gotchas
+
+- `rk_load_env` validates path boundaries with canonical `realpath -m` or `readlink -m` resolution. Do not replace that with raw string-prefix checks.
+- Environment loading is idempotent for the same repository root. `rc-init.sh` deliberately uses `FORCE_ENV_RELOAD=true` after writing path mappings; do not set it elsewhere without a specific reason.
+- DIP moves an obsolete doc only with strong evidence: explicit `target_file` frontmatter whose target is no longer in the core inventory. Ambiguous docs are reported as unowned, not moved.
+- An expected documentation path does not make generated text authoritative. Verify source scripts and configuration before changing behavior based on a DIP page.
+
+## Tone
+
+Content documentation may use Rotkeeper's necropolis voice. This file stays plain and procedural.
