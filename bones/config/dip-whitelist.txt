@@ -13,3 +13,11 @@ home/content/docs/AGENTS.md
 home/content/docs/patch.md
 home/content/docs/pre-commit.md
 home/content/docs/rotkeeper.md
+home/content/docs/.github/dependabot.yml.md
+home/content/docs/.github/workflows/ci.yml.md
+home/content/docs/bones/config/index.md
+home/content/docs/bones/index.md
+home/content/docs/bones/logs/index.md
+home/content/docs/bones/scripts/index.md
+home/content/docs/bones/templates/index.md
+home/content/docs/scripts/index.md
