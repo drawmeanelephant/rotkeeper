@@ -47,6 +47,7 @@ Commands:
   pack        Archive rendered HTML into a versioned tarball
   release     Package the project into a single canonical framework zip file
               Usage: ./rotkeeper.sh release [VERSION] [options]
+  bump        Record a microrelease update and synchronize version markers
   test        Run the integration test harness matrix
   scan        Verify manifest entries against actual files
   assets      Generate asset manifest
@@ -84,6 +85,13 @@ case "$command" in
     fi
     echo "Creating standardized single canonical framework distribution..."
     bash "$BONES/rc-release.sh" "$rel_ver" "$@"
+    ;;
+  bump)
+    if [[ "${1:-}" == "--version" || "${1:-}" == "-v" ]]; then
+      echo "rc-bump.sh v$VERSION"
+    else
+      bash "$BONES/rc-bump.sh" "$@"
+    fi
     ;;
   scan)
     bash "$BONES/rc-scan.sh" "$@"

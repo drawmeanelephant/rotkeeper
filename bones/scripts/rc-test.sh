@@ -45,6 +45,11 @@ echo "--- Rotkeeper Single framework Release Assertion Test Matrix ---"
 
 TEST_DIR="/tmp/rotkeeper-test-env"
 cleanup_ran=false
+TEST_RELEASE_VERSION=$(grep -E '^VERSION="' rotkeeper.sh | cut -d'"' -f2)
+if [[ -z "$TEST_RELEASE_VERSION" ]]; then
+  echo "ERROR: Could not determine test release version from rotkeeper.sh" >&2
+  exit 1
+fi
 
 canonicalize_test_path() {
   local path="$1"
@@ -173,10 +178,10 @@ CONF_EOF
     ./rotkeeper.sh init --with-sample > /dev/null
 
     echo "  [+] Executing release packager assertions..."
-    ./rotkeeper.sh release "0.4.0.4" > /dev/null
+    ./rotkeeper.sh release "$TEST_RELEASE_VERSION" > /dev/null
 
     echo "  [+] Asserting single archive model matching criteria..."
-    if [[ ! -f "$b_archive/releases/rotkeeper-0.4.0.4.zip" ]]; then
+    if [[ ! -f "$b_archive/releases/rotkeeper-$TEST_RELEASE_VERSION.zip" ]]; then
        echo "❌ Assertion Failed: Canonical distribution package missing or multi-tier leaks found."
        exit 99
     fi
