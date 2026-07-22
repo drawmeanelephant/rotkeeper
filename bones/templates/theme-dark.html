@@ -1,25 +1,35 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>$title$</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Fira+Sans:ital,wght@0,400;0,500;0,700;0,900;1,400;1,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/chota@0.9.2">
+  <link rel="stylesheet" href="$assets_root$css/rotkeeper.css">
   <link rel="stylesheet" href="$assets_root$css/theme-dark.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="rk-page">
-  <div class="rk-container">
-    <header class="rk-header">
-      <h1 class="rk-title">$title$</h1>
-      $if(description)$
-      <p class="rk-subtitle">$description$</p>
-      $endif$
-    </header>
-    <main class="rk-article">
-      $body$
-    </main>
-    <footer class="rk-footer">
-      <p>Rendered by Rotkeeper</p>
-    </footer>
+  <div class="container rk-container">
+    <div class="row">
+      <div class="col-12 col-10-lg rk-reading-column">
+        <header class="rk-header">
+          <p class="rk-kicker">Rotkeeper / static record</p>
+          <h1 class="rk-title">$title$</h1>
+          $if(description)$
+          <p class="rk-subtitle">$description$</p>
+          $endif$
+        </header>
+        <main class="rk-article">
+          $body$
+        </main>
+        <footer class="rk-footer">
+          <p>Rendered by Rotkeeper.</p>
+        </footer>
+      </div>
+    </div>
   </div>
 <script src="$assets_root$js/search.js"></script>
 </body>
