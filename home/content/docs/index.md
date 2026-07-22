@@ -51,7 +51,7 @@ Ritual types include:
 ### 3. ⚙️ CLI Ritual Scripts
 - [`rc-init.sh`](bones/scripts/rc-init.md)
 - [`setup-jules.sh`](scripts/setup-jules.md)
-- [`rc-expand.sh`](bones/scripts/rc-expand.md)
+- [`rc-book.sh`](bones/scripts/rc-book.md)
 - [`rc-render.sh`](bones/scripts/rc-render.md)
 - [`rc-pack.sh`](bones/scripts/rc-pack.md)
 - [`rc-scan.sh`](bones/scripts/rc-scan.md)
@@ -94,7 +94,6 @@ Sora prompt: “A glitching wiki carved into obsidian, with glowing CLI runes et
 - [bones/](bones/index.html)
 - [road-to-bones/](road-to-bones/index.html)
 - [scripts/](scripts/index.html)
-- [.md](.md.html)
 - [architecture](architecture.html)
 - [dip-matrix](dip-matrix.html)
 - [onboarding](onboarding.html)
