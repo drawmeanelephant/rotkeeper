@@ -96,7 +96,7 @@ main() {
         run cp "$REPORT" "$MANIFEST"
         log "INFO" "Empty manifest generated at: $MANIFEST"
     else
-        while read -r relpath; do
+        while IFS= read -r relpath; do
             src="$ASSETS_DIR/$relpath"
             dest="$OUTPUT_ASSET_DIR/$relpath"
             if [[ -f "$src" ]]; then
@@ -115,7 +115,7 @@ main() {
             else
                 log "WARN" "Missing asset file unexpectedly: $relpath"
             fi
-        done
+        done <<< "$ASSET_PATHS"
         run cp "$REPORT" "$MANIFEST"
         log "INFO" "Full asset manifest generated at: $MANIFEST"
     fi
