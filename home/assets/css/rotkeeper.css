@@ -1,324 +1,148 @@
-/* Rotkeeper's shared presentation layer. Chota supplies the grid; this file
-   supplies the house style. */
+/* 🦴 rotkeeper.css: Supplemental ritual styling */
 
 :root {
-  --bg-color: #09100c;
-  --bg-secondary-color: #121b15;
-  --color-primary: #b8ed63;
-  --color-lightGrey: #27342b;
-  --color-grey: #a9b4aa;
-  --color-darkGrey: #18231b;
-  --color-error: #ec7b73;
-  --color-success: #b8ed63;
-  --grid-maxWidth: 116rem;
-  --grid-gutter: 1.8rem;
-  --font-size: 1.8rem;
-  --font-color: #edf3ed;
-  --font-family-sans: "Fira Sans", system-ui, sans-serif;
-  --font-family-mono: "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-
-  --rk-surface: #101914;
-  --rk-surface-raised: #152019;
-  --rk-rule: #2d3c31;
-  --rk-text-muted: #a9b4aa;
-  --rk-code: #d6f59a;
+  --bg: #111318;
+  --surface: #181c23;
+  --text: #e7eaf0;
+  --muted: #a7b0be;
+  --accent: #c97b63;
+  --accent-hover: #e08d74;
+  --border: #2b3240;
+  
+  --max-width-doc: 78rem;
+  --max-width-blog: 64rem;
+  
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
-* {
-  box-sizing: border-box;
-}
-
-html {
-  background: var(--bg-color);
-  scroll-behavior: smooth;
-}
-
-body.rk-page {
-  min-height: 100vh;
+html, body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
   margin: 0;
-  background: var(--bg-color);
-  color: var(--font-color);
-  font-family: var(--font-family-sans);
-  font-size: var(--font-size);
-  font-weight: 400;
-  line-height: 1.65;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  padding: 0;
+  height: 100%;
+  line-height: 1.6;
 }
 
-.rk-container {
-  padding-top: clamp(3.2rem, 8vw, 8.8rem);
-  padding-bottom: 5.6rem;
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
 }
 
-.rk-reading-column {
-  max-width: 92rem;
-  min-width: 0;
+code, pre {
+  font-family: var(--font-mono);
+  background-color: var(--surface);
+  border-radius: 4px;
 }
 
-.rk-header {
-  margin-bottom: clamp(3.2rem, 6vw, 6.4rem);
-  padding-bottom: 2.4rem;
-  border-bottom: 1px solid var(--rk-rule);
+code {
+  padding: 0.2em 0.4em;
+  font-size: 0.9em;
+  color: var(--accent);
 }
 
-.rk-kicker {
-  margin: 0 0 1.2rem;
-  color: var(--color-primary);
-  font-size: 1.2rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  line-height: 1.2;
-  text-transform: uppercase;
+pre {
+  border-left: 3px solid var(--border);
+  padding: 1rem;
+  overflow-x: auto;
 }
 
-.rk-title,
-.rk-article h1,
-.rk-article h2,
-.rk-article h3,
-.rk-article h4,
-.rk-article h5,
-.rk-article h6 {
-  color: var(--font-color);
-  font-family: var(--font-family-sans);
-  letter-spacing: -0.035em;
-  text-wrap: balance;
+pre code {
+  background-color: transparent;
+  color: inherit;
+  padding: 0;
 }
 
-.rk-title {
-  max-width: 16ch;
-  margin: 0;
-  font-size: clamp(4.2rem, 7vw, 7.6rem);
-  font-weight: 900;
-  line-height: 0.98;
+/* Structural Classes */
+
+.rk-page {
+  padding: 2rem 1rem;
 }
 
-.rk-subtitle {
-  max-width: 62ch;
-  margin: 2rem 0 0;
-  color: var(--rk-text-muted);
-  font-size: clamp(1.8rem, 2.4vw, 2.2rem);
-  font-weight: 400;
-  line-height: 1.45;
+.rk-shell {
+  margin: 0 auto;
+  width: 100%;
+}
+
+.rk-page--doc .rk-shell { 
+  max-width: var(--max-width-doc); 
+}
+
+.rk-page--blog .rk-shell { 
+  max-width: var(--max-width-blog); 
 }
 
 .rk-article {
-  max-width: 76ch;
-  min-width: 0;
+  padding-bottom: 3rem;
 }
 
-.rk-article > :first-child {
+.rk-header {
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+}
+
+.rk-header h1 {
+  margin-bottom: 0.5rem;
+}
+
+.rk-subtitle {
+  color: var(--muted);
   margin-top: 0;
+  font-size: 1.1rem;
 }
 
-.rk-article p,
-.rk-article ul,
-.rk-article ol,
-.rk-article dl,
-.rk-article table,
-.rk-article blockquote,
-.rk-article pre {
+.rk-meta {
+  background: var(--surface);
+  padding: 1rem;
+  margin-top: 2rem;
+  border-left: 4px solid var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+.rk-meta h2 {
+  font-family: var(--font-body);
   margin-top: 0;
-  margin-bottom: 2.2rem;
-}
-
-.rk-article h1 {
-  margin: 5.6rem 0 2rem;
-  font-size: clamp(3.4rem, 5vw, 5.4rem);
-  font-weight: 900;
-  line-height: 1.02;
-}
-
-.rk-article h2 {
-  margin: 5.2rem 0 1.6rem;
-  font-size: clamp(2.7rem, 4vw, 3.8rem);
-  font-weight: 700;
-  line-height: 1.1;
-}
-
-.rk-article h3 {
-  margin: 3.6rem 0 1.2rem;
-  font-size: clamp(2.1rem, 3vw, 2.7rem);
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-.rk-article h4,
-.rk-article h5,
-.rk-article h6 {
-  margin: 3rem 0 1rem;
-  font-size: 1.8rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  line-height: 1.3;
-}
-
-.rk-article ul,
-.rk-article ol {
-  padding-left: 2.2rem;
-}
-
-.rk-article li + li {
-  margin-top: 0.55rem;
-}
-
-.rk-article li::marker {
-  color: var(--color-primary);
-  font-weight: 700;
-}
-
-.rk-article a {
-  color: var(--font-color);
-  font-weight: 500;
-  text-decoration-color: var(--color-primary);
-  text-decoration-thickness: 0.16em;
-  text-underline-offset: 0.17em;
-  transition: color 140ms ease, text-decoration-color 140ms ease;
-}
-
-.rk-article a:hover {
-  color: var(--color-primary);
-  text-decoration-color: currentColor;
-}
-
-.rk-article strong {
-  color: var(--font-color);
-  font-weight: 700;
-}
-
-.rk-article em {
-  color: var(--rk-text-muted);
-}
-
-.rk-article hr {
-  height: 1px;
-  margin: 4.8rem 0;
-  border: 0;
-  background: var(--rk-rule);
-}
-
-.rk-article blockquote {
-  margin-left: 0;
-  padding: 1.4rem 1.8rem;
-  border-left: 0.3rem solid var(--color-primary);
-  background: var(--rk-surface);
-  color: var(--rk-text-muted);
-}
-
-.rk-article blockquote > :last-child {
-  margin-bottom: 0;
-}
-
-.rk-article code,
-.rk-article pre {
-  font-family: var(--font-family-mono);
-}
-
-.rk-article code {
-  padding: 0.14em 0.36em;
-  border: 1px solid var(--rk-rule);
-  background: var(--rk-surface);
-  color: var(--rk-code);
-  font-size: 0.84em;
-  font-weight: 400;
-  white-space: break-spaces;
-}
-
-.rk-article pre {
-  overflow-x: auto;
-  padding: 1.8rem;
-  border: 1px solid var(--rk-rule);
-  border-left: 0.3rem solid var(--color-primary);
-  background: var(--rk-surface);
-  color: var(--font-color);
-  font-size: 1.4rem;
-  line-height: 1.65;
-}
-
-.rk-article pre code {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font-size: inherit;
-  white-space: pre;
-}
-
-.rk-article code strong,
-.rk-article pre strong {
-  font-weight: 700;
-}
-
-.rk-article table {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
-  border-collapse: collapse;
-  border: 1px solid var(--rk-rule);
-  font-size: 1.55rem;
-}
-
-.rk-article th,
-.rk-article td {
-  min-width: 12rem;
-  padding: 1.1rem 1.3rem;
-  border-bottom: 1px solid var(--rk-rule);
-  text-align: left;
-  vertical-align: top;
-}
-
-.rk-article th {
-  background: var(--rk-surface-raised);
-  color: var(--font-color);
-  font-weight: 700;
-}
-
-.rk-article tr:last-child td {
-  border-bottom: 0;
-}
-
-.rk-article img,
-.rk-article video {
-  display: block;
-  max-width: 100%;
-  height: auto;
-  margin: 2.8rem 0;
-  border: 1px solid var(--rk-rule);
+  font-size: 1rem;
+  color: var(--muted);
 }
 
 .rk-footer {
-  margin-top: 7.2rem;
-  padding-top: 1.8rem;
-  border-top: 1px solid var(--rk-rule);
-  color: var(--rk-text-muted);
-  font-family: var(--font-family-mono);
-  font-size: 1.25rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 3rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1.5rem;
+  font-family: var(--font-mono);
 }
 
-.rk-footer p {
-  margin: 0;
+.rk-sora {
+  font-style: italic;
+  color: var(--muted);
+  background: var(--surface);
+  border-left: 3px solid var(--border);
+  padding: 1rem;
+  margin-top: 3rem;
+  font-size: 0.9rem;
 }
 
-::selection {
-  background: var(--color-primary);
-  color: #09100c;
+/* Base Typographic Resets */
+h1, h2, h3, h4 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
 }
 
-@media (max-width: 599px) {
-  .rk-container {
-    padding-right: 1.8rem;
-    padding-left: 1.8rem;
-  }
-
-  .rk-title {
-    font-size: clamp(3.8rem, 14vw, 5.4rem);
-  }
-
-  .rk-article pre {
-    margin-right: -0.2rem;
-    margin-left: -0.2rem;
-    padding: 1.4rem;
-  }
+h2, h3 {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.3rem;
 }
