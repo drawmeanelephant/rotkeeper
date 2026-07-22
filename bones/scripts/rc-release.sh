@@ -57,11 +57,31 @@ require_bins rsync zip
 PROJECT_ROOT="$ROOT_DIR"
 STAGING_DIR="$TMP_DIR/release-staging"
 
+canonicalize_release_path() {
+    local path="$1"
+    local parent
+    local base
+    local canonical
+
+    if canonical=$(realpath -m "$path" 2>/dev/null); then
+        printf '%s\n' "$canonical"
+        return 0
+    fi
+
+    parent=$(dirname "$path")
+    base=$(basename "$path")
+    if parent=$(cd "$parent" 2>/dev/null && pwd -P); then
+        printf '%s/%s\n' "$parent" "$base"
+    else
+        printf '%s\n' "$path"
+    fi
+}
+
 cleanup() {
     local status=$?
     log "INFO" "Cleaning up temporary staging directories from the physical realm..."
         if [[ -d "$STAGING_DIR" ]]; then
-        CANONICAL_STAGING_DIR=$(realpath -m "$STAGING_DIR")
+        CANONICAL_STAGING_DIR=$(canonicalize_release_path "$STAGING_DIR")
         if [[ "${CANONICAL_STAGING_DIR}/" == "${ROOT_DIR}/"* ]]; then
             rm -rf "$CANONICAL_STAGING_DIR"
         fi
