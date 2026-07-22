@@ -46,6 +46,29 @@ echo "--- Rotkeeper Single framework Release Assertion Test Matrix ---"
 TEST_DIR="/tmp/rotkeeper-test-env"
 cleanup_ran=false
 
+canonicalize_test_path() {
+  local path="$1"
+  local parent
+  local base
+  local canonical
+
+  if canonical=$(realpath -m "$path" 2>/dev/null); then
+    printf '%s\n' "$canonical"
+    return 0
+  fi
+
+  # BSD realpath has no -m flag. Resolve the existing parent physically and
+  # append the final component, which is sufficient for the fresh test root.
+  parent=$(dirname "$path")
+  base=$(basename "$path")
+  if parent=$(cd "$parent" 2>/dev/null && pwd -P); then
+    printf '%s/%s\n' "$parent" "$base"
+  else
+    printf '%s\n' "$path"
+  fi
+}
+
+# shellcheck disable=SC2329 # invoked indirectly by the EXIT/INT/TERM traps
 cleanup() {
   local status=$?
   if [[ "${cleanup_ran:-false}" == true ]]; then
@@ -57,7 +80,7 @@ cleanup() {
   set +e
 
   if [[ -n "${TEST_DIR:-}" && -d "${TEST_DIR}" ]]; then
-    CANONICAL_TEST_DIR=$(realpath -m "$TEST_DIR")
+    CANONICAL_TEST_DIR=$(canonicalize_test_path "$TEST_DIR")
     if [[ "${CANONICAL_TEST_DIR}/" == "${ROOT_DIR}/"* ]]; then
       echo "Pruning testing footprints from the physical realm..."
       rm -rf "$CANONICAL_TEST_DIR" || true
@@ -67,6 +90,7 @@ cleanup() {
   return "$status"
 }
 
+# shellcheck disable=SC2329 # invoked indirectly by the ERR trap
 on_err() {
   local status=$?
   printf 'ERROR: status=%s file=%s line=%s function=%s command=%q\n' \
@@ -82,7 +106,7 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 
 if [[ -n "${TEST_DIR:-}" ]]; then
-    CANONICAL_TEST_DIR=$(realpath -m "$TEST_DIR")
+    CANONICAL_TEST_DIR=$(canonicalize_test_path "$TEST_DIR")
     if [[ "${CANONICAL_TEST_DIR}/" == "${ROOT_DIR}/"* ]]; then
         rm -rf "$CANONICAL_TEST_DIR" || true
     fi
