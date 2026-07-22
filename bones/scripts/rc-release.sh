@@ -52,10 +52,11 @@ if [[ -z "$VERSION" ]]; then
 fi
 
 check_dependencies
-require_bins rsync zip
+require_bins rsync zip zipinfo
 
 PROJECT_ROOT="$ROOT_DIR"
 STAGING_DIR="$TMP_DIR/release-staging"
+ZIP_TMP=""
 
 canonicalize_release_path() {
     local path="$1"
@@ -80,11 +81,14 @@ canonicalize_release_path() {
 cleanup() {
     local status=$?
     log "INFO" "Cleaning up temporary staging directories from the physical realm..."
-        if [[ -d "$STAGING_DIR" ]]; then
+    if [[ -d "$STAGING_DIR" ]]; then
         CANONICAL_STAGING_DIR=$(canonicalize_release_path "$STAGING_DIR")
         if [[ "${CANONICAL_STAGING_DIR}/" == "${ROOT_DIR}/"* ]]; then
             rm -rf "$CANONICAL_STAGING_DIR"
         fi
+    fi
+    if [[ -n "${ZIP_TMP:-}" && -f "$ZIP_TMP" ]]; then
+        rm -f "$ZIP_TMP" || true
     fi
     exit "$status"
 }
@@ -98,6 +102,35 @@ validate_boundary() {
   fi
 }
 
+verify_archive_contents() {
+    local archive_path="$1"
+    local entry
+    local forbidden_prefix
+    local -a forbidden_prefixes=(
+        "rotkeeper/.git/"
+        "rotkeeper/output/"
+        "rotkeeper/${LOG_DIR#"$ROOT_DIR"/}/"
+        "rotkeeper/${TMP_DIR#"$ROOT_DIR"/}/"
+        "rotkeeper/${ARCHIVE_DIR#"$ROOT_DIR"/}/"
+        "rotkeeper/${REPORT_DIR#"$ROOT_DIR"/}/"
+        "rotkeeper/${BOOK_REPORT_DIR#"$ROOT_DIR"/}/"
+        "rotkeeper/${CONTENT_DIR#"$ROOT_DIR"/}/messages/"
+    )
+
+    while IFS= read -r entry; do
+        for forbidden_prefix in ${forbidden_prefixes[@]+"${forbidden_prefixes[@]}"}; do
+            if [[ "$entry" == "$forbidden_prefix"* ]]; then
+                log "ERROR" "Forbidden path included in release archive: $entry"
+                return 1
+            fi
+        done
+        if [[ "$entry" == */.DS_Store || "$entry" == *_temp.md ]]; then
+            log "ERROR" "Forbidden artifact included in release archive: $entry"
+            return 1
+        fi
+    done < <(zipinfo -1 "$archive_path")
+}
+
 main() {
     log "INFO" "Collapsing package model down to canonical single framework distribution: version $VERSION"
 
@@ -107,9 +140,11 @@ main() {
 
     local CANONICAL_DIR="$STAGING_DIR/rotkeeper"
     local ZIP_PATH="$RELEASE_DIR/rotkeeper-$VERSION.zip"
+    ZIP_TMP="$RELEASE_DIR/.rotkeeper-$VERSION.zip.tmp.$$"
 
     validate_boundary "$CANONICAL_DIR"
     validate_boundary "$ZIP_PATH"
+    validate_boundary "$ZIP_TMP"
 
     log "INFO" "Staging repository via strict exclusions..."
     if [[ "$DRY_RUN" == true ]]; then
@@ -136,10 +171,13 @@ main() {
 
     local orig_dir; orig_dir="$(pwd)"
     cd "$STAGING_DIR"
-    rm -f "$ZIP_PATH"
-
-    zip -rq "$ZIP_PATH" "rotkeeper"
+    zip -rq "$ZIP_TMP" "rotkeeper"
     cd "$orig_dir"
+
+    zip -T "$ZIP_TMP" >/dev/null
+    verify_archive_contents "$ZIP_TMP"
+    mv "$ZIP_TMP" "$ZIP_PATH"
+    ZIP_TMP=""
 
     log "INFO" "✅ Canonical single distribution created: $ZIP_PATH — $(du -sh "$ZIP_PATH" | cut -f1)"
     echo "✅ Release packaging complete — see ${ARCHIVE_DIR#"$ROOT_DIR"/}/releases/rotkeeper-[VERSION].zip"
