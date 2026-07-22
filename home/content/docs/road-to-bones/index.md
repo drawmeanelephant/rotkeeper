@@ -2,8 +2,8 @@
 title: "The Road to Bones"
 slug: road-to-bones
 subtitle: "Rotkeeper Buildlog & Resurrection Notes"
-version: "0.4.0.5"
-updated: "2026-07-21"
+version: "0.4.1"
+updated: "2026-07-22"
 description: "An evidence-backed buildlog assembled from CHANGELOG.md and the repository history."
 tags:
   - rotkeeper
@@ -20,6 +20,7 @@ their exact Git commit. Where the source is silent, the ledger stays silent.
 
 ## Living Buildlog
 <!-- LIVING_BUILDLOG_START -->
+* `v0.4.1` - (2026-07-22 13:13) - Release plumbing, cross-platform test safety, and documentation alignment
 
 ### 0.4.0.5 — 2026-07-01
 
