@@ -20,13 +20,11 @@ set -euo pipefail
 IFS=$'\n\t'
 
 
-export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
-
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-VERSION="${ROTKEEPER_VERSION:-0.4.0.3}"
+export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
 rk_init_script "rc-bump" "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR
@@ -50,6 +48,14 @@ Options:
   --help, -h         Show help
 EOF
 }
+
+# Read the dispatcher version before parsing flags so --version is authoritative.
+CURRENT_VERSION=$(grep -E '^VERSION="' "$ROOT_DIR/rotkeeper.sh" | cut -d'"' -f2)
+if [[ -z "$CURRENT_VERSION" ]]; then
+  log "ERROR" "Could not determine current version from rotkeeper.sh"
+  exit 1
+fi
+VERSION="${ROTKEEPER_VERSION:-$CURRENT_VERSION}"
 
 # Parse flags manually
 while [[ $# -gt 0 ]]; do
@@ -88,14 +94,6 @@ if [[ -n "$(git -C "$ROOT_DIR" status --porcelain 2>/dev/null)" ]]; then
   log "WARN" "Working tree is dirty. Proceeding with version bump, but be aware uncommitted changes exist."
 fi
 
-# Step 1: Read current version from rotkeeper.sh
-CURRENT_VERSION=$(grep -E '^VERSION=' "$ROOT_DIR/rotkeeper.sh" | cut -d'"' -f2)
-
-if [[ -z "$CURRENT_VERSION" ]]; then
-  log "ERROR" "Could not determine current version from rotkeeper.sh"
-  exit 1
-fi
-
 log "INFO" "Current version is $CURRENT_VERSION"
 
 # Step 2: Bump the micro version
@@ -125,16 +123,16 @@ else
         gsub(/\./, "\\.", old_ver)
       }
       {
-        if ($0 ~ "^VERSION=\"" old_ver "\"") {
-          sub("VERSION=\"" old_ver "\"", "VERSION=\"" new_ver "\"")
-        } else if ($0 ~ "^VERSION=\"\\$\{ROTKEEPER_VERSION:-[0-9.]+\}\"" || $0 ~ "^VERSION=\"\\$\{ROTKEEPER_VERSION:-" old_ver "\}\"") {
-          sub(/VERSION="\$\{ROTKEEPER_VERSION:-[0-9.]+\}"/, "VERSION=\"${ROTKEEPER_VERSION:-" new_ver "}\"")
-        } else if ($0 ~ "^#  Version : " old_ver) {
-          sub("#  Version : " old_ver, "#  Version : " new_ver)
-        } else if ($0 ~ "^# Version: " old_ver) {
-          sub("# Version: " old_ver, "# Version: " new_ver)
-        } else if ($0 ~ "\\(v" old_ver "\\)") {
-          sub("\\(v" old_ver "\\)", "(v" new_ver ")")
+        if ($0 ~ /^VERSION="\$\{ROTKEEPER_VERSION:-[0-9.]+\}"/) {
+          sub(/^VERSION="\$\{ROTKEEPER_VERSION:-[0-9.]+\}"/, "VERSION=\"${ROTKEEPER_VERSION:-" new_ver "}\"")
+        } else if ($0 ~ /^VERSION="[0-9.]+"/) {
+          sub(/^VERSION="[0-9.]+"/, "VERSION=\"" new_ver "\"")
+        } else if ($0 ~ /^#  Version : [0-9.]+/) {
+          sub(/^#  Version : [0-9.]+/, "#  Version : " new_ver)
+        } else if ($0 ~ /^# Version: [0-9.]+/) {
+          sub(/^# Version: [0-9.]+/, "# Version: " new_ver)
+        } else if ($0 ~ /\(v[0-9.]+\)/) {
+          sub(/\(v[0-9.]+\)/, "(v" new_ver ")")
         }
         print
       }
