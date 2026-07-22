@@ -1,4 +1,18 @@
 
+## [0.4.1] - 2026-07-22
+
+- Hardened strict-mode and quoting behavior across `rc-assets.sh`,
+  `rc-book.sh`, `rc-dip.sh`, and `rc-glue.sh`.
+- Centralized the canonical `rk_init_script`/`rk_load_env` loading sequence and
+  strengthened `validate_layout_alignment` preflight validation.
+- Stabilized DIP ownership, evidence-gated obsolete handling, matrix status,
+  and idempotent pillar stitching.
+- Made the macOS integration-test and release-cleanup paths tolerate BSD
+  `realpath` while preserving GNU `realpath -m` behavior.
+- Added a dispatcher-backed, version-aware microbump flow and parameterized the
+  release test against the dispatcher version.
+- Corrected the release reference to document the single canonical archive.
+
 ## [0.4.0.4] - 2026-07-01
 - Optimize rc-scan.sh to run faster on large filesystems.
 - Enhance rc-ingest.sh to support multiple ingest sources.
@@ -123,9 +137,6 @@
 ## [0.4.0] - 2026-06-26
 - Minor release: Integrates Inbox Autopilot, Frankenstein document engine, path-mirrored Necronotes architecture, and comprehensive sidecar documentation
 
-## [0.4.0] - 2026-06-26
-- Minor release: Integrates Inbox Autopilot, Frankenstein document engine, path-mirrored Necronotes architecture, and comprehensive sidecar documentation
-
 ## [0.4.0.1] - 2026-06-29
 - Enforce 3-tier verbosity, prune redundant render backups, and optimize JSON AST packaging
 
@@ -139,6 +150,4 @@
 - Enhance rc-ingest.sh to validate payload checksums safely.
 - Refactor rc-dip.sh to extract ritual history reliably.
 - Optimize rc-env.sh to prevent unnecessary fork subshells.
-
-## [0.4.0.3] - 2026-07-01
-- release
+- Release entry recorded for the 0.4.0.3 work above.

@@ -13,7 +13,7 @@ IFS=$'\n\t'
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-dip.sh
 #  Purpose : Document Improvement Project - audits and fixes docs
-#  Version : 0.4.0.5
+#  Version : 0.4.1
 #  Updated : 2026-07-15
 # ------------------------------------------------------------
 #  DIP state model (generated vs authored vs stub vs stale vs obsolete):
@@ -29,7 +29,7 @@ IFS=$'\n\t'
 #                never silently discarded
 # ============================================================
 
-VERSION="${ROTKEEPER_VERSION:-0.4.0.5}"
+VERSION="${ROTKEEPER_VERSION:-0.4.1}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }

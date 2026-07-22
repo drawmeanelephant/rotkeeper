@@ -17,7 +17,7 @@ rk_load_env strict
 #  Project : Rotkeeper
 #  Script  : rc-test.sh
 #  Purpose : Multi-Pass Layout Integration Test Suite aligned for single distribution zip archives
-#  Version : 0.4.0.4
+#  Version : 0.4.1
 # ============================================================
 
 set -euo pipefail
