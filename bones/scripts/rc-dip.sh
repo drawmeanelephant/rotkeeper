@@ -152,9 +152,11 @@ read_status_field() {
 count_todo_lines() {
   local doc="$1"
   awk '
-    BEGIN { fence=0; c=0 }
+    BEGIN { fence=0; soul=0; c=0 }
     /^```/ { fence = !fence; next }
-    !fence && /^TODO:/ { c++ }
+    /^##[[:space:]]+Necromancer/ { soul=1; next }
+    soul && /^##[[:space:]]+/ { soul=0 }
+    !fence && !soul && !/^>[[:space:]]*TODO:/ && /^TODO:/ { c++ }
     END { print c+0 }
   ' "$doc"
 }
@@ -173,22 +175,30 @@ extract_marker_body() {
   local doc="$1"
   local marker="$2"
   awk -v marker="$marker" '
-    function is_boundary(line) {
-      return line ~ /^##[[:space:]]+Environment([[:space:]]|$)/ \
-          || line ~ /^##[[:space:]]+Ritual[[:space:]]+History/ \
-          || line ~ /^##[[:space:]]+Necromancer/ \
-          || line ~ /^######[[:space:]]+CLI[[:space:]]+Usage/ \
-          || line ~ /^##[[:space:]]+Overview([[:space:]]|$)/ \
-          || line ~ /^<!-- DIP-[A-Z0-9-]+-EXTRACTED:/
-    }
-    BEGIN { grab=0 }
+    BEGIN { grab=0; n=0 }
     $0 ~ ("<!-- " marker ":") {
       if (grab) exit
       grab=1
       next
     }
-    grab && is_boundary($0) { exit }
-    grab { print }
+    grab {
+      # Marker lines, rather than headings alone, are the authoritative
+      # boundary.  Authored prose may legitimately contain "## Environment".
+      if ($0 ~ /^<!-- DIP-[A-Z0-9-]+-EXTRACTED:/) exit
+      body[++n]=$0
+    }
+    END {
+      # A canonical section heading immediately before the next marker is
+      # structural scaffolding, not part of the previous pillar body.
+      while (n > 0 && body[n] ~ /^[[:space:]]*$/) n--
+      if (n > 0 && (body[n] ~ /^##[[:space:]]+Environment([[:space:]]|$)/ \
+          || body[n] ~ /^##[[:space:]]+Ritual[[:space:]]+History/ \
+          || body[n] ~ /^##[[:space:]]+Necromancer/ \
+          || body[n] ~ /^######[[:space:]]+CLI[[:space:]]+Usage/ \
+          || body[n] ~ /^##[[:space:]]+Overview([[:space:]]|$)/)) n--
+      while (n > 0 && body[n] ~ /^[[:space:]]*$/) n--
+      for (i=1; i<=n; i++) print body[i]
+    }
   ' "$doc"
 }
 
@@ -259,45 +269,47 @@ stitch_pillar() {
   export CONTENT_FILE="$content_file"
 
   awk '
-    function is_boundary(line) {
+    function is_header(line) {
       return line ~ /^##[[:space:]]+Environment([[:space:]]|$)/ \
           || line ~ /^##[[:space:]]+Ritual[[:space:]]+History/ \
           || line ~ /^##[[:space:]]+Necromancer/ \
           || line ~ /^######[[:space:]]+CLI[[:space:]]+Usage/ \
-          || line ~ /^##[[:space:]]+Overview([[:space:]]|$)/ \
-          || line ~ /^<!-- DIP-[A-Z0-9-]+-EXTRACTED:/
+          || line ~ /^##[[:space:]]+Overview([[:space:]]|$)/
+    }
+    function real_boundary(i, j) {
+      if (!is_header(lines[i])) return 0
+      j=i+1
+      while (j<=count && lines[j] ~ /^[[:space:]]*$/) j++
+      return j<=count && lines[j] ~ /^<!-- DIP-[A-Z0-9-]+-EXTRACTED:/
+    }
+    function process_line(i, line, marker_line, foreign_marker) {
+      line=lines[i]
+      marker_line=(line ~ ("<!-- " ENVIRON["MARKER"] ":"))
+      foreign_marker=(line ~ /^<!-- DIP-[A-Z0-9-]+-EXTRACTED:/ && !marker_line)
+      if (skip) {
+        if (marker_line) return
+        if (real_boundary(i) || foreign_marker) skip=0
+        else return
+      }
+      if (marker_line) {
+        if (emitted) { skip=1; return }
+        print "<!-- " ENVIRON["MARKER"] ": " ENVIRON["DATE_STR"] " -->"
+        print ""
+        while ((getline cline < ENVIRON["CONTENT_FILE"]) > 0) print cline
+        close(ENVIRON["CONTENT_FILE"])
+        emitted=1; skip=1; return
+      }
+      print line
     }
     BEGIN {
-      skip=0
-      emitted=0
-      section_re = ENVIRON["SECTION_RE"]
+      count=0
+      while ((getline line < ARGV[1]) > 0) lines[++count]=line
+      close(ARGV[1])
+      skip=0; emitted=0
+      section_re=ENVIRON["SECTION_RE"]
+      for (i=1; i<=count; i++) process_line(i)
+      exit
     }
-    # Consume duplicate section headers + bodies for this pillar while skipping
-    skip {
-      if ($0 ~ ("<!-- " ENVIRON["MARKER"] ":")) next
-      if (section_re != "" && $0 ~ section_re) next
-      if (is_boundary($0)) {
-        skip=0
-        # fall through to process this boundary line
-      } else {
-        next
-      }
-    }
-    $0 ~ ("<!-- " ENVIRON["MARKER"] ":") {
-      if (emitted) {
-        # Duplicate marker of same type: drop until next foreign boundary
-        skip=1
-        next
-      }
-      print "<!-- " ENVIRON["MARKER"] ": " ENVIRON["DATE_STR"] " -->"
-      print ""
-      while ((getline cline < ENVIRON["CONTENT_FILE"]) > 0) print cline
-      close(ENVIRON["CONTENT_FILE"])
-      emitted=1
-      skip=1
-      next
-    }
-    { print }
   ' "$doc_path" >"$tmp_file"
   rm -f "$content_file"
   mv -f "$tmp_file" "$doc_path"
@@ -684,8 +696,35 @@ build_history_content() {
 
 build_soul_content() {
   local target_file="$1"
-  local soulbody
+  local soulbody target_origin sidecar
   soulbody=$(read_meta_sidecar_body "$target_file" || true)
+  # On platforms without both realpath -m and readlink -f, the shared
+  # resolver can return an empty body even though the metadata registry has
+  # already indexed the exact sidecar path. Use that indexed path directly;
+  # never synthesize soul content when neither source exists.
+  if [[ -z "${soulbody//[[:space:]]/}" ]]; then
+    target_origin=$(get_base_no_ext "$target_file")
+    sidecar="${SOUL_TARGETS[$target_origin]:-}"
+    if [[ -n "$sidecar" && -f "$sidecar" ]]; then
+      soulbody=$(sed "1{/^---$/!q;}; 1,/^---$/d" "$sidecar")
+    fi
+  fi
+  # Sidecars can themselves have been stitched.  Strip only the recursive
+  # generated tail, retaining all authored prose before that marker.
+  if [[ "$soulbody" == *"<!-- DIP-"* ]]; then
+    soulbody=$(printf '%s\n' "$soulbody" | awk '
+      { lines[NR]=$0 }
+      END {
+        stop=0
+        for (i=1; i<=NR; i++) if (lines[i] ~ /^<!-- DIP-[A-Z0-9-]+-EXTRACTED:/) { stop=i-1; break }
+        if (stop==0) stop=NR
+        while (stop>0 && lines[stop] ~ /^[[:space:]]*$/) stop--
+        if (stop>0 && lines[stop] ~ /^##[[:space:]]+Necromancer/) stop--
+        while (stop>0 && lines[stop] ~ /^[[:space:]]*$/) stop--
+        for (i=1; i<=stop; i++) print lines[i]
+      }
+    ')
+  fi
   if [[ -z "${soulbody//[[:space:]]/}" ]]; then
     printf '%s\n' "*Not found: no soul sidecar for \`$target_file\`.*"
   else
@@ -731,7 +770,12 @@ ensure_dip_markers() {
         ;;
     esac
   done
-  printf '%s' "$append" >>"$doc_path"
+  # Append the scaffolding through the shared atomic writer so an
+  # interruption cannot leave a half-written document.
+  {
+    cat "$doc_path"
+    printf '%s' "$append"
+  } | atomic_write "$doc_path"
 }
 
 # --- 4. Stub missing docs --------------------------------------------------
@@ -739,6 +783,11 @@ ensure_dip_markers() {
 log "INFO" "Checking for missing docs..."
 for doc_path in "${!EXPECTED_DOCS[@]}"; do
   target_file="${EXPECTED_DOCS[$doc_path]}"
+  rel_expected="${doc_path#"$ROOT_DIR"/}"
+  if [[ "$doc_path" != "$DOCS_DIR"/* ]] || ! path_stays_under "$ROOT_DIR" "$rel_expected"; then
+    log "ERROR" "Refusing unsafe generated doc path outside ROOT_DIR/DOCS_DIR: $doc_path"
+    continue
+  fi
   if [[ -f "$doc_path" ]]; then
     continue
   fi
@@ -798,6 +847,11 @@ ENV_LIST_CONTENT=$(build_env_list)
 
 for doc_path in "${!EXPECTED_DOCS[@]}"; do
   [[ -f "$doc_path" ]] || continue
+  rel_expected="${doc_path#"$ROOT_DIR"/}"
+  if [[ "$doc_path" != "$DOCS_DIR"/* ]] || ! path_stays_under "$ROOT_DIR" "$rel_expected"; then
+    log "ERROR" "Refusing unsafe generated doc path outside ROOT_DIR/DOCS_DIR: $doc_path"
+    continue
+  fi
   target_file="${EXPECTED_DOCS[$doc_path]}"
   script_name=$(basename -- "$target_file")
 
