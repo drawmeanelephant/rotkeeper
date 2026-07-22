@@ -52,10 +52,10 @@ If you spot TODOs, unfinished rituals, or hallucinated AI logic, call it out. If
 
 ## 💀 Useful Files
 
-- `rotkeeper-manual.md` — Generated from in-script comments via `rc-scriptbook.sh`. This is your living grimoire.
+- `rotkeeper-manual.md` — Generated retrieval documentation for the living grimoire.
 - `bones/` — Where logs, configs, and scan results are entombed.
 - `home/` — Where your tombs and rendered results live.
-- `rotkeeper-bom.yaml` — Required for `rc-expand.sh`; defines what gets generated.
+- `bones/config/rotkeeper.yaml` — Defines the active layout and path configuration.
 
 ---
 

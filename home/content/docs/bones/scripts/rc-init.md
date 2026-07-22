@@ -41,7 +41,7 @@ It also ensures the following exist:
 
 - Can be run repeatedly without error
 - Logs are saved to `bones/logs/rc-init.log`. All stdout and stderr are captured.
-- Errors from `rc-expand.sh` or `rc-render.sh` will cause a non-zero exit and be captured in the log.
+- Errors from `rc-render.sh` will cause a non-zero exit and be captured in the log.
 - Exits `0` on success, `1` if required tools or permissions are missing
 - Sources `rc-env.sh` to set root path constants
 
@@ -59,7 +59,7 @@ It also ensures the following exist:
 
 ## 🔗 Related Rituals
 
-- [`rc-expand.sh`](rc-expand.md) — generates content stubs
+- [`rc-new.sh`](rc-new.md) — scaffolds new content files
 - [`rc-render.sh`](rc-render.md) — renders output after structure is seeded
 - [`rc-book.sh`](rc-book.md) — generates documentation reports after init
 
