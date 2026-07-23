@@ -1,9 +1,9 @@
 ---
 title: "Welcome to Rotkeeper"
 slug: home
-version: "0.3.0.4"
-updated: "2026-06-15"
-description: "Rotkeeper CLI landing page. Get started with decay rituals, rendering tombs, and exploring archival output."
+version: "0.4.1"
+updated: "2026-07-23"
+description: "A Bash-native, Pandoc-driven static site and content system for Markdown, documentation, and local-first themes."
 tags:
   - rotkeeper
   - homepage
@@ -18,63 +18,69 @@ asset_meta:
   license: "All Rights Reserved"
 ---
 
-# Rotkeeper: A Ritual CLI for Flat‑File Decay
+# Rotkeeper: A Ritual CLI for Flat-File Decay
 
-Rotkeeper is a terminal-based toolkit for rendering, archiving, and preserving the remains of Markdown-driven projects.
+Rotkeeper turns Markdown with YAML frontmatter into a static site with Pandoc. The system is Bash-native, locally vendored, and organized around three places: `bones/` for the machinery, `home/` for authored content, and `output/` for rendered artifacts.
+
 Each file is a tomb. Each version is a ritual. Each render is final.
 
 ***
 
-## 🧪 Run It
+## 🧪 Run the Pipeline
 
-To start rendering tombs:
+From the repository root:
 
 ```bash
-./rotkeeper.sh render
+bash rotkeeper.sh init --full
+bash rotkeeper.sh render
+bash rotkeeper.sh assets
 ```
 
-See the [Quickstart Guide](/docs/quickstart-guide.md) to begin your first decay ritual.
+Use `render` for HTML, `assets` to copy local CSS/fonts/images/JavaScript into `output/assets/`, and `status` to inspect the current environment.
 
 ***
 
 ## 🗺️ Index
 
-### 🧾 [Docs](/docs/)
-> Learn how to use the CLI, configure tombs, run audit rituals, and understand the philosophy behind decay tracking.
+### 🧾 [Docs](docs/index.html)
+> Learn the layout, configuration, ritual scripts, and documentation workflow.
 
-### 📦 [Archive](/archive/)
-> Browse or download `.tar.gz` tombs of past versions. Explore manifests, changelogs, and tomb metadata.
+### 🆘 [Help](help/index.html)
+> Start with the practical command and workflow notes.
 
-### 📜 [Blog](/blog/)
-> Announcements, roadmap notes, and case studies from real decay rituals.
+### 🧰 [Rotkeeper Reference](rotkeeper/index.html)
+> Read the project reference and current operating notes.
 
-### 🧪 [Playground](/playground/)
-> Try Rotkeeper tools live in your browser. Scan markdown, preview templates, and mutate logs.
+### 🎭 [Showcase](showcase/index.html)
+> Compare the available themes, including the persistent Spooky dark and light variants.
 
-### 📡 [API](/api/)
-> Query tomb metadata via JSON. Hook into scan endpoints or browse file-level decay attributes.
+### 📝 [First Page](my-first-page.html)
+> See the smallest authored content example in the current tree.
 
-### 🛠️ [Tools](/tools/)
-> Experimental GUI helpers. Generate manifests, edit render-flags, and tail live log output.
+## 🦴 Current Rituals
 
-***
+- `bash rotkeeper.sh dip` audits and stitches documentation.
+- `bash rotkeeper.sh book --fsbook` builds the filesystem catalog DIP consumes.
+- `bash rotkeeper.sh glue` repairs missing content indexes.
+- `bash rotkeeper.sh scan` checks files against the asset manifest.
+- `bash rotkeeper.sh test` runs the integration and release assertions.
 
-## 🔖 Version: 0.3.0.4
+The source documentation lives under [`home/content/docs`](docs/index.html). Generated HTML belongs under `output/`; do not edit it directly.
 
-- [Changelog](/changelog/)
-- [How to Contribute](/contributing/)
+## 🎨 Themes
 
-***
+The default is `theme-spooky-dark.html`, using locally vendored Fira Sans and Fira Code. `theme-spooky-light.html`, `theme-dark.html`, `theme-light.html`, `theme-kawaii.html`, `theme-overgrown.html`, and `theme-phosphor.html` remain available for explicit page frontmatter.
 
-**New to the project? Start with the [Docs](/docs/). Want to see a tomb? Visit the [Archive](/archive/).**
+New to the project? Start with the [Docs](docs/index.html). Want to compare layouts? Visit the [Showcase](showcase/index.html).
 
 <!--
 Sora prompt: "A decayed tombstone interface for Rotkeeper.com—ghostly monospaced text drifting across a glitching terminal window, rusted metal accents, and flickering OpenMoji icons."
 -->
 <!-- ROTKEEPER-GLUE-START -->
-- [docs/](docs/index.html)
-- [help/](help/index.html)
-- [rotkeeper/](rotkeeper/index.html)
-- [showcase/](showcase/index.html)
-- [my-first-page](my-first-page.html)
+- [docs/](<docs/index.html>)
+- [help/](<help/index.html>)
+- [messages/](<messages/index.html>)
+- [rotkeeper/](<rotkeeper/index.html>)
+- [showcase/](<showcase/index.html>)
+- [my-first-page](<my-first-page.html>)
 <!-- ROTKEEPER-GLUE-END -->

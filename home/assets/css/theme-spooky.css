@@ -43,10 +43,18 @@
 
 :root {
   --bg-color: #000000;
+  --surface-color: #0a0a0a;
   --text-color: #ffffff;
   --accent-color: #00ff00; /* Matrix Green */
   --border-color: #333333;
   --dim-text: #888888;
+  --strong-color: #ffffff;
+  --muted-color: #555555;
+  --code-bg: #0a0a0a;
+  --kbd-bg: #111111;
+  --table-head-bg: #111111;
+  --row-alt-bg: #050505;
+  --hover-bg: #111111;
   --font-mono: "Fira Code", ui-monospace, monospace;
 }
 
@@ -115,12 +123,12 @@ a:hover {
 }
 
 /* Inline Elements */
-strong, b { font-weight: 700; color: #fff; }
+strong, b { font-weight: 700; color: var(--strong-color); }
 em, i { font-style: italic; color: var(--dim-text); }
-del, s { text-decoration: line-through; color: #555; }
+del, s { text-decoration: line-through; color: var(--muted-color); }
 mark { background-color: var(--accent-color); color: var(--bg-color); padding: 0 4px; }
 kbd {
-  background-color: #111;
+  background-color: var(--kbd-bg);
   border: 1px solid var(--border-color);
   border-bottom: 2px solid var(--border-color);
   color: var(--accent-color);
@@ -137,7 +145,7 @@ code, pre, kbd {
 }
 
 code {
-  background-color: #0a0a0a;
+  background-color: var(--code-bg);
   border: 1px solid var(--border-color);
   color: var(--accent-color);
   padding: 2px 4px;
@@ -145,7 +153,7 @@ code {
 }
 
 pre {
-  background-color: #0a0a0a;
+  background-color: var(--code-bg);
   border: 1px solid var(--border-color);
   border-left: 5px solid var(--accent-color);
   padding: 15px;
@@ -165,7 +173,7 @@ blockquote {
   margin: 1.5em 0;
   padding: 15px 20px;
   border-left: 5px solid var(--accent-color);
-  background-color: #0a0a0a;
+  background-color: var(--surface-color);
   color: var(--dim-text);
   font-style: italic;
 }
@@ -218,13 +226,13 @@ th, td {
 }
 
 th {
-  background-color: #111;
+  background-color: var(--table-head-bg);
   color: var(--accent-color);
   text-transform: uppercase;
 }
 
-tbody tr:nth-child(even) { background-color: #050505; }
-tbody tr:hover { background-color: #111; }
+tbody tr:nth-child(even) { background-color: var(--row-alt-bg); }
+tbody tr:hover { background-color: var(--hover-bg); }
 
 /* Media & Figures */
 img, video, canvas {
@@ -238,7 +246,7 @@ figure {
   margin: 1.5em 0;
   padding: 10px;
   border: 1px solid var(--border-color);
-  background-color: #050505;
+  background-color: var(--row-alt-bg);
 }
 
 figcaption {
@@ -250,7 +258,7 @@ figcaption {
 }
 
 .figure-placeholder {
-  background-color: #111;
+  background-color: var(--table-head-bg);
   height: 150px;
   display: flex;
   align-items: center;
@@ -328,7 +336,7 @@ hr {
   justify-content: center;
   font-size: 0.8rem;
   color: var(--dim-text);
-  background-color: #111;
+  background-color: var(--table-head-bg);
   text-align: center;
 }
 
@@ -342,7 +350,7 @@ hr {
   padding: 10px 15px;
   font-size: 0.9rem;
   color: var(--dim-text);
-  background-color: #0a0a0a;
+  background-color: var(--surface-color);
 }
 
 .metadata-item { margin-bottom: 5px; }
@@ -385,6 +393,26 @@ hr {
 
 /* Footer Area */
 .journal-footer {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--accent-color);
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--dim-text);
+}
+
+/* Shared documentation/blog templates use these hooks. */
+.rk-shell {
+  max-width: 1000px;
+  margin: 0 auto;
+  border: 1px solid var(--accent-color);
+  padding: 30px;
+}
+.rk-header { margin-bottom: 40px; }
+.rk-title { margin-top: 0; }
+.rk-subtitle { color: var(--dim-text); }
+.rk-article > *:first-child { margin-top: 0; }
+.rk-footer {
   margin-top: 40px;
   padding-top: 20px;
   border-top: 1px solid var(--accent-color);

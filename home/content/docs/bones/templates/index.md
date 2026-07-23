@@ -20,13 +20,16 @@ HTML and CSS layouts that structure the static site output.
 - **[rotkeeper-blog.html](rotkeeper-blog.html)**: Layout template optimized for logs, blogs, and updates.
 - **[theme-dark.html](theme-dark.html)**: Dark-mode theme configuration.
 - **[theme-light.html](theme-light.html)**: Light-mode theme configuration.
+- **[theme-spooky-dark.html](theme-spooky-dark.html)**: Persistent dark Spooky presentation (default).
+- **[theme-spooky-light.html](theme-spooky-light.html)**: Light reading variant of the Spooky presentation.
 
 <!-- ROTKEEPER-GLUE-START -->
-- [rotkeeper-blog](rotkeeper-blog.html)
-- [rotkeeper-doc](rotkeeper-doc.html)
-- [theme-dark](theme-dark.html)
-- [theme-kawaii](theme-kawaii.html)
-- [theme-light](theme-light.html)
-- [theme-overgrown](theme-overgrown.html)
-- [theme-phosphor](theme-phosphor.html)
+- [rotkeeper-blog](<rotkeeper-blog.html>)
+- [rotkeeper-doc](<rotkeeper-doc.html>)
+- [theme-dark](<theme-dark.html>)
+- [theme-kawaii](<theme-kawaii.html>)
+- [theme-light](<theme-light.html>)
+- [theme-overgrown](<theme-overgrown.html>)
+- [theme-phosphor](<theme-phosphor.html>)
+- [theme-spooky](<theme-spooky.html>)
 <!-- ROTKEEPER-GLUE-END -->

@@ -98,8 +98,8 @@ Errors and render failures are logged to `bones/logs/rc-render.log`.
 
 ## 🛣️ Navigation
 <!-- Quick navigation links -->
-- [Scripts Index](scripts/index.html)
-- [Render Reference](scripts/rc-render.html)
+- [Scripts Index](index.html)
+- [Render Reference](rc-render.html)
 - [Bones Home](index.html)
 
 <!--
@@ -139,12 +139,35 @@ This script is a masterclass in bureaucratic necromancy. I deeply appreciate the
 * The fallback template selection is reliant on whatever file globbing decides is first; one day, it will grab a template meant for internal torture rather than public display.
 * If `ROOT_DIR` or `OUTPUT_DIR` somehow become unassigned or point to `/`, the recursive `mkdir -p` and path string replacements (`${mdpath#"$PROJ_ROOT"/}`) might attempt to entomb the entire operating system.
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-04T15:41:00Z -->
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
 
 - - Improve rc-render.sh error handling during template fallback.
 - - Added parallel processing to rc-render.sh.
 - - Strip frontmatter overrides and fix rc-render.sh to use rotkeeper.yaml
 - - Fix template parsing bug in rc-render.sh using yq
 - - Ensure rc-render.sh outputs proper HTML with valid tags.
-- * `v0.3.1.4` - (2026-06-22 11:39) - Fix template parsing bug in rc-render.sh using yq
-- * ✅ `rc-render.sh` — output archive fixed, now logs + compresses safely
+- `CHANGELOG.md` records parallel `rc-render.sh` processing, smaller `rc-pack.sh`
+## Environment
+<!-- DIP-ENV-EXTRACTED: 2026-07-23T10:54:47Z -->
+
+- **$ROOT_DIR**: /Users/tbuddy/dev/rotkeeper
+- **$OUTPUT_DIR**: /Users/tbuddy/dev/rotkeeper/output
+- **$CONTENT_DIR**: /Users/tbuddy/dev/rotkeeper/home/content
+- **$ASSETS_DIR**: /Users/tbuddy/dev/rotkeeper/home/assets
+- **$DOCS_DIR**: /Users/tbuddy/dev/rotkeeper/home/content/docs
+- **$HELP_DIR**: /Users/tbuddy/dev/rotkeeper/home/content/help
+- **$BONES_DIR**: /Users/tbuddy/dev/rotkeeper/bones
+- **$SCRIPT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/scripts
+- **$CONFIG_DIR**: /Users/tbuddy/dev/rotkeeper/bones/config
+- **$LOG_DIR**: /Users/tbuddy/dev/rotkeeper/bones/logs
+- **$TMP_DIR**: /Users/tbuddy/dev/rotkeeper/bones/tmp
+- **$ARCHIVE_DIR**: /Users/tbuddy/dev/rotkeeper/bones/archive
+- **$REPORT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/reports
+- **$BOOK_REPORT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/book-reports
+- **$TEMPLATE_DIR**: /Users/tbuddy/dev/rotkeeper/bones/templates
+- **$META_DIR**: /Users/tbuddy/dev/rotkeeper/bones/meta
+- **$WEB_DIR**: /Users/tbuddy/dev/rotkeeper/output
+###### CLI Usage
+<!-- DIP-HELP-EXTRACTED: 2026-07-23T10:54:47Z -->
+
+*Not found: autopsy help report missing (`/Users/tbuddy/dev/rotkeeper/bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-scan*

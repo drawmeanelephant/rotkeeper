@@ -60,7 +60,8 @@ Use in frontmatter as `template: <name>`:
 - `rotkeeper-blog.html` — Blog-style layout
 - `rotkeeper-doc.html` — Documentation with navigation
 - `theme-dark.html` — Clean, flat dark theme layout
-- `theme-light.html` — Clean, flat light theme layout (default)
+- `theme-spooky-dark.html` — Fira Sans/Fira Code journal-terminal theme (default)
+- `theme-spooky-light.html` — Light reading variant of the Spooky theme
 
 ## Decentralized Content Pipeline
 
