@@ -3,6 +3,8 @@ SUPPORT/
 
 # MacOS system junk
 .DS_Store
+__pycache__/
+*.pyc
 
 # Output artifacts and temporary builds
 # Output folder is render-generated and excluded from git
@@ -31,3 +33,6 @@ home/content/messages
 bones/ingested
 bones/releasestestenv/
 rotkeeper-test-env/
+
+# Unversioned spikes and research
+apex-spike/

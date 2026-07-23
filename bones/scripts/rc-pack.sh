@@ -195,13 +195,25 @@ main() {
 
       if [[ "$DRY_RUN" == false ]]; then
         echo "🧬 Exporting .md from \"$SOURCE_DIR\" to JSON: \"$EXPORT_JSON\""
-                TMP_EXPORT="$(mktemp)"
+        TMP_EXPORT="$(mktemp)"
         echo "[" > "$TMP_EXPORT"
         FIRST=true
+        HAS_PANDOC=false
+        if command -v pandoc >/dev/null 2>&1; then
+          HAS_PANDOC=true
+        else
+          log "INFO" "Pandoc binary unavailable; defaulting pandoc_ast fields to {} in export JSON."
+        fi
+
         while IFS= read -r -d '' mdfile; do
-          if ! AST_CONTENT=$(pandoc "$mdfile" -t json 2>/dev/null); then
-            log "ERROR" "Pandoc failed on $mdfile, skipping."
-            continue
+          AST_CONTENT="{}"
+          if [[ "$HAS_PANDOC" == true ]]; then
+            AST_RAW=$(pandoc "$mdfile" -t json 2>/dev/null || echo "")
+            if [[ -n "$AST_RAW" ]] && echo "$AST_RAW" | jq empty 2>/dev/null; then
+              AST_CONTENT="$AST_RAW"
+            else
+              log "WARN" "Pandoc AST extraction failed for $mdfile; falling back to {}."
+            fi
           fi
 
           ABS_PATH=$(realpath "$mdfile")
