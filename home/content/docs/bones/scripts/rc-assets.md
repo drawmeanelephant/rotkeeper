@@ -140,6 +140,17 @@ Do not feed it untrusted zip files or chaotic directory structures unless you en
 - **$META_DIR**: /Users/tbuddy/dev/rotkeeper/bones/meta
 - **$WEB_DIR**: /Users/tbuddy/dev/rotkeeper/output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-07-23T10:54:47Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-07-23T12:07:07Z -->
 
-*Not found: autopsy help report missing (`/Users/tbuddy/dev/rotkeeper/bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-scan*
+```text
+rc-assets.sh — Generate a selective YAML manifest of referenced assets
+
+Usage: rc-assets.sh [options]
+
+Options:
+  --version, -v    Show script version and quit
+  --help, -h       Show this help message and exit
+  --dry-run        Preview actions without writing files
+  --verbose        Show detailed logs
+  --sitemap        Generate sitemap.yaml manifest (opt-in)
+```

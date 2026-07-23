@@ -117,6 +117,8 @@ Never trust the environment. Validate `ROOT_DIR` as if your life depends on it, 
 - **$META_DIR**: /Users/tbuddy/dev/rotkeeper/bones/meta
 - **$WEB_DIR**: /Users/tbuddy/dev/rotkeeper/output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-07-23T10:54:47Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-07-23T12:07:07Z -->
 
-*Not found: autopsy help report missing (`/Users/tbuddy/dev/rotkeeper/bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-scan*
+```text
+(No help available and no flags found)
+```

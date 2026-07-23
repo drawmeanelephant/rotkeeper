@@ -117,7 +117,7 @@ log() {
   elif [[ "$level" == "DEBUG" && "$DEBUG" != true ]]; then
     : # Skip stdout
   else
-    echo "$msg"
+    echo "$msg" >&3
   fi
 
   # Always write standard logs to file if present
@@ -472,6 +472,9 @@ rk_init_script() {
   : "${HELP:=false}"
 
   parse_flags "$@"
+  if [[ "$DRY_RUN" == true ]]; then
+    QUIET=false
+  fi
   if [[ "$HELP" == true ]]; then
     show_help
     exit 0
@@ -493,11 +496,10 @@ rk_init_script() {
   if [[ "$QUIET" == true ]]; then
     exec > "$LOG_FILE" 2>&1
   else
-    if (exec > >(true) 2>/dev/null); then
-      exec > >(tee -a "$LOG_FILE") 2>&1
-    else
-      exec >> "$LOG_FILE" 2>&1
-    fi
+    # Keep stdout attached to the caller. Process-substitution tees are not
+    # portable across restricted macOS/BSD shells and can fail before a ritual
+    # starts; log() still records structured messages to LOG_FILE.
+    exec >> "$LOG_FILE" 2>&1
   fi
 
   # If debug is enabled, dump env and turn on tracing
@@ -529,6 +531,26 @@ get_base_no_ext() {
     fi
 }
 
+# Canonicalize a path even when its leaf or intermediate directories do not
+# exist yet. This keeps safety checks portable on macOS, where realpath -m and
+# readlink -m are not consistently available.
+rk_canonical_path() {
+    local path="$1"
+    local current suffix name current_abs
+    current="$path"
+    suffix=""
+
+    while [[ ! -d "$current" ]]; do
+        name=$(basename -- "$current")
+        suffix="/$name$suffix"
+        current=$(dirname -- "$current")
+        [[ "$current" == "/" || "$current" == "." ]] && return 1
+    done
+
+    current_abs=$(cd "$current" 2>/dev/null && pwd -P) || return 1
+    printf '%s%s\n' "$current_abs" "$suffix"
+}
+
 get_sidecar_path() {
     local target="$1"
     local base_no_ext
@@ -543,9 +565,9 @@ get_sidecar_path() {
 
     # Flatten out-of-bounds traversal mappings cleanly
     local canonical_soul
-    canonical_soul=$(realpath -m "$derived_path" 2>/dev/null || readlink -f "$derived_path" 2>/dev/null)
+    canonical_soul=$(rk_canonical_path "$derived_path" 2>/dev/null || true)
 
-    if [[ "$canonical_soul" != "$META_DIR"* ]]; then
+    if [[ -z "$canonical_soul" || ( "$canonical_soul" != "$META_DIR" && "$canonical_soul" != "$META_DIR/"* ) ]]; then
         log "ERROR" "Path traversal attempted via sidecar metadata mapping: $target"
         echo "${META_DIR}/null.soul.md"
     else

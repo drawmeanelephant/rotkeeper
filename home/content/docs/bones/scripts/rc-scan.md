@@ -136,6 +136,23 @@ Do not treat its manifest as absolute truth. It is easily fooled by the slightes
 - **$META_DIR**: /Users/tbuddy/dev/rotkeeper/bones/meta
 - **$WEB_DIR**: /Users/tbuddy/dev/rotkeeper/output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-07-23T10:54:47Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-07-23T12:07:07Z -->
 
-*Not found: autopsy help report missing (`/Users/tbuddy/dev/rotkeeper/bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-scan*
+```text
+rc-scan.sh — Audit manifest and scan environment for file reports (v0.4.1)
+
+Options:
+  --version, -v    Show script version and quit
+
+Usage: rc-scan.sh [flags]
+
+Flags:
+  --manifest-only   Read only manifest file, skip disk scan.
+  --include <ext>   Comma-separated list of extensions to include.
+  --exclude <pat>   Glob pattern to exclude (can repeat).
+  --dry-run         Show actions without writing reports.
+  --verbose         Print detailed logs.
+  --json-only       Output only JSON report.
+  --md-only         Output only Markdown report.
+  -h, --help        Show this help message and exit.
+```

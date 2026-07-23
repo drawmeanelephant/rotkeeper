@@ -103,6 +103,18 @@ Never invoke this ritual in a dirty working directory. If you attach this to an 
 - **$META_DIR**: /Users/tbuddy/dev/rotkeeper/bones/meta
 - **$WEB_DIR**: /Users/tbuddy/dev/rotkeeper/output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-07-23T10:54:47Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-07-23T12:07:07Z -->
 
-*Not found: autopsy help report missing (`/Users/tbuddy/dev/rotkeeper/bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-scan*
+```text
+--cached
+--commit
+--dry-run
+--help
+--is-inside-work-tree
+--message
+--porcelain
+--quiet
+--to
+--verbose
+--version
+```

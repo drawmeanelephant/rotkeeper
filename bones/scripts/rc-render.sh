@@ -161,6 +161,36 @@ main() {
     CANONICAL_META_DIR=$(get_canonical_path "$META_DIR")
     CANONICAL_TEMPLATE_DIR=$(get_canonical_path "$TEMPLATE_DIR")
 
+    # Reconcile generated HTML with the current Markdown source set. Only
+    # generated .html files are eligible; assets and unrelated output files
+    # remain untouched. This prevents deleted drafts from surviving in a
+    # static server and being rediscovered by the link audit.
+    declare -A EXPECTED_OUTPUTS=()
+    for mdfile in ${md_corpses[@]+"${md_corpses[@]}"}; do
+      [ -f "$mdfile" ] || continue
+      canonical_mdpath=$(get_canonical_path "$mdfile")
+      [[ "$canonical_mdpath" == "$CANONICAL_CONTENT_DIR"* ]] || continue
+      relpath="${canonical_mdpath#"$CANONICAL_CONTENT_DIR"/}"
+      base=$(basename "$relpath" .md)
+      reldir=$(dirname "$relpath")
+      if [[ "$reldir" == "." ]]; then
+        EXPECTED_OUTPUTS["$OUTPUT_DIR/$base.html"]=1
+      else
+        EXPECTED_OUTPUTS["$OUTPUT_DIR/$reldir/$base.html"]=1
+      fi
+    done
+
+    while IFS= read -r -d '' stale_html; do
+      if [[ -z "${EXPECTED_OUTPUTS[$stale_html]:-}" ]]; then
+        if [[ "$DRY_RUN" == true ]]; then
+          log "DRY-RUN" "Would prune stale rendered page: $stale_html"
+        else
+          rm -f "$stale_html"
+          log "INFO" "Pruned stale rendered page: $stale_html"
+        fi
+      fi
+    done < <(find "$OUTPUT_DIR" -type f -name "*.html" -print0 2>/dev/null || true)
+
     # Iterate over the safe compiled array instead of an open find subshell stream
     for mdfile in ${md_corpses[@]+"${md_corpses[@]}"}; do
       [ -f "$mdfile" ] || continue

@@ -1,5 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
+
+show_help() {
+  cat <<'EOF'
+rc-showcase.sh — Generate showcase content for every HTML template
+
+Usage: rotkeeper.sh showcase [options]
+
+Options:
+  --dry-run        Preview generated showcase pages without writing
+  --verbose        Show detailed logs
+  --help, -h       Show this help message
+EOF
+  exit 0
+}
 IFS=$'\n\t'
 # ============================================================
 #  Project : Rotkeeper
@@ -63,6 +77,12 @@ template: \"$template_name\""
       frontmatter+=$'\n'"$var: \"Dummy value for $var\""
     done
     frontmatter+=$'\n'"---"
+
+    if [[ "$DRY_RUN" == true ]]; then
+      log "DRY-RUN" "Would scaffold showcase page: $target_file"
+      count=$((count + 1))
+      continue
+    fi
 
     echo "$frontmatter" > "$target_file"
 
@@ -165,7 +185,7 @@ MD_EOF
     count=$((count + 1))
   done
 
-  log "INFO" "Showcase generation complete! Generated $count files."
+  log "MARKER" "Showcase generation complete: generated $count files."
 }
 
 main "$@"

@@ -59,6 +59,9 @@ The current workflow is deliberately small and local-first:
 - [`rc-assets.sh`](bones/scripts/rc-assets.html)
 - [`rc-status.sh`](bones/scripts/rc-status.html)
 - [`rc-glue.sh`](bones/scripts/rc-glue.html)
+- [`rc-links.sh`](bones/scripts/rc-links.html)
+- [`rc-autopsy.sh`](bones/scripts/rc-autopsy.html)
+- [`rc-showcase.sh`](bones/scripts/rc-showcase.html)
 - [`rc-bump.sh`](bones/scripts/rc-bump.html)
 - [`rc-release.sh`](bones/scripts/rc-release.html)
 

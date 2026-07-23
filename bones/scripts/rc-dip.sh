@@ -88,12 +88,12 @@ path_stays_under() {
   local root="$1"
   local candidate="$2"
   local root_abs cand_abs
-  root_abs=$(cd "$root" 2>/dev/null && pwd -P) || return 1
   # Reject absolute or parent-traversal relatives before joining
-  if [[ "$candidate" == /* || "$candidate" == *".."* ]]; then
+  if [[ "$candidate" == /* || "/$candidate/" == */../* ]]; then
     return 1
   fi
-  cand_abs=$(cd "$(dirname -- "$root/$candidate")" 2>/dev/null && pwd -P)/$(basename -- "$candidate") || return 1
+  root_abs=$(rk_canonical_path "$root") || return 1
+  cand_abs=$(rk_canonical_path "$root/$candidate") || return 1
   [[ "$cand_abs" == "$root_abs" || "$cand_abs" == "$root_abs"/* ]]
 }
 
@@ -659,7 +659,7 @@ build_help_content() {
 
   script_name=$(basename -- "$target_script")
   if [[ ! -f "$help_report" ]]; then
-    printf '%s\n' "*Not found: autopsy help report missing (\`$help_report\`). Run: ./rotkeeper.sh autopsy --help-scan*"
+    printf '%s\n' "*Not found: autopsy help report missing (\`$help_report\`). Run: ./rotkeeper.sh autopsy --help-report*"
     return 0
   fi
 
@@ -1032,4 +1032,6 @@ if ((${#OWNERSHIP_COLLISIONS[@]} > 0)); then
   log "WARN" "Ownership collisions remain unresolved (see matrix / logs)."
 fi
 
-log "INFO" "DIP finished. OK=${STAT_COUNTS[OK]:-0} Stub=${STAT_COUNTS[Stub]:-0} Missing=${STAT_COUNTS[Missing]:-0} Stale=${STAT_COUNTS[Stale]:-0} Unowned=${STAT_COUNTS[Unowned]:-0} Collisions=${#OWNERSHIP_COLLISIONS[@]} ObsoleteActions=${#OBSOLETE_MOVED[@]}"
+SUMMARY="DIP finished. OK=${STAT_COUNTS[OK]:-0} Stub=${STAT_COUNTS[Stub]:-0} Missing=${STAT_COUNTS[Missing]:-0} Stale=${STAT_COUNTS[Stale]:-0} Unowned=${STAT_COUNTS[Unowned]:-0} Collisions=${#OWNERSHIP_COLLISIONS[@]} ObsoleteActions=${#OBSOLETE_MOVED[@]}"
+log "INFO" "$SUMMARY"
+log "MARKER" "$SUMMARY"

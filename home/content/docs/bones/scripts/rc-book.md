@@ -97,6 +97,23 @@ Keep the project small, or watch this script choke on its own creation. Never fe
 - **$META_DIR**: /Users/tbuddy/dev/rotkeeper/bones/meta
 - **$WEB_DIR**: /Users/tbuddy/dev/rotkeeper/output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-07-23T10:54:47Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-07-23T12:07:07Z -->
 
-*Not found: autopsy help report missing (`/Users/tbuddy/dev/rotkeeper/bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-scan*
+```text
+--all
+--collapse
+--config
+--configbook
+--contentbook
+--contentmeta
+--docbook
+--docbook-clean
+--dry-run
+--force-bind
+--fsbook
+--help
+--scriptbook-full
+--strip-frontmatter
+--verbose
+--version
+```

@@ -62,6 +62,9 @@ Use `render` for HTML, `assets` to copy local CSS/fonts/images/JavaScript into `
 - `bash rotkeeper.sh dip` audits and stitches documentation.
 - `bash rotkeeper.sh book --fsbook` builds the filesystem catalog DIP consumes.
 - `bash rotkeeper.sh glue` repairs missing content indexes.
+- `bash rotkeeper.sh links` audits every local link and asset reference in rendered HTML.
+- `bash rotkeeper.sh showcase` generates theme showcase pages.
+- `bash rotkeeper.sh autopsy --all` refreshes script help/output reports for DIP.
 - `bash rotkeeper.sh scan` checks files against the asset manifest.
 - `bash rotkeeper.sh test` runs the integration and release assertions.
 
@@ -77,6 +80,7 @@ New to the project? Start with the [Docs](docs/index.html). Want to compare layo
 Sora prompt: "A decayed tombstone interface for Rotkeeper.com—ghostly monospaced text drifting across a glitching terminal window, rusted metal accents, and flickering OpenMoji icons."
 -->
 <!-- ROTKEEPER-GLUE-START -->
+- [coastal-radio/](<coastal-radio/index.html>)
 - [docs/](<docs/index.html>)
 - [help/](<help/index.html>)
 - [messages/](<messages/index.html>)
