@@ -1,7 +1,7 @@
 ---
 title: "Welcome to Rotkeeper"
 slug: home
-version: "0.4.1"
+version: "0.5.0"
 updated: "2026-07-23"
 description: "A Bash-native, Pandoc-driven static site and content system for Markdown, documentation, and local-first themes."
 tags:

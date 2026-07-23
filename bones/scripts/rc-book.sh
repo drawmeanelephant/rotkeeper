@@ -12,10 +12,10 @@ IFS=$'\n\t'
 #  Project : Rotkeeper
 #  Script  : rc-book.sh
 #  Purpose : Bind documentation reports cleanly inside authorized boundaries
-#  Version : 0.4.1
+#  Version : 0.5.0
 # ============================================================
 
-VERSION="${ROTKEEPER_VERSION:-0.4.1}"
+VERSION="${ROTKEEPER_VERSION:-0.5.0}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }

@@ -13,7 +13,7 @@ IFS=$'\n\t'
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-glue.sh
 #  Purpose : Generate navigation glue (index.md) for unindexed directories
-#  Version : 0.4.1
+#  Version : 0.5.0
 # ------------------------------------------------------------
 
 set -euo pipefail
@@ -39,7 +39,7 @@ TARGET_DIR=""
 # shellcheck disable=SC2034
 
 
-VERSION="${ROTKEEPER_VERSION:-0.4.1}"
+VERSION="${ROTKEEPER_VERSION:-0.5.0}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }

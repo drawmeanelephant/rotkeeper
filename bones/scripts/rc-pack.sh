@@ -13,14 +13,14 @@ IFS=$'\n\t'
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-pack.sh
 #  Purpose : Bundle rendered output into versioned .tar.gz archive and export markdown to JSON
-#  Version : 0.4.1
+#  Version : 0.5.0
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
 show_help() {
   cat << EOF
-rc-pack.sh — Ritual Compression Packager (v0.4.1)
+rc-pack.sh — Ritual Compression Packager (v0.5.0)
 
 Usage: rc-pack.sh [options]
 
@@ -35,7 +35,7 @@ EOF
   exit 0
 }
 
-VERSION="${ROTKEEPER_VERSION:-0.4.1}"
+VERSION="${ROTKEEPER_VERSION:-0.5.0}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }

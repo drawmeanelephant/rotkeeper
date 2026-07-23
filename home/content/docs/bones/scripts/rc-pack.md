@@ -167,7 +167,7 @@ Ensure `jq` is installed and functioning. Beware of injecting raw, unescaped tex
 <!-- DIP-HELP-EXTRACTED: 2026-07-23T12:07:07Z -->
 
 ```text
-rc-pack.sh — Ritual Compression Packager (v0.4.1)
+rc-pack.sh — Ritual Compression Packager (v0.5.0)
 
 Usage: rc-pack.sh [options]
 

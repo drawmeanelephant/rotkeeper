@@ -1,17 +1,18 @@
 ---
 title: "🖨️ rc-render.sh Reference"
 slug: rc-render
-version: "0.2.5-pre"
-updated: "2025-06-02"
-description: "Main rendering engine for converting Markdown tombs into HTML using Pandoc and custom templates. Skips any Markdown with `status: draft`."
+version: "0.5.0"
+updated: "2026-07-23"
+description: "Main rendering engine for converting Markdown tombs into HTML using Apex (default) or legacy Pandoc and custom templates. Skips any Markdown with `status: draft`."
 tags:
   - rotkeeper
   - scripts
   - rendering
+  - apex
   - pandoc
 asset_meta:
   name: "rc-render.md"
-  version: "v0.2.3-pre"
+  version: "v0.5.0"
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
@@ -20,7 +21,7 @@ asset_meta:
 
 <!--
 🎨 Sora Prompt:
-"A cryptic ritual hall illuminated by rows of glowing <code>pandoc</code> invocations, candles flickering on terminal screens, as rc-render.sh weaves Markdown into spectral HTML pages."
+"A cryptic ritual hall illuminated by rows of glowing <code>apex</code> invocations, candles flickering on terminal screens, as rc-render.sh weaves Markdown into spectral HTML pages."
 -->
 <!-- Begin Ritual Script Documentation -->
 
@@ -34,13 +35,13 @@ asset_meta:
 - Convert all Markdown documentation into HTML pages.
 - Support custom templates, parallel execution, verbose logging, and dry-run previews.
 - Emit detailed logs for ritual auditing.
-- Renders Markdown pages from `home/content/` to HTML in `output/rendered/`
-- Uses the `rotkeeper-doc.html` Pandoc template (if available)
+- Renders Markdown pages from `home/content/` to HTML in `output/`
+- Uses HTML templates via Apex (default) or legacy Pandoc
 
 ## CLI Interface
 <!-- How to invoke the rendering ceremony -->
 ```bash
-rc-render.sh [--dry-run] [--verbose] [--help]
+rc-render.sh [--renderer apex|pandoc] [--dry-run] [--verbose] [--help]
 
 # Note: rc-render.sh now runs lint first and skips drafts.
 # Flags:

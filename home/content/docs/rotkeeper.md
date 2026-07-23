@@ -19,7 +19,7 @@ The main dispatcher script acting as the gateway CLI to bootstrap the environmen
 <!-- DIP-HELP-EXTRACTED: 2026-07-23T12:07:07Z -->
 
 ```text
-rotkeeper.sh — Rotkeeper CLI v0.4.1
+rotkeeper.sh — Rotkeeper CLI v0.5.0
 
 Usage:
   rotkeeper.sh <command> [options]
