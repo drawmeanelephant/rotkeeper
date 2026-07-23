@@ -36,6 +36,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
 rk_init_script "rc-status" ${ARGS[@]+"${ARGS[@]}"}
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR ARCHIVE_DIR
+# Status is an explicitly human-facing command. Restore the caller's streams
+# after shared initialization so its report is visible even in quiet mode.
+exec 1>&3 2>&3
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -116,6 +119,11 @@ for script in ${scripts_list[@]+"${scripts_list[@]}"}; do
     total_scripts=$((total_scripts + 1))
     s_name=$(basename "$script")
     s_version=$(grep -E '^VERSION=' "$script" | cut -d'"' -f2 | head -n 1 || echo "unknown")
+    # Scripts may expose VERSION through the shared environment override. Show
+    # the effective fallback value in the report instead of flagging the
+    # literal parameter expansion as version drift.
+    s_version=$(printf '%s\n' "$s_version" | sed -E 's/^\$\{ROTKEEPER_VERSION:-([^}]*)\}$/\1/')
+    [[ "$s_version" == "\$CURRENT_VERSION" ]] && s_version="$CANONICAL_VERSION"
 
     match="✗ [DRIFT]"
     match_json="false"
