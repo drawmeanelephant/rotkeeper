@@ -950,20 +950,25 @@ for doc_path in ${SORTED_DOC_PATHS[@]+"${SORTED_DOC_PATHS[@]}"}; do
   fi
 
   STAT_COUNTS["$base_stat"]=$((${STAT_COUNTS[$base_stat]:-0} + 1))
-  rel_doc="${doc_path#"$ROOT_DIR"/}"
-  MATRIX_ROWS+=("| \`$target_file\` | [$rel_doc]($rel_doc) | $code_date | $doc_date | $status |")
+  rel_doc="${doc_path#"$DOCS_DIR"/}"
+  if [[ "$base_stat" == "Missing" ]]; then
+    doc_ref="\`$rel_doc\`"
+  else
+    doc_ref="[$rel_doc]($rel_doc)"
+  fi
+  MATRIX_ROWS+=("| \`$target_file\` | $doc_ref | $code_date | $doc_date | $status |")
 done
 
 mapfile -t SORTED_UNOWNED < <(printf '%s\n' ${UNOWNED_DOCS[@]+"${UNOWNED_DOCS[@]}"} | LC_ALL=C sort -u)
 for doc_path in ${SORTED_UNOWNED[@]+"${SORTED_UNOWNED[@]}"}; do
-  rel_doc="${doc_path#"$ROOT_DIR"/}"
+  rel_doc="${doc_path#"$DOCS_DIR"/}"
   doc_date=$(get_fs_date "$doc_path")
   status="Unowned"
   STAT_COUNTS["Unowned"]=$((STAT_COUNTS["Unowned"] + 1))
   MATRIX_ROWS+=("| \`Unknown\` | [$rel_doc]($rel_doc) | Missing | $doc_date | $status |")
 done
 
-total_rows=$((${STAT_COUNTS[OK]:-0} + ${STAT_COUNTS[Stub]:-0} + ${STAT_COUNTS[Missing]:-0} + ${STAT_COUNTS[Stale]:-0} + ${STAT_COUNTS[Unowned]:-0}))
+  total_rows=$((${STAT_COUNTS[OK]:-0} + ${STAT_COUNTS[Stub]:-0} + ${STAT_COUNTS[Missing]:-0} + ${STAT_COUNTS[Stale]:-0} + ${STAT_COUNTS[Unowned]:-0}))
 totals_line="**Totals:** OK: ${STAT_COUNTS[OK]:-0} | Stub: ${STAT_COUNTS[Stub]:-0} | Missing: ${STAT_COUNTS[Missing]:-0} | Stale: ${STAT_COUNTS[Stale]:-0} | Unowned: ${STAT_COUNTS[Unowned]:-0} | Rows: ${total_rows}"
 
 if [[ "${DRY_RUN:-false}" == true ]]; then

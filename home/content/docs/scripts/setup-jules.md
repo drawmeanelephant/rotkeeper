@@ -70,7 +70,7 @@ Once complete, your environment is ready for the smoke test or initialization:
 - Overwrites any existing `yq` installation at `/usr/local/bin/yq`. Ensure this doesn't conflict with system requirements before running.
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-23T10:54:47Z -->
 
 
 ### Architectural Intent
@@ -84,12 +84,31 @@ This script executes arbitrary commands and downloads binaries as root or sudo, 
 
 ### Ritual Warnings
 Do not run this script on developer local macOS/Windows environments as it expects `apt-get` and a Linux distribution. Ensure internet access is available to fetch the remote `yq` binary.
-## 🤖 AI Agent (Jules) Expectations
+## Environment
+<!-- DIP-ENV-EXTRACTED: 2026-07-23T10:54:47Z -->
 
-The `setup-jules.sh` script prepares the environment specifically for Jules, an AI agent interacting with the Rotkeeper repository.
+- **$ROOT_DIR**: /Users/tbuddy/dev/rotkeeper
+- **$OUTPUT_DIR**: /Users/tbuddy/dev/rotkeeper/output
+- **$CONTENT_DIR**: /Users/tbuddy/dev/rotkeeper/home/content
+- **$ASSETS_DIR**: /Users/tbuddy/dev/rotkeeper/home/assets
+- **$DOCS_DIR**: /Users/tbuddy/dev/rotkeeper/home/content/docs
+- **$HELP_DIR**: /Users/tbuddy/dev/rotkeeper/home/content/help
+- **$BONES_DIR**: /Users/tbuddy/dev/rotkeeper/bones
+- **$SCRIPT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/scripts
+- **$CONFIG_DIR**: /Users/tbuddy/dev/rotkeeper/bones/config
+- **$LOG_DIR**: /Users/tbuddy/dev/rotkeeper/bones/logs
+- **$TMP_DIR**: /Users/tbuddy/dev/rotkeeper/bones/tmp
+- **$ARCHIVE_DIR**: /Users/tbuddy/dev/rotkeeper/bones/archive
+- **$REPORT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/reports
+- **$BOOK_REPORT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/book-reports
+- **$TEMPLATE_DIR**: /Users/tbuddy/dev/rotkeeper/bones/templates
+- **$META_DIR**: /Users/tbuddy/dev/rotkeeper/bones/meta
+- **$WEB_DIR**: /Users/tbuddy/dev/rotkeeper/output
+###### CLI Usage
+<!-- DIP-HELP-EXTRACTED: 2026-07-23T10:54:47Z -->
 
-Jules is expected to:
-- Understand that this script provisions system-level dependencies required for core Rotkeeper rituals (`pandoc`, `jq`, `rsync`, `gawk`, `yq`).
-- Execute this script seamlessly in non-interactive CI/CD pipelines or isolated sandboxes without prompt failures.
-- Recognize that modifying the environment through this script is the authorized method for dependency management before running rituals like `./rotkeeper.sh smoke` or `./rotkeeper.sh init`.
-- Ensure strict adherence to the project's brutalist architecture (relying on bash and flat files) by not introducing unnecessary package managers or frameworks during setup.
+*Not found: autopsy help report missing (`/Users/tbuddy/dev/rotkeeper/bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-scan*
+## Ritual History
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
+
+*Not found: no changelog/history entries matching `setup-jules.sh`.*

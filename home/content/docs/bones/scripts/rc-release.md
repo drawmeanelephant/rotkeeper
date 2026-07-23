@@ -65,7 +65,7 @@ And one versioned zip left the flat.
 -->
 
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-23T10:54:47Z -->
 
 
 ### Bones of the Code
@@ -75,7 +75,32 @@ The merchant of death, packaging distribution zip files for the masses. It uses 
 The exclusion lists are a brittle defense. If a sensitive file gets created that doesn't match the hardcoded patterns, it will be happily zipped up and shipped to production. Its assumptions about the target environments are equally perilous.
 
 ### Ritual Warnings
-Audit the exclusion lists regularly. The canonical archive is only as safe as the paths it excludes; sensitive data will slip through if you aren't paying attention.
+Audit the exclusion lists regularly. Never assume that 'lite' means 'safe'—sensitive data will slip through if you aren't paying attention.
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 0000-00-00T00:00:00Z -->
-TODO: Stitch ritual history.
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
+
+*Not found: no changelog/history entries matching `rc-release.sh`.*
+## Environment
+<!-- DIP-ENV-EXTRACTED: 2026-07-23T10:54:47Z -->
+
+- **$ROOT_DIR**: /Users/tbuddy/dev/rotkeeper
+- **$OUTPUT_DIR**: /Users/tbuddy/dev/rotkeeper/output
+- **$CONTENT_DIR**: /Users/tbuddy/dev/rotkeeper/home/content
+- **$ASSETS_DIR**: /Users/tbuddy/dev/rotkeeper/home/assets
+- **$DOCS_DIR**: /Users/tbuddy/dev/rotkeeper/home/content/docs
+- **$HELP_DIR**: /Users/tbuddy/dev/rotkeeper/home/content/help
+- **$BONES_DIR**: /Users/tbuddy/dev/rotkeeper/bones
+- **$SCRIPT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/scripts
+- **$CONFIG_DIR**: /Users/tbuddy/dev/rotkeeper/bones/config
+- **$LOG_DIR**: /Users/tbuddy/dev/rotkeeper/bones/logs
+- **$TMP_DIR**: /Users/tbuddy/dev/rotkeeper/bones/tmp
+- **$ARCHIVE_DIR**: /Users/tbuddy/dev/rotkeeper/bones/archive
+- **$REPORT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/reports
+- **$BOOK_REPORT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/book-reports
+- **$TEMPLATE_DIR**: /Users/tbuddy/dev/rotkeeper/bones/templates
+- **$META_DIR**: /Users/tbuddy/dev/rotkeeper/bones/meta
+- **$WEB_DIR**: /Users/tbuddy/dev/rotkeeper/output
+###### CLI Usage
+<!-- DIP-HELP-EXTRACTED: 2026-07-23T10:54:47Z -->
+
+*Not found: autopsy help report missing (`/Users/tbuddy/dev/rotkeeper/bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-scan*

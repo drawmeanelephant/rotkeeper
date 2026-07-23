@@ -99,3 +99,6 @@ work. Stub rows with real soul sidecars can be reviewed for de-stubbing; rows
 without source material remain honest placeholders. The one Missing row and
 the Unowned directory/index pages are documented in the review accompanying
 this ledger. No history is invented for them here.
+
+<!-- ROTKEEPER-GLUE-START -->
+<!-- ROTKEEPER-GLUE-END -->

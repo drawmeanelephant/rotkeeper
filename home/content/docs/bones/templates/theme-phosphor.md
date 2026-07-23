@@ -19,32 +19,31 @@ HTML template for the retro-brutalist CRT terminal overlay theme.
 TODO: Stitch extracted help block.
 
 ## Environment
-<!-- DIP-ENV-EXTRACTED: 2026-06-27 -->
-<!-- DIP-ENV-EXTRACTED: 0000-00-00T00:00:00Z -->
-- **$ROOT_DIR**: /app
-- **$OUTPUT_DIR**: /app/output
-- **$CONTENT_DIR**: /app/home/content
-- **$ASSETS_DIR**: /app/home/assets
-- **$DOCS_DIR**: /app/home/content/docs
-- **$HELP_DIR**: /app/home/content/help
-- **$BONES_DIR**: /app/bones
-- **$SCRIPT_DIR**: /app/bones/scripts
-- **$CONFIG_DIR**: /app/bones/config
-- **$LOG_DIR**: /app/bones/logs
-- **$TMP_DIR**: /app/bones/tmp
-- **$ARCHIVE_DIR**: /app/bones/archive
-- **$REPORT_DIR**: /app/bones/reports
-- **$BOOK_REPORT_DIR**: /app/bones/book-reports
-- **$TEMPLATE_DIR**: /app/bones/templates
-- **$META_DIR**: /app/bones/meta
-- **$WEB_DIR**: /app/output
+<!-- DIP-ENV-EXTRACTED: 2026-07-23T10:54:47Z -->
 
+- **$ROOT_DIR**: /Users/tbuddy/dev/rotkeeper
+- **$OUTPUT_DIR**: /Users/tbuddy/dev/rotkeeper/output
+- **$CONTENT_DIR**: /Users/tbuddy/dev/rotkeeper/home/content
+- **$ASSETS_DIR**: /Users/tbuddy/dev/rotkeeper/home/assets
+- **$DOCS_DIR**: /Users/tbuddy/dev/rotkeeper/home/content/docs
+- **$HELP_DIR**: /Users/tbuddy/dev/rotkeeper/home/content/help
+- **$BONES_DIR**: /Users/tbuddy/dev/rotkeeper/bones
+- **$SCRIPT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/scripts
+- **$CONFIG_DIR**: /Users/tbuddy/dev/rotkeeper/bones/config
+- **$LOG_DIR**: /Users/tbuddy/dev/rotkeeper/bones/logs
+- **$TMP_DIR**: /Users/tbuddy/dev/rotkeeper/bones/tmp
+- **$ARCHIVE_DIR**: /Users/tbuddy/dev/rotkeeper/bones/archive
+- **$REPORT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/reports
+- **$BOOK_REPORT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/book-reports
+- **$TEMPLATE_DIR**: /Users/tbuddy/dev/rotkeeper/bones/templates
+- **$META_DIR**: /Users/tbuddy/dev/rotkeeper/bones/meta
+- **$WEB_DIR**: /Users/tbuddy/dev/rotkeeper/output
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-06-30T16:02:58Z -->
-No changelog entries found. This ritual has lived and died in silence.
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
 
+*Not found: no changelog/history entries matching `theme-phosphor.html`.*
 ## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-07-23T10:54:47Z -->
 
 
 # 🟢 theme-phosphor Layout Soul
@@ -55,45 +54,7 @@ Provides a retro-brutalist CRT terminal layout block for users or agents checkin
 ## Directory / File Schema Expectations
 - Requires accompanying layout styling in `home/assets/css/theme-phosphor.css`.
 - Must parse template flags dynamically without fracturing the common `$body$` structure.
-## Architectural Intent
-Provides a retro-brutalist CRT terminal layout block for users or agents checking logs inside a sandboxed environment.
+###### CLI Usage
+<!-- DIP-HELP-EXTRACTED: 2026-07-23T10:54:47Z -->
 
-## Directory / File Schema Expectations
-- Requires accompanying layout styling in `home/assets/css/theme-phosphor.css`.
-- Must parse template flags dynamically without fracturing the common `$body$` structure.
-## Architectural Intent
-Provides a retro-brutalist CRT terminal layout block for users or agents checking logs inside a sandboxed environment.
-
-## Directory / File Schema Expectations
-- Requires accompanying layout styling in `home/assets/css/theme-phosphor.css`.
-- Must parse template flags dynamically without fracturing the common `$body$` structure.
-## Architectural Intent
-Provides a retro-brutalist CRT terminal layout block for users or agents checking logs inside a sandboxed environment.
-
-## Directory / File Schema Expectations
-- Requires accompanying layout styling in `home/assets/css/theme-phosphor.css`.
-- Must parse template flags dynamically without fracturing the common `$body$` structure.
-## Architectural Intent
-Provides a retro-brutalist CRT terminal layout block for users or agents checking logs inside a sandboxed environment.
-
-## Directory / File Schema Expectations
-- Requires accompanying layout styling in `home/assets/css/theme-phosphor.css`.
-- Must parse template flags dynamically without fracturing the common `$body$` structure.
-## Architectural Intent
-Provides a retro-brutalist CRT terminal layout block for users or agents checking logs inside a sandboxed environment.
-
-## Directory / File Schema Expectations
-- Requires accompanying layout styling in `home/assets/css/theme-phosphor.css`.
-- Must parse template flags dynamically without fracturing the common `$body$` structure.
-## Architectural Intent
-Provides a retro-brutalist CRT terminal layout block for users or agents checking logs inside a sandboxed environment.
-
-## Directory / File Schema Expectations
-- Requires accompanying layout styling in `home/assets/css/theme-phosphor.css`.
-- Must parse template flags dynamically without fracturing the common `$body$` structure.
-## Architectural Intent
-Provides a retro-brutalist CRT terminal layout block for users or agents checking logs inside a sandboxed environment.
-
-## Directory / File Schema Expectations
-- Requires accompanying layout styling in `home/assets/css/theme-phosphor.css`.
-- Must parse template flags dynamically without fracturing the common `$body$` structure.
+*Not found: autopsy help report missing (`/Users/tbuddy/dev/rotkeeper/bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-scan*

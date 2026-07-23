@@ -124,14 +124,30 @@ Its attempts at portability often fall flat when encountering ancient or obscure
 ### Ritual Warnings
 Do not rely on these utilities in truly hostile environments. Their portability is an illusion maintained by sheer luck.
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-04T15:41:00Z -->
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
 
 - - Updated `rc-utils.sh` to:
-- - `require_bins()` from `rc-utils.sh` is used to validate external dependencies like `pandoc`, `git`, `jq`, etc. All prior instances of legacy dependency checkers have been purged. `require_bins()` is now the sole ritual for verifying external tools.
-- - Some scripts re-implement `log()` inline rather than sourcing a shared `rc-utils.sh`.
-- - A shared library (`rc-utils.sh`) is now used across scripts, providing unified logic.
-- #### 1. Create and enforce usage of a shared `rc-utils.sh`:
-- - sourced `rc-utils.sh`
-- | Script             | main() | trap | --dry-run | log() | require_bins() | rc-utils.sh |
-- - ❌ Executable utility files (e.g., `chmod +x rc-utils.sh`) — *these must not rise*
-- 	•	Sourced rc-utils.sh
+## Environment
+<!-- DIP-ENV-EXTRACTED: 2026-07-23T10:54:47Z -->
+
+- **$ROOT_DIR**: /Users/tbuddy/dev/rotkeeper
+- **$OUTPUT_DIR**: /Users/tbuddy/dev/rotkeeper/output
+- **$CONTENT_DIR**: /Users/tbuddy/dev/rotkeeper/home/content
+- **$ASSETS_DIR**: /Users/tbuddy/dev/rotkeeper/home/assets
+- **$DOCS_DIR**: /Users/tbuddy/dev/rotkeeper/home/content/docs
+- **$HELP_DIR**: /Users/tbuddy/dev/rotkeeper/home/content/help
+- **$BONES_DIR**: /Users/tbuddy/dev/rotkeeper/bones
+- **$SCRIPT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/scripts
+- **$CONFIG_DIR**: /Users/tbuddy/dev/rotkeeper/bones/config
+- **$LOG_DIR**: /Users/tbuddy/dev/rotkeeper/bones/logs
+- **$TMP_DIR**: /Users/tbuddy/dev/rotkeeper/bones/tmp
+- **$ARCHIVE_DIR**: /Users/tbuddy/dev/rotkeeper/bones/archive
+- **$REPORT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/reports
+- **$BOOK_REPORT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/book-reports
+- **$TEMPLATE_DIR**: /Users/tbuddy/dev/rotkeeper/bones/templates
+- **$META_DIR**: /Users/tbuddy/dev/rotkeeper/bones/meta
+- **$WEB_DIR**: /Users/tbuddy/dev/rotkeeper/output
+###### CLI Usage
+<!-- DIP-HELP-EXTRACTED: 2026-07-23T10:54:47Z -->
+
+*Not found: autopsy help report missing (`/Users/tbuddy/dev/rotkeeper/bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-scan*

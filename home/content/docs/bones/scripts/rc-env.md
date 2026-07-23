@@ -87,9 +87,36 @@ Sourcing dynamic shell scripts is basically inviting vampires in through the fro
 ### Ritual Warnings
 Never trust the environment. Validate `ROOT_DIR` as if your life depends on it, because the lifespan of your filesystem certainly does.
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-04T15:41:00Z -->
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
 
 - - Optimize rc-env.sh variable resolution order.
 - - Remove redundant subshells from rc-env.sh.
 - - Optimize rc-env.sh subshell parsing and harden sidecar path traversal boundaries
 - - Optimize rc-env.sh to prevent unnecessary fork subshells.
+- streamlined `rc-dip.sh` parsing, and removal of redundant `rc-env.sh`
+- stitching in `rc-dip.sh`, and revised `rc-env.sh` resolution order.
+- Sidecar path-traversal boundaries were hardened and `rc-env.sh` subshell parsing
+## Environment
+<!-- DIP-ENV-EXTRACTED: 2026-07-23T10:54:47Z -->
+
+- **$ROOT_DIR**: /Users/tbuddy/dev/rotkeeper
+- **$OUTPUT_DIR**: /Users/tbuddy/dev/rotkeeper/output
+- **$CONTENT_DIR**: /Users/tbuddy/dev/rotkeeper/home/content
+- **$ASSETS_DIR**: /Users/tbuddy/dev/rotkeeper/home/assets
+- **$DOCS_DIR**: /Users/tbuddy/dev/rotkeeper/home/content/docs
+- **$HELP_DIR**: /Users/tbuddy/dev/rotkeeper/home/content/help
+- **$BONES_DIR**: /Users/tbuddy/dev/rotkeeper/bones
+- **$SCRIPT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/scripts
+- **$CONFIG_DIR**: /Users/tbuddy/dev/rotkeeper/bones/config
+- **$LOG_DIR**: /Users/tbuddy/dev/rotkeeper/bones/logs
+- **$TMP_DIR**: /Users/tbuddy/dev/rotkeeper/bones/tmp
+- **$ARCHIVE_DIR**: /Users/tbuddy/dev/rotkeeper/bones/archive
+- **$REPORT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/reports
+- **$BOOK_REPORT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/book-reports
+- **$TEMPLATE_DIR**: /Users/tbuddy/dev/rotkeeper/bones/templates
+- **$META_DIR**: /Users/tbuddy/dev/rotkeeper/bones/meta
+- **$WEB_DIR**: /Users/tbuddy/dev/rotkeeper/output
+###### CLI Usage
+<!-- DIP-HELP-EXTRACTED: 2026-07-23T10:54:47Z -->
+
+*Not found: autopsy help report missing (`/Users/tbuddy/dev/rotkeeper/bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-scan*
