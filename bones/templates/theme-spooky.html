@@ -4,28 +4,46 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>$title$</title>
-  <link rel="stylesheet" href="$assets_root$css/chota.css">
   <link rel="stylesheet" href="$assets_root$css/theme-spooky.css">
 </head>
-<body class="rk-page rk-page--field">
-  <div class="container">
-    <div class="row">
-      <div class="col-12 col-10-lg rk-shell">
-        <header class="rk-header">
-          <h1 class="rk-title">$title$</h1>
-          $if(description)$
-          <p class="rk-subtitle">$description$</p>
+<body>
+  <div class="journal-container">
+    <header class="journal-header">
+      <h1>$title$</h1>
+      $if(description)$
+      <p>$description$</p>
+      $endif$
+    </header>
+
+    <div class="layout-wrapper">
+      <main>
+        <article class="entry-box">
+          <header class="entry-header">
+            <div>
+              <h2 class="entry-title">$title$</h2>
+              $if(date)$
+              <div class="entry-date">$date$</div>
+              $endif$
+            </div>
+            <div class="userpic" aria-hidden="true">ROTKEEPER</div>
+          </header>
+
+          <div class="entry-content">
+            $body$
+          </div>
+
+          $if(author)$
+          <footer class="entry-metadata">
+            <div class="metadata-item"><span class="metadata-label">Author:</span> $author$</div>
+          </footer>
           $endif$
-        </header>
-        <main class="rk-article">
-          $body$
-        </main>
-        <footer class="rk-footer">
-          <p>Rendered by Rotkeeper &mdash; Field Notes theme</p>
-        </footer>
-      </div>
+        </article>
+      </main>
     </div>
+
+    <footer class="journal-footer">
+      <p>Rendered by Rotkeeper</p>
+    </footer>
   </div>
-  <script src="$assets_root$js/search.js"></script>
 </body>
 </html>

@@ -1,10 +1,3 @@
-/*
- * Rotkeeper Field Notes: an opt-in, offline theme.
- * Chota is vendored separately at css/chota.css and loaded before this file.
- * Fira Sans and Fira Code are vendored locally under assets/fonts/.
- * No network access is required at render time.
- */
-
 @font-face {
   font-family: "Fira Sans";
   src: url("../fonts/fira-sans-400.woff2") format("woff2");
@@ -49,267 +42,363 @@
 }
 
 :root {
-  --field-bg: #0b1410;
-  --field-bg-alt: #10251a;
-  --field-ink: #eaf3ec;
-  --field-ink-dim: #a9c2b2;
-  --field-green: #35c46a;
-  --field-green-dim: #1f7a45;
-  --field-border: #1e3a29;
-  --field-code-bg: #0e1c14;
-  --field-focus: #7fe3a6;
-  --field-max-width: 42rem;
-  --field-radius: 4px;
+  --bg-color: #000000;
+  --text-color: #ffffff;
+  --accent-color: #00ff00; /* Matrix Green */
+  --border-color: #333333;
+  --dim-text: #888888;
+  --font-mono: "Fira Code", ui-monospace, monospace;
 }
 
-.rk-page--field {
-  background: var(--field-bg);
-  color: var(--field-ink);
-  font-family: "Fira Sans", -apple-system, BlinkMacSystemFont, sans-serif;
-  font-weight: 400;
-  line-height: 1.65;
-  -webkit-font-smoothing: antialiased;
-}
-
-.rk-page--field .rk-shell {
-  max-width: var(--field-max-width);
-  margin: 0 auto;
-  padding: 3rem 1.25rem 4rem;
-}
-
-.rk-page--field .rk-header {
-  border-bottom: 1px solid var(--field-border);
-  margin-bottom: 2.5rem;
-  padding-bottom: 1.5rem;
-}
-
-.rk-page--field .rk-title {
-  font-weight: 900;
-  font-size: 2.25rem;
-  letter-spacing: -0.01em;
-  color: var(--field-ink);
-  margin: 0 0 0.5rem;
-}
-
-.rk-page--field .rk-subtitle {
-  font-weight: 400;
-  color: var(--field-ink-dim);
-  font-size: 1.05rem;
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: "Fira Sans", system-ui, sans-serif;
   margin: 0;
+  padding: 20px;
+  line-height: 1.6;
 }
 
-.rk-page--field .rk-article {
-  font-size: 1.05rem;
+::selection {
+  background: var(--accent-color);
+  color: var(--bg-color);
 }
 
-.rk-page--field .rk-article h1,
-.rk-page--field .rk-article h2,
-.rk-page--field .rk-article h3,
-.rk-page--field .rk-article h4 {
+/* Accessibility & Interaction */
+:focus {
+  outline: 2px dashed var(--accent-color);
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Typography & Headings */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-color);
+  text-transform: uppercase;
+  margin-top: 2em;
+  margin-bottom: 0.5em;
+  font-family: "Fira Sans", system-ui, sans-serif;
   font-weight: 700;
-  color: var(--field-ink);
-  line-height: 1.3;
-  margin-top: 2.25rem;
-  margin-bottom: 0.75rem;
 }
 
-.rk-page--field .rk-article h1 { font-size: 1.75rem; font-weight: 900; }
-.rk-page--field .rk-article h2 {
-  font-size: 1.4rem;
-  border-bottom: 1px solid var(--field-border);
-  padding-bottom: 0.4rem;
-}
-.rk-page--field .rk-article h3 { font-size: 1.15rem; color: var(--field-green); }
-.rk-page--field .rk-article h4 { font-size: 1rem; color: var(--field-ink-dim); text-transform: uppercase; letter-spacing: 0.04em; }
+h1 { font-size: 2.5rem; border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; }
+h2 { font-size: 2rem; border-bottom: 1px dashed var(--border-color); padding-bottom: 5px; }
+h3 { font-size: 1.5rem; color: var(--accent-color); }
+h4 { font-size: 1.25rem; }
+h5 { font-size: 1rem; color: var(--dim-text); }
+h6 { font-size: 0.875rem; text-decoration: underline; text-decoration-color: var(--dim-text); }
 
-.rk-page--field .rk-article p {
-  margin: 0 0 1.1rem;
-}
-
-.rk-page--field .rk-article a {
-  color: var(--field-green);
-  text-decoration: underline;
-  text-decoration-color: var(--field-green-dim);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 2px;
-}
-.rk-page--field .rk-article a:hover {
-  color: var(--field-ink);
-  text-decoration-color: var(--field-green);
-}
-.rk-page--field .rk-article a:focus-visible,
-.rk-page--field a:focus-visible,
-.rk-page--field button:focus-visible {
-  outline: 2px solid var(--field-focus);
-  outline-offset: 2px;
-  border-radius: var(--field-radius);
+p {
+  margin-top: 0;
+  margin-bottom: 1.5em;
 }
 
-.rk-page--field .rk-article strong { color: var(--field-ink); font-weight: 700; }
-.rk-page--field .rk-article em { color: var(--field-ink-dim); }
-
-.rk-page--field .rk-article ul,
-.rk-page--field .rk-article ol {
-  margin: 0 0 1.1rem;
-  padding-left: 1.5rem;
-}
-.rk-page--field .rk-article ul ul,
-.rk-page--field .rk-article ol ol,
-.rk-page--field .rk-article ul ol,
-.rk-page--field .rk-article ol ul {
-  margin-top: 0.4rem;
-  margin-bottom: 0;
-}
-.rk-page--field .rk-article li { margin-bottom: 0.35rem; }
-
-.rk-page--field .rk-article ul.task-list {
-  list-style: none;
-  padding-left: 0.25rem;
-}
-.rk-page--field .rk-article ul.task-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-}
-.rk-page--field .rk-article ul.task-list input[type="checkbox"] {
-  margin-top: 0.3rem;
-  accent-color: var(--field-green);
+/* Links */
+a {
+  color: var(--accent-color);
+  text-decoration: none;
+  border-bottom: 2px solid var(--accent-color);
 }
 
-.rk-page--field .rk-article blockquote {
-  border-left: 3px solid var(--field-green-dim);
-  margin: 0 0 1.1rem;
-  padding: 0.25rem 0 0.25rem 1rem;
-  color: var(--field-ink-dim);
+a:hover {
+  background-color: var(--accent-color);
+  color: var(--bg-color);
+  border-bottom-color: transparent;
+}
+
+/* Inline Elements */
+strong, b { font-weight: 700; color: #fff; }
+em, i { font-style: italic; color: var(--dim-text); }
+del, s { text-decoration: line-through; color: #555; }
+mark { background-color: var(--accent-color); color: var(--bg-color); padding: 0 4px; }
+kbd {
+  background-color: #111;
+  border: 1px solid var(--border-color);
+  border-bottom: 2px solid var(--border-color);
+  color: var(--accent-color);
+  padding: 2px 5px;
+  font-size: 0.85em;
+}
+sub, sup { font-size: 75%; line-height: 0; position: relative; vertical-align: baseline; }
+sub { bottom: -0.25em; }
+sup { top: -0.5em; }
+
+/* Code & Preformatted */
+code, pre, kbd {
+  font-family: var(--font-mono);
+}
+
+code {
+  background-color: #0a0a0a;
+  border: 1px solid var(--border-color);
+  color: var(--accent-color);
+  padding: 2px 4px;
+  font-size: 0.9em;
+}
+
+pre {
+  background-color: #0a0a0a;
+  border: 1px solid var(--border-color);
+  border-left: 5px solid var(--accent-color);
+  padding: 15px;
+  overflow-x: auto;
+  margin-bottom: 1.5em;
+}
+
+pre code {
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  color: var(--text-color);
+}
+
+/* Blockquotes */
+blockquote {
+  margin: 1.5em 0;
+  padding: 15px 20px;
+  border-left: 5px solid var(--accent-color);
+  background-color: #0a0a0a;
+  color: var(--dim-text);
   font-style: italic;
 }
 
-.rk-page--field .rk-article code {
-  font-family: "Fira Code", ui-monospace, monospace;
-  font-size: 0.9em;
-  background: var(--field-code-bg);
-  color: var(--field-green);
-  padding: 0.15em 0.4em;
-  border-radius: var(--field-radius);
+blockquote p:last-child {
+  margin-bottom: 0;
 }
 
-.rk-page--field .rk-article pre {
-  background: var(--field-code-bg);
-  border: 1px solid var(--field-border);
-  border-radius: var(--field-radius);
-  padding: 1rem;
-  overflow-x: auto;
-  margin: 0 0 1.25rem;
-}
-.rk-page--field .rk-article pre code {
-  background: none;
-  padding: 0;
-  color: var(--field-ink);
-  font-size: 0.875rem;
-  line-height: 1.55;
+/* Lists */
+ul, ol {
+  margin-top: 0;
+  margin-bottom: 1.5em;
+  padding-left: 2em;
 }
 
-/* Pandoc syntax-highlighting classes (highlight-style: pygments-esque) */
-.rk-page--field .rk-article pre .kw { color: var(--field-green); font-weight: 700; }
-.rk-page--field .rk-article pre .cf { color: var(--field-green); font-weight: 700; }
-.rk-page--field .rk-article pre .dt { color: #6fb8d1; }
-.rk-page--field .rk-article pre .dv,
-.rk-page--field .rk-article pre .bn,
-.rk-page--field .rk-article pre .fl { color: #d19a66; }
-.rk-page--field .rk-article pre .st { color: #c3a6e0; }
-.rk-page--field .rk-article pre .va { color: #e8c27a; }
-.rk-page--field .rk-article pre .co { color: var(--field-ink-dim); font-style: italic; }
-.rk-page--field .rk-article pre .ot { color: #eaf3ec; }
-.rk-page--field .rk-article pre .op { color: #e8c27a; }
-.rk-page--field .rk-article pre .fu { color: #7fe3a6; }
-.rk-page--field .rk-article pre .er { color: #ff6b6b; font-weight: 700; }
+ul { list-style-type: square; }
+ul ul { list-style-type: circle; }
+ul ul ul { list-style-type: disc; }
 
-.rk-page--field .rk-article table {
+li { margin-bottom: 0.5em; }
+
+/* Definition Lists */
+dl { margin-bottom: 1.5em; }
+dt {
+  font-weight: bold;
+  color: var(--accent-color);
+  text-transform: uppercase;
+  margin-top: 1em;
+}
+dd {
+  margin-left: 1.5em;
+  margin-bottom: 0.5em;
+  color: var(--dim-text);
+  border-left: 1px dashed var(--border-color);
+  padding-left: 10px;
+}
+
+/* Tables */
+table {
   width: 100%;
   border-collapse: collapse;
-  margin: 0 0 1.5rem;
-  font-size: 0.95rem;
-}
-.rk-page--field .rk-article th,
-.rk-page--field .rk-article td {
-  border: 1px solid var(--field-border);
-  padding: 0.5rem 0.75rem;
-  text-align: left;
-}
-.rk-page--field .rk-article th {
-  background: var(--field-bg-alt);
-  color: var(--field-green);
-  font-weight: 700;
-}
-.rk-page--field .rk-article tr:nth-child(even) td {
-  background: rgba(53, 196, 106, 0.04);
+  margin-bottom: 1.5em;
+  border: 1px solid var(--border-color);
 }
 
-.rk-page--field .rk-article img {
+th, td {
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  text-align: left;
+}
+
+th {
+  background-color: #111;
+  color: var(--accent-color);
+  text-transform: uppercase;
+}
+
+tbody tr:nth-child(even) { background-color: #050505; }
+tbody tr:hover { background-color: #111; }
+
+/* Media & Figures */
+img, video, canvas {
   max-width: 100%;
-  border-radius: var(--field-radius);
+  height: auto;
+  border: 1px solid var(--border-color);
   display: block;
 }
 
-.rk-page--field .rk-article figure {
-  margin: 0 0 1.5rem;
+figure {
+  margin: 1.5em 0;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  background-color: #050505;
 }
-.rk-page--field .rk-article figcaption {
-  color: var(--field-ink-dim);
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
+
+figcaption {
+  margin-top: 10px;
+  font-size: 0.85em;
+  color: var(--dim-text);
+  text-align: center;
+  font-style: italic;
+}
+
+.figure-placeholder {
+  background-color: #111;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  border: 1px solid var(--border-color);
+}
+
+/* Horizontal Rule */
+hr {
+  border: 0;
+  border-bottom: 1px dashed var(--border-color);
+  margin: 2em 0;
+}
+
+/* Semantic Layout Architecture */
+.journal-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  border: 1px solid var(--accent-color);
+  padding: 30px;
+}
+
+.journal-header {
+  margin-bottom: 40px;
+}
+
+.journal-header > *:first-child { margin-top: 0; }
+
+.layout-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 250px;
+  gap: 40px;
+  align-items: start;
+}
+
+@media (max-width: 800px) {
+  .layout-wrapper {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Main Content Blocks */
+.entry-box {
+  border: 1px solid var(--border-color);
+  margin-bottom: 40px;
+  padding: 30px;
+}
+
+.entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 30px;
+  border-bottom: 1px dashed var(--border-color);
+  padding-bottom: 20px;
+}
+
+.entry-title {
+  margin: 0 0 10px 0;
+}
+
+.entry-date {
+  color: var(--dim-text);
+  font-size: 0.9rem;
+}
+
+.userpic {
+  flex-shrink: 0;
+  width: 100px;
+  height: 100px;
+  border: 1px solid var(--accent-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  color: var(--dim-text);
+  background-color: #111;
   text-align: center;
 }
 
-.rk-page--field .rk-article dl {
-  margin: 0 0 1.25rem;
-  border-left: 2px solid var(--field-border);
-  padding-left: 1rem;
-}
-.rk-page--field .rk-article dt {
-  font-weight: 700;
-  color: var(--field-ink);
-  margin-top: 0.75rem;
-}
-.rk-page--field .rk-article dd {
-  margin: 0.2rem 0 0;
-  color: var(--field-ink-dim);
+.entry-content > *:first-child { margin-top: 0; }
+.entry-content > *:last-child { margin-bottom: 0; }
+
+/* Metadata Area */
+.entry-metadata {
+  margin-top: 30px;
+  border-left: 5px solid var(--accent-color);
+  padding: 10px 15px;
+  font-size: 0.9rem;
+  color: var(--dim-text);
+  background-color: #0a0a0a;
 }
 
-.rk-page--field .rk-article .footnotes {
-  border-top: 1px solid var(--field-border);
-  margin-top: 2.5rem;
-  padding-top: 1rem;
-  font-size: 0.875rem;
-  color: var(--field-ink-dim);
-}
-.rk-page--field .rk-article .footnote-ref {
-  color: var(--field-green);
-  font-weight: 700;
-  text-decoration: none;
-  padding: 0 0.15em;
-}
-.rk-page--field .rk-article .footnote-back {
-  color: var(--field-green-dim);
-  text-decoration: none;
-  margin-left: 0.35rem;
+.metadata-item { margin-bottom: 5px; }
+.metadata-item:last-child { margin-bottom: 0; }
+.metadata-label { color: var(--text-color); font-weight: bold; }
+
+/* Sidebar & Navigation */
+.sidebar-widget {
+  border: 1px solid var(--border-color);
+  padding: 20px;
+  margin-bottom: 20px;
 }
 
-.rk-page--field .rk-article hr {
-  border: none;
-  border-top: 1px solid var(--field-border);
-  margin: 2.5rem 0;
+.sidebar-widget h3 {
+  margin-top: 0;
+  font-size: 1.2rem;
+  border-bottom: 1px dashed var(--border-color);
+  padding-bottom: 10px;
 }
 
-.rk-page--field .rk-footer {
-  margin-top: 3rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--field-border);
-  color: var(--field-ink-dim);
-  font-size: 0.8rem;
+.nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
-@media (max-width: 40rem) {
-  .rk-page--field .rk-shell { padding: 2rem 1rem 3rem; }
-  .rk-page--field .rk-title { font-size: 1.75rem; }
+.nav-list li {
+  margin-bottom: 8px;
 }
+
+.nav-list a {
+  display: block;
+  padding: 5px 0;
+  border-bottom: 1px dashed var(--border-color);
+}
+
+.nav-list a:hover {
+  border-bottom-style: solid;
+}
+
+/* Footer Area */
+.journal-footer {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--accent-color);
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--dim-text);
+}
+
+/* Pandoc output hooks */
+.entry-content .sourceCode { margin-bottom: 1.5em; }
+.entry-content .footnotes {
+  border-top: 1px solid var(--border-color);
+  margin-top: 2em;
+  padding-top: 1em;
+}
+.entry-content .task-list { list-style: none; padding-left: 0; }
+.entry-content .task-list-item input[type="checkbox"] { accent-color: var(--accent-color); margin-right: .5em; }
