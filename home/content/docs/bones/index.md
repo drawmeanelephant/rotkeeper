@@ -23,9 +23,10 @@ The `bones` folder holds the structural foundation of the Rotkeeper static site 
 - **[Archive & Releases (archive/)](archive/index.html)**: Compiled release zipballs and historical packages.
 
 <!-- ROTKEEPER-GLUE-START -->
-- [archive/](archive/index.html)
-- [config/](config/index.html)
-- [logs/](logs/index.html)
-- [scripts/](scripts/index.html)
-- [templates/](templates/index.html)
+- [archive/](<archive/index.html>)
+- [config/](<config/index.html>)
+- [logs/](<logs/index.html>)
+- [scripts/](<scripts/index.html>)
+- [templates/](<templates/index.html>)
+- [asset-manifest](<asset-manifest.html>)
 <!-- ROTKEEPER-GLUE-END -->

@@ -25,13 +25,13 @@ Welcome to Rotkeeper, the command-line necropolis for static site decay rituals.
 This suite of shell scripts helps you manage dead markdown, render tombs as HTML, and archive your rot with dignity.
 Whether you're new to file decay or just looking to automate your afterlife pipeline, you're in the right place.
 
-Ritual types include:
+The current workflow is deliberately small and local-first:
 
-- **Expand** – Generate Markdown stubs and configs
 - **Render** – Convert Markdown into static HTML tombs
-- **Scan** – Detect decay, missing metadata, or corruption
-- **Pack** – Archive a versioned tomb for long-term storage
-- **Record** – Commit the state of a ritual into Git & logs
+- **Assets** – Copy local CSS, fonts, images, and JavaScript into `output/assets/`
+- **DIP** – Audit and stitch documentation from the current source tree
+- **Scan** – Detect manifest drift and orphaned files
+- **Test** – Run the integration and release assertions
 
 > 🕯️ Every file dies. Not every file decays with style.
 
@@ -40,64 +40,79 @@ Ritual types include:
 ## 📁 Contents
 
 ### 1. 🔍 Overview & Lore
-- [What is Rotkeeper?](rotkeeper.md)
-- [Architecture & Philosophy](architecture.md)
-- [Workflow Summary](technology/quickstart-guide.md)
+- [What is Rotkeeper?](rotkeeper.html)
+- [Architecture & Philosophy](architecture.html)
+- [Onboarding](onboarding.html)
+- [Road to Bones](road-to-bones/index.html)
 
 ### 2. 🚀 Getting Started
-- [Installation Requirements](install)
-- [Initializing the Environment](bones/scripts/rc-init.md)
+- [Initializing the Environment](bones/scripts/rc-init.html)
+- [First Page](../my-first-page.html)
 
 ### 3. ⚙️ CLI Ritual Scripts
-- [`rc-init.sh`](bones/scripts/rc-init.md)
-- [`setup-jules.sh`](scripts/setup-jules.md)
-- [`rc-book.sh`](bones/scripts/rc-book.md)
-- [`rc-render.sh`](bones/scripts/rc-render.md)
-- [`rc-pack.sh`](bones/scripts/rc-pack.md)
-- [`rc-scan.sh`](bones/scripts/rc-scan.md)
-- [`rc-assets.sh`](bones/scripts/rc-assets.md)
-- [`rc-status.sh`](bones/scripts/rc-status.md)
-- [`rc-glue.sh`](bones/scripts/rc-glue.md)
-- [`rc-bump.sh`](bones/scripts/rc-bump.md)
-- [`rc-release.sh`](bones/scripts/rc-release.md)
+- [Scripts Index](bones/scripts/index.html)
+- [`rc-init.sh`](bones/scripts/rc-init.html)
+- [`rc-book.sh`](bones/scripts/rc-book.html)
+- [`rc-render.sh`](bones/scripts/rc-render.html)
+- [`rc-pack.sh`](bones/scripts/rc-pack.html)
+- [`rc-scan.sh`](bones/scripts/rc-scan.html)
+- [`rc-assets.sh`](bones/scripts/rc-assets.html)
+- [`rc-status.sh`](bones/scripts/rc-status.html)
+- [`rc-glue.sh`](bones/scripts/rc-glue.html)
+- [`rc-bump.sh`](bones/scripts/rc-bump.html)
+- [`rc-release.sh`](bones/scripts/rc-release.html)
 
-### 4. 🔧 Configuration
-- [`rotkeeper-bom.yaml`](bones/config/rotkeeper-bom.md)
-- [Template Expectations](bones/templates/index.md)
+### 4. 🔧 Configuration & Templates
+- [`rotkeeper.yaml`](bones/config/rotkeeper.html)
+- [Template Expectations](bones/templates/index.html)
+- [DIP Matrix](dip-matrix.html)
 
 ### 5. 🪵 Logs, Echoes & Reports
-- [Log Outputs](bones/logs/index.md)
-- [Archive Reports](bones/archive/index.md)
+- [Archive Reports](bones/archive/index.html)
+- [DIP Matrix](dip-matrix.html)
 
 ### 6. 🌀 Advanced Flags & Edge Cases
-- [`--dry-run`, `--verbose`](bones/flags.md)
-- [Reseed Directory Structure](bones/reseed.md)
-- [JSON Output & Metadata](bones/export.md)
+- [Rotkeeper Reference](rotkeeper-reference.html)
+- [Rotkeeper Rituals](rotkeeper-rituals.html)
+- [Pre-commit Notes](pre-commit.html)
 
 ### 7. 🧯 Ritual Interruptions
-- [Common Errors](help/errors.md)
-- [Dependency Checklist](technology/dependencies.md)
+- [Patch Notes](patch.html)
+- [Setup Jules](scripts/setup-jules.html)
 
 ### 8. 📎 Appendix
-- [Full File Tree](bones/appendix/tree.md)
-- [CLI Help Reference](rotkeeper.md)
-- [Manifest / Asset Format Examples](bones/appendix/formats.md)
+- [Bones Index](bones/index.html)
+- [Configuration Index](bones/config/index.html)
+- [Templates Index](bones/templates/index.html)
 
 ***
 
-**Start with**: [Getting Started](bones/install.md) or jump straight to [rc-render.sh](bones/scripts/rc-render.md)
+**Start with**: [Onboarding](onboarding.html) or jump straight to [rc-render.sh](bones/scripts/rc-render.html)
 
 <!--
 Sora prompt: “A glitching wiki carved into obsidian, with glowing CLI runes etched in rust.”
 -->
 <!-- ROTKEEPER-GLUE-START -->
-- [bones/](bones/index.html)
-- [road-to-bones/](road-to-bones/index.html)
-- [scripts/](scripts/index.html)
-- [architecture](architecture.html)
-- [dip-matrix](dip-matrix.html)
-- [onboarding](onboarding.html)
-- [rotkeeper-reference](rotkeeper-reference.html)
-- [rotkeeper-rituals](rotkeeper-rituals.html)
-- [rotkeeper](rotkeeper.html)
+- [.github/](<.github/index.html>)
+- [bones/](<bones/index.html>)
+- [road-to-bones/](<road-to-bones/index.html>)
+- [scripts/](<scripts/index.html>)
+- [.agentignore](<.agentignore.html>)
+- [.blessed](<.blessed.html>)
+- [.gitignore](<.gitignore.html>)
+- [.shellcheckrc](<.shellcheckrc.html>)
+- [AGENTS](<AGENTS.html>)
+- [CHANGELOG](<CHANGELOG.html>)
+- [CONTRIBUTING](<CONTRIBUTING.html>)
+- [CREDITS](<CREDITS.html>)
+- [GEMINI](<GEMINI.html>)
+- [README](<README.html>)
+- [architecture](<architecture.html>)
+- [dip-matrix](<dip-matrix.html>)
+- [onboarding](<onboarding.html>)
+- [patch](<patch.html>)
+- [pre-commit](<pre-commit.html>)
+- [rotkeeper-reference](<rotkeeper-reference.html>)
+- [rotkeeper-rituals](<rotkeeper-rituals.html>)
+- [rotkeeper](<rotkeeper.html>)
 <!-- ROTKEEPER-GLUE-END -->

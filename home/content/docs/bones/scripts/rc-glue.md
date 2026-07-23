@@ -75,7 +75,32 @@ String replacements using `awk` or `sed` are fundamentally fragile. Throw in a s
 ### Ritual Warnings
 Sanitize your inputs. If your injected code contains special characters, prepare for the regex parser to summon something unholy.
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-04T15:41:00Z -->
+<!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
 
+-   `rc-book.sh`, `rc-dip.sh`, and `rc-glue.sh`.
 - - fix: updated rc-glue.sh to support non-destructive overwriting using rotkeeper_glued frontmatter
-- * `v0.3.0.9` - (2026-06-15 15:22) - fix: updated rc-glue.sh to support non-destructive overwriting using rotkeeper_glued frontmatter
+-   `rc-book.sh`, `rc-dip.sh`, and `rc-glue.sh`.
+## Environment
+<!-- DIP-ENV-EXTRACTED: 2026-07-23T10:54:47Z -->
+
+- **$ROOT_DIR**: /Users/tbuddy/dev/rotkeeper
+- **$OUTPUT_DIR**: /Users/tbuddy/dev/rotkeeper/output
+- **$CONTENT_DIR**: /Users/tbuddy/dev/rotkeeper/home/content
+- **$ASSETS_DIR**: /Users/tbuddy/dev/rotkeeper/home/assets
+- **$DOCS_DIR**: /Users/tbuddy/dev/rotkeeper/home/content/docs
+- **$HELP_DIR**: /Users/tbuddy/dev/rotkeeper/home/content/help
+- **$BONES_DIR**: /Users/tbuddy/dev/rotkeeper/bones
+- **$SCRIPT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/scripts
+- **$CONFIG_DIR**: /Users/tbuddy/dev/rotkeeper/bones/config
+- **$LOG_DIR**: /Users/tbuddy/dev/rotkeeper/bones/logs
+- **$TMP_DIR**: /Users/tbuddy/dev/rotkeeper/bones/tmp
+- **$ARCHIVE_DIR**: /Users/tbuddy/dev/rotkeeper/bones/archive
+- **$REPORT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/reports
+- **$BOOK_REPORT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/book-reports
+- **$TEMPLATE_DIR**: /Users/tbuddy/dev/rotkeeper/bones/templates
+- **$META_DIR**: /Users/tbuddy/dev/rotkeeper/bones/meta
+- **$WEB_DIR**: /Users/tbuddy/dev/rotkeeper/output
+###### CLI Usage
+<!-- DIP-HELP-EXTRACTED: 2026-07-23T10:54:47Z -->
+
+*Not found: autopsy help report missing (`/Users/tbuddy/dev/rotkeeper/bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-scan*

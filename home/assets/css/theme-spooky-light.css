@@ -1,0 +1,30 @@
+/* Light reading variant of the persistent Spooky experience. */
+@import url("theme-spooky.css");
+
+:root {
+  --bg-color: #f4eef1;
+  --surface-color: #fffafd;
+  --text-color: #2d2730;
+  --accent-color: #8f3d68;
+  --border-color: #cbb9c4;
+  --dim-text: #6c5e68;
+  --strong-color: #43243a;
+  --muted-color: #776b73;
+  --code-bg: #eee3e9;
+  --kbd-bg: #eadde5;
+  --table-head-bg: #eadde5;
+  --row-alt-bg: #f8f1f5;
+  --hover-bg: #eee1e9;
+}
+
+body { background-color: var(--bg-color); }
+strong, b { color: var(--strong-color); }
+del, s { color: var(--muted-color); }
+kbd, code, pre, blockquote, .entry-metadata, .userpic, figure, .figure-placeholder {
+  background-color: var(--code-bg);
+}
+code, pre { color: var(--accent-color); }
+pre code { color: var(--text-color); }
+th { background-color: var(--table-head-bg); }
+tbody tr:nth-child(even) { background-color: var(--row-alt-bg); }
+tbody tr:hover { background-color: var(--hover-bg); }
