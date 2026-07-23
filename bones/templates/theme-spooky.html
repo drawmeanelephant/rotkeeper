@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>$title$</title>
+  <link rel="stylesheet" href="$assets_root$css/chota.css">
+  <link rel="stylesheet" href="$assets_root$css/theme-spooky.css">
+</head>
+<body class="rk-page rk-page--field">
+  <div class="container">
+    <div class="row">
+      <div class="col-12 col-10-lg rk-shell">
+        <header class="rk-header">
+          <h1 class="rk-title">$title$</h1>
+          $if(description)$
+          <p class="rk-subtitle">$description$</p>
+          $endif$
+        </header>
+        <main class="rk-article">
+          $body$
+        </main>
+        <footer class="rk-footer">
+          <p>Rendered by Rotkeeper &mdash; Field Notes theme</p>
+        </footer>
+      </div>
+    </div>
+  </div>
+  <script src="$assets_root$js/search.js"></script>
+</body>
+</html>

@@ -1,0 +1,315 @@
+/*
+ * Rotkeeper Field Notes: an opt-in, offline theme.
+ * Chota is vendored separately at css/chota.css and loaded before this file.
+ * Fira Sans and Fira Code are vendored locally under assets/fonts/.
+ * No network access is required at render time.
+ */
+
+@font-face {
+  font-family: "Fira Sans";
+  src: url("../fonts/fira-sans-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Fira Sans";
+  src: url("../fonts/fira-sans-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Fira Sans";
+  src: url("../fonts/fira-sans-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Fira Sans";
+  src: url("../fonts/fira-sans-900.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Fira Code";
+  src: url("../fonts/fira-code-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Fira Code";
+  src: url("../fonts/fira-code-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --field-bg: #0b1410;
+  --field-bg-alt: #10251a;
+  --field-ink: #eaf3ec;
+  --field-ink-dim: #a9c2b2;
+  --field-green: #35c46a;
+  --field-green-dim: #1f7a45;
+  --field-border: #1e3a29;
+  --field-code-bg: #0e1c14;
+  --field-focus: #7fe3a6;
+  --field-max-width: 42rem;
+  --field-radius: 4px;
+}
+
+.rk-page--field {
+  background: var(--field-bg);
+  color: var(--field-ink);
+  font-family: "Fira Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 400;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+.rk-page--field .rk-shell {
+  max-width: var(--field-max-width);
+  margin: 0 auto;
+  padding: 3rem 1.25rem 4rem;
+}
+
+.rk-page--field .rk-header {
+  border-bottom: 1px solid var(--field-border);
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+}
+
+.rk-page--field .rk-title {
+  font-weight: 900;
+  font-size: 2.25rem;
+  letter-spacing: -0.01em;
+  color: var(--field-ink);
+  margin: 0 0 0.5rem;
+}
+
+.rk-page--field .rk-subtitle {
+  font-weight: 400;
+  color: var(--field-ink-dim);
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.rk-page--field .rk-article {
+  font-size: 1.05rem;
+}
+
+.rk-page--field .rk-article h1,
+.rk-page--field .rk-article h2,
+.rk-page--field .rk-article h3,
+.rk-page--field .rk-article h4 {
+  font-weight: 700;
+  color: var(--field-ink);
+  line-height: 1.3;
+  margin-top: 2.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.rk-page--field .rk-article h1 { font-size: 1.75rem; font-weight: 900; }
+.rk-page--field .rk-article h2 {
+  font-size: 1.4rem;
+  border-bottom: 1px solid var(--field-border);
+  padding-bottom: 0.4rem;
+}
+.rk-page--field .rk-article h3 { font-size: 1.15rem; color: var(--field-green); }
+.rk-page--field .rk-article h4 { font-size: 1rem; color: var(--field-ink-dim); text-transform: uppercase; letter-spacing: 0.04em; }
+
+.rk-page--field .rk-article p {
+  margin: 0 0 1.1rem;
+}
+
+.rk-page--field .rk-article a {
+  color: var(--field-green);
+  text-decoration: underline;
+  text-decoration-color: var(--field-green-dim);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+.rk-page--field .rk-article a:hover {
+  color: var(--field-ink);
+  text-decoration-color: var(--field-green);
+}
+.rk-page--field .rk-article a:focus-visible,
+.rk-page--field a:focus-visible,
+.rk-page--field button:focus-visible {
+  outline: 2px solid var(--field-focus);
+  outline-offset: 2px;
+  border-radius: var(--field-radius);
+}
+
+.rk-page--field .rk-article strong { color: var(--field-ink); font-weight: 700; }
+.rk-page--field .rk-article em { color: var(--field-ink-dim); }
+
+.rk-page--field .rk-article ul,
+.rk-page--field .rk-article ol {
+  margin: 0 0 1.1rem;
+  padding-left: 1.5rem;
+}
+.rk-page--field .rk-article ul ul,
+.rk-page--field .rk-article ol ol,
+.rk-page--field .rk-article ul ol,
+.rk-page--field .rk-article ol ul {
+  margin-top: 0.4rem;
+  margin-bottom: 0;
+}
+.rk-page--field .rk-article li { margin-bottom: 0.35rem; }
+
+.rk-page--field .rk-article ul.task-list {
+  list-style: none;
+  padding-left: 0.25rem;
+}
+.rk-page--field .rk-article ul.task-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.rk-page--field .rk-article ul.task-list input[type="checkbox"] {
+  margin-top: 0.3rem;
+  accent-color: var(--field-green);
+}
+
+.rk-page--field .rk-article blockquote {
+  border-left: 3px solid var(--field-green-dim);
+  margin: 0 0 1.1rem;
+  padding: 0.25rem 0 0.25rem 1rem;
+  color: var(--field-ink-dim);
+  font-style: italic;
+}
+
+.rk-page--field .rk-article code {
+  font-family: "Fira Code", ui-monospace, monospace;
+  font-size: 0.9em;
+  background: var(--field-code-bg);
+  color: var(--field-green);
+  padding: 0.15em 0.4em;
+  border-radius: var(--field-radius);
+}
+
+.rk-page--field .rk-article pre {
+  background: var(--field-code-bg);
+  border: 1px solid var(--field-border);
+  border-radius: var(--field-radius);
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 0 0 1.25rem;
+}
+.rk-page--field .rk-article pre code {
+  background: none;
+  padding: 0;
+  color: var(--field-ink);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+/* Pandoc syntax-highlighting classes (highlight-style: pygments-esque) */
+.rk-page--field .rk-article pre .kw { color: var(--field-green); font-weight: 700; }
+.rk-page--field .rk-article pre .cf { color: var(--field-green); font-weight: 700; }
+.rk-page--field .rk-article pre .dt { color: #6fb8d1; }
+.rk-page--field .rk-article pre .dv,
+.rk-page--field .rk-article pre .bn,
+.rk-page--field .rk-article pre .fl { color: #d19a66; }
+.rk-page--field .rk-article pre .st { color: #c3a6e0; }
+.rk-page--field .rk-article pre .va { color: #e8c27a; }
+.rk-page--field .rk-article pre .co { color: var(--field-ink-dim); font-style: italic; }
+.rk-page--field .rk-article pre .ot { color: #eaf3ec; }
+.rk-page--field .rk-article pre .op { color: #e8c27a; }
+.rk-page--field .rk-article pre .fu { color: #7fe3a6; }
+.rk-page--field .rk-article pre .er { color: #ff6b6b; font-weight: 700; }
+
+.rk-page--field .rk-article table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 1.5rem;
+  font-size: 0.95rem;
+}
+.rk-page--field .rk-article th,
+.rk-page--field .rk-article td {
+  border: 1px solid var(--field-border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+.rk-page--field .rk-article th {
+  background: var(--field-bg-alt);
+  color: var(--field-green);
+  font-weight: 700;
+}
+.rk-page--field .rk-article tr:nth-child(even) td {
+  background: rgba(53, 196, 106, 0.04);
+}
+
+.rk-page--field .rk-article img {
+  max-width: 100%;
+  border-radius: var(--field-radius);
+  display: block;
+}
+
+.rk-page--field .rk-article figure {
+  margin: 0 0 1.5rem;
+}
+.rk-page--field .rk-article figcaption {
+  color: var(--field-ink-dim);
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+.rk-page--field .rk-article dl {
+  margin: 0 0 1.25rem;
+  border-left: 2px solid var(--field-border);
+  padding-left: 1rem;
+}
+.rk-page--field .rk-article dt {
+  font-weight: 700;
+  color: var(--field-ink);
+  margin-top: 0.75rem;
+}
+.rk-page--field .rk-article dd {
+  margin: 0.2rem 0 0;
+  color: var(--field-ink-dim);
+}
+
+.rk-page--field .rk-article .footnotes {
+  border-top: 1px solid var(--field-border);
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  font-size: 0.875rem;
+  color: var(--field-ink-dim);
+}
+.rk-page--field .rk-article .footnote-ref {
+  color: var(--field-green);
+  font-weight: 700;
+  text-decoration: none;
+  padding: 0 0.15em;
+}
+.rk-page--field .rk-article .footnote-back {
+  color: var(--field-green-dim);
+  text-decoration: none;
+  margin-left: 0.35rem;
+}
+
+.rk-page--field .rk-article hr {
+  border: none;
+  border-top: 1px solid var(--field-border);
+  margin: 2.5rem 0;
+}
+
+.rk-page--field .rk-footer {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--field-border);
+  color: var(--field-ink-dim);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 40rem) {
+  .rk-page--field .rk-shell { padding: 2rem 1rem 3rem; }
+  .rk-page--field .rk-title { font-size: 1.75rem; }
+}
