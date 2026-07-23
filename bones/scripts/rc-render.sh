@@ -88,6 +88,7 @@ main() {
     case "${RENDERER,,}" in
       pandoc)
         check_dependencies
+        require_bins pandoc
         ;;
       apex)
         APEX_BIN="${RK_APEX_BIN:-$(command -v apex || true)}"

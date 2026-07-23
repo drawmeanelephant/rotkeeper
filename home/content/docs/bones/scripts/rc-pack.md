@@ -56,13 +56,13 @@ Workflow Steps
 <!-- Sequential rites performed by the script -->
 
 	1.	Verify Dependencies
-	•	Check for tar, jq, and pandoc.
+	•	Check for tar and jq.
 	2.	Archive Output
 	•	Create bones/archive/tomb-YYYY-MM-DD_HHMM.tar.gz from output/ (excluding backups if --self).
 	2.5. Embed Metadata
 	•  Inject a generated `metadata.json` file into each `.tar` archive before compression. This includes name, SHA256 checksum, timestamp, archive mode, and file count.
 	3.	Export Markdown
-	•	Use pandoc to convert .md files under home/content/ into JSON.
+	•	Export Markdown files under `home/content/` into `tomb-export-*.json` using `jq --rawfile` to supply an explicit `source_markdown` field contract.
 	4.	Log Operation
 	•	Write bones/manifest.txt and bones/logs/rc-pack-YYYYMMDD-HHMMSS.log.
 
