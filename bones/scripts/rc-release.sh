@@ -115,6 +115,7 @@ verify_archive_contents() {
         "rotkeeper/${REPORT_DIR#"$ROOT_DIR"/}/"
         "rotkeeper/${BOOK_REPORT_DIR#"$ROOT_DIR"/}/"
         "rotkeeper/${CONTENT_DIR#"$ROOT_DIR"/}/messages/"
+        "rotkeeper/apex-spike/"
     )
 
     while IFS= read -r entry; do
@@ -165,6 +166,7 @@ main() {
         --exclude="${REPORT_DIR#"$ROOT_DIR"/}/" \
         --exclude="${BOOK_REPORT_DIR#"$ROOT_DIR"/}/" \
         --exclude="${CONTENT_DIR#"$ROOT_DIR"/}/messages/" \
+        --exclude='apex-spike/' \
         --exclude='.DS_Store' \
         --exclude='*_temp.md' \
         "$PROJECT_ROOT/" "$CANONICAL_DIR/"

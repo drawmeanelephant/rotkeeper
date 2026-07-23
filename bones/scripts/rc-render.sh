@@ -225,6 +225,7 @@ main() {
 
     if [[ "${RENDERER,,}" == "apex" ]]; then
       # --- APEX RENDERER PASS (PURE BASH / GAWK / YQ) ---
+      mkdir -p "$TMP_DIR"
       local batch_tsv="$TMP_DIR/apex-batch-$$.tsv"
       rm -f "$batch_tsv"
 

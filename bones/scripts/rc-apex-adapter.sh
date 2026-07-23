@@ -137,6 +137,7 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ap
   fi
 
   # 4. Invoke Apex to convert Markdown to body HTML snippet
+  mkdir -p "$TMP_DIR"
   body_tmp="$TMP_DIR/apex-body-$$.html"
   body_rewritten="$TMP_DIR/apex-body-rewritten-$$.html"
   rm -f "$body_tmp" "$body_rewritten"
