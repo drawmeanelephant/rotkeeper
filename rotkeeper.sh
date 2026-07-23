@@ -51,7 +51,10 @@ Commands:
   test        Run the integration test harness matrix
   scan        Verify manifest entries against actual files
   assets      Generate asset manifest
+  autopsy     Catalog script help and output behavior
   glue        Auto-generate navigation glue for unindexed content directories
+  links       Audit links and local assets in rendered HTML
+  showcase    Generate showcase content for every HTML template
   dip         Audit documentation coverage via DIP
   book        Generate aggregated documentation book targets
   status      Display environment health status reports
@@ -99,8 +102,17 @@ case "$command" in
   assets)
     bash "$BONES/rc-assets.sh" "$@"
     ;;
+  autopsy)
+    bash "$BONES/rc-autopsy.sh" "$@"
+    ;;
   glue)
     bash "$BONES/rc-glue.sh" "$@"
+    ;;
+  links)
+    bash "$BONES/rc-links.sh" "$@"
+    ;;
+  showcase)
+    bash "$BONES/rc-showcase.sh" "$@"
     ;;
   dip)
     bash "$BONES/rc-dip.sh" "$@"

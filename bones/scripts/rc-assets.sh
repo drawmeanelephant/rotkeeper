@@ -83,12 +83,24 @@ main() {
         log "INFO" "Archived old manifest"
     fi
 
-    ASSET_PATHS=$(find "$ASSETS_DIR" -type f | sed "s|^$ASSETS_DIR/||" | sort)
+    ASSET_PATHS=$(find "$ASSETS_DIR" -type f ! -name '.DS_Store' | sed "s|^$ASSETS_DIR/||" | sort)
 
     asset_count=$(echo "$ASSET_PATHS" | grep -c . || true)
     log "INFO" "Found $asset_count assets in $ASSETS_DIR"
 
     [[ "$DRY_RUN" == false ]] && : > "$REPORT"
+
+    # Keep generated assets synchronized with the source tree so deleted
+    # assets do not linger in output/ and surprise static servers.
+    if [[ "$DRY_RUN" == false && -d "$OUTPUT_ASSET_DIR" ]]; then
+        while IFS= read -r -d '' generated_asset; do
+            rel_generated="${generated_asset#"$OUTPUT_ASSET_DIR"/}"
+            if ! grep -Fxq "$rel_generated" <<< "$ASSET_PATHS"; then
+                rm -f "$generated_asset"
+                log "INFO" "Pruned stale generated asset: $rel_generated"
+            fi
+        done < <(find "$OUTPUT_ASSET_DIR" -type f -print0)
+    fi
 
     if [[ "$asset_count" -eq 0 ]]; then
         log "WARN" "No assets found under $ASSETS_DIR"
@@ -119,6 +131,8 @@ main() {
         run cp "$REPORT" "$MANIFEST"
         log "INFO" "Full asset manifest generated at: $MANIFEST"
     fi
+
+    log "MARKER" "Assets synchronized: $asset_count source assets -> $OUTPUT_ASSET_DIR"
 
     # SITEMAP PURGED ENTIRELY FROM CORE PIPELINE.
 }

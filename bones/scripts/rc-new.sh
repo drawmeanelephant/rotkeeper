@@ -60,7 +60,7 @@ FILE=""
 TITLE_OVERRIDE=""
 AUTHOR_OVERRIDE=""
 TAGS=""
-TEMPLATE_OVERRIDE="rotkeeper-blog.html"
+TEMPLATE_OVERRIDE=""
 DESCRIPTION=""
 BODY_TEXT=""
 SOURCE_URL=""
@@ -68,8 +68,17 @@ SUBDIR=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --dry-run|--verbose|--help|-h)
+    --dry-run)
+      DRY_RUN=true
       shift
+      ;;
+    --verbose)
+      VERBOSE=true
+      QUIET=false
+      shift
+      ;;
+    --help|-h)
+      show_help
       ;;
     --title)
       TITLE_OVERRIDE="$2"
@@ -150,7 +159,9 @@ main() {
         fi
     fi
 
-    mkdir -p "$(dirname "$FILE")"
+    if [[ "$DRY_RUN" == false ]]; then
+        mkdir -p "$(dirname "$FILE")"
+    fi
 
     if [[ -f "$FILE" ]]; then
         log "ERROR" "File already exists: $FILE"
@@ -158,6 +169,9 @@ main() {
     fi
 
     TITLE="${TITLE_OVERRIDE:-$(basename "$FILE" .md)}"
+    if [[ -z "$TEMPLATE_OVERRIDE" ]]; then
+        TEMPLATE_OVERRIDE=$(yq e '.default_template // "theme-spooky-dark.html"' "$CONFIG_DIR/rotkeeper.yaml" 2>/dev/null || echo "theme-spooky-dark.html")
+    fi
     # slugify title
     SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed -e 's/[^a-z0-9]/-/g' -e 's/-\+/-/g' -e 's/^-//' -e 's/-$//')
 
@@ -191,8 +205,11 @@ main() {
 title: "${SAFE_TITLE}"
 slug: $SLUG
 template: $TEMPLATE_OVERRIDE
-${DESC_BLOCK}
 EOF
+
+        if [[ -n "$DESCRIPTION" ]]; then
+            echo "$DESC_BLOCK" >> "$FILE"
+        fi
 
         if [[ -n "$AUTHOR" ]]; then
             echo "author: \"$AUTHOR\"" >> "$FILE"
@@ -237,7 +254,7 @@ EOF
 
         log "INFO" "📄 Scaffolded new file at $FILE"
     else
-        log "DRYRUN" "Would scaffold $FILE with title '$TITLE'"
+        log "MARKER" "Would scaffold $FILE with title '$TITLE' and template '$TEMPLATE_OVERRIDE'"
     fi
 }
 
