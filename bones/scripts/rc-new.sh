@@ -146,6 +146,11 @@ main() {
         FILE="$SUBDIR/$FILE"
     fi
 
+    if [[ "/$FILE/" == */../* ]]; then
+        log "ERROR" "Filename and --subdir cannot contain parent-directory traversal"
+        exit 1
+    fi
+
     # Resolve the destination before creating it. This keeps nested filenames
     # under --subdir and rejects traversal instead of relying on substring checks.
     CONTENT_ROOT=$(rk_canonical_path "$CONTENT_DIR")
@@ -231,7 +236,7 @@ EOF
         {
             echo "---"
             echo ""
-            if [[ "$BODY_STARTS_WITH_HEADING" == false || -n "$SOURCE_URL" ]]; then
+            if [[ "$BODY_STARTS_WITH_HEADING" == false ]]; then
                 echo "# $TITLE"
                 echo ""
             fi

@@ -118,16 +118,22 @@ for script in ${scripts_list[@]+"${scripts_list[@]}"}; do
     [[ ! -f "$script" ]] && continue
     total_scripts=$((total_scripts + 1))
     s_name=$(basename "$script")
-    s_version=$(grep -E '^VERSION=' "$script" | cut -d'"' -f2 | head -n 1 || echo "unknown")
-    # Scripts may expose VERSION through the shared environment override. Show
-    # the effective fallback value in the report instead of flagging the
-    # literal parameter expansion as version drift.
-    s_version=$(printf '%s\n' "$s_version" | sed -E 's/^\$\{ROTKEEPER_VERSION:-([^}]*)\}$/\1/')
-    [[ "$s_version" == "\$CURRENT_VERSION" ]] && s_version="$CANONICAL_VERSION"
+    s_version=$(grep -E '^VERSION=' "$script" | cut -d'"' -f2 | head -n 1 || true)
+    if [[ -z "$s_version" ]]; then
+        s_version="unversioned"
+        match="— [UNVERSIONED]"
+        match_json="null"
+    else
+        # Scripts may expose VERSION through the shared environment override.
+        # Show the effective fallback value instead of flagging the literal
+        # parameter expansion as version drift.
+        s_version=$(printf '%s\n' "$s_version" | sed -E 's/^\$\{ROTKEEPER_VERSION:-([^}]*)\}$/\1/')
+        [[ "$s_version" == "\$CURRENT_VERSION" ]] && s_version="$CANONICAL_VERSION"
 
-    match="✗ [DRIFT]"
-    match_json="false"
-    [[ "$s_version" == "$CANONICAL_VERSION" ]] && match="✓" && match_json="true"
+        match="✗ [DRIFT]"
+        match_json="false"
+        [[ "$s_version" == "$CANONICAL_VERSION" ]] && match="✓" && match_json="true"
+    fi
 
     if [[ "$JSON_MODE" == true ]]; then
         [[ "$first_script" == false ]] && json_scripts+=","
