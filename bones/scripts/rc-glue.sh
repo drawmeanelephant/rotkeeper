@@ -127,8 +127,10 @@ main() {
 
     # Initialize frontmatter template baseline mappings
     SAFE_TITLE="${DIR_NAME//\"/\\\"}"
+    DEFAULT_TEMPLATE=$(yq eval '.default_template // "theme-spooky-dark.html"' "$CONFIG_DIR/rotkeeper.yaml" 2>/dev/null || echo "theme-spooky-dark.html")
+    SAFE_TEMPLATE="${DEFAULT_TEMPLATE//\"/\\\"}"
     DEFAULT_YAML="title: \"Index of $SAFE_TITLE\"
-template: \"rotkeeper-doc.html\"
+template: \"$SAFE_TEMPLATE\"
 rotkeeper_glued: true"
 
     if [[ -f "$SOUL_FILE" ]]; then

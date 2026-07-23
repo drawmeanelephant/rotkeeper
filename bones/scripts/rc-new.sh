@@ -29,11 +29,11 @@ Options:
   --title "Title"        Override auto-derived title; skip slug-from-filename
   --author "Name"        Override config-derived author
   --tags "tag1,tag2"     Comma-separated tags; rendered as YAML list
-  --template "file.html" Override default rotkeeper-blog.html
+  --template "file.html" Override the configured default template
   --description "text"   Frontmatter description field
   --body "text"          Starting body content
   --url "https://..."    A URL to embed in the document (creates source skeleton)
-  --subdir "path"        Subdirectory under home/content/ to place the file
+  --subdir "path"        Directory under home/content/ to place the file
   --version, -v          Show script version and quit
   --help, -h             Show this help message and exit
   --dry-run              Preview actions without writing files
@@ -139,24 +139,29 @@ main() {
     fi
 
     if [[ -n "$SUBDIR" ]]; then
-        if [[ "$FILE" == */* ]]; then
-            log "WARN" "--subdir is ignored because a path was provided in the filename ($FILE)"
-        else
-            FILE="$SUBDIR/$FILE"
+        if [[ "$FILE" == /* ]]; then
+            log "ERROR" "--subdir cannot be combined with an absolute filename"
+            exit 1
         fi
+        FILE="$SUBDIR/$FILE"
     fi
 
-    # Ensure it's in CONTENT_DIR
-    if [[ "$FILE" != *"$CONTENT_DIR"* ]]; then
-        if [[ "$FILE" == /* ]]; then
-            # absolute path provided, check if it's within CONTENT_DIR
-            if [[ "$FILE" != *"$CONTENT_DIR"* ]]; then
-                 log "ERROR" "File must be created within $CONTENT_DIR"
-                 exit 1
-            fi
-        else
-            FILE="$CONTENT_DIR/$FILE"
-        fi
+    if [[ "/$FILE/" == */../* ]]; then
+        log "ERROR" "Filename and --subdir cannot contain parent-directory traversal"
+        exit 1
+    fi
+
+    # Resolve the destination before creating it. This keeps nested filenames
+    # under --subdir and rejects traversal instead of relying on substring checks.
+    CONTENT_ROOT=$(rk_canonical_path "$CONTENT_DIR")
+    if [[ "$FILE" == /* ]]; then
+        FILE=$(rk_canonical_path "$FILE")
+    else
+        FILE=$(rk_canonical_path "$CONTENT_DIR/$FILE")
+    fi
+    if [[ "$FILE" != "$CONTENT_ROOT"/* ]]; then
+        log "ERROR" "File must be created within $CONTENT_DIR"
+        exit 1
     fi
 
     if [[ "$DRY_RUN" == false ]]; then
@@ -187,6 +192,11 @@ main() {
 
     # Sanitize and escape double quotes for frontmatter strings
     SAFE_TITLE="${TITLE//\"/\\\"}"
+
+    BODY_STARTS_WITH_HEADING=false
+    if [[ -n "$BODY_TEXT" && "$BODY_TEXT" =~ ^[[:space:]]*#+[[:space:]]+ ]]; then
+        BODY_STARTS_WITH_HEADING=true
+    fi
 
     # Handle multi-line and newline-containing descriptions via block scalar
     if [[ "$DESCRIPTION" == *$'\n'* ]] || [[ "$DESCRIPTION" == *'\n'* ]]; then
@@ -226,8 +236,10 @@ EOF
         {
             echo "---"
             echo ""
-            echo "# $TITLE"
-            echo ""
+            if [[ "$BODY_STARTS_WITH_HEADING" == false ]]; then
+                echo "# $TITLE"
+                echo ""
+            fi
 
             if [[ -n "$SOURCE_URL" ]]; then
                 echo "## Source"

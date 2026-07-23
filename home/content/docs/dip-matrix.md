@@ -1,6 +1,6 @@
 ---
 title: "Document Improvement Project (DIP) Matrix"
-date: "2026-07-23T12:10:20Z"
+date: "2026-07-23T13:29:44Z"
 template: "rotkeeper-doc.html"
 ---
 
@@ -32,7 +32,7 @@ This page tracks the documentation status of core project files.
 | `bones/scripts/rc-render.sh` | [bones/scripts/rc-render.md](bones/scripts/rc-render.md) | 2026-07-23 | 2026-07-23 | OK |
 | `bones/scripts/rc-scan.sh` | [bones/scripts/rc-scan.md](bones/scripts/rc-scan.md) | 2026-07-22 | 2026-07-23 | OK |
 | `bones/scripts/rc-showcase.sh` | [bones/scripts/rc-showcase.md](bones/scripts/rc-showcase.md) | 2026-07-23 | 2026-07-23 | Stub |
-| `bones/scripts/rc-status.sh` | [bones/scripts/rc-status.md](bones/scripts/rc-status.md) | 2026-07-22 | 2026-07-23 | OK |
+| `bones/scripts/rc-status.sh` | [bones/scripts/rc-status.md](bones/scripts/rc-status.md) | 2026-07-23 | 2026-07-23 | OK |
 | `bones/scripts/rc-test.sh` | [bones/scripts/rc-test.md](bones/scripts/rc-test.md) | 2026-07-22 | 2026-07-23 | OK |
 | `bones/scripts/rc-utils.sh` | [bones/scripts/rc-utils.md](bones/scripts/rc-utils.md) | 2026-07-23 | 2026-07-23 | OK |
 | `bones/scripts/rewrite-links.lua` | [bones/scripts/rewrite-links.md](bones/scripts/rewrite-links.md) | 2026-07-21 | 2026-07-23 | OK |
