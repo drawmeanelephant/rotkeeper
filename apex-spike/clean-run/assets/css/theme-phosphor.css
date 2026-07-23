@@ -1,0 +1,114 @@
+/* 💾 theme-phosphor.css: The Retro-Tech / Terminal Collection */
+
+:root {
+  --bg-color: #0a0a0a;
+  --text-primary: #33ff33; /* Classic terminal green */
+  --text-secondary: #00cc00;
+  --accent-color: #66ff66;
+  --accent-hover: #ffffff;
+  --border-color: #33ff33;
+  --code-bg: #002200;
+
+  --font-mono: 'VT323', 'Courier New', Courier, monospace;
+
+  --max-width: 900px;
+  --spacing-base: 1rem;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 20px;
+  line-height: 1.4;
+  margin: 0;
+  padding: 0;
+  text-transform: uppercase; /* Classic mainframe feel */
+}
+
+/* CRT Scanline Effect */
+.crt-overlay {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  z-index: 2;
+  background-size: 100% 2px, 3px 100%;
+  pointer-events: none;
+}
+
+.rk-shell {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 2rem;
+  border: 2px solid var(--border-color);
+  box-shadow: inset 0 0 10px rgba(51, 255, 51, 0.2), 0 0 10px rgba(51, 255, 51, 0.2);
+  margin-top: 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+  font-weight: normal;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+  margin-top: 2rem;
+  text-shadow: 0 0 5px rgba(51, 255, 51, 0.5);
+}
+
+a {
+  color: var(--accent-color);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--accent-color);
+}
+
+a:hover {
+  background-color: var(--text-primary);
+  color: var(--bg-color);
+}
+
+.rk-header {
+  margin-bottom: 2rem;
+}
+
+code {
+  background-color: var(--code-bg);
+  padding: 0.2em 0.4em;
+  border: 1px solid var(--border-color);
+}
+
+pre {
+  background-color: var(--code-bg);
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  overflow-x: auto;
+}
+
+blockquote {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  border-left: 4px solid var(--border-color);
+  background-color: rgba(51, 255, 51, 0.1);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+
+th, td {
+  padding: 0.5rem;
+  text-align: left;
+  border: 1px solid var(--border-color);
+}
+
+::selection {
+  background: var(--text-primary);
+  color: var(--bg-color);
+}

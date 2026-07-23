@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>$title$</title>
+  <link rel="stylesheet" href="$assets_root$css/theme-spooky-dark.css">
+</head>
+<body>
+  <div class="journal-container">
+    <header class="journal-header">
+      <h1>$title$</h1>
+      $if(description)$
+      <p>$description$</p>
+      $endif$
+    </header>
+
+    <div class="layout-wrapper">
+      <main>
+        <article class="entry-box">
+          <header class="entry-header">
+            <div>
+              <h2 class="entry-title">$title$</h2>
+              $if(date)$
+              <div class="entry-date">$date$</div>
+              $endif$
+            </div>
+            <div class="userpic" aria-hidden="true">ROTKEEPER</div>
+          </header>
+
+          <div class="entry-content">
+            $body$
+          </div>
+
+          $if(author)$
+          <footer class="entry-metadata">
+            <div class="metadata-item"><span class="metadata-label">Author:</span> $author$</div>
+          </footer>
+          $endif$
+        </article>
+      </main>
+    </div>
+
+    <footer class="journal-footer">
+      <p>Rendered by Rotkeeper</p>
+    </footer>
+  </div>
+</body>
+</html>

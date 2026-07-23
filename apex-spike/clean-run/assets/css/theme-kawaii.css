@@ -1,0 +1,111 @@
+/* 🌸 theme-kawaii.css: The "Kawaii Rot" / Hopecore Collection */
+
+:root {
+  --bg-color: #ffe6f2; /* Soft baby pink */
+  --surface-color: #ffffff;
+  --text-primary: #5c4d5c; /* Dark muted purple/grey for contrast */
+  --text-secondary: #8c7a8c;
+  --accent-color: #ff99cc; /* Brighter pink */
+  --accent-hover: #ff66b2;
+  --border-color: #ffcce6;
+  --code-bg: #e6e6ff; /* Soft lavender */
+  --code-text: #993399; /* Deep purple */
+
+  --font-sans: 'Nunito', 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif;
+  --font-mono: 'Courier New', Courier, monospace;
+
+  --max-width: 800px;
+  --spacing-base: 1rem;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  background-image: radial-gradient(#ffcce6 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.rk-shell {
+  max-width: var(--max-width);
+  margin: 2rem auto;
+  padding: calc(var(--spacing-base) * 2);
+  background-color: var(--surface-color);
+  border-radius: 30px; /* Bubbly, fluffy corners */
+  box-shadow: 0 10px 25px rgba(255, 153, 204, 0.2);
+  border: 4px solid #ffb3d9;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #ff66b2;
+  font-weight: 700;
+  text-align: center;
+  text-shadow: 2px 2px 0px #ffe6f2;
+}
+
+a {
+  color: var(--accent-color);
+  text-decoration: none;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline wavy var(--accent-hover);
+}
+
+.rk-header {
+  border-bottom: 3px dashed var(--border-color);
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+}
+
+code {
+  font-family: var(--font-mono);
+  background-color: var(--code-bg);
+  color: var(--code-text);
+  padding: 0.2em 0.5em;
+  border-radius: 12px;
+}
+
+pre {
+  background-color: var(--code-bg);
+  padding: 1.5rem;
+  border-radius: 20px;
+  border: 2px solid #ccccff;
+  overflow-x: auto;
+}
+
+blockquote {
+  margin: 1.5rem 0;
+  padding: 1rem 1.5rem;
+  background-color: #e6fffa; /* Mint green */
+  border-left: 6px solid #80ffdf;
+  border-radius: 0 20px 20px 0;
+  color: #339980;
+  font-style: italic;
+}
+
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 15px;
+  overflow: hidden;
+  border: 2px solid var(--border-color);
+}
+
+th, td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+th {
+  background-color: #ffe6f2;
+  color: #ff66b2;
+}
