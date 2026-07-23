@@ -1,0 +1,21 @@
+# Ignore cloned Apex source tree, submodules, and build outputs
+apex/
+build/
+
+# Ignore rendered output directories and intermediate files
+outputs/
+pandoc_baseline_output/
+apex_output/
+*.html
+*.json
+!golden_corpus/*.md
+!golden_corpus/**/*.md
+
+# Ignore Python bytecode and temporary files
+__pycache__/
+*.pyc
+
+# Ignore temporary logs and OS metadata
+*.log
+.DS_Store
+tmp/
