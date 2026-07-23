@@ -43,7 +43,7 @@ exit 0; fi
 
 echo "--- Rotkeeper Single framework Release Assertion Test Matrix ---"
 
-TEST_DIR="/tmp/rotkeeper-test-env"
+TEST_DIR="${ROOT_DIR:-$PWD}/bones/tmp/rotkeeper-test-env"
 cleanup_ran=false
 TEST_RELEASE_VERSION=$(grep -E '^VERSION="' rotkeeper.sh | cut -d'"' -f2)
 if [[ -z "$TEST_RELEASE_VERSION" ]]; then
@@ -62,8 +62,6 @@ canonicalize_test_path() {
     return 0
   fi
 
-  # BSD realpath has no -m flag. Resolve the existing parent physically and
-  # append the final component, which is sufficient for the fresh test root.
   parent=$(dirname "$path")
   base=$(basename "$path")
   if parent=$(cd "$parent" 2>/dev/null && pwd -P); then
@@ -123,7 +121,6 @@ LAYOUT_MODES=("crypt" "busy" "sterile")
 for mode in ${LAYOUT_MODES[@]+"${LAYOUT_MODES[@]}"}; do
   pass_dir="$TEST_DIR/$mode"
 
-  # Derive test structure map exactly as the flat path loader handles it
   case "${mode,,}" in
     "busy")
       b_scripts="bones/scripts"
@@ -176,6 +173,128 @@ CONF_EOF
 
     echo "  [+] Initializing environment testing pass..."
     ./rotkeeper.sh init --with-sample > /dev/null
+
+    echo "  [+] Testing renderer selection and validation..."
+    # 1. Invalid renderer flag must fail
+    if ./rotkeeper.sh render --renderer invalid_choice >/dev/null 2>&1; then
+      echo "❌ Assertion Failed: --renderer invalid_choice should have failed."
+      exit 102
+    fi
+
+    # 2. Missing RK_APEX_BIN must fail for default apex renderer
+    if RK_APEX_BIN="" ./rotkeeper.sh render >/dev/null 2>&1; then
+      echo "❌ Assertion Failed: default apex render without RK_APEX_BIN should have failed."
+      exit 103
+    fi
+
+    # 3. Non-existent RK_APEX_BIN must fail for default apex renderer
+    if RK_APEX_BIN="/nonexistent/apex" ./rotkeeper.sh render >/dev/null 2>&1; then
+      echo "❌ Assertion Failed: default apex render with invalid RK_APEX_BIN should have failed."
+      exit 104
+    fi
+
+    # 4. Pandoc opt-in render must succeed
+    ./rotkeeper.sh render --renderer pandoc > /dev/null
+
+    # 5. Pure Bash/GAWK/YQ Apex adapter contract test (Zero Python)
+    echo "  [+] Executing default pure Bash/GAWK/YQ Apex adapter contract tests..."
+    mkdir -p bones/tmp
+    fake_bin="$pass_dir/bones/tmp/fake_apex"
+    cat << 'FAKE_EOF' > "$fake_bin"
+#!/usr/bin/env bash
+set -euo pipefail
+file="${1:-}"
+if [[ -f "$file" ]]; then
+  awk '/^---$/ { f++; next } f>=2 || f==0 { print }' "$file" | \
+    sed -E 's/\[([^]]+)\]\(([^)]+)\)/<a href="\2">\1<\/a>/g'
+fi
+FAKE_EOF
+    chmod +x "$fake_bin"
+
+    # Create ugly metadata & edge-case link test file
+    cat << 'UGLY_EOF' > "$b_content/ugly-edge-case.md"
+---
+title: "An \"Ugly\" Quoted Title"
+description: |-
+  A multiline description
+  with quotes "hello" and breaks.
+---
+
+[Normal Link](my-first-page.md)
+[Fragment Link](my-first-page.md#section-1)
+[Query Link](my-first-page.md?v=123#fragment)
+[External Link](https://example.com/docs.md)
+[Mailto Link](mailto:necromancer@example.com)
+[Angle Bracket Link](<my-first-page.md>)
+[Angle Bracket External Link](<https://example.com/docs.md>)
+[Angle Bracket Fragment Link](<my-first-page.md#section-1>)
+<a href="my-first-page.md">Raw HTML Link</a>
+UGLY_EOF
+
+    RK_APEX_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null
+
+    # Verify link rewriting assertions on generated HTML (using dynamic $OUTPUT_DIR)
+    out_dir_rel="output"
+    if [[ "$mode" == "sterile" ]]; then
+      out_dir_rel="dist"
+    fi
+    rendered_ugly="$out_dir_rel/ugly-edge-case.html"
+
+    if [[ ! -f "$rendered_ugly" ]]; then
+      echo "❌ Assertion Failed: Apex rendered output missing for ugly-edge-case.html ($rendered_ugly)"
+      exit 105
+    fi
+
+    if grep -q 'href="my-first-page.md"' "$rendered_ugly"; then
+      echo "❌ Assertion Failed: .md link was not rewritten to .html"
+      exit 106
+    fi
+
+    if ! grep -q 'href="my-first-page.html"' "$rendered_ugly"; then
+      echo "❌ Assertion Failed: .md link was not correctly rewritten to .html"
+      exit 107
+    fi
+
+    if ! grep -q 'href="my-first-page.html#section-1"' "$rendered_ugly"; then
+      echo "❌ Assertion Failed: .md#fragment link was not correctly rewritten"
+      exit 108
+    fi
+
+    if ! grep -q 'href="my-first-page.html?v=123#fragment"' "$rendered_ugly"; then
+      echo "❌ Assertion Failed: .md?query#fragment link was not correctly rewritten"
+      exit 109
+    fi
+
+    if ! grep -q 'href="https://example.com/docs.md"' "$rendered_ugly"; then
+      echo "❌ Assertion Failed: External URL was incorrectly modified"
+      exit 110
+    fi
+
+    if ! grep -q 'href="mailto:necromancer@example.com"' "$rendered_ugly"; then
+      echo "❌ Assertion Failed: mailto link was incorrectly modified"
+      exit 111
+    fi
+
+    if grep -q 'href="%3C' "$rendered_ugly" || grep -q 'href="<' "$rendered_ugly"; then
+      echo "❌ Assertion Failed: angle bracket wrapper leaked into rendered href attribute"
+      exit 112
+    fi
+
+    echo "  [+] Executing packager JSON export assertions..."
+    ./rotkeeper.sh pack > /dev/null
+    export_json=$(find "$b_archive" -name "tomb-export-*.json" 2>/dev/null | head -n 1)
+    if [[ -z "$export_json" || ! -f "$export_json" ]]; then
+      echo "❌ Assertion Failed: packager JSON export file tomb-export-*.json missing."
+      exit 113
+    fi
+    if ! jq empty "$export_json" >/dev/null 2>&1; then
+      echo "❌ Assertion Failed: packager JSON export is not valid JSON."
+      exit 114
+    fi
+    if ! jq -e '.[0] | has("absolute_path") and has("relative_path") and has("frontmatter") and has("pandoc_ast")' "$export_json" >/dev/null 2>&1; then
+      echo "❌ Assertion Failed: packager JSON export entry is missing required fields."
+      exit 115
+    fi
 
     echo "  [+] Executing release packager assertions..."
     ./rotkeeper.sh release "$TEST_RELEASE_VERSION" > /dev/null

@@ -92,5 +92,7 @@ If tasked with creating a page or report:
 
 ## Dependencies
 
-**Required:** `bash` 4+, `pandoc`, `sha256sum`, `yq` v4+, `gawk`
-**Optional:** `jq` (pack), `rsync` + `zip` (release), `python3` (bump), `bats` (test)
+**Required:** `bash` 4+, `sha256sum`, `yq` v4+, `gawk`
+**Rendering (Apex — default):** `apex` binary via `RK_APEX_BIN=/path/to/apex` (compiled from `apex-spike/real-apex/`)
+**Rendering (Pandoc — legacy opt-in):** `pandoc` (only needed when using `--renderer pandoc`)
+**Optional:** `jq` (pack), `rsync` + `zip` (release), `python3` (links audit), `bats` (test)

@@ -158,7 +158,7 @@ require_bins() {
 
 # Check all core binary dependencies used by Rotkeeper scripts
 check_dependencies() {
-  require_bins bash pandoc sha256sum
+  require_bins bash sha256sum
   require_yq_version
   require_gawk_version
 }

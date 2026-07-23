@@ -46,13 +46,16 @@ The system operates on a linear, verifiable pipeline. All steps run via `./rotke
 Rotkeeper relies on tools that are likely already installed on your system or easily available via package managers.
 
 - macOS or Linux with **Bash 4+**
-- `pandoc` (Core Markdown-to-HTML rendering)
 - `yq` v4+ (The Go implementation by mikefarah, for YAML parsing)
 - `gawk` (GNU Awk, for parsing and string manipulation)
 - `sha256sum` (or `shasum`)
 - `jq` (For embedding JSON metadata during `pack`)
 - `rsync` (For safe directory syncing)
 - `zip` & `tar` (For `release` and `pack` operations)
+
+**Rendering:**
+- **Apex (default):** Set `RK_APEX_BIN=/path/to/apex` — compiled from `apex-spike/real-apex/` or placed in `$PATH`.
+- **Pandoc (legacy opt-in):** `pandoc` is only required when explicitly using `--renderer pandoc`.
 
 ## 📜 Command Reference
 
@@ -75,7 +78,7 @@ Derived from the main CLI dispatcher:
 
 ## 🚑 Troubleshooting
 
-- **Missing dependencies:** If a script fails immediately, ensure `pandoc`, `jq`, `gawk`, and especially the **Go version** of `yq` (mikefarah/yq) are installed and in your `$PATH`.
+- **Missing dependencies:** If a script fails immediately, ensure `jq`, `gawk`, and especially the **Go version** of `yq` (mikefarah/yq) are installed and in your `$PATH`. For rendering, set `RK_APEX_BIN` to point to the compiled Apex binary, or pass `--renderer pandoc` to fall back to Pandoc.
 - **Malformed YAML:** If `init` or `render` crash, your frontmatter or `bones/config/rotkeeper.yaml` might be invalid. Test it manually with `yq eval '.' <file>`.
 - **Incorrect layout/path configuration:** If Rotkeeper can't find your files, ensure `ROOT_DIR` in `bones/config/rotkeeper.yaml` matches your absolute path, or run `./rotkeeper.sh init --full` to force a path recalculation.
 - **Stale output:** If the renderer isn't updating your changes, you may be stuck with ghost artifacts. Run `rm -rf output/*` and run `./rotkeeper.sh render` again.
