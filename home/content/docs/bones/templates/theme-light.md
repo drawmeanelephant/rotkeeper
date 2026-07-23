@@ -46,9 +46,9 @@ If colors are edited without reviewing dark-mode overrides, theme switching widg
 - **$META_DIR**: /Users/tbuddy/dev/rotkeeper/bones/meta
 - **$WEB_DIR**: /Users/tbuddy/dev/rotkeeper/output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-07-23T10:54:47Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-07-23T12:07:07Z -->
 
-*Not found: autopsy help report missing (`/Users/tbuddy/dev/rotkeeper/bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-scan*
+*Not found: no help block for `theme-light.html` in autopsy help report.*
 ## Ritual History
 <!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
 

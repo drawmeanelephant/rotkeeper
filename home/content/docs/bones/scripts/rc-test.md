@@ -60,6 +60,30 @@ A passing test suite here merely means the code compiles; it does not mean the c
 - **$META_DIR**: /Users/tbuddy/dev/rotkeeper/bones/meta
 - **$WEB_DIR**: /Users/tbuddy/dev/rotkeeper/output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-07-23T10:54:47Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-07-23T12:07:07Z -->
 
-*Not found: autopsy help report missing (`/Users/tbuddy/dev/rotkeeper/bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-scan*
+```text
+--- Rotkeeper Single framework Release Assertion Test Matrix ---
+  [+] Initializing environment testing pass...
+  [+] Executing release packager assertions...
+  [+] Asserting single archive model matching criteria...
+  🎉 Pass [crypt] successful: canonical distribution payload matches criteria.
+  [+] Initializing environment testing pass...
+  [+] Executing release packager assertions...
+  [+] Asserting single archive model matching criteria...
+  🎉 Pass [busy] successful: canonical distribution payload matches criteria.
+  [+] Initializing environment testing pass...
+  [+] Executing release packager assertions...
+  [+] Asserting single archive model matching criteria...
+  🎉 Pass [sterile] successful: canonical distribution payload matches criteria.
+======================================================================
+✅ ALL SINGLE-TIER CANONICAL ARCHIVE VERIFICATIONS COMPLETED SUCCESSFULLY.
+======================================================================
+======================================================================
+--- Regression tests for legacy rituals (ingest, sync-inbox, cleanup, reseed) ---
+  🎉 Pass: Command 'ingest' correctly triggered deprecation error.
+  🎉 Pass: Command 'sync-inbox' correctly triggered deprecation error.
+  🎉 Pass: Command 'cleanup' correctly triggered deprecation error.
+  🎉 Pass: Command 'reseed' correctly triggered deprecation error.
+✅ ALL REGRESSION ASSERTIONS COMPLETED SUCCESSFULLY.
+```

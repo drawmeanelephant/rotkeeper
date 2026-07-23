@@ -31,5 +31,7 @@ HTML and CSS layouts that structure the static site output.
 - [theme-light](<theme-light.html>)
 - [theme-overgrown](<theme-overgrown.html>)
 - [theme-phosphor](<theme-phosphor.html>)
+- [theme-spooky-dark](<theme-spooky-dark.html>)
+- [theme-spooky-light](<theme-spooky-light.html>)
 - [theme-spooky](<theme-spooky.html>)
 <!-- ROTKEEPER-GLUE-END -->
