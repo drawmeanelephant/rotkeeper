@@ -139,7 +139,7 @@ Do not treat its manifest as absolute truth. It is easily fooled by the slightes
 <!-- DIP-HELP-EXTRACTED: 2026-07-23T12:07:07Z -->
 
 ```text
-rc-scan.sh — Audit manifest and scan environment for file reports (v0.4.1)
+rc-scan.sh — Audit manifest and scan environment for file reports (v0.5.0)
 
 Options:
   --version, -v    Show script version and quit

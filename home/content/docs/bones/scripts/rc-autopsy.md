@@ -59,7 +59,7 @@ Monitor your disk space, or this script will fill it with the endless screaming 
 <!-- DIP-HELP-EXTRACTED: 2026-07-23T12:07:07Z -->
 
 ```text
-rc-autopsy.sh — Script dissection ritual v0.4.1
+rc-autopsy.sh — Script dissection ritual v0.5.0
 Usage: rc-autopsy.sh [mode] [options]
 
 Modes:

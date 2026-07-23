@@ -1,3 +1,12 @@
+## [0.5.0] - 2026-07-23
+
+- Established native Apex (`apex`) HTML renderer as default engine and removed Pandoc runtime requirement.
+- Formalized `source_markdown` export contract in `rc-pack.sh` for decentralized payload packaging.
+- Added dispatcher link audit tool (`rc-links.sh` / `./rotkeeper.sh links`) for link checking and local asset verification with angle-bracket compatibility.
+- Added persistent Spooky theme (`theme-spooky-dark.html`, `theme-spooky-light.html`), offline spooky opt-in theme, and brutalist log styling base.
+- Added coastal radio dogfood corpus and hardened authoring traversal and status reporting.
+- Made release distribution archive publication atomic (`rotkeeper-v0.5.0.zip`).
+- Refreshed DIP documentation matrix and removed obsolete tombs and retired ritual references.
 
 ## [0.4.1] - 2026-07-22
 
