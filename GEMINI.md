@@ -6,7 +6,7 @@ If you are a Gemini agent (or a specialized subagent spawned by Antigravity) wor
 
 ## Context
 
-Rotkeeper is a terminal-driven flat-file system for compiling markdown "tombs" into static HTML archives. It relies on bash scripting (the "rituals" in `bones/scripts/`), Pandoc, and a strict separation of concerns. The dispatcher is `rotkeeper.sh`.
+Rotkeeper is a terminal-driven flat-file system for compiling markdown "tombs" into static HTML archives. It relies on bash scripting (the "rituals" in `bones/scripts/`), Apex HTML rendering, and a strict separation of concerns. The dispatcher is `rotkeeper.sh`.
 
 ## Golden Rules for Gemini Agents
 
@@ -19,7 +19,7 @@ Rotkeeper is a terminal-driven flat-file system for compiling markdown "tombs" i
    - `output/` — Strictly for generated HTML. Never edit files here manually; edit source markdown or templates instead.
    - `bones/scripts/` — Where the system logic lives. All scripts source `rc-utils.sh` → `rc-env.sh`.
    - `bones/config/` — System configuration. Don't edit `rotkeeper.yaml` directly unless needed.
-   - `bones/templates/` — Pandoc HTML templates used during render.
+   - `bones/templates/` — HTML templates used during render.
    - `bones/archive/` — Pack archives (tomb tarballs).
    - `bones/releases/` — Release distributions.
    - `bones/ingested/` — Ingested archive vault.
@@ -35,8 +35,8 @@ Rotkeeper is a terminal-driven flat-file system for compiling markdown "tombs" i
 | Command | Purpose |
 |---------|---------|
 | `init` | Full workspace initialization (reseed + assets + render + scan) |
-| `render` | Convert Markdown → HTML via Pandoc |
-| `pack` | Archive output as `.tar.gz` tomb (also: `--content`, `--self`) |
+| `render` | Convert Markdown → HTML via Apex (or legacy Pandoc opt-in) |
+| `pack` | Archive output as `.tar.gz` tomb & export `source_markdown` JSON (also: `--content`, `--self`) |
 | `release` | Create `lite` and `full` distribution `.zip` files |
 | `ingest` | Unpack `.tar.gz` from `messages-from-my-friends/` into content |
 | `scan` | Audit files against manifest |
@@ -44,7 +44,7 @@ Rotkeeper is a terminal-driven flat-file system for compiling markdown "tombs" i
 | `assets` | Generate asset manifest and copy to output |
 | `index` | Build HTML index of rendered output |
 | `sitemap` | Generate YAML sitemap from render logs |
-| `templates` | List available Pandoc templates |
+| `templates` | List available HTML templates |
 | `book` | Aggregate docs into binders (`--all`, `--scriptbook-full`, `--docbook`, etc.) |
 | `meta` | Extract frontmatter metadata from content |
 | `cleanup` | Back up and prune `bones/` (⚠️ destructive) |
@@ -93,6 +93,6 @@ If tasked with creating a page or report:
 ## Dependencies
 
 **Required:** `bash` 4+, `sha256sum`, `yq` v4+, `gawk`
-**Rendering (Apex — default):** `apex` binary via `RK_APEX_BIN=/path/to/apex` (compiled from `apex-spike/real-apex/`)
+**Rendering (Apex — default):** `apex` binary via `RK_APEX_BIN=/path/to/apex` or in `$PATH` (test matrix uses fixture binary)
 **Rendering (Pandoc — legacy opt-in):** `pandoc` (only needed when using `--renderer pandoc`)
-**Optional:** `jq` (pack), `rsync` + `zip` (release), `python3` (links audit), `bats` (test)
+**Optional:** `jq` (pack JSON export & metadata), `rsync` + `zip` (release), `python3` (links audit), `bats` (test)

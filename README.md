@@ -4,11 +4,11 @@
 
 *"What lives in `/bones/` may yet render again."*
 
-Rotkeeper is a Bash-native, Pandoc-driven static-site and content system equipped with HTML rendering, SHA256 integrity scanning, documentation improvement, archiving, and release packaging. Designed for morticians of Markdown and sysadmins of static crypts, it automates the slow decay and archival rebirth of flat-file knowledge hoards entirely through Unix tooling.
+Rotkeeper is a Bash-native static-site and content system equipped with Apex HTML rendering, SHA256 integrity scanning, documentation improvement, archiving, and release packaging. Designed for morticians of Markdown and sysadmins of static crypts, it automates the slow decay and archival rebirth of flat-file knowledge hoards entirely through Unix tooling.
 
 ## 💀 Why this exists
 
-We wanted a system that survives the heat death of the modern JavaScript ecosystem. There are no Node, NPM, Webpack, or framework requirements here. It relies exclusively on your local Markdown, durable static outputs, and standard Unix tooling (Bash, Awk, Pandoc). The resulting artifacts are raw, static, and immortal.
+We wanted a system that survives the heat death of the modern JavaScript ecosystem. There are no Node, NPM, Webpack, or framework requirements here. It relies exclusively on your local Markdown, durable static outputs, and standard Unix tooling (Bash, Awk). The resulting artifacts are raw, static, and immortal.
 
 ## 📂 The BHO Directory Model
 
@@ -35,7 +35,7 @@ The system operates on a linear, verifiable pipeline. All steps run via `./rotke
 1. **`init`**: Bootstraps the layout, configuration, and environment paths.
 2. **`new`** *(Optional)*: Scaffolds a new Markdown file with valid YAML frontmatter.
 3. **`glue`** *(Situational)*: Auto-generates navigation indexes for untracked content directories.
-4. **`render`**: The core operation. Converts Markdown into HTML templates using Pandoc.
+4. **`render`**: The core operation. Converts Markdown into HTML templates using Apex (or legacy Pandoc opt-in).
 5. **`assets`**: Scans, copies, and hashes static assets into the output directory.
 6. **`scan`**: Verifies all manifest entries and hashes against actual generated files.
 7. **`pack`** *(Optional)*: Archives the rendered output and metadata into a versioned tarball.
@@ -54,8 +54,8 @@ Rotkeeper relies on tools that are likely already installed on your system or ea
 - `zip` & `tar` (For `release` and `pack` operations)
 
 **Rendering:**
-- **Apex (default):** Set `RK_APEX_BIN=/path/to/apex` — compiled from `apex-spike/real-apex/` or placed in `$PATH`.
-- **Pandoc (legacy opt-in):** `pandoc` is only required when explicitly using `--renderer pandoc`.
+- **Apex (default):** Normal usage requires the compiled `apex` binary in `$PATH` or specified via `RK_APEX_BIN=/path/to/apex` (compiled from `apex-spike/real-apex/`). Note: repository integration tests (`rotkeeper.sh test`) build and use an in-memory fixture binary for hermetic testing.
+- **Pandoc (legacy opt-in):** `pandoc` is optional and only required when explicitly using `--renderer pandoc`.
 
 ## 📜 Command Reference
 

@@ -115,9 +115,9 @@ main() {
       CONTENT_ARCHIVE="tomb-content-$TIMESTAMP_VERSION.tar"
       if [[ "$DRY_RUN" == false ]]; then
         echo "📦 Packing \"$SOURCE_DIR\" into \"$CONTENT_ARCHIVE\""
-        run tar --exclude="home/content/help" \
+        run tar --exclude="${CONTENT_DIR#"$ROOT_DIR"/}/help" \
                 --exclude="*_temp.md" \
-                -cf "$ARCHIVE_DIR/$CONTENT_ARCHIVE" "home/content"
+                -cf "$ARCHIVE_DIR/$CONTENT_ARCHIVE" "${CONTENT_DIR#"$ROOT_DIR"/}"
         count=$(tar -tf "$ARCHIVE_DIR/$CONTENT_ARCHIVE" | wc -l)
         log "INFO" "Packaged $count files into $CONTENT_ARCHIVE"
         SHA=$(sha256sum "$ARCHIVE_DIR/$CONTENT_ARCHIVE" | cut -d' ' -f1)
@@ -198,30 +198,14 @@ main() {
         TMP_EXPORT="$(mktemp)"
         echo "[" > "$TMP_EXPORT"
         FIRST=true
-        HAS_PANDOC=false
-        if command -v pandoc >/dev/null 2>&1; then
-          HAS_PANDOC=true
-        else
-          log "INFO" "Pandoc binary unavailable; defaulting pandoc_ast fields to {} in export JSON."
-        fi
 
         while IFS= read -r -d '' mdfile; do
-          AST_CONTENT="{}"
-          if [[ "$HAS_PANDOC" == true ]]; then
-            AST_RAW=$(pandoc "$mdfile" -t json 2>/dev/null || echo "")
-            if [[ -n "$AST_RAW" ]] && echo "$AST_RAW" | jq empty 2>/dev/null; then
-              AST_CONTENT="$AST_RAW"
-            else
-              log "WARN" "Pandoc AST extraction failed for $mdfile; falling back to {}."
-            fi
-          fi
-
           ABS_PATH=$(realpath "$mdfile")
           REL_PATH="${mdfile#"$ROOT_DIR"/}"
           FM_CONTENT=$(yq --front-matter="extract" -o=json '.' "$mdfile" 2>/dev/null || echo "{}")
 
-          JSON_ENTRY=$(jq -n --arg abs "$ABS_PATH" --arg rel "$REL_PATH" --argjson ast "$AST_CONTENT" --argjson fm "$FM_CONTENT" \
-            '{absolute_path: $abs, relative_path: $rel, frontmatter: (if $fm != null then $fm else {} end), pandoc_ast: (if $ast != null then $ast else {} end)}')
+          JSON_ENTRY=$(jq -n --arg abs "$ABS_PATH" --arg rel "$REL_PATH" --rawfile src "$mdfile" --argjson fm "$FM_CONTENT" \
+            '{absolute_path: $abs, relative_path: $rel, frontmatter: (if $fm != null then $fm else {} end), source_markdown: $src}')
 
           if [ "$FIRST" = true ]; then
             FIRST=false

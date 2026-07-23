@@ -39,9 +39,9 @@ The Vault manages the integrity and history of the project. It handles micro-ver
 - **Purpose:** Ensure that the project's history is perfectly committed and that every asset is checksum-verified.
 
 ### 2. The Forge (Render)
-The Forge is the burning heart of Rotkeeper. It uses `pandoc` to convert Markdown tombs into static HTML.
+The Forge is the burning heart of Rotkeeper. It uses Apex to convert Markdown tombs into static HTML (with legacy Pandoc support as an opt-in).
 - **Key Rituals:** `rc-render.sh`
-- **Purpose:** Translate semantic, flat-file Markdown into reading-optimized web pages without a single byte of unnecessary JavaScript. **Pandoc is non-negotiable.** Do not attempt to replace the Forge with Node, NPM, Astro, or any other modern compiler.
+- **Purpose:** Translate semantic, flat-file Markdown into reading-optimized web pages without a single byte of unnecessary JavaScript. Apex is the primary native compiler golem. Do not attempt to replace the Forge with Node, NPM, Astro, or any other modern compiler framework.
 
 ### 3. The Courier (Archive)
 The Courier guarantees that your words can travel securely through time and space. It packages both raw content and rendered outputs into highly portable `.tar.gz` tombs.
