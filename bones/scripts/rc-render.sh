@@ -110,7 +110,7 @@ main() {
 
     log "INFO" "Running rc-render.sh (Renderer: $RENDERER)."
 
-    if [[ ! -d "$OUTPUT_DIR" ]] || [[ ! -f "$META_DIR/asset-manifest.yaml" ]]; then
+    if [[ ! -d "$OUTPUT_DIR" ]] || { [[ ! -f "$BONES_DIR/asset-manifest.yaml" ]] && [[ ! -f "$META_DIR/asset-manifest.yaml" ]]; }; then
       log "WARN" "Workspace may not be initialized. Run ./rotkeeper.sh init first if assets are missing."
       echo -e "\n⚠️  Warning: Workspace not initialized or missing core assets. Run './rotkeeper.sh init' first to avoid rendering issues.\n" >&2
     fi
@@ -128,10 +128,13 @@ main() {
     log "INFO" "TEMPLATE_DIR=$TEMPLATE_DIR"
 
     log_manifest() {
-      local entry="$1"
-      if [[ -n "$MANIFEST" && -f "$MANIFEST" ]]; then
-        if ! grep -Fxq "$entry" "$MANIFEST"; then
-          echo "$entry" >> "$MANIFEST"
+      local raw_entry="$1"
+      local rel_entry="${raw_entry#"$ROOT_DIR"/}"
+      if [[ -n "$MANIFEST" ]]; then
+        mkdir -p "$(dirname "$MANIFEST")"
+        touch "$MANIFEST"
+        if ! grep -Fxq "$rel_entry" "$MANIFEST"; then
+          echo "$rel_entry" >> "$MANIFEST"
         fi
       fi
     }
@@ -236,7 +239,11 @@ main() {
         relpath="${canonical_mdpath#"$CANONICAL_CONTENT_DIR"/}"
         base=$(basename "$relpath" .md)
         reldir=$(dirname "$relpath")
-        outdir="$OUTPUT_DIR/$reldir"
+        if [[ "$reldir" == "." ]]; then
+          outdir="$OUTPUT_DIR"
+        else
+          outdir="$OUTPUT_DIR/$reldir"
+        fi
         outfile="$outdir/${base}.html"
         soul_file="$META_DIR/${relpath%.md}.soul.md"
         canonical_soul=$(get_canonical_path "$soul_file")
@@ -273,7 +280,11 @@ main() {
         relpath="${canonical_mdpath#"$CANONICAL_CONTENT_DIR"/}"
         base=$(basename "$relpath" .md)
         reldir=$(dirname "$relpath")
-        outdir="$OUTPUT_DIR/$reldir"
+        if [[ "$reldir" == "." ]]; then
+          outdir="$OUTPUT_DIR"
+        else
+          outdir="$OUTPUT_DIR/$reldir"
+        fi
         outfile="$outdir/${base}.html"
         pages_rendered=$((pages_rendered + 1))
         log_manifest "$outfile"

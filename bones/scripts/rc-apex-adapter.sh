@@ -106,7 +106,7 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ap
     fi
 
     soul_json="$TMP_DIR/soul-meta-$$.json"
-    yq -o json '{"title": .title, "description": .description, "author": .author, "date": .date, "template": .template}' "$soul_path" > "$soul_json" 2>/dev/null || echo "{}" > "$soul_json"
+    yq --front-matter extract -o json '{"title": .title, "description": .description, "author": .author, "date": .date, "template": .template}' "$soul_path" > "$soul_json" 2>/dev/null || echo "{}" > "$soul_json"
 
     s_title=$(yq -r '.title // ""' "$soul_json" 2>/dev/null || echo "")
     s_desc=$(yq -r '.description // ""' "$soul_json" 2>/dev/null || echo "")
@@ -140,14 +140,25 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ap
   mkdir -p "$TMP_DIR"
   body_tmp="$TMP_DIR/apex-body-$$.html"
   body_rewritten="$TMP_DIR/apex-body-rewritten-$$.html"
-  rm -f "$body_tmp" "$body_rewritten"
+  apex_err="$TMP_DIR/apex-err-$$.log"
+  rm -f "$body_tmp" "$body_rewritten" "$apex_err"
 
-  if ! "$apex_bin" "$src_path" > "$body_tmp" 2>&1; then
+  if ! "$apex_bin" "$src_path" > "$body_tmp" 2>"$apex_err"; then
     log "ERROR" "Apex rendering failed for page '$src_path' using template '$template_path'"
     echo "ERROR: Apex rendering failed for page '$src_path' using template '$template_path'" >&2
-    rm -f "$body_tmp" "$body_rewritten"
+    if [[ -f "$apex_err" && -s "$apex_err" ]]; then
+      cat "$apex_err" >&2
+    fi
+    rm -f "$body_tmp" "$body_rewritten" "$apex_err"
     exit 1
   fi
+
+  if [[ -f "$apex_err" && -s "$apex_err" ]]; then
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      log "WARN" "Apex warning for '$src_path': $line"
+    done < "$apex_err"
+  fi
+  rm -f "$apex_err"
 
   # 5. Link Rewriting Pass via GAWK (Linear scan, string slicing for robust replacement)
   # NOTE: inner match() calls must not clobber the outer RSTART/RLENGTH used to
@@ -219,6 +230,25 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ap
       -v body_file="$body_rewritten" \
       -v template_file="$template_path" \
     '
+    function html_escape(str,   s) {
+      s = str
+      gsub(/&/, "\\&amp;", s)
+      gsub(/</, "\\&lt;", s)
+      gsub(/>/, "\\&gt;", s)
+      gsub(/"/, "\\&quot;", s)
+      gsub(/\x27/, "\\&#39;", s)
+      return s
+    }
+    function literal_replace(str, search, replace,   pos, len, result, tail) {
+      len = length(search)
+      result = ""
+      tail = str
+      while ((pos = index(tail, search)) > 0) {
+        result = result substr(tail, 1, pos - 1) replace
+        tail = substr(tail, pos + len)
+      }
+      return result tail
+    }
     function evaluate_if(tmpl, var_name, var_val,   start_tag, end_tag, sp, ep, before, after, inner) {
       start_tag = "$if(" var_name ")$"
       end_tag = "$endif$"
@@ -241,6 +271,11 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ap
       return tmpl
     }
     BEGIN {
+      title_esc = html_escape(title)
+      desc_esc  = html_escape(desc)
+      author_esc = html_escape(author)
+      date_esc  = html_escape(date)
+
       body = ""
       while ((getline line < body_file) > 0) {
         body = body line "\n"
@@ -261,15 +296,12 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ap
       tmpl = evaluate_if(tmpl, "author", author)
       tmpl = evaluate_if(tmpl, "date", date)
 
-      gsub(/\$title\$/, title, tmpl)
-      gsub(/\$description\$/, desc, tmpl)
-      gsub(/\$author\$/, author, tmpl)
-      gsub(/\$date\$/, date, tmpl)
-      gsub(/\$assets_root\$/, assets_root, tmpl)
-
-      if (index(tmpl, "$body$")) {
-        sub(/\$body\$/, body, tmpl)
-      }
+      tmpl = literal_replace(tmpl, "$title$", title_esc)
+      tmpl = literal_replace(tmpl, "$description$", desc_esc)
+      tmpl = literal_replace(tmpl, "$author$", author_esc)
+      tmpl = literal_replace(tmpl, "$date$", date_esc)
+      tmpl = literal_replace(tmpl, "$assets_root$", assets_root)
+      tmpl = literal_replace(tmpl, "$body$", body)
 
       printf "%s", tmpl
       exit

@@ -91,7 +91,7 @@ main() {
     ARCHIVE_DIR="$ARCHIVE_DIR"
     SOURCE_DIR="$CONTENT_DIR"
     OUTPUT_DIR="$OUTPUT_DIR"
-    MANIFEST_FILE="$CONFIG_DIR/manifest.txt"
+    MANIFEST_FILE="$BONES_DIR/manifest.txt"
     TIMESTAMP_VERSION=$(date +%Y-%m-%d_%H%M)
     TOMB="tomb-$TIMESTAMP_VERSION.tar"
     EXPORT_JSON="$ARCHIVE_DIR/tomb-export-$TIMESTAMP_VERSION.json"
@@ -120,11 +120,12 @@ main() {
                 -cf "$ARCHIVE_DIR/$CONTENT_ARCHIVE" "${CONTENT_DIR#"$ROOT_DIR"/}"
         count=$(tar -tf "$ARCHIVE_DIR/$CONTENT_ARCHIVE" | wc -l)
         log "INFO" "Packaged $count files into $CONTENT_ARCHIVE"
-        SHA=$(sha256sum "$ARCHIVE_DIR/$CONTENT_ARCHIVE" | cut -d' ' -f1)
-        echo "$CONTENT_ARCHIVE  $SHA" >> "$MANIFEST_FILE"
 
         run gzip -f "$ARCHIVE_DIR/$CONTENT_ARCHIVE"
         CONTENT_ARCHIVE="$CONTENT_ARCHIVE.gz"
+        SHA=$(sha256sum "$ARCHIVE_DIR/$CONTENT_ARCHIVE" | cut -d' ' -f1)
+        rel_archive="${ARCHIVE_DIR#"$ROOT_DIR"/}/$CONTENT_ARCHIVE"
+        echo "$rel_archive  $SHA" >> "$MANIFEST_FILE"
         log "INFO" "Archived content to $CONTENT_ARCHIVE"
         echo "🧾 Archived source content to \"$ARCHIVE_DIR/$CONTENT_ARCHIVE\""
       else
@@ -138,14 +139,13 @@ main() {
         run tar -cf "$ARCHIVE_DIR/$TOMB" "$OUTPUT_DIR"
         count=$(tar -tf "$ARCHIVE_DIR/$TOMB" | wc -l)
         log "INFO" "Packaged $count files into $TOMB"
-        SHA=$(sha256sum "$ARCHIVE_DIR/$TOMB" | cut -d' ' -f1)
-        echo "$TOMB  $SHA" >> "$MANIFEST_FILE"
+        SHA_UNCOMPRESSED=$(sha256sum "$ARCHIVE_DIR/$TOMB" | cut -d' ' -f1)
 
         # Embed metadata into archive
         METADATA_FILE="$(mktemp)"
         jq -n \
           --arg name "$TOMB" \
-          --arg sha "$SHA" \
+          --arg sha "$SHA_UNCOMPRESSED" \
           --arg timestamp "$TIMESTAMP_VERSION" \
           --arg mode "default" \
           --arg count "$count" \
@@ -154,6 +154,9 @@ main() {
         run gzip -f "$ARCHIVE_DIR/$TOMB"
         rm "$METADATA_FILE"
         TOMB="$TOMB.gz"
+        SHA_COMPRESSED=$(sha256sum "$ARCHIVE_DIR/$TOMB" | cut -d' ' -f1)
+        rel_tomb="${ARCHIVE_DIR#"$ROOT_DIR"/}/$TOMB"
+        echo "$rel_tomb  $SHA_COMPRESSED" >> "$MANIFEST_FILE"
         log "INFO" "Embedded metadata.json into $TOMB"
 
         echo "🧾 Archived to \"$ARCHIVE_DIR/$TOMB\""
@@ -219,7 +222,8 @@ main() {
         if jq empty "$TMP_EXPORT" >/dev/null 2>&1; then
             cp "$TMP_EXPORT" "$TMP_EXPORT.final"
             run mv "$TMP_EXPORT.final" "$EXPORT_JSON"
-            echo "$EXPORT_JSON" >> "$MANIFEST_FILE"
+            rel_export="${EXPORT_JSON#"$ROOT_DIR"/}"
+            echo "$rel_export" >> "$MANIFEST_FILE"
             echo "✅ Export complete: \"$EXPORT_JSON\""
         else
             log "ERROR" "Generated JSON is invalid, aborting export."

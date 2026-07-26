@@ -282,8 +282,111 @@ UGLY_EOF
       exit 112
     fi
 
-    echo "  [+] Executing packager JSON export assertions..."
+    # --- v0.5.1 Specific Maintenance Contract Assertions ---
+    echo "  [+] Executing v0.5.1 literal-safe, HTML-escaping, soul sidecar & Apex stderr assertions..."
+    
+    # 1. Apex stderr separation check with fake binary emitting warnings
+    fake_warn_bin="$pass_dir/bones/tmp/fake_apex_warn"
+    cat << 'WARN_BIN_EOF' > "$fake_warn_bin"
+#!/usr/bin/env bash
+set -euo pipefail
+file="${1:-}"
+echo "[APEX WARN] Sample non-fatal renderer warning" >&2
+if [[ -f "$file" ]]; then
+  awk '/^---$/ { f++; next } f>=2 || f==0 { print }' "$file"
+fi
+WARN_BIN_EOF
+    chmod +x "$fake_warn_bin"
+
+    # Create test markdown file with ampersands, quotes, angle brackets, and $body$ literal
+    cat << 'TEST_V051_EOF' > "$b_content/v051-test.md"
+---
+title: "Cats & Dogs <v0.5.1>"
+description: "R&D & \"Quotes\""
+---
+
+Body text containing Ampersand & Bits and literal $body$ text.
+TEST_V051_EOF
+
+    # Create soul sidecar with frontmatter block
+    mkdir -p "bones/meta"
+    cat << 'SOUL_V051_EOF' > "bones/meta/v051-test.soul.md"
+---
+title: "Overridden Title & <Sidecar>"
+---
+SOUL_V051_EOF
+
+    RK_APEX_BIN="$fake_warn_bin" ./rotkeeper.sh render > /dev/null
+
+    rendered_v051="$out_dir_rel/v051-test.html"
+    if [[ ! -f "$rendered_v051" ]]; then
+      echo "❌ Assertion Failed: v051-test.html missing after render."
+      exit 119
+    fi
+
+    # Verify sidecar frontmatter title override + HTML escaping
+    if ! grep -q 'Overridden Title &amp; &lt;Sidecar&gt;' "$rendered_v051"; then
+      echo "❌ Assertion Failed: .soul.md frontmatter title override or HTML escaping failed."
+      exit 120
+    fi
+
+    # Verify literal-safe interpolation of & and $body$ (no unsubstituted metadata placeholders left)
+    # shellcheck disable=SC2016
+    if grep -q '\$title\$' "$rendered_v051" || grep -q '\$description\$' "$rendered_v051"; then
+      echo "❌ Assertion Failed: Template interpolation leaked \$title\$ or \$description\$ placeholder."
+      exit 121
+    fi
+
+    # shellcheck disable=SC2016
+    if ! grep -q 'Body text containing Ampersand & Bits and literal \$body\$ text.' "$rendered_v051"; then
+      echo "❌ Assertion Failed: Literal body content containing & or \$body\$ was corrupted."
+      exit 122
+    fi
+
+    # Verify Apex stderr did not leak into rendered HTML body
+    if grep -q 'APEX WARN' "$rendered_v051"; then
+      echo "❌ Assertion Failed: Apex stderr leaked into rendered HTML body."
+      exit 123
+    fi
+
+    # Verify manifest path consistency across render, pack, and scan
+    if [[ ! -f "bones/manifest.txt" ]]; then
+      echo "❌ Assertion Failed: bones/manifest.txt missing after render pass."
+      exit 124
+    fi
+
+    if ! grep -q "$rendered_v051" "bones/manifest.txt"; then
+      echo "❌ Assertion Failed: rendered page $rendered_v051 not in bones/manifest.txt."
+      exit 125
+    fi
+
+    # Execute pack to generate tomb archives & json export
     ./rotkeeper.sh pack > /dev/null
+
+    # Execute scan to verify manifest vs disk agreement
+    if ! ./rotkeeper.sh scan > /dev/null; then
+      echo "❌ Assertion Failed: ./rotkeeper.sh scan failed after pack."
+      exit 126
+    fi
+
+    # Assert zero missing and zero orphan entries in scan report
+    scan_json=$(find "bones/reports" -name "scan-report-*.json" 2>/dev/null | tail -n 1)
+    if [[ -z "$scan_json" || ! -f "$scan_json" ]]; then
+      echo "❌ Assertion Failed: scan JSON report missing."
+      exit 127
+    fi
+
+    missing_cnt=$(jq '.missing | length' "$scan_json")
+    orphan_cnt=$(jq '.orphans | length' "$scan_json")
+    if [[ "$missing_cnt" -ne 0 || "$orphan_cnt" -ne 0 ]]; then
+      echo "❌ Assertion Failed: scan reported $missing_cnt missing files and $orphan_cnt orphan files."
+      echo "--- Scan JSON Report ---"
+      cat "$scan_json"
+      echo ""
+      exit 128
+    fi
+
+    echo "  [+] Executing packager JSON export assertions..."
     export_json=$(find "$b_archive" -name "tomb-export-*.json" 2>/dev/null | head -n 1)
     if [[ -z "$export_json" || ! -f "$export_json" ]]; then
       echo "❌ Assertion Failed: packager JSON export file tomb-export-*.json missing."
