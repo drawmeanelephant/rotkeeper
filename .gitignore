@@ -33,6 +33,3 @@ home/content/messages
 bones/ingested
 bones/releasestestenv/
 rotkeeper-test-env/
-
-# Unversioned spikes and research
-apex-spike/

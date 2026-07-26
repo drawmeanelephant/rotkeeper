@@ -54,7 +54,7 @@ Rotkeeper relies on tools that are likely already installed on your system or ea
 - `zip` & `tar` (For `release` and `pack` operations)
 
 **Rendering:**
-- **Apex (default):** Normal usage requires the compiled `apex` binary in `$PATH` or specified via `RK_APEX_BIN=/path/to/apex` (compiled from `apex-spike/real-apex/`). Note: repository integration tests (`rotkeeper.sh test`) build and use an in-memory fixture binary for hermetic testing.
+- **Apex (default):** Install or compile the [Apex renderer](https://github.com/ApexMarkdown/apex) separately, then make the executable available in `$PATH` or set `RK_APEX_BIN=/path/to/apex`. Repository integration tests (`rotkeeper.sh test`) use an in-memory fixture binary for hermetic testing.
 - **Pandoc (legacy opt-in):** `pandoc` is optional and only required when explicitly using `--renderer pandoc`.
 
 ## 📜 Command Reference
