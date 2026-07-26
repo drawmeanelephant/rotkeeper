@@ -8,7 +8,7 @@ IFS=$'\n\t'
 #            Zero Python requirement. Evaluates Pandoc HTML templates,
 #            enforces path boundaries, applies sidecar metadata precedence,
 #            evaluates template conditionals, and rewrites internal .md links.
-#  Version : 0.5.0
+#  Version : 0.5.1
 #  Updated : 2026-03-23
 # ============================================================
 

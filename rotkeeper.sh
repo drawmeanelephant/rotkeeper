@@ -10,13 +10,13 @@
 #  Project : Rotkeeper
 #  Script  : rotkeeper.sh
 #  Purpose : CLI dispatcher for aligned single framework release structures
-#  Version : 0.5.0
+#  Version : 0.5.1
 # ============================================================
 
 set -euo pipefail
 IFS=$'\n\t'
 
-VERSION="0.5.0"
+VERSION="0.5.1"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BONES="$SCRIPT_DIR/bones/scripts"
 

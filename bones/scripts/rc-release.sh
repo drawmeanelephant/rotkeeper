@@ -12,10 +12,10 @@ IFS=$'\n\t'
 #  Project : Rotkeeper
 #  Script  : rc-release.sh
 #  Purpose : Streamline multi-tier models down to a single-tier canonical framework distribution zip
-#  Version : 0.5.0
+#  Version : 0.5.1
 # ============================================================
 
-VERSION="${ROTKEEPER_VERSION:-0.5.0}"
+VERSION="${ROTKEEPER_VERSION:-0.5.1}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }

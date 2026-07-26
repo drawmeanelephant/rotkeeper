@@ -160,3 +160,6 @@
 - Refactor rc-dip.sh to extract ritual history reliably.
 - Optimize rc-env.sh to prevent unnecessary fork subshells.
 - Release entry recorded for the 0.4.0.3 work above.
+
+## [0.5.1] - 2026-07-26
+- Release Rotkeeper v0.5.1

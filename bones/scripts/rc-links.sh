@@ -5,7 +5,7 @@ IFS=$'\n\t'
 #  Project : Rotkeeper
 #  Script  : rc-links.sh
 #  Purpose : Audit rendered HTML links and local asset references
-#  Version : 0.5.0
+#  Version : 0.5.1
 # ============================================================
 
 show_help() {
@@ -24,7 +24,7 @@ EOF
   exit 0
 }
 
-VERSION="${ROTKEEPER_VERSION:-0.5.0}"
+VERSION="${ROTKEEPER_VERSION:-0.5.1}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
 rk_init_script "rc-links" "$@"
