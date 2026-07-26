@@ -83,7 +83,7 @@ main() {
 # --- Configuration ---
 # Set up default file paths, directories, and file type filters.
 # Default configurations
-MANIFEST_FILE="${META_DIR#"$ROOT_DIR"/}/manifest.txt"
+MANIFEST_FILE="${BONES_DIR#"$ROOT_DIR"/}/manifest.txt"
 SCAN_DIRS=("${CONTENT_DIR#"$ROOT_DIR"/}/" "${BONES_DIR#"$ROOT_DIR"/}/" "${OUTPUT_DIR#"$ROOT_DIR"/}/")
 REPORT_DIR="${REPORT_DIR#"$ROOT_DIR"/}"
 LOG_DIR="${LOG_DIR#"$ROOT_DIR"/}"
@@ -128,8 +128,10 @@ echo "[INFO] rc-scan started at $(date)"
 # --- Step 1: Load Manifest ---
 # Read manifest file entries into a plain array.
 if [[ -f "$MANIFEST_FILE" ]]; then
-  while read -r line; do
-    manifest_list+=("$line")
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    clean_line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    [[ -z "$clean_line" || "$clean_line" =~ ^# ]] && continue
+    manifest_list+=("$clean_line")
   done < "$MANIFEST_FILE"
   log "INFO" "Loaded ${#manifest_list[@]} entries from $MANIFEST_FILE"
 elif [[ "${MANIFEST_ONLY:-false}" == true ]]; then
@@ -156,17 +158,27 @@ if [[ "${MANIFEST_ONLY:-false}" != true ]]; then
       done
       $skip && { $VERBOSE && echo "[SKIP] Excluded by pattern: $file"; continue; }
       disk_list+=("$file")
-    done < <(find "$dir" -type f)
+    done < <(find "$dir" \( -type d -a \( -name "tmp" -o -name "logs" -o -name "archive" -o -name "reports" -o -name "book-reports" \) -prune \) -o \( -type f -print \))
   done
   echo "[INFO] Disk scan completed"
 fi
 
 #
 # --- Step 3: Compare Manifest vs Disk ---
-# Determine missing and orphaned files by comparing arrays.
+# Determine missing and orphaned files by comparing normalized manifest paths.
 missing=(); orphans=()
+manifest_paths=()
+
 for f in ${manifest_list[@]+"${manifest_list[@]}"}; do
-  [[ ! -e "$f" ]] && missing+=("$f")
+  p="${f%%  *}"
+  p="${p%% *}"
+  p="${p#"$ROOT_DIR"/}"
+  p="${p#./}"
+  [[ -n "$p" ]] && manifest_paths+=("$p")
+done
+
+for rel_f in ${manifest_paths[@]+"${manifest_paths[@]}"}; do
+  [[ ! -e "$rel_f" && ! -e "$ROOT_DIR/$rel_f" ]] && missing+=("$rel_f")
 done
 
 # Add fallback for disk_list in case it is unexpectedly unbound
@@ -178,8 +190,9 @@ fi
 
 for f in ${disk_list[@]+"${disk_list[@]}"}; do
   [[ -z "$f" ]] && continue
-  rel="${f#./}"
-  if ! printf '%s\n' ${manifest_list[@]+"${manifest_list[@]}"} | grep -xq "$rel"; then
+  rel="${f#"$ROOT_DIR"/}"
+  rel="${rel#./}"
+  if ! printf '%s\n' ${manifest_paths[@]+"${manifest_paths[@]}"} | grep -xq "$rel"; then
     orphans+=("$rel")
   fi
 done
@@ -190,7 +203,7 @@ done
 # Requires bash — file path to SHA256 digest
 declare -A file_checksums
 for f in ${disk_list[@]+"${disk_list[@]}"}; do
-  f_clean=$(echo "$f" | tr -d '\r' | xargs)
+  f_clean=$(echo "$f" | tr -d '\r')
   [[ -z "$f_clean" ]] && continue
   if [[ -f "$f_clean" ]]; then
     sha=$(shasum -a 256 "$f_clean" | awk '{print $1}')
@@ -208,14 +221,24 @@ done
 if [[ "$MD_ONLY" == false ]]; then
   json_report="$REPORT_DIR/scan-report-$(date +%Y%m%d_%H%M%S).json"
   if [[ "$DRY_RUN" != true ]]; then
+    missing_json="[]"
+    if [[ ${#missing[@]} -gt 0 ]]; then
+      missing_json=$(printf '%s\n' "${missing[@]}" | jq -R . | jq -s .)
+    fi
+
+    orphans_json="[]"
+    if [[ ${#orphans[@]} -gt 0 ]]; then
+      orphans_json=$(printf '%s\n' "${orphans[@]}" | jq -R . | jq -s .)
+    fi
+
     cat > "$json_report" <<EOF
 {
-  "missing": ["$(IFS='","'; echo "${missing[*]}")"],
-  "orphans": ["$(IFS='","'; echo "${orphans[*]}")"],
+  "missing": $missing_json,
+  "orphans": $orphans_json,
   "digests": {
 $(for f in "${!file_checksums[@]}"; do
   echo "    \"${f}\": \"${file_checksums[$f]}\","
-done)
+done | sed '$ s/,$//')
   }
 }
 EOF
