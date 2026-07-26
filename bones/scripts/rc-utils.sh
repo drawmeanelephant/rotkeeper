@@ -48,7 +48,7 @@ rk_load_env() {
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-utils.sh
 #  Purpose : Shared Rotkeeper helper functions and runtime sanity wrappers
-#  Version : 0.5.0
+#  Version : 0.5.1
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -459,7 +459,7 @@ init_log() {
 }
 
 # Standardize script initialization: sets name, logs, traps, and parses common flags
-VERSION="${ROTKEEPER_VERSION:-0.5.0}"
+VERSION="${ROTKEEPER_VERSION:-0.5.1}"
 
 rk_init_script() {
   SCRIPTNAME="${1:-$(basename "$0" .sh)}"
