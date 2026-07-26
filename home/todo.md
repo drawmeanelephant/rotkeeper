@@ -4,6 +4,72 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 
 ---
 
+## 🧭 Post-PR177 Stabilization Roadmap
+*The audit is a prioritization source, not a mandate to rewrite Rotkeeper. Finish each phase as a reviewable slice and keep the project usable after every merge.*
+
+### Phase 0 — Rebaseline after PR177
+- [ ] Record the post-PR177 baseline: clean `main`, current version, active layout, supported commands, and renderer path.
+- [ ] Confirm obsolete Apex-spike files, release exclusions, and references are gone without deleting active Apex integration.
+- [ ] Separate current failures from stale audit findings and document the result in the roadmap or changelog.
+- [ ] Define the stabilization target for `0.5.2`: no new rituals, no new runtime, no broad architecture rewrite.
+
+### Phase 1 — Make Apex boring to run
+- [ ] Document the supported Apex contract: executable discovery, `RK_APEX_BIN`, input format, stdout body HTML, stderr warnings, exit codes, and supported version range.
+- [ ] Add a single preflight that reports whether Apex is found, executable, compatible, and actually runnable.
+- [ ] Make `render` fail with one actionable setup message when Apex is unavailable; include the exact command or environment variable needed.
+- [ ] Add a checked-in minimal Markdown fixture and a hermetic Apex smoke path that renders one page without Pandoc.
+- [ ] Test the fixture for frontmatter, sidecar precedence, HTML escaping, internal `.md` links, external links, nested output paths, and renderer stderr.
+- [ ] Define which behavior belongs in the Apex binary versus `rc-apex-adapter.sh`; record temporary adapter responsibilities explicitly.
+- [ ] Verify Apex rendering through the dispatcher on a fresh `crypt`, `busy`, and `sterile` initialization.
+- [ ] Add a documented macOS and Ubuntu execution path using the real Apex binary, with the fixture fallback retained for repository tests.
+
+### Phase 2 — Repair the DIP/documentation workflow
+- [ ] Identify why DIP became unreliable: stale generated books, oversized inventories, absolute paths, stub pages, or source/parser drift.
+- [ ] Ensure DIP can run from a clean initialized fixture without depending on stale `bones/book-reports` output.
+- [ ] Reduce filesystem-book scope to authoritative source files; exclude `.git`, temporary verification trees, generated output, logs, and caches.
+- [ ] Remove host-specific absolute paths from published books and reports.
+- [ ] Classify generated pages as authoritative reference, curated guide, or stub; do not present stubs as completed documentation.
+- [ ] Rebuild the minimum useful CLI/config/content books and verify them against the source scripts and active configuration.
+- [ ] Add a DIP regression check that catches stale paths, obsolete command references, and unexpected TODO stubs.
+
+### Phase 3 — Stabilize the shell boundary
+- [ ] Centralize checksum selection for `sha256sum` and `shasum` and use the wrapper everywhere.
+- [ ] Replace the hidden `seq` dependency with a Bash-native or shared path-depth helper.
+- [ ] Correct GNU Awk detection so an installed `gawk` is checked directly.
+- [ ] Preflight `jq`, `yq`, `gawk`, `rsync`, archive tools, and the selected renderer only where each command needs them.
+- [ ] Add an output ownership marker and refuse stale-output deletion unless the output tree is marked generated.
+- [ ] Verify every destructive synchronization path honors `--dry-run` and has a boundary check.
+- [ ] Run `bash -n`, ShellCheck, `bash rotkeeper.sh test`, `bash rotkeeper.sh status`, and relevant dry-runs for every slice.
+
+### Phase 4 — Normalize version and CLI contracts
+- [ ] Introduce one plain version source and make scripts, dispatcher output, release names, tests, and docs read it.
+- [ ] Replace the current bump behavior with explicit semver-style updates and a changelog entry.
+- [ ] Make every dispatcher command respond consistently to `--help`, `--version`, and supported `--dry-run` behavior.
+- [ ] Remove the advertised `--sitemap` flag or implement and test it fully.
+- [ ] Add a command-contract test that verifies help is non-mutating and does not start a workflow.
+
+### Phase 5 — Make releases deterministic
+- [ ] Define whether a release is a framework distribution, a site-source archive, or a complete backup.
+- [ ] Build framework releases from an explicit allowlist rather than repository-wide mirroring plus exclusions.
+- [ ] Generate and validate a release manifest; fail on unexpected root-level files and forbidden artifacts.
+- [ ] Verify archive contents on macOS and Ubuntu, including absence of temporary trees, caches, credentials, and compiled artifacts.
+
+### Phase 6 — Rationalize the Apex boundary
+- [ ] Define a stable template/input contract before moving logic out of Bash.
+- [ ] Move only renderer-adjacent responsibilities into Apex incrementally: frontmatter extraction, template dialect, link rewriting, output planning, then manifest generation.
+- [ ] Keep Bash responsible for dispatch, environment setup, filesystem boundaries, orchestration, and packaging.
+- [ ] Treat `crypt`, `busy`, and `sterile` as initialization profiles and document the canonical runtime layout.
+- [ ] Do not add a new ritual or rewrite the system until the Phase 1 contract and regression fixtures are stable.
+
+### Exit criteria for `0.5.2`
+- [ ] A new user can install/find Apex, run one documented command, and render the fixture successfully.
+- [ ] A missing or incompatible Apex binary produces a clear diagnosis.
+- [ ] DIP runs against a clean fixture and produces bounded, path-independent reports.
+- [ ] The test harness covers the real Apex path where available and remains hermetic where it is not.
+- [ ] Version, help, portability, output ownership, and release checks have no known audit regressions.
+
+---
+
 ## 🤖 Jules Action Queue
 *These are bounded, tedious, reviewable tasks designed for async agent execution. Hand these to Jules one by one.*
 
