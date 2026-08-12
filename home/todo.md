@@ -66,8 +66,8 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [x] Add a pure-CSS brutalist minimal theme (`theme-brutal`) styled for Apex markdown output: tables, code fences, blockquotes, footnotes, nested lists, and dark-mode via `prefers-color-scheme`.
 - [x] Regenerate showcase gallery coverage for every template and refresh navigation glue indexes.
 - [x] Validate: full harness, render, assets sync, zero external references in rendered output.
-- [ ] Terminal-inspired presets (macOS Terminal, Unix palettes, PowerShell-friendly) from the backlog.
-- [ ] Preview gallery comparing every theme side by side.
+- [x] Terminal-inspired presets (macOS Terminal, Unix palettes, PowerShell-friendly) from the backlog.
+- [x] Preview gallery comparing every theme side by side.
 
 ### Exit criteria for `0.5.2`
 - [ ] A new user can install/find Apex, run one documented command, and render the fixture successfully.

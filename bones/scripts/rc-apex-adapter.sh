@@ -74,13 +74,14 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ap
 
   # 1. Extract metadata from Markdown source in 1 single yq call
   meta_json="$TMP_DIR/doc-meta-$$.json"
-  yq --front-matter extract -o json '{"title": .title, "description": .description, "author": .author, "date": .date, "template": .template}' "$src_path" > "$meta_json" 2>/dev/null || echo "{}" > "$meta_json"
+  yq --front-matter extract -o json '{"title": .title, "description": .description, "author": .author, "date": .date, "template": .template, "palette": .palette}' "$src_path" > "$meta_json" 2>/dev/null || echo "{}" > "$meta_json"
 
   doc_title=$(yq -r '.title // ""' "$meta_json" 2>/dev/null || echo "")
   doc_desc=$(yq -r '.description // ""' "$meta_json" 2>/dev/null || echo "")
   doc_author=$(yq -r '.author // ""' "$meta_json" 2>/dev/null || echo "")
   doc_date=$(yq -r '.date // ""' "$meta_json" 2>/dev/null || echo "")
   doc_tmpl=$(yq -r '.template // ""' "$meta_json" 2>/dev/null || echo "")
+  doc_palette=$(yq -r '.palette // ""' "$meta_json" 2>/dev/null || echo "")
   rm -f "$meta_json"
 
   [[ "$doc_title" == "null" ]] && doc_title=""
@@ -88,12 +89,14 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ap
   [[ "$doc_author" == "null" ]] && doc_author=""
   [[ "$doc_date" == "null" ]] && doc_date=""
   [[ "$doc_tmpl" == "null" ]] && doc_tmpl=""
+  [[ "$doc_palette" == "null" ]] && doc_palette=""
 
   title="$doc_title"
   desc="$doc_desc"
   author="$doc_author"
   date="$doc_date"
   tmpl="$doc_tmpl"
+  palette="$doc_palette"
 
   [[ "$soul_path" == "NONE" ]] && soul_path=""
 
@@ -106,13 +109,14 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ap
     fi
 
     soul_json="$TMP_DIR/soul-meta-$$.json"
-    yq --front-matter extract -o json '{"title": .title, "description": .description, "author": .author, "date": .date, "template": .template}' "$soul_path" > "$soul_json" 2>/dev/null || echo "{}" > "$soul_json"
+    yq --front-matter extract -o json '{"title": .title, "description": .description, "author": .author, "date": .date, "template": .template, "palette": .palette}' "$soul_path" > "$soul_json" 2>/dev/null || echo "{}" > "$soul_json"
 
     s_title=$(yq -r '.title // ""' "$soul_json" 2>/dev/null || echo "")
     s_desc=$(yq -r '.description // ""' "$soul_json" 2>/dev/null || echo "")
     s_author=$(yq -r '.author // ""' "$soul_json" 2>/dev/null || echo "")
     s_date=$(yq -r '.date // ""' "$soul_json" 2>/dev/null || echo "")
     s_tmpl=$(yq -r '.template // ""' "$soul_json" 2>/dev/null || echo "")
+    s_palette=$(yq -r '.palette // ""' "$soul_json" 2>/dev/null || echo "")
     rm -f "$soul_json"
 
     [[ -n "$s_title" && "$s_title" != "null" ]] && title="$s_title"
@@ -120,6 +124,7 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ap
     [[ -n "$s_author" && "$s_author" != "null" ]] && author="$s_author"
     [[ -n "$s_date" && "$s_date" != "null" ]] && date="$s_date"
     [[ -n "$s_tmpl" && "$s_tmpl" != "null" ]] && tmpl="$s_tmpl"
+    [[ -n "$s_palette" && "$s_palette" != "null" ]] && palette="$s_palette"
   fi
 
   # 3. Resolve template file
@@ -226,6 +231,7 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ap
       -v desc="$desc" \
       -v author="$author" \
       -v date="$date" \
+      -v palette="$palette" \
       -v assets_root="$assets_root" \
       -v body_file="$body_rewritten" \
       -v template_file="$template_path" \
@@ -275,6 +281,7 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ap
       desc_esc  = html_escape(desc)
       author_esc = html_escape(author)
       date_esc  = html_escape(date)
+      palette_esc = html_escape(palette)
 
       body = ""
       while ((getline line < body_file) > 0) {
@@ -295,11 +302,13 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ap
       tmpl = evaluate_if(tmpl, "description", desc)
       tmpl = evaluate_if(tmpl, "author", author)
       tmpl = evaluate_if(tmpl, "date", date)
+      tmpl = evaluate_if(tmpl, "palette", palette)
 
       tmpl = literal_replace(tmpl, "$title$", title_esc)
       tmpl = literal_replace(tmpl, "$description$", desc_esc)
       tmpl = literal_replace(tmpl, "$author$", author_esc)
       tmpl = literal_replace(tmpl, "$date$", date_esc)
+      tmpl = literal_replace(tmpl, "$palette$", palette_esc)
       tmpl = literal_replace(tmpl, "$assets_root$", assets_root)
       tmpl = literal_replace(tmpl, "$body$", body)
 
