@@ -63,7 +63,8 @@ fi
 
 
 main() {
-    # check_dependencies
+    require_bins bash jq
+    require_sha256
     log "INFO" "Running rc-scan.sh."
     # Use plain arrays for manifest and disk lists
     manifest_list=()

@@ -3,13 +3,12 @@ title: "🖨️ rc-render.sh Reference"
 slug: rc-render
 version: "0.5.0"
 updated: "2026-07-23"
-description: "Main rendering engine for converting Markdown tombs into HTML using Apex (default) or legacy Pandoc and custom templates. Skips any Markdown with `status: draft`."
+description: "Main rendering engine for converting Markdown tombs into HTML using Apex and custom templates. Skips any Markdown with `status: draft`."
 tags:
   - rotkeeper
   - scripts
   - rendering
   - apex
-  - pandoc
 asset_meta:
   name: "rc-render.md"
   version: "v0.5.0"
@@ -36,12 +35,12 @@ asset_meta:
 - Support custom templates, parallel execution, verbose logging, and dry-run previews.
 - Emit detailed logs for ritual auditing.
 - Renders Markdown pages from `home/content/` to HTML in `output/`
-- Uses HTML templates via Apex (default) or legacy Pandoc
+- Uses HTML templates via Apex
 
 ## CLI Interface
 <!-- How to invoke the rendering ceremony -->
 ```bash
-rc-render.sh [--renderer apex|pandoc] [--dry-run] [--verbose] [--help]
+rc-render.sh [--renderer apex] [--dry-run] [--verbose] [--help]
 
 # Note: rc-render.sh now runs lint first and skips drafts.
 # Flags:
@@ -63,14 +62,14 @@ Supported options:
 0. **Filter Drafts**
    - Any Markdown file with `status: draft` is skipped with a log entry.
 1. **Check Dependencies**
-   - Ensure `pandoc`, `find`, `xargs`, `date`, and `yq` are available.
+   - Ensure `find`, `xargs`, `date`, and `yq` are available.
 2. **Initialize Logging**
    - Write to `bones/logs/rc-render.log`. All stdout and stderr are captured.
 3. **Discover Markdown Files**
    - Recursively locate `*.md` pages to render.
    - Searches `home/content/` recursively for `.md` files.
 4. **Render Files**
-   - Process each Markdown file sequentially using Pandoc.
+   - Process each Markdown file sequentially using Apex.
 5. **Log Results**
    - Record successes and failures with timestamps.
 6. **Cleanup**
@@ -105,7 +104,7 @@ Errors and render failures are logged to `bones/logs/rc-render.log`.
 
 <!--
 Limerick 1:
-A chorus of pandoc calls in sync,
+A chorus of apex calls in sync,
 rc-render fills each HTML link.
 With logs signed in time,
 And parallel rhyme,

@@ -12,7 +12,7 @@ IFS=$'\n\t'
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-render.sh
-#  Purpose : Render markdown tombs into HTML using Apex (default) or Pandoc
+#  Purpose : Render markdown tombs into HTML using Apex
 #  Version : 0.5.1
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
@@ -29,7 +29,7 @@ Options:
   --help, -h       Show this help message and exit
   --dry-run        Preview actions without invoking renderer
   --verbose        Show detailed logs
-  --renderer NAME  Select renderer: apex (default) or pandoc
+  --renderer NAME  Select renderer: apex (the only supported renderer; pandoc was removed)
 
 Examples:
   bash rotkeeper.sh render
@@ -54,7 +54,7 @@ parse_render_args() {
     case "$arg" in
       --renderer)
         if [[ $((i + 1)) -ge ${#args[@]} ]]; then
-          log "ERROR" "--renderer requires an argument (pandoc or apex)"
+          log "ERROR" "--renderer requires an argument (apex)"
           echo "ERROR: --renderer requires an argument." >&2
           exit 1
         fi
@@ -87,8 +87,9 @@ main() {
     # Renderer-aware dependency validation
     case "${RENDERER,,}" in
       pandoc)
-        check_dependencies
-        require_bins pandoc
+        log "ERROR" "The Pandoc renderer has been removed. Rotkeeper renders exclusively with Apex."
+        echo "ERROR: The Pandoc renderer has been removed. Use --renderer apex (the default)." >&2
+        exit 1
         ;;
       apex)
         APEX_BIN="${RK_APEX_BIN:-$(command -v apex || true)}"
@@ -120,8 +121,8 @@ SETUP_EOF
         require_gawk_version
         ;;
       *)
-        log "ERROR" "Invalid renderer selected: '$RENDERER'. Supported options: pandoc, apex"
-        echo "ERROR: Invalid renderer '$RENDERER'. Supported renderers: pandoc, apex" >&2
+        log "ERROR" "Invalid renderer selected: '$RENDERER'. Supported options: apex"
+        echo "ERROR: Invalid renderer '$RENDERER'. Supported renderers: apex" >&2
         exit 1
         ;;
     esac
@@ -233,16 +234,20 @@ SETUP_EOF
       fi
     done
 
-    while IFS= read -r -d '' stale_html; do
-      if [[ -z "${EXPECTED_OUTPUTS[$stale_html]:-}" ]]; then
-        if [[ "$DRY_RUN" == true ]]; then
-          log "DRY-RUN" "Would prune stale rendered page: $stale_html"
-        else
-          rm -f "$stale_html"
-          log "INFO" "Pruned stale rendered page: $stale_html"
-        fi
-      fi
-    done < <(find "$OUTPUT_DIR" -type f -name "*.html" -print0 2>/dev/null || true)
+    if output_is_generated; then
+        while IFS= read -r -d '' stale_html; do
+          if [[ -z "${EXPECTED_OUTPUTS[$stale_html]:-}" ]]; then
+            if [[ "$DRY_RUN" == true ]]; then
+              log "DRY-RUN" "Would prune stale rendered page: $stale_html"
+            else
+              rm -f "$stale_html"
+              log "INFO" "Pruned stale rendered page: $stale_html"
+            fi
+          fi
+        done < <(find "$OUTPUT_DIR" -type f -name "*.html" -print0 2>/dev/null || true)
+    else
+        log "WARN" "Output tree is not marked generated; refusing to prune stale pages. A real render pass first writes the ownership marker."
+    fi
 
     if [[ "${RENDERER,,}" == "apex" ]]; then
       # --- APEX RENDERER PASS (PURE BASH / GAWK / YQ) ---
@@ -309,112 +314,9 @@ SETUP_EOF
       done
 
       rm -f "$batch_tsv"
-    else
-      # --- PANDOC RENDERER PASS (DEFAULT) ---
-      for mdfile in ${md_corpses[@]+"${md_corpses[@]}"}; do
-        [ -f "$mdfile" ] || continue
-
-        [[ "$VERBOSE" == true ]] && log "DEBUG" "Found markdown file: $mdfile"
-        base=$(basename "$mdfile" .md)
-        canonical_mdpath=$(get_canonical_path "$mdfile")
-        if [[ -z "$canonical_mdpath" ]]; then
-           log "ERROR" "Failed to resolve canonical path for $mdfile; skipping."
-           continue
-        fi
-        if [[ "$canonical_mdpath" != "$CANONICAL_CONTENT_DIR"* ]]; then
-           log "ERROR" "mdpath $canonical_mdpath escaped srcpath $CANONICAL_CONTENT_DIR; skipping."
-           continue
-        fi
-        mdpath="$canonical_mdpath"
-        srcpath="$CANONICAL_CONTENT_DIR"
-
-        if [[ "$mdpath" == "$srcpath"* ]]; then
-          relpath="${mdpath#"$srcpath"/}"
-        else
-          log "ERROR" "mdpath $mdpath is not under srcpath $srcpath; skipping."
-          continue
-        fi
-
-        reldir=$(dirname "$relpath")
-        outdir="$OUTPUT_DIR/$reldir"
-        if [[ -z "$outdir" || "$outdir" =~ ^[[:space:]]*$ ]]; then
-          log "WARN" "Invalid or empty output path for $mdfile — skipping."
-          continue
-        fi
-
-        run mkdir -p "$outdir"
-        outfile="$outdir/${base}.html"
-        rel_md="${mdpath#"$PROJ_ROOT"/}"
-        rel_out="${outfile#"$PROJ_ROOT"/}"
-
-        log "INFO" "Rendering $rel_md → $rel_out"
-
-        local soul_file="$META_DIR/${relpath%.md}.soul.md"
-        local canonical_soul=$(get_canonical_path "$soul_file")
-        if [[ -z "$canonical_soul" ]]; then
-          log "ERROR" "Failed to resolve canonical path for soul_file $soul_file; skipping."
-          continue
-        fi
-        if [[ "$canonical_soul" != "$CANONICAL_META_DIR"* ]]; then
-          log "ERROR" "Path traversal detected in soul file path: $canonical_soul escapes $CANONICAL_META_DIR; skipping."
-          continue
-        fi
-        soul_file="$canonical_soul"
-        local pandoc_inputs=()
-
-        if [[ -f "$soul_file" ]]; then
-          log "INFO" "💀 Found spiritual shadow sidecar: $soul_file"
-          if ! yq eval '.' "$soul_file" >/dev/null 2>&1; then
-            log "WARN" "Malformed YAML frontmatter in sidecar $soul_file. Dropping back to isolated pass."
-            pandoc_inputs+=("$mdfile")
-            TEMPLATE=$(yq --front-matter extract '.template' "$mdfile" 2>/dev/null | grep -v "^null$" || echo "")
-          else
-            pandoc_inputs+=("$mdfile" "$soul_file")
-            TEMPLATE=$(yq --front-matter extract '.template' "$soul_file" 2>/dev/null | grep -v "^null$" || echo "")
-            [[ -z "$TEMPLATE" ]] && TEMPLATE=$(yq --front-matter extract '.template' "$mdfile" 2>/dev/null | grep -v "^null$" || echo "")
-          fi
-        else
-          pandoc_inputs+=("$mdfile")
-          TEMPLATE=$(yq --front-matter extract '.template' "$mdfile" 2>/dev/null | grep -v "^null$" || echo "")
-        fi
-
-        [[ -z "$TEMPLATE" ]] && TEMPLATE="$DEFAULT_TEMPLATE"
-        log "INFO" "Rendering $rel_md with template: $TEMPLATE"
-
-        local template_file="$TEMPLATE_DIR/$TEMPLATE"
-        local canonical_template=$(get_canonical_path "$template_file")
-        if [[ -z "$canonical_template" ]]; then
-          log "ERROR" "Failed to resolve canonical path for template $template_file; skipping."
-          continue
-        fi
-        if [[ "$canonical_template" != "$CANONICAL_TEMPLATE_DIR"* ]]; then
-          log "ERROR" "Path traversal detected in template path: $canonical_template escapes $CANONICAL_TEMPLATE_DIR; skipping."
-          continue
-        fi
-        if [ ! -f "$canonical_template" ]; then
-          log "ERROR" "Template not found: $canonical_template"
-          continue
-        fi
-
-        if [[ "$reldir" == "." ]]; then
-            ASSETS_ROOT="./assets/"
-        else
-            depth=$(echo "$reldir" | tr -cd '/' | wc -c)
-            ASSETS_ROOT="$(rk_up_dirs $((depth + 1)))assets/"
-        fi
-
-        PANDOC_ARGS=""
-        if [[ "$DEBUG" == true ]]; then
-          PANDOC_ARGS="--trace --dump-args --verbose"
-        fi
-
-        # shellcheck disable=SC2086
-        run pandoc ${pandoc_inputs[@]+"${pandoc_inputs[@]}"} --from markdown --to html --template="$canonical_template" --variable=assets_root="$ASSETS_ROOT" --lua-filter="$SCRIPT_DIR/rewrite-links.lua" -o "$outfile" $PANDOC_ARGS
-
-        pages_rendered=$((pages_rendered + 1))
-        log_manifest "$outfile"
-      done
     fi
+
+    mark_output_generated
 
     log "MARKER" "✓ Exorcism complete."
 

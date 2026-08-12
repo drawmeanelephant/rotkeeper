@@ -83,7 +83,9 @@ main() {
       esac
     done
 
-    check_dependencies
+    require_bins bash jq tar gzip
+    require_sha256
+    require_yq_version
     $VERBOSE && log "DEBUG" "Dependencies verified."
 
     # --- Shared Configuration ---

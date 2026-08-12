@@ -51,8 +51,7 @@ if [[ -z "$VERSION" ]]; then
   exit 1
 fi
 
-check_dependencies
-require_bins rsync zip zipinfo
+require_bins bash rsync zip zipinfo
 
 PROJECT_ROOT="$ROOT_DIR"
 STAGING_DIR="$TMP_DIR/release-staging"

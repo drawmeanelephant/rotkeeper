@@ -29,7 +29,7 @@ Rotkeeper is a shell-based ritual CLI for decaying flat-file systems. If you’d
 ## 🧠 Template Considerations
 
 - Templates live in `bones/templates/`.
-- Use `$title$`, `$body$`, and `$subtitle$` Pandoc variables.
+- Use `$title$`, `$body$`, and `$subtitle$` template variables.
 - Avoid dynamic script dependencies.
 - Visible HTML comments are encouraged (e.g. `<!-- filed under protest -->`).
 

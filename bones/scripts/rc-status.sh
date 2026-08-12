@@ -51,7 +51,8 @@ log() {
 }
 
 log "INFO" "Running rc-status.sh"
-check_dependencies
+require_bins bash jq
+require_yq_version
 
 CANONICAL_VERSION=$(grep -E '^VERSION=' "$ROOT_DIR/rotkeeper.sh" | cut -d'"' -f2 || echo "unknown")
 

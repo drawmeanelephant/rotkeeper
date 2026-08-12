@@ -5,7 +5,7 @@ IFS=$'\n\t'
 #  Project : Rotkeeper
 #  Script  : bones/scripts/rc-apex-adapter.sh
 #  Purpose : Pure Bash + GAWK + YQ batch adapter for Apex renderer.
-#            Zero Python requirement. Evaluates Pandoc HTML templates,
+#            Zero Python requirement. Evaluates Rotkeeper HTML templates,
 #            enforces path boundaries, applies sidecar metadata precedence,
 #            evaluates template conditionals, and rewrites internal .md links.
 #  Version : 0.5.1

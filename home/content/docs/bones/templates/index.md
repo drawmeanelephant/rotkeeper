@@ -3,7 +3,7 @@ title: "🎨 Templates Index"
 slug: templates-index
 version: "0.1.0"
 updated: "2026-06-27"
-description: "Layouts, themes, and Pandoc assets."
+description: "Layouts, themes, and Apex assets."
 template: "rotkeeper-doc.html"
 status: "complete"
 author: "Rotkeeper DIP"

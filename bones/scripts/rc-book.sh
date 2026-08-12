@@ -393,7 +393,7 @@ runmode() {
 
 main() {
   export BOOK_SUFFIX=$(printf "%04x%04x" $RANDOM $RANDOM)
-  check_dependencies
+  require_bins bash
   log "INFO" "Running rc-book.sh safely bounded."
   mkdir -p "$BOOK_REPORT_DIR"
   parseflags "$@"

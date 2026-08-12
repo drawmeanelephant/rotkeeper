@@ -35,7 +35,7 @@ The system operates on a linear, verifiable pipeline. All steps run via `./rotke
 1. **`init`**: Bootstraps the layout, configuration, and environment paths.
 2. **`new`** *(Optional)*: Scaffolds a new Markdown file with valid YAML frontmatter.
 3. **`glue`** *(Situational)*: Auto-generates navigation indexes for untracked content directories.
-4. **`render`**: The core operation. Converts Markdown into HTML templates using Apex (or legacy Pandoc opt-in).
+4. **`render`**: The core operation. Converts Markdown into HTML templates using Apex.
 5. **`assets`**: Scans, copies, and hashes static assets into the output directory.
 6. **`scan`**: Verifies all manifest entries and hashes against actual generated files.
 7. **`pack`** *(Optional)*: Archives the rendered output and metadata into a versioned tarball.
@@ -54,8 +54,7 @@ Rotkeeper relies on tools that are likely already installed on your system or ea
 - `zip` & `tar` (For `release` and `pack` operations)
 
 **Rendering:**
-- **Apex (default):** Install or compile the [Apex renderer](https://github.com/ApexMarkdown/apex) separately, then make the executable available in `$PATH` or set `RK_APEX_BIN=/path/to/apex`. Repository integration tests (`rotkeeper.sh test`) use an in-memory fixture binary for hermetic testing.
-- **Pandoc (legacy opt-in):** `pandoc` is optional and only required when explicitly using `--renderer pandoc`.
+- **Apex (default):** Install or compile the [Apex renderer](https://github.com/ApexMarkdown/apex) separately, then make the executable available in `$PATH` or set `RK_APEX_BIN=/path/to/apex`. Repository integration tests (`rotkeeper.sh test`) use an in-memory fixture binary for hermetic testing. The Pandoc renderer has been removed; Apex is the only renderer.
 
 ## 📜 Command Reference
 
@@ -78,7 +77,7 @@ Derived from the main CLI dispatcher:
 
 ## 🚑 Troubleshooting
 
-- **Missing dependencies:** If a script fails immediately, ensure `jq`, `gawk`, and especially the **Go version** of `yq` (mikefarah/yq) are installed and in your `$PATH`. For rendering, set `RK_APEX_BIN` to point to the compiled Apex binary, or pass `--renderer pandoc` to fall back to Pandoc.
+- **Missing dependencies:** If a script fails immediately, ensure `jq`, `gawk`, and especially the **Go version** of `yq` (mikefarah/yq) are installed and in your `$PATH`. For rendering, set `RK_APEX_BIN` to point to the compiled Apex binary.
 - **Malformed YAML:** If `init` or `render` crash, your frontmatter or `bones/config/rotkeeper.yaml` might be invalid. Test it manually with `yq eval '.' <file>`.
 - **Incorrect layout/path configuration:** If Rotkeeper can't find your files, ensure `ROOT_DIR` in `bones/config/rotkeeper.yaml` matches your absolute path, or run `./rotkeeper.sh init --full` to force a path recalculation.
 - **Stale output:** If the renderer isn't updating your changes, you may be stuck with ghost artifacts. Run `rm -rf output/*` and run `./rotkeeper.sh render` again.

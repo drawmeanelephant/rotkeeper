@@ -108,8 +108,9 @@ log "INFO" "🔐 Blessing scripts with +x permissions..."
 find "$SCRIPT_DIR" -type f \( -name "rc-*.sh" -o -name "rc-*.bats" \) -exec chmod +x {} \;
 
 main() {
-    # Verify required tools
-    check_dependencies
+    # Verify required tools (config serialization is yq-driven)
+    require_bins bash
+    require_yq_version
     $VERBOSE && log "INFO" "Dependencies verified."
 
     if [[ ! -d "$TEMPLATE_DIR" ]]; then

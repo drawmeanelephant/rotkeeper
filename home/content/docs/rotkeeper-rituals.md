@@ -14,7 +14,7 @@ To prevent catastrophic entropy, **do not invoke these scripts directly.** Alway
 ## 📜 The Core Rituals
 
 ### 💀 `rc-render.sh` (The Rebirth)
-The most sacred command. It sweeps through `home/content/`, reads the markdown (the remains), and resurrects them as HTML forms in the `output/` directory, guided by your chosen Pandoc templates.
+The most sacred command. It sweeps through `home/content/`, reads the markdown (the remains), and resurrects them as HTML forms in the `output/` directory, guided by your chosen templates.
 
 ### 📦 `rc-pack.sh` (The Embalming)
 Takes the rendered output and binds it into a `.tar.gz` archive. This archive is timestamped and carries a `metadata.json` soul, making it perfect for preservation or transmission to other crypts.
