@@ -13,6 +13,14 @@ IFS=$'\n\t'
 #  Script  : rc-release.sh
 #  Purpose : Streamline multi-tier models down to a single-tier canonical framework distribution zip
 #  Version : 0.5.1
+# ------------------------------------------------------------
+#  Distribution model (Phase 5): a release is a FRAMEWORK DISTRIBUTION
+#  (dispatcher, bones system, templates, configuration, project docs), not a
+#  site-source archive and not a complete backup. Author content trees that
+#  are not part of the framework spine are outside the release contract;
+#  caches, logs, temp trees, output, archives, reports, and credentials are
+#  forbidden. The staged tree must match an explicit root-entry allowlist,
+#  must contain the framework spine, and must carry a generated manifest.
 # ============================================================
 
 
@@ -133,19 +141,68 @@ verify_archive_contents() {
         "rotkeeper/${BOOK_REPORT_DIR#"$ROOT_DIR"/}/"
         "rotkeeper/${CONTENT_DIR#"$ROOT_DIR"/}/messages/"
     )
+    local -a allowed_root=(
+        "rotkeeper.sh"
+        "bones/"
+        "home/"
+        "docs/"
+        "scripts/"
+        "AGENTS.md"
+        "CHANGELOG.md"
+        "CONTRIBUTING.md"
+        "CREDITS.md"
+        "GEMINI.md"
+        "README.md"
+        ".agentignore"
+        ".blessed"
+        ".gitignore"
+        ".shellcheckrc"
+    )
+    local -a required_entries=(
+        "rotkeeper/rotkeeper.sh"
+        "rotkeeper/bones/config/rotkeeper.yaml"
+        "rotkeeper/bones/config/version"
+        "rotkeeper/bones/config/release-manifest.txt"
+        "rotkeeper/bones/scripts/rc-utils.sh"
+    )
 
+    local archive_entries
+    archive_entries="$(zipinfo -1 "$archive_path")"
+
+    local requirement
+    for requirement in ${required_entries[@]+"${required_entries[@]}"}; do
+        if ! grep -Fxq "$requirement" <<< "$archive_entries"; then
+            log "ERROR" "Required framework entry missing from release archive: $requirement"
+            return 1
+        fi
+    done
+
+    local root_entry allowed
     while IFS= read -r entry; do
+        if [[ "$entry" != */* && -n "$entry" ]]; then
+            allowed=false
+            for root_entry in ${allowed_root[@]+"${allowed_root[@]}"}; do
+                if [[ "$entry" == "$root_entry" ]]; then
+                    allowed=true
+                    break
+                fi
+            done
+            if [[ "$allowed" == false ]]; then
+                log "ERROR" "Unexpected root-level entry in release archive: $entry"
+                return 1
+            fi
+        fi
         for forbidden_prefix in ${forbidden_prefixes[@]+"${forbidden_prefixes[@]}"}; do
             if [[ "$entry" == "$forbidden_prefix"* ]]; then
                 log "ERROR" "Forbidden path included in release archive: $entry"
                 return 1
             fi
         done
-        if [[ "$entry" == */.DS_Store || "$entry" == *_temp.md ]]; then
+        if [[ "$entry" == */.DS_Store || "$entry" == *_temp.md || "$entry" == *.pem || "$entry" == *.key || "$entry" == *.p12 || "$entry" == *.pyc || "$entry" == */.env || "$entry" == */.env.* || "$entry" == */id_rsa || "$entry" == */.npmrc || "$entry" == *~ ]]; then
             log "ERROR" "Forbidden artifact included in release archive: $entry"
             return 1
         fi
-    done < <(zipinfo -1 "$archive_path")
+    done <<< "$archive_entries"
 }
 
 main() {
@@ -174,6 +231,8 @@ main() {
 
     rsync -a \
         --exclude='.git/' \
+        --exclude='.github/' \
+        --exclude='.vscode/' \
         --exclude='output/' \
         --exclude="${LOG_DIR#"$ROOT_DIR"/}/" \
         --exclude="${TMP_DIR#"$ROOT_DIR"/}/" \
@@ -185,6 +244,20 @@ main() {
         --exclude='.DS_Store' \
         --exclude='*_temp.md' \
         "$PROJECT_ROOT/" "$CANONICAL_DIR/"
+
+    local manifest_file="$CANONICAL_DIR/bones/config/release-manifest.txt"
+    local entry_list="$TMP_DIR/release-entries-$$.txt"
+    (cd "$STAGING_DIR" && find rotkeeper -type f | sort) > "$entry_list"
+    {
+        echo "Rotkeeper framework distribution manifest"
+        echo "version: $VERSION"
+        echo "model: framework distribution (dispatcher, bones system, templates, configuration, project docs)"
+        echo "ruleset: release allowlist v1 (explicit root entries, required spine, forbidden prefixes and artifacts)"
+        echo "listed_entries: $(wc -l < "$entry_list" | tr -d ' ')"
+        echo "entries:"
+        cat "$entry_list"
+    } > "$manifest_file"
+    rm -f "$entry_list"
 
     local orig_dir; orig_dir="$(pwd)"
     cd "$STAGING_DIR"
