@@ -1,3 +1,13 @@
+## [0.5.2] - 2026-08-12
+
+- Added the `preflight` dispatcher command: one Apex availability check (discovery, executability, 1.1.x version range, runnable smoke) with a single actionable setup message; `render` routes its failure path through the same check so diagnostics cannot drift.
+- Added the checked-in hermetic smoke fixture (`bones/scripts/tests/fixtures/apex-smoke/`) with a golden body comparison and nested-output-path coverage, verified on `crypt`, `busy`, and `sterile` layout passes.
+- Made releases deterministic: framework-distribution model, explicit root-entry allowlist with fail-fast, required framework spine, generated `release-manifest.txt` inside the archive, and forbidden-artifact guards including credentials (`*.pem`, `*.key`, `*.p12`, `.env`, `.npmrc`, `id_rsa`).
+- Repaired the DIP workflow: refreshed the checked-in matrix (42 rows, path-independent), re-stitched stub mirrors from fresh autopsy reports, and added a harness DIP regression (clean dry-run, non-mutating, no absolute paths).
+- Fixed a macOS portability bug in `rc-apex-adapter.sh`: BSD `readlink -f` resolved existing directories to `/private/var` but not yet-written targets, causing false output-boundary violations; switched to the shared `rk_canonical_path` helper.
+- Rewrote the README (quickstart, layout styles, full command reference, troubleshooting matrix) and added the `workflow` guide (`home/content/docs/workflow.md`) covering the preflight → init → author → render → verify → archive → release cycle.
+- Completes the Post-PR177 stabilization roadmap phases 0-4 and 7; phase 5 remains open only for the Ubuntu archive-verification checkbox.
+
 ## [0.5.0] - 2026-07-23
 
 - Established native Apex (`apex`) HTML renderer as default engine and removed Pandoc runtime requirement.

@@ -93,11 +93,11 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [x] Preview gallery comparing every theme side by side.
 
 ### Exit criteria for `0.5.2`
-- [ ] A new user can install/find Apex, run one documented command, and render the fixture successfully.
-- [ ] A missing or incompatible Apex binary produces a clear diagnosis.
-- [ ] DIP runs against a clean fixture and produces bounded, path-independent reports.
-- [ ] The test harness covers the real Apex path where available and remains hermetic where it is not.
-- [ ] Version, help, portability, output ownership, and release checks have no known audit regressions.
+- [x] A new user can install/find Apex, run one documented command, and render the fixture successfully. *(verified 2026-08-12: extracted `rotkeeper-0.5.2.zip` to a clean dir, `preflight` → PASS, `render` → success)*
+- [x] A missing or incompatible Apex binary produces a clear diagnosis. *(preflight exits 1 with one actionable message; render routes through the same check)*
+- [x] DIP runs against a clean fixture and produces bounded, path-independent reports. *(fsbook regenerated on demand; matrix verified path-free; harness regression enforces non-mutation + no absolute paths)*
+- [x] The test harness covers the real Apex path where available and remains hermetic where it is not. *(real 1.1.13 smoke on every layout pass; hermetic fixture + golden with zero Apex)*
+- [x] Version, help, portability, output ownership, and release checks have no known audit regressions. *(full harness green incl. command contracts, DIP regression, release packager)*
 
 ---
 
