@@ -318,6 +318,57 @@ UGLY_EOF
       exit 112
     fi
 
+    # --- Checked-in hermetic smoke fixture + golden comparison ---
+    # The fixture lives at bones/scripts/tests/fixtures/apex-smoke/ and renders
+    # through the same fake binary used above (zero Apex required). The rendered
+    # <body> region is layout-independent (the head's $assets_root$ link differs
+    # per layout style), so the golden body is compared verbatim on every mode.
+    FIXTURE_SRC="$ROOT_DIR/bones/scripts/tests/fixtures/apex-smoke/smoke-fixture.md"
+    GOLDEN_HTML="$ROOT_DIR/bones/scripts/tests/fixtures/apex-smoke/smoke-fixture-expected.html"
+
+    if [[ -f "$FIXTURE_SRC" && -f "$GOLDEN_HTML" ]]; then
+      cp "$FIXTURE_SRC" "$b_content/smoke-fixture.md"
+      RK_APEX_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null
+
+      rendered_smoke="$out_dir_rel/smoke-fixture.html"
+      if [[ ! -f "$rendered_smoke" ]]; then
+        echo "❌ Assertion Failed: smoke fixture did not render: $rendered_smoke"
+        exit 113
+      fi
+
+      live_body=$(sed -n '/<body class="rk-page">/,/<\/body>/p' "$rendered_smoke")
+      golden_body=$(sed -n '/<body class="rk-page">/,/<\/body>/p' "$GOLDEN_HTML")
+      if [[ "$live_body" != "$golden_body" ]]; then
+        echo "❌ Assertion Failed: smoke fixture body diverges from golden ($mode)."
+        echo "  Rendered: $rendered_smoke"
+        echo "  Golden:   $GOLDEN_HTML"
+        exit 113
+      fi
+      echo "  [+] Pass: checked-in smoke fixture body matches golden ($mode)."
+
+      # Nested output path: the same fixture under a content subdirectory must
+      # render into a mirrored nested output path with an identical body.
+      mkdir -p "$b_content/docs"
+      cp "$FIXTURE_SRC" "$b_content/docs/smoke-fixture.md"
+      RK_APEX_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null
+
+      rendered_nested="$out_dir_rel/docs/smoke-fixture.html"
+      if [[ ! -f "$rendered_nested" ]]; then
+        echo "❌ Assertion Failed: nested smoke fixture did not render: $rendered_nested"
+        exit 113
+      fi
+
+      nested_body=$(sed -n '/<body class="rk-page">/,/<\/body>/p' "$rendered_nested")
+      if [[ "$nested_body" != "$golden_body" ]]; then
+        echo "❌ Assertion Failed: nested smoke fixture body diverges from golden ($mode)."
+        echo "  Rendered: $rendered_nested"
+        exit 113
+      fi
+      echo "  [+] Pass: nested smoke fixture body matches golden ($mode)."
+    else
+      echo "⚠️  Skipping checked-in smoke fixture: fixture or golden missing."
+    fi
+
     # --- v0.5.1 Specific Maintenance Contract Assertions ---
     echo "  [+] Executing v0.5.1 literal-safe, HTML-escaping, soul sidecar & Apex stderr assertions..."
     
@@ -508,7 +559,7 @@ echo "======================================================================"
 echo "======================================================================"
 echo "--- Command contract: --help is non-mutating, --version is consistent ---"
 
-CONTRACT_COMMANDS=(init new render pack release bump test scan assets autopsy glue links showcase dip book status)
+CONTRACT_COMMANDS=(init new render pack preflight release bump test scan assets autopsy glue links showcase dip book status)
 
 tree_snapshot() {
   git status --porcelain 2>/dev/null
@@ -550,6 +601,38 @@ if [[ "$contract_failed" == true ]]; then
   exit 134
 fi
 echo "✅ ALL COMMAND CONTRACT ASSERTIONS PASSED."
+
+echo "======================================================================"
+echo "--- DIP regression: clean dry-run, non-mutating, no absolute paths ---"
+
+# DIP must run from a clean inventory (fsbook generated on demand), the
+# dry-run must be non-mutating (matrix unchanged), and the published matrix
+# must stay free of host-specific absolute paths.
+
+./rotkeeper.sh book --fsbook > /dev/null
+
+DIP_MATRIX="$ROOT_DIR/home/content/docs/dip-matrix.md"
+matrix_before="$(rk_sha256 "$DIP_MATRIX" 2>/dev/null | cut -d' ' -f1 || true)"
+
+if ! dip_out=$(./rotkeeper.sh dip --dry-run 2>&1); then
+  echo "❌ Assertion Failed: dip --dry-run exited non-zero."
+  exit 135
+fi
+if ! grep -q 'DIP finished' <<< "$dip_out"; then
+  echo "❌ Assertion Failed: dip --dry-run did not finish cleanly."
+  exit 136
+fi
+
+matrix_after="$(rk_sha256 "$DIP_MATRIX" 2>/dev/null | cut -d' ' -f1 || true)"
+if [[ "$matrix_before" != "$matrix_after" ]]; then
+  echo "❌ Assertion Failed: dip --dry-run mutated the DIP matrix (dry-run must be non-mutating)."
+  exit 137
+fi
+if grep -q "$ROOT_DIR" "$DIP_MATRIX"; then
+  echo "❌ Assertion Failed: DIP matrix contains host-specific absolute paths."
+  exit 138
+fi
+echo "✅ DIP regression passed."
 
 echo "======================================================================"
 echo "--- Regression tests for legacy rituals (ingest, sync-inbox, cleanup, reseed) ---"

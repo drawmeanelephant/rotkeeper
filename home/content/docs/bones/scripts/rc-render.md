@@ -168,6 +168,21 @@ This script is a masterclass in bureaucratic necromancy. I deeply appreciate the
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-12T00:38:36Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-12T12:26:46Z -->
 
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
+```text
+rc-render.sh — Render Markdown tombs into HTML (v0.5.1)
+
+Usage: rc-render.sh [options]
+
+Options:
+  --version, -v    Show script version and quit
+  --help, -h       Show this help message and exit
+  --dry-run        Preview actions without invoking renderer
+  --verbose        Show detailed logs
+  --renderer NAME  Select renderer: apex (the only supported renderer; pandoc was removed)
+
+Examples:
+  bash rotkeeper.sh render
+  RK_APEX_BIN=/path/to/apex bash rotkeeper.sh render --renderer apex
+```

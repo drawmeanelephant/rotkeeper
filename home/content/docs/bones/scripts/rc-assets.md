@@ -140,6 +140,16 @@ Do not feed it untrusted zip files or chaotic directory structures unless you en
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-12T00:38:36Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-12T12:26:46Z -->
 
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
+```text
+rc-assets.sh — Generate a selective YAML manifest of referenced assets
+
+Usage: rc-assets.sh [options]
+
+Options:
+  --version, -v    Show script version and quit
+  --help, -h       Show this help message and exit
+  --dry-run        Preview actions without writing files
+  --verbose        Show detailed logs
+```

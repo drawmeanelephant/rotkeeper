@@ -17,9 +17,9 @@ Documentation for `bones/templates/theme-spooky-light.html`. This file was auto-
 TODO: Provide a brief overview of what this file does.
 
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-12T00:38:36Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-12T12:26:46Z -->
 
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
+*Not found: no help block for `theme-spooky-light.html` in autopsy help report.*
 ## Environment
 <!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
 

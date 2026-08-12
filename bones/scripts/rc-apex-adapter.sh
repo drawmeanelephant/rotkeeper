@@ -32,7 +32,7 @@ fi
 get_canonical_path() {
   local path="$1"
   local canonical
-  canonical=$(realpath -m "$path" 2>/dev/null || readlink -f "$path" 2>/dev/null || echo "$path")
+  canonical=$(rk_canonical_path "$path" 2>/dev/null || echo "$path")
   echo "$canonical"
 }
 

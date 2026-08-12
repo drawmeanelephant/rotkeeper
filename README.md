@@ -4,89 +4,102 @@
 
 *"What lives in `/bones/` may yet render again."*
 
-Rotkeeper is a Bash-native static-site and content system equipped with Apex HTML rendering, SHA256 integrity scanning, documentation improvement, archiving, and release packaging. Designed for morticians of Markdown and sysadmins of static crypts, it automates the slow decay and archival rebirth of flat-file knowledge hoards entirely through Unix tooling.
+Rotkeeper is a Bash-native static-site and content system with Apex HTML rendering, integrity scanning, documentation improvement, archiving, and release packaging. No Node, NPM, or application framework is required — just Markdown, Bash, and standard Unix tooling. The outputs are raw, static, and immortal.
 
-## 💀 Why this exists
+## Why this exists
 
-We wanted a system that survives the heat death of the modern JavaScript ecosystem. There are no Node, NPM, Webpack, or framework requirements here. It relies exclusively on your local Markdown, durable static outputs, and standard Unix tooling (Bash, Awk). The resulting artifacts are raw, static, and immortal.
+We wanted a system that survives the heat death of the modern JavaScript ecosystem. Rotkeeper turns flat-file Markdown hoards into rendered static sites through disposable Unix tools, and treats its own documentation as a first-class artifact.
 
-## 📂 The BHO Directory Model
+## The BHO model
 
-Rotkeeper organizes itself around the strict **BHO Architecture** (Bones, Home, Output). It is intentionally ordered as system → content → output, conceptually mapping to steps 1 → 2 → 3 in the execution lifecycle. (And yes, "BHO" is a deliberate butane-hash-oil joke).
+Rotkeeper organizes everything around **BHO** (Bones, Home, Output) — system, then content, then artifacts.
 
-- **`bones/` (System):** The internal nervous system. Contains the execution scripts (`rc-*.sh`), HTML templates, YAML configurations, execution logs, metadata sidecars, reports, and tarball archives. User content never goes here.
-- **`home/` (Content):** The user's estate. Contains your raw Markdown files (`home/content/`) and static assets like CSS/images (`home/assets/`). This is your source material.
-- **`output/` (Artifacts):** The final resting place. Contains the rendered HTML tombs and generated site structures ready for deployment.
+- **`bones/` (System):** scripts (`rc-*.sh`), HTML templates, configuration, logs, metadata sidecars, reports, and archives.
+- **`home/` (Content):** your Markdown (`home/content/`) and static assets (`home/assets/`). This is author-managed source material.
+- **`output/` (Artifacts):** rendered HTML and generated site structures. Never edit it directly — change source and re-render.
 
-## 🔧 Quickstart
+`bones/` stays the system root in every layout; the content and output directories shift with your chosen layout style:
 
-To initialize the crypt and perform your first render:
+| Style | Content | Templates | Assets | Output |
+| --- | --- | --- | --- | --- |
+| `crypt` (default) | `home/content` | `bones/templates` | `home/assets` | `output` |
+| `busy` | `home/content` | `templates` | `assets` | `output` |
+| `sterile` | `src/content` | `config/templates` | `src/assets` | `dist` |
+
+## Quickstart
+
+Check that the renderer is available, initialize a site, and render it:
 
 ```bash
-./rotkeeper.sh init        # Initialize environment and configuration
-./rotkeeper.sh render      # Convert Markdown tombs to HTML
-./rotkeeper.sh status      # Display environment health status
+./rotkeeper.sh preflight   # Apex found, executable, 1.1.x, and runnable?
+./rotkeeper.sh init --with-sample   # Initialize layout, config, sample content
+./rotkeeper.sh render      # Convert Markdown to HTML
+./rotkeeper.sh status      # Environment health and content report
 ```
 
-## ♻️ Core Lifecycle
+If `preflight` fails, install a supported Apex 1.1.x binary (or set `RK_APEX_BIN=/path/to/apex`) and re-run it. Full install steps are in [home/content/docs/apex-contract.md](home/content/docs/apex-contract.md).
 
-The system operates on a linear, verifiable pipeline. All steps run via `./rotkeeper.sh <command>`:
+## Common workflows
 
-1. **`init`**: Bootstraps the layout, configuration, and environment paths.
-2. **`new`** *(Optional)*: Scaffolds a new Markdown file with valid YAML frontmatter.
-3. **`glue`** *(Situational)*: Auto-generates navigation indexes for untracked content directories.
-4. **`render`**: The core operation. Converts Markdown into HTML templates using Apex.
-5. **`assets`**: Scans, copies, and hashes static assets into the output directory.
-6. **`scan`**: Verifies all manifest entries and hashes against actual generated files.
-7. **`pack`** *(Optional)*: Archives the rendered output and metadata into a versioned tarball.
-8. **`release`** *(Optional)*: Packages the full project into a single canonical framework zip file.
+**Publish a static site:** `init` → write Markdown (or `new <file>` to scaffold) → `render` → `scan` → deploy `output/` (or `dist/`).
 
-## ⚙️ Requirements
+**Ship a framework release:** `test` → `bump 0.5.2` → `release 0.5.2` → the canonical zip lands in `bones/archive/releases/`, verified against an explicit allowlist and manifest.
 
-Rotkeeper relies on tools that are likely already installed on your system or easily available via package managers.
+**Audit documentation:** `dip` reports documentation coverage; `book --docbook` binds the documentation into one retrieval artifact.
+
+The full end-to-end walkthrough lives in [home/content/docs/workflow.md](home/content/docs/workflow.md).
+
+## Requirements
 
 - macOS or Linux with **Bash 4+**
-- `yq` v4+ (The Go implementation by mikefarah, for YAML parsing)
-- `gawk` (GNU Awk, for parsing and string manipulation)
-- `sha256sum` (or `shasum`)
-- `jq` (For embedding JSON metadata during `pack`)
-- `rsync` (For safe directory syncing)
-- `zip` & `tar` (For `release` and `pack` operations)
+- `yq` v4+ (the Go implementation by mikefarah)
+- `gawk` (GNU Awk)
+- `sha256sum` (or `shasum` on macOS)
+- `jq`
+- `rsync`
+- `zip`, `zipinfo`, and `tar` (for `release` and `pack`)
 
-**Rendering:**
-- **Apex (default):** Install or compile the [Apex renderer](https://github.com/ApexMarkdown/apex) separately, then make the executable available in `$PATH` or set `RK_APEX_BIN=/path/to/apex`. Repository integration tests (`rotkeeper.sh test`) use an in-memory fixture binary for hermetic testing. The Pandoc renderer has been removed; Apex is the only renderer.
+**Rendering:** Apex 1.1.x is the only renderer (Pandoc was removed). Put `apex` on `PATH` or set `RK_APEX_BIN=/path/to/apex`. `bash rotkeeper.sh preflight` is the single diagnostic for finding, executability, version range, and runnability.
 
-## 📜 Command Reference
-
-Derived from the main CLI dispatcher:
+## Command reference
 
 | Command | Description |
-|---------|-------------|
-| `init` | Initialize environment |
-| `new <file>` | Scaffold a new markdown file |
-| `render` | Convert markdown into HTML tombs |
+| --- | --- |
+| `init` | Initialize the environment and configuration (`--with-sample` adds starter content) |
+| `new <file>` | Scaffold a new Markdown file with frontmatter |
+| `render` | Convert Markdown into HTML with Apex |
+| `preflight` | Report Apex availability, compatibility, and runnability |
 | `pack` | Archive rendered HTML into a versioned tarball |
-| `release` | Package the project into a single canonical framework zip file |
-| `test` | Run the integration test harness matrix |
-| `scan` | Verify manifest entries against actual files |
-| `assets` | Generate asset manifest |
-| `glue` | Auto-generate navigation glue for unindexed content directories |
-| `dip` | Audit documentation coverage via DIP |
+| `release [VERSION]` | Package the canonical framework zip (allowlist + manifest verified) |
+| `bump` | Record a microrelease and sync version markers |
+| `scan` | Verify manifest entries against generated files |
+| `assets` | Generate the asset manifest |
+| `glue` | Generate navigation glue for unindexed content directories |
+| `links` | Audit links and local assets in rendered HTML |
+| `showcase` | Generate showcase content for every template/theme |
+| `dip` | Audit documentation coverage |
 | `book` | Generate aggregated documentation book targets |
+| `autopsy` | Catalog script help and behavior |
 | `status` | Display environment health status reports |
+| `test` / `smoke` | Run the integration harness (all layout styles, hermetic fixtures) |
 
-## 🚑 Troubleshooting
+Run any command with `--help`, `--version`, or `--dry-run` (where supported) — help is non-mutating.
 
-- **Missing dependencies:** If a script fails immediately, ensure `jq`, `gawk`, and especially the **Go version** of `yq` (mikefarah/yq) are installed and in your `$PATH`. For rendering, set `RK_APEX_BIN` to point to the compiled Apex binary.
-- **Malformed YAML:** If `init` or `render` crash, your frontmatter or `bones/config/rotkeeper.yaml` might be invalid. Test it manually with `yq eval '.' <file>`.
-- **Incorrect layout/path configuration:** If Rotkeeper can't find your files, ensure `ROOT_DIR` in `bones/config/rotkeeper.yaml` matches your absolute path, or run `./rotkeeper.sh init --full` to force a path recalculation.
-- **Stale output:** If the renderer isn't updating your changes, you may be stuck with ghost artifacts. Run `rm -rf output/*` and run `./rotkeeper.sh render` again.
+## A note for agents and contributors
 
-## 🤖 For AI Agents & Contributors
+Read [`AGENTS.md`](AGENTS.md) before modifying the crypt. It contains the architectural constraints, the BHO rules, required validation gates, and the dispatcher contract. Documentation generated by DIP is reference material, not ground truth — verify against source scripts.
 
-If you are an autonomous AI agent, a synthetic collaborator, or a human contributor, you **must** read [`AGENTS.md`](AGENTS.md) before modifying the crypt. It contains the strict architectural constraints and workflow directives for this repository.
+## Troubleshooting
 
-***
-## 💀 License
+| Symptom | Likely cause | Fix |
+| --- | --- | --- |
+| `render` fails before reanimating | Apex missing/incompatible | `bash rotkeeper.sh preflight` and follow its message |
+| `preflight` reports version out of range | Apex older/newer than 1.1.x | Install a supported 1.1.x release (see `apex-contract.md`) |
+| `yq` or `gawk` errors | Missing dependency | Install `mikefarah/yq` v4+ and `gawk`; `require_*` checks exit 2 with hints |
+| Layout path mismatch error | Repository moved or config paths stale | Run `./rotkeeper.sh init` to heal path mappings |
+| Malformed YAML | Broken frontmatter or `rotkeeper.yaml` | Validate with `yq eval '.' <file>` |
+| Stale pages persist | Rendered output not pruned (output tree has no ownership marker) | Re-run `render`; it writes the ownership marker and prunes stale HTML on subsequent passes |
+
+## License
 
 MIT. You may rot freely.

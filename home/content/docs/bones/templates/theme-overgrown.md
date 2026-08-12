@@ -56,6 +56,6 @@ The template file layout adheres to the following structural schema:
 - The layout is structured using the `rk-shell` class, with the `$title$` variable populated inside the main header container, and the `$body$` variable populated within the `rk-article` container.
 
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-12T00:38:36Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-12T12:26:46Z -->
 
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
+*Not found: no help block for `theme-overgrown.html` in autopsy help report.*

@@ -112,6 +112,7 @@ Sora prompt: “A glitching wiki carved into obsidian, with glowing CLI runes et
 - [README](<README.html>)
 - [apex-contract](<apex-contract.html>)
 - [architecture](<architecture.html>)
+- [workflow](<workflow.html>)
 - [dip-matrix](<dip-matrix.html>)
 - [onboarding](<onboarding.html>)
 - [patch](<patch.html>)

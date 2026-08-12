@@ -72,6 +72,24 @@ Stick to alphanumeric titles unless you enjoy manually untangling broken YAML an
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-12T00:38:36Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-12T12:26:46Z -->
 
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
+```text
+rc-new.sh — Scaffold a new markdown file with required YAML frontmatter
+
+Usage: rotkeeper.sh new <file>
+
+Options:
+  --title "Title"        Override auto-derived title; skip slug-from-filename
+  --author "Name"        Override config-derived author
+  --tags "tag1,tag2"     Comma-separated tags; rendered as YAML list
+  --template "file.html" Override the configured default template
+  --description "text"   Frontmatter description field
+  --body "text"          Starting body content
+  --url "https://..."    A URL to embed in the document (creates source skeleton)
+  --subdir "path"        Directory under home/content/ to place the file
+  --version, -v          Show script version and quit
+  --help, -h             Show this help message and exit
+  --dry-run              Preview actions without writing files
+  --verbose              Enable detailed debug logging
+```
