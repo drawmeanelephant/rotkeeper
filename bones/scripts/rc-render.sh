@@ -248,6 +248,18 @@ SETUP_EOF
         log "WARN" "Output tree is not marked generated; refusing to prune stale pages. A real render pass first writes the ownership marker."
     fi
 
+    # Keep the output asset tree in sync with the source assets so every
+    # rendered page's relative $assets_root$ link actually resolves.
+    # Deferred to the real pass so --dry-run stays non-mutating.
+    if [[ "$DRY_RUN" == true ]]; then
+      log "DRY-RUN" "Would synchronize assets into the output tree."
+    elif [[ -f "$SCRIPT_DIR/rc-assets.sh" ]]; then
+      log "INFO" "Synchronizing assets into the output tree before rendering..."
+      bash "$SCRIPT_DIR/rc-assets.sh"
+    else
+      log "WARN" "rc-assets.sh not found; skipping asset sync."
+    fi
+
     if [[ "${RENDERER,,}" == "apex" ]]; then
       # --- APEX RENDERER PASS (PURE BASH / GAWK / YQ) ---
       mkdir -p "$TMP_DIR"
