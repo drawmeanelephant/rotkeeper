@@ -114,7 +114,8 @@ SETUP_EOF
           fi
           exit 1
         fi
-        require_bins bash sha256sum
+        require_bins bash
+        require_sha256
         require_yq_version
         require_gawk_version
         ;;
@@ -272,7 +273,7 @@ SETUP_EOF
           ASSETS_ROOT="./assets/"
         else
           depth=$(echo "$reldir" | tr -cd '/' | wc -c)
-          ASSETS_ROOT=$(printf '../%.0s' $(seq 1 $((depth + 1))))"assets/"
+          ASSETS_ROOT="$(rk_up_dirs $((depth + 1)))assets/"
         fi
 
         local soul_param="${canonical_soul:-NONE}"
@@ -399,7 +400,7 @@ SETUP_EOF
             ASSETS_ROOT="./assets/"
         else
             depth=$(echo "$reldir" | tr -cd '/' | wc -c)
-            ASSETS_ROOT=$(printf '../%.0s' $(seq 1 $((depth + 1))))"assets/"
+            ASSETS_ROOT="$(rk_up_dirs $((depth + 1)))assets/"
         fi
 
         PANDOC_ARGS=""
