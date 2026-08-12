@@ -19,25 +19,25 @@ HTML template for the retro-brutalist CRT terminal overlay theme.
 TODO: Stitch extracted help block.
 
 ## Environment
-<!-- DIP-ENV-EXTRACTED: 2026-07-23T10:54:47Z -->
+<!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
 
-- **$ROOT_DIR**: /Users/tbuddy/dev/rotkeeper
-- **$OUTPUT_DIR**: /Users/tbuddy/dev/rotkeeper/output
-- **$CONTENT_DIR**: /Users/tbuddy/dev/rotkeeper/home/content
-- **$ASSETS_DIR**: /Users/tbuddy/dev/rotkeeper/home/assets
-- **$DOCS_DIR**: /Users/tbuddy/dev/rotkeeper/home/content/docs
-- **$HELP_DIR**: /Users/tbuddy/dev/rotkeeper/home/content/help
-- **$BONES_DIR**: /Users/tbuddy/dev/rotkeeper/bones
-- **$SCRIPT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/scripts
-- **$CONFIG_DIR**: /Users/tbuddy/dev/rotkeeper/bones/config
-- **$LOG_DIR**: /Users/tbuddy/dev/rotkeeper/bones/logs
-- **$TMP_DIR**: /Users/tbuddy/dev/rotkeeper/bones/tmp
-- **$ARCHIVE_DIR**: /Users/tbuddy/dev/rotkeeper/bones/archive
-- **$REPORT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/reports
-- **$BOOK_REPORT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/book-reports
-- **$TEMPLATE_DIR**: /Users/tbuddy/dev/rotkeeper/bones/templates
-- **$META_DIR**: /Users/tbuddy/dev/rotkeeper/bones/meta
-- **$WEB_DIR**: /Users/tbuddy/dev/rotkeeper/output
+- **$ROOT_DIR**: .
+- **$OUTPUT_DIR**: output
+- **$CONTENT_DIR**: home/content
+- **$ASSETS_DIR**: home/assets
+- **$DOCS_DIR**: home/content/docs
+- **$HELP_DIR**: home/content/help
+- **$BONES_DIR**: bones
+- **$SCRIPT_DIR**: bones/scripts
+- **$CONFIG_DIR**: bones/config
+- **$LOG_DIR**: bones/logs
+- **$TMP_DIR**: bones/tmp
+- **$ARCHIVE_DIR**: bones/archive
+- **$REPORT_DIR**: bones/reports
+- **$BOOK_REPORT_DIR**: bones/book-reports
+- **$TEMPLATE_DIR**: bones/templates
+- **$META_DIR**: bones/meta
+- **$WEB_DIR**: output
 ## Ritual History
 <!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
 
@@ -55,6 +55,6 @@ Provides a retro-brutalist CRT terminal layout block for users or agents checkin
 - Requires accompanying layout styling in `home/assets/css/theme-phosphor.css`.
 - Must parse template flags dynamically without fracturing the common `$body$` structure.
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-07-23T12:07:07Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-12T00:38:36Z -->
 
-*Not found: no help block for `theme-phosphor.html` in autopsy help report.*
+*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*

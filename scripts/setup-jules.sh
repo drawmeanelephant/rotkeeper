@@ -60,6 +60,39 @@ if [ -f /tmp/yq ]; then
   $SUDO chmod +x /usr/local/bin/yq
 fi
 
+echo "2. Installing Apex renderer..."
+APEX_VERSION="v1.1.15"
+case "$OS_TYPE" in
+  linux)
+    case "$ARCH" in
+      amd64) APEX_ASSET="linux-x86_64" ;;
+      arm64) APEX_ASSET="linux-aarch64" ;;
+      *)     APEX_ASSET="linux-x86_64" ;;
+    esac
+    ;;
+  darwin)
+    APEX_ASSET="macos-universal"
+    ;;
+esac
+
+if command -v apex >/dev/null 2>&1; then
+  echo "Apex already present at $(command -v apex), skipping install."
+else
+  # The release .sha256 sidecar lists paths relative to its parent
+  # (e.g. "release/apex-...tar.gz"), so verify from a dir containing
+  # release/ as a subdirectory.
+  rm -rf /tmp/apex-verify
+  mkdir -p /tmp/apex-verify/release
+  APEX_TARBALL="apex-${APEX_VERSION#v}-${APEX_ASSET}.tar.gz"
+  wget -q "https://github.com/ApexMarkdown/apex/releases/download/${APEX_VERSION}/${APEX_TARBALL}" -O "/tmp/apex-verify/release/${APEX_TARBALL}"
+  wget -q "https://github.com/ApexMarkdown/apex/releases/download/${APEX_VERSION}/${APEX_TARBALL}.sha256" -O "/tmp/apex-verify/release/${APEX_TARBALL}.sha256"
+  (cd /tmp/apex-verify && sha256sum -c "release/${APEX_TARBALL}.sha256")
+  rm -rf /tmp/apex-install
+  mkdir -p /tmp/apex-install
+  tar -xzf "/tmp/apex-verify/release/${APEX_TARBALL}" -C /tmp/apex-install
+  $SUDO install -m 0755 "/tmp/apex-install/apex-${APEX_VERSION#v}-${APEX_ASSET}/apex" /usr/local/bin/apex
+fi
+
 
 echo "3. Blessing scripts..."
 # Resolve project root relative to this script

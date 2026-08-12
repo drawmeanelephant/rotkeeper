@@ -21,3 +21,7 @@ home/content/docs/bones/logs/index.md
 home/content/docs/bones/scripts/index.md
 home/content/docs/bones/templates/index.md
 home/content/docs/scripts/index.md
+home/content/docs/.github/index.md
+home/content/docs/.github/workflows/index.md
+home/content/docs/bones/archive/index.md
+home/content/docs/apex-contract.md

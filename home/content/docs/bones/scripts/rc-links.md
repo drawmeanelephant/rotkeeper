@@ -38,3 +38,36 @@ rotkeeper.sh links [options]
 #   --verbose        Show detailed log output
 #   --help, -h       Show usage help
 ```
+
+## Environment
+<!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
+
+- **$ROOT_DIR**: .
+- **$OUTPUT_DIR**: output
+- **$CONTENT_DIR**: home/content
+- **$ASSETS_DIR**: home/assets
+- **$DOCS_DIR**: home/content/docs
+- **$HELP_DIR**: home/content/help
+- **$BONES_DIR**: bones
+- **$SCRIPT_DIR**: bones/scripts
+- **$CONFIG_DIR**: bones/config
+- **$LOG_DIR**: bones/logs
+- **$TMP_DIR**: bones/tmp
+- **$ARCHIVE_DIR**: bones/archive
+- **$REPORT_DIR**: bones/reports
+- **$BOOK_REPORT_DIR**: bones/book-reports
+- **$TEMPLATE_DIR**: bones/templates
+- **$META_DIR**: bones/meta
+- **$WEB_DIR**: output
+###### CLI Usage
+<!-- DIP-HELP-EXTRACTED: 2026-08-12T00:38:36Z -->
+
+*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
+## Ritual History
+<!-- DIP-HISTORY-EXTRACTED: 2026-08-12T00:38:36Z -->
+
+- - Added dispatcher link audit tool (`rc-links.sh` / `./rotkeeper.sh links`) for link checking and local asset verification with angle-bracket compatibility.
+
+<!-- DIP-SOUL-EXTRACTED: 2026-08-12T00:39:14Z -->
+
+*Not found: no soul sidecar for `bones/scripts/rc-links.sh`.*

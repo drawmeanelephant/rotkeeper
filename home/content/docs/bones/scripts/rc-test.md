@@ -40,50 +40,26 @@ A passing test suite here merely means the code compiles; it does not mean the c
 
 *Not found: no changelog/history entries matching `rc-test.sh`.*
 ## Environment
-<!-- DIP-ENV-EXTRACTED: 2026-07-23T10:54:47Z -->
+<!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
 
-- **$ROOT_DIR**: /Users/tbuddy/dev/rotkeeper
-- **$OUTPUT_DIR**: /Users/tbuddy/dev/rotkeeper/output
-- **$CONTENT_DIR**: /Users/tbuddy/dev/rotkeeper/home/content
-- **$ASSETS_DIR**: /Users/tbuddy/dev/rotkeeper/home/assets
-- **$DOCS_DIR**: /Users/tbuddy/dev/rotkeeper/home/content/docs
-- **$HELP_DIR**: /Users/tbuddy/dev/rotkeeper/home/content/help
-- **$BONES_DIR**: /Users/tbuddy/dev/rotkeeper/bones
-- **$SCRIPT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/scripts
-- **$CONFIG_DIR**: /Users/tbuddy/dev/rotkeeper/bones/config
-- **$LOG_DIR**: /Users/tbuddy/dev/rotkeeper/bones/logs
-- **$TMP_DIR**: /Users/tbuddy/dev/rotkeeper/bones/tmp
-- **$ARCHIVE_DIR**: /Users/tbuddy/dev/rotkeeper/bones/archive
-- **$REPORT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/reports
-- **$BOOK_REPORT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/book-reports
-- **$TEMPLATE_DIR**: /Users/tbuddy/dev/rotkeeper/bones/templates
-- **$META_DIR**: /Users/tbuddy/dev/rotkeeper/bones/meta
-- **$WEB_DIR**: /Users/tbuddy/dev/rotkeeper/output
+- **$ROOT_DIR**: .
+- **$OUTPUT_DIR**: output
+- **$CONTENT_DIR**: home/content
+- **$ASSETS_DIR**: home/assets
+- **$DOCS_DIR**: home/content/docs
+- **$HELP_DIR**: home/content/help
+- **$BONES_DIR**: bones
+- **$SCRIPT_DIR**: bones/scripts
+- **$CONFIG_DIR**: bones/config
+- **$LOG_DIR**: bones/logs
+- **$TMP_DIR**: bones/tmp
+- **$ARCHIVE_DIR**: bones/archive
+- **$REPORT_DIR**: bones/reports
+- **$BOOK_REPORT_DIR**: bones/book-reports
+- **$TEMPLATE_DIR**: bones/templates
+- **$META_DIR**: bones/meta
+- **$WEB_DIR**: output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-07-23T12:07:07Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-12T00:38:36Z -->
 
-```text
---- Rotkeeper Single framework Release Assertion Test Matrix ---
-  [+] Initializing environment testing pass...
-  [+] Executing release packager assertions...
-  [+] Asserting single archive model matching criteria...
-  🎉 Pass [crypt] successful: canonical distribution payload matches criteria.
-  [+] Initializing environment testing pass...
-  [+] Executing release packager assertions...
-  [+] Asserting single archive model matching criteria...
-  🎉 Pass [busy] successful: canonical distribution payload matches criteria.
-  [+] Initializing environment testing pass...
-  [+] Executing release packager assertions...
-  [+] Asserting single archive model matching criteria...
-  🎉 Pass [sterile] successful: canonical distribution payload matches criteria.
-======================================================================
-✅ ALL SINGLE-TIER CANONICAL ARCHIVE VERIFICATIONS COMPLETED SUCCESSFULLY.
-======================================================================
-======================================================================
---- Regression tests for legacy rituals (ingest, sync-inbox, cleanup, reseed) ---
-  🎉 Pass: Command 'ingest' correctly triggered deprecation error.
-  🎉 Pass: Command 'sync-inbox' correctly triggered deprecation error.
-  🎉 Pass: Command 'cleanup' correctly triggered deprecation error.
-  🎉 Pass: Command 'reseed' correctly triggered deprecation error.
-✅ ALL REGRESSION ASSERTIONS COMPLETED SUCCESSFULLY.
-```
+*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
