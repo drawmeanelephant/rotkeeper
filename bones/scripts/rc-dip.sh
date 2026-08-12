@@ -29,10 +29,26 @@ IFS=$'\n\t'
 #                never silently discarded
 # ============================================================
 
-VERSION="${ROTKEEPER_VERSION:-0.5.1}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
+
+show_help() {
+  cat <<'HELP_EOF'
+rc-dip.sh — Document Improvement Project audit
+
+Scans documentation coverage, ownership, staleness, and obsolete
+references. Reads source scripts and generated books critically.
+
+Options:
+  --dry-run      Preview actions without moving or writing docs
+  --verbose      Detailed output
+  --quiet        Suppress informational output
+  --help, -h     Show help
+  --version, -v  Show version and quit
+HELP_EOF
+}
+
 rk_init_script rc-dip "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR CONTENT_DIR DOCS_DIR REPORT_DIR BOOK_REPORT_DIR META_DIR
 

@@ -15,10 +15,33 @@ IFS=$'\n\t'
 #  Version : 0.5.1
 # ============================================================
 
-VERSION="${ROTKEEPER_VERSION:-0.5.1}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
+
+show_help() {
+  cat <<'HELP_EOF'
+rc-book.sh — Aggregate documentation into bound book reports
+
+Modes:
+  --fsbook          Filesystem catalog consumed by DIP for core-file discovery
+  --docbook         Bind documentation pages
+  --docbook-clean   Bind documentation pages, cleaning stale targets
+  --scriptbook-full Bind active scripts
+  --configbook      Bind configuration and templates
+  --contentbook     Bind content pages
+  --contentmeta     Emit content metadata
+  --collapse        Collapse a book or content tree
+  --force-bind      Allow larger than safe default bind
+
+Options:
+  --dry-run      Preview the bind without writing
+  --verbose      Detailed output
+  --help, -h     Show help
+  --version, -v  Show version and quit
+HELP_EOF
+}
+
 rk_init_script "rc-book" "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR TEMPLATE_DIR LOG_DIR TMP_DIR REPORT_DIR BOOK_REPORT_DIR DOCS_DIR CONTENT_DIR
 

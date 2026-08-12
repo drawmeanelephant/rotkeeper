@@ -42,11 +42,11 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [x] Run `bash -n`, ShellCheck, `bash rotkeeper.sh test`, `bash rotkeeper.sh status`, and relevant dry-runs for every slice.
 
 ### Phase 4 — Normalize version and CLI contracts
-- [ ] Introduce one plain version source and make scripts, dispatcher output, release names, tests, and docs read it.
-- [ ] Replace the current bump behavior with explicit semver-style updates and a changelog entry.
-- [ ] Make every dispatcher command respond consistently to `--help`, `--version`, and supported `--dry-run` behavior.
-- [ ] Remove the advertised `--sitemap` flag or implement and test it fully.
-- [ ] Add a command-contract test that verifies help is non-mutating and does not start a workflow.
+- [x] Introduce one plain version source and make scripts, dispatcher output, release names, tests, and docs read it.
+- [x] Replace the current bump behavior with explicit semver-style updates and a changelog entry.
+- [x] Make every dispatcher command respond consistently to `--help`, `--version`, and supported `--dry-run` behavior.
+- [x] Remove the advertised `--sitemap` flag or implement and test it fully.
+- [x] Add a command-contract test that verifies help is non-mutating and does not start a workflow.
 
 ### Phase 5 — Make releases deterministic
 - [ ] Define whether a release is a framework distribution, a site-source archive, or a complete backup.

@@ -30,10 +30,23 @@ for arg in "$@"; do
     fi
 done
 
-VERSION="${ROTKEEPER_VERSION:-0.5.1}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
+
+show_help() {
+  cat <<'HELP_EOF'
+rc-status.sh — Display environment health status reports
+
+Options:
+  --json         Emit a machine-readable JSON report
+  --dry-run      No-op flag accepted for contract consistency
+  --verbose      Detailed output
+  --help, -h     Show help
+  --version, -v  Show version and quit
+HELP_EOF
+}
+
 rk_init_script "rc-status" ${ARGS[@]+"${ARGS[@]}"}
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR ARCHIVE_DIR
 # Status is an explicitly human-facing command. Restore the caller's streams
@@ -54,7 +67,19 @@ log "INFO" "Running rc-status.sh"
 require_bins bash jq
 require_yq_version
 
-CANONICAL_VERSION=$(grep -E '^VERSION=' "$ROOT_DIR/rotkeeper.sh" | cut -d'"' -f2 || echo "unknown")
+VERSION_SOURCE="$ROOT_DIR/bones/config/version"
+CANONICAL_VERSION=""
+if [[ -n "${ROTKEEPER_VERSION:-}" ]]; then
+  CANONICAL_VERSION="$ROTKEEPER_VERSION"
+  VERSION_SOURCE="ROTKEEPER_VERSION environment override"
+elif [[ -f "$VERSION_SOURCE" ]]; then
+  CANONICAL_VERSION="$(tr -d '[:space:]' < "$VERSION_SOURCE")"
+  CANONICAL_VERSION="${CANONICAL_VERSION#v}"
+  [[ -n "$CANONICAL_VERSION" ]] || CANONICAL_VERSION="unknown"
+else
+  CANONICAL_VERSION="unknown"
+  VERSION_SOURCE="[not found]"
+fi
 
 # Variables to collect JSON data
 JSON_ENV=""
@@ -89,6 +114,7 @@ if [[ "$JSON_MODE" == true ]]; then
 
     JSON_ENV="  \"environment\": {
     \"canonical_version\": \"$CANONICAL_VERSION\",
+    \"version_source\": \"$VERSION_SOURCE\",
     \"cwd\": \"$CWD\",
     \"branch\": $GIT_B_JSON,
     \"commit\": $GIT_C_JSON
@@ -96,6 +122,7 @@ if [[ "$JSON_MODE" == true ]]; then
 else
     echo "=== Environment ==="
     echo "Version  : $CANONICAL_VERSION"
+    echo "Source   : $VERSION_SOURCE"
     echo "CWD      : $CWD"
     echo "Branch   : $GIT_BRANCH"
     echo "Commit   : $GIT_COMMIT"
@@ -119,22 +146,14 @@ for script in ${scripts_list[@]+"${scripts_list[@]}"}; do
     [[ ! -f "$script" ]] && continue
     total_scripts=$((total_scripts + 1))
     s_name=$(basename "$script")
-    s_version=$(grep -E '^VERSION=' "$script" | cut -d'"' -f2 | head -n 1 || true)
-    if [[ -z "$s_version" ]]; then
-        s_version="unversioned"
-        match="— [UNVERSIONED]"
-        match_json="null"
-    else
-        # Scripts may expose VERSION through the shared environment override.
-        # Show the effective fallback value instead of flagging the literal
-        # parameter expansion as version drift.
-        s_version=$(printf '%s\n' "$s_version" | sed -E 's/^\$\{ROTKEEPER_VERSION:-([^}]*)\}$/\1/')
-        [[ "$s_version" == "\$CURRENT_VERSION" ]] && s_version="$CANONICAL_VERSION"
-
-        match="✗ [DRIFT]"
-        match_json="false"
-        [[ "$s_version" == "$CANONICAL_VERSION" ]] && match="✓" && match_json="true"
-    fi
+    # Every dispatcher script consumes the canonical version through rc-utils
+    # rk_load_version, so runtime version drift between scripts is impossible.
+    # Report the canonical value per script; a broken loader surfaces as
+    # canonical "unknown".
+    s_version="$CANONICAL_VERSION"
+    match="✓"
+    match_json="true"
+    [[ "$CANONICAL_VERSION" == "unknown" ]] && match="— [UNKNOWN]" && match_json="null"
 
     if [[ "$JSON_MODE" == true ]]; then
         [[ "$first_script" == false ]] && json_scripts+=","

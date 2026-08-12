@@ -28,7 +28,7 @@ IFS=$'\n\t'
 
 show_help() {
   cat <<EOF
-rc-scan.sh — Audit manifest and scan environment for file reports (v0.5.1)
+rc-scan.sh — Audit manifest and scan environment for file reports (v$VERSION)
 
 Options:
   --version, -v    Show script version and quit
@@ -48,7 +48,6 @@ EOF
   exit 0
 }
 
-VERSION="${ROTKEEPER_VERSION:-0.5.1}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }

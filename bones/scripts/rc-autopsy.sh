@@ -38,7 +38,6 @@ Options:
 HELP_EOF
 }
 
-VERSION="${ROTKEEPER_VERSION:-0.5.1}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
@@ -58,8 +57,8 @@ parse_args() {
       --help-report) HELP_REPORT=true; has_mode=true ;;
       --output-report) OUTPUT_REPORT=true; has_mode=true ;;
       --all) HELP_REPORT=true; OUTPUT_REPORT=true; has_mode=true ;;
-      --help|-h) show_help; return 1 ;;
-      --version|-v) echo "rc-autopsy.sh v$VERSION"; return 1 ;;
+      --help|-h) show_help; exit 0 ;;
+      --version|-v) echo "rc-autopsy.sh v$VERSION"; exit 0 ;;
       --dry-run|--verbose) ;; # Handled by rc-utils.sh
       -*) ;; # Ignore other flags
       *) ;;

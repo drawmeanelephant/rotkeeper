@@ -1,9 +1,9 @@
 ---
 title: "📈 rc-bump.sh Reference"
 slug: rc-bump
-version: "0.3.0"
-updated: "2026-06-15"
-description: "Automated microbump logging and version bumping workflow."
+version: "0.5.1"
+updated: "2026-08-11"
+description: "Explicit semver version bump against the single canonical version source."
 tags:
   - rotkeeper
   - scripts
@@ -11,7 +11,7 @@ tags:
   - versioning
 asset_meta:
   name: "rc-bump.md"
-  version: "v0.3.0"
+  version: "v0.5.1"
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
@@ -29,29 +29,32 @@ asset_meta:
 **Script Path:** `bones/scripts/rc-bump.sh`
 
 ## Purpose
-- Handles the bureaucratic paperwork of advancing the project's version.
-- Replaces the tedious process of manually updating version strings across dozens of bash scripts.
+- Advances the project version through explicit semver-style updates (major, minor, patch, or an explicit `--to` version).
+- Updates the single canonical version source at `bones/config/version`; all scripts, the dispatcher, release names, tests, and docs read from it.
 - Injects updates into the Living Buildlog and the `CHANGELOG.md`.
-- Automatically stages and commits the changes to Git.
+- Optionally stages and commits the changes to Git with `--commit`.
 
 ## CLI Interface
 ```bash
-./rotkeeper.sh bump -m "Your update message here"
+./rotkeeper.sh bump --patch -m "Your update message here"
+./rotkeeper.sh bump --minor -m "New minor release"
+./rotkeeper.sh bump --major -m "Breaking release"
+./rotkeeper.sh bump --to 0.6.0 -m "Explicit version"
 ```
 
 ## Workflow Steps
 1. **Version Discovery**
-   - Reads the current `VERSION` variable from the main `rotkeeper.sh` dispatcher.
-2. **Microbump Calculation**
-   - Increments the final digit of the version string (e.g., `0.3.0.6` becomes `0.3.0.7`).
-3. **Global Replacement**
-   - Uses a POSIX-compliant `awk` script to execute a search-and-replace across all `rc-*.sh` files and the main dispatcher, ensuring the new version string is stamped into every header.
+   - Reads the current version from `bones/config/version` (the one plain version source); `ROTKEEPER_VERSION` does not override a bump.
+2. **Semver Calculation**
+   - `--patch` increments the patch segment (`0.5.1` → `0.5.2`), `--minor` increments minor and zeroes patch (`0.5.1` → `0.6.0`), `--major` increments major and zeroes the rest (`0.5.1` → `1.0.0`), and `--to X.Y.Z` sets an explicit semver version. Exactly one selector is required.
+3. **Canonical Version Update**
+   - Writes the new version to `bones/config/version`; scripts, dispatcher output, release names, and tests pick it up automatically.
 4. **Living Buildlog Injection**
    - Appends the message and timestamp directly into the `road-to-bones/index.md` buildlog.
 5. **Changelog Append**
    - Adds the new version entry to the root `CHANGELOG.md`.
-6. **Git Commit**
-   - Runs `git add .` and commits the entire tree with a standardized `bump: [version] - [message]` commit message.
+6. **Git Commit (optional)**
+   - With `--commit`, stages the version file, changelog, and roadmap, then commits with a standardized `bump: [version] - [message]` commit message. `--dry-run` previews everything without writing.
 
 ## 🛣️ Navigation
 - [Scripts Index](index.html)
