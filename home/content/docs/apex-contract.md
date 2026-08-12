@@ -92,6 +92,7 @@ Then either put `apex` on `PATH` or set `RK_APEX_BIN=/path/to/apex`. CI environm
 
 ## Smoke paths
 
-- **Hermetic (always):** the test harness (`bash rotkeeper.sh test`) builds fixture binaries and exercises frontmatter, sidecars, escaping, links, stderr separation, and manifest consistency without any Apex dependency.
+- **Availability check:** `bash rotkeeper.sh preflight` reports whether Apex is found, executable, within the supported 1.1.x range, and actually runnable; it fails with one setup message otherwise. `render` runs the same check before rendering.
+- **Hermetic (always):** the test harness (`bash rotkeeper.sh test`) builds fixture binaries and exercises frontmatter, sidecars, escaping, links, stderr separation, and manifest consistency without any Apex dependency. The checked-in fixture at `bones/scripts/tests/fixtures/apex-smoke/` renders through a fixture binary and its body is compared against `smoke-fixture-expected.html` on every layout pass.
 - **Real binary (when present):** the same harness renders `real-apex-fixture.md` through the discovered executable and asserts exit 0, a well-formed HTML page, and the fixture title in the output. It runs on every layout pass.
 - **Quick local check:** `bash rotkeeper.sh render` on a checkout with content renders everything through Apex; failures list the page and Apex's stderr.

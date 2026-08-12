@@ -14,14 +14,35 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [ ] Define the stabilization target for `0.5.2`: no new rituals, no new runtime, no broad architecture rewrite.
 
 ### Phase 1 — Make Apex boring to run
-- [ ] Document the supported Apex contract: executable discovery, `RK_APEX_BIN`, input format, stdout body HTML, stderr warnings, exit codes, and supported version range.
-- [ ] Add a single preflight that reports whether Apex is found, executable, compatible, and actually runnable.
-- [ ] Make `render` fail with one actionable setup message when Apex is unavailable; include the exact command or environment variable needed.
-- [ ] Add a checked-in minimal Markdown fixture and a hermetic Apex smoke path that renders one page.
-- [ ] Test the fixture for frontmatter, sidecar precedence, HTML escaping, internal `.md` links, external links, nested output paths, and renderer stderr.
-- [ ] Define which behavior belongs in the Apex binary versus `rc-apex-adapter.sh`; record temporary adapter responsibilities explicitly.
-- [ ] Verify Apex rendering through the dispatcher on a fresh `crypt`, `busy`, and `sterile` initialization.
-- [ ] Add a documented macOS and Ubuntu execution path using the real Apex binary, with the fixture fallback retained for repository tests.
+*Slice status (2026-08-12): all of Phase 1 is done. New in 0.5.2: `rotkeeper.sh preflight` command. `apex-contract.md` is verified against source and is authoritative.*
+
+#### Slice 1A — Document the Apex contract
+- [x] Document the supported Apex contract: executable discovery, `RK_APEX_BIN`, input format, stdout body HTML, stderr warnings, exit codes, and supported version range.
+  - [x] Contract doc written (`home/content/docs/apex-contract.md` v1.1): discovery precedence, input contract, output streams, exit codes, version range 1.1.x (verified 1.1.13/1.1.15).
+  - [x] Install path folded into the doc; `render`'s failure message now routes through the shared preflight instead of duplicating guidance.
+- [x] Define which behavior belongs in the Apex binary versus `rc-apex-adapter.sh`; record temporary adapter responsibilities explicitly.
+  - [x] Adapter boundary recorded in `apex-contract.md` §adapter boundary: yq frontmatter, sidecar precedence, template interpolation, link rewriting stay in `rc-apex-adapter.sh` until Phase 6.
+- [x] Add a documented macOS and Ubuntu execution path using the real Apex binary, with the fixture fallback retained for repository tests. *(install paths in `apex-contract.md`; docs also point to `scripts/setup-jules.sh`)*
+
+#### Slice 1B — One preflight, one message
+- [x] Add a single preflight that reports whether Apex is found, executable, compatible, and actually runnable.
+  - [x] `rk_apex_preflight()` added to rc-utils.sh: resolves binary (RK_APEX_BIN > PATH), executability, version probe against the 1.1.x range from the contract doc, and an empty-doc runnable smoke; one actionable setup message on failure.
+  - [x] Surface decision (approved): new `rotkeeper.sh preflight` command via rc-preflight.sh.
+- [x] Make `render` fail with one actionable setup message when Apex is unavailable; include the exact command or environment variable needed.
+  - [x] Render's failure path (rc-render.sh apex case) routes through `rk_apex_preflight`; diagnostics can no longer drift from `preflight`.
+
+#### Slice 1C — Fixture and hermetic smoke
+- [x] Add a checked-in minimal Markdown fixture and a hermetic Apex smoke path that renders one page.
+  - [x] Fixture committed at `bones/scripts/tests/fixtures/apex-smoke/smoke-fixture.md` plus `smoke-fixture-expected.html` golden (generated from the hermetic fake-binary pipeline).
+  - [x] Hermetic smoke: the harness copies the fixture into each layout pass, renders through the fixture binary, and diffs the rendered `<body>` region against the golden (body is layout-independent).
+  - [x] Real-Apex smoke: same harness path through the discovered binary; asserts stderr separation and exit-code propagation; skips cleanly when Apex is absent.
+- [x] Test the fixture for frontmatter, sidecar precedence, HTML escaping, internal `.md` links, external links, nested output paths, and renderer stderr. *(nested-path coverage added: the same fixture renders under a content subdirectory into a mirrored nested output path and its body is diffed against the same golden on every layout pass)*
+
+#### Slice 1D — Layout coverage
+- [x] Verify Apex rendering through the dispatcher on a fresh `crypt`, `busy`, and `sterile` initialization. *(real-apex smoke + golden comparison run on every layout pass)*
+
+#### Bonus (found working on macOS)
+- [x] rc-apex-adapter.sh's local `get_canonical_path` used `realpath -m || readlink -f`, both unreliable on macOS (BSD `readlink -f` resolves existing dirs to `/private/var` but fails on not-yet-written targets, producing false boundary violations). Switched to the shared `rk_canonical_path` helper, which handles nonexistent leaves portably.
 
 ### Phase 2 — Repair the DIP/documentation workflow
 - [ ] Identify why DIP became unreliable: stale generated books, oversized inventories, absolute paths, stub pages, or source/parser drift.
@@ -49,10 +70,10 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [x] Add a command-contract test that verifies help is non-mutating and does not start a workflow.
 
 ### Phase 5 — Make releases deterministic
-- [ ] Define whether a release is a framework distribution, a site-source archive, or a complete backup.
-- [ ] Build framework releases from an explicit allowlist rather than repository-wide mirroring plus exclusions.
-- [ ] Generate and validate a release manifest; fail on unexpected root-level files and forbidden artifacts.
-- [ ] Verify archive contents on macOS and Ubuntu, including absence of temporary trees, caches, credentials, and compiled artifacts.
+- [x] Define whether a release is a framework distribution, a site-source archive, or a complete backup. *(decision: framework distribution — dispatcher, bones system, templates, configuration, project docs; documented in rc-release.sh header)*
+- [x] Build framework releases from an explicit allowlist rather than repository-wide mirroring plus exclusions. *(explicit `allowed_root` entries enforced against the archive; `.github/`, `.vscode/` now excluded from staging instead of silently shipped)*
+- [x] Generate and validate a release manifest; fail on unexpected root-level files and forbidden artifacts. *(`bones/config/release-manifest.txt` inside the archive with version/model/ruleset/entries; fail-fast on unexpected root entries, missing required spine (rotkeeper.sh, config, version, manifest, rc-utils.sh), and forbidden paths/artifacts incl. credentials: *.pem *.key *.p12 .env .npmrc id_rsa)*
+- [ ] Verify archive contents on macOS and Ubuntu, including absence of temporary trees, caches, credentials, and compiled artifacts. *(macOS: verified via real `release 0.5.2` run + per-layout harness passes. Ubuntu: pending CI confirmation — the archive checks are rk_canonical_path-based and should behave identically)*
 
 ### Phase 6 — Rationalize the Apex boundary
 - [ ] Define a stable template/input contract before moving logic out of Bash.
@@ -82,8 +103,8 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 *These are bounded, tedious, reviewable tasks designed for async agent execution. Hand these to Jules one by one.*
 
 ### 1. Documentation Sync
-- [ ] Rewrite `README.md`: add Quickstart, "common workflows", troubleshooting matrix, architecture overview, and file tree reference.
-- [ ] Create `workflow.md` detailing the full `init → reseed → render → pack → scan` cycle.
+- [x] Rewrite `README.md`: add Quickstart, "common workflows", troubleshooting matrix, architecture overview, and file tree reference. *(2026-08-12: rewritten with Quickstart, BHO + layout style table, common workflows, full command reference incl. `preflight`, troubleshooting matrix, contributor notes; stale `init --full` and `rm -rf output/*` guidance corrected)*
+- [x] Create `workflow.md` detailing the full `init → reseed → render → pack → scan` cycle. *(created at `home/content/docs/workflow.md` (published as workflow.html) covering preflight → init → author → render → verify → archive → release; reseed no longer exists, so the documented cycle reflects the current dispatcher)*
 - [ ] Generate script-by-script reference pages for `rc-*.sh` including flags, inputs, outputs, and "dangerous operations" warnings.
 - [ ] Add schema docs for: `rotkeeper-bom.yaml`, `asset-manifest.yaml`.
 - [ ] Define and document expectations for creating new `rc-*.sh` rituals.
