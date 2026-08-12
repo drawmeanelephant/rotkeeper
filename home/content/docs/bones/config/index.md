@@ -23,4 +23,5 @@ This folder manages files that modify the behavior of scanning and build rituals
 <!-- ROTKEEPER-GLUE-START -->
 - [dip-whitelist](<dip-whitelist.html>)
 - [rotkeeper](<rotkeeper.html>)
+- [version](<version.html>)
 <!-- ROTKEEPER-GLUE-END -->

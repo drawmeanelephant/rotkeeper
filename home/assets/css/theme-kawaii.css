@@ -11,7 +11,7 @@
   --code-bg: #e6e6ff; /* Soft lavender */
   --code-text: #993399; /* Deep purple */
 
-  --font-sans: 'Nunito', 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif;
+  --font-sans: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', ui-rounded, sans-serif;
   --font-mono: 'Courier New', Courier, monospace;
 
   --max-width: 800px;

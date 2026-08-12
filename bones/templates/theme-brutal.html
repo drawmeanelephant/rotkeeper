@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>$title$</title>
+  <link rel="stylesheet" href="$assets_root$css/theme-brutal.css">
+</head>
+<body>
+  <div class="brutal-shell">
+    <aside class="brutal-overline" aria-hidden="true">ROTKEEPER ▮ STATIC ▮ NO-JS ▮ NO-CDN</aside>
+    <header class="brutal-header">
+      <h1 class="brutal-title">$title$</h1>
+      $if(description)$
+      <p class="brutal-deck">$description$</p>
+      $endif$
+      $if(date)$
+      <p class="brutal-date">$date$</p>
+      $endif$
+    </header>
+    <main>
+      <article class="brutal-body">
+        $body$
+      </article>
+    </main>
+    <footer class="brutal-footer">
+      <span>RENDERED BY ROTKEEPER</span>
+      $if(author)$<span>AUTHOR: $author$</span>$endif$
+    </footer>
+  </div>
+</body>
+</html>

@@ -110,6 +110,7 @@ Sora prompt: “A glitching wiki carved into obsidian, with glowing CLI runes et
 - [CREDITS](<CREDITS.html>)
 - [GEMINI](<GEMINI.html>)
 - [README](<README.html>)
+- [apex-contract](<apex-contract.html>)
 - [architecture](<architecture.html>)
 - [dip-matrix](<dip-matrix.html>)
 - [onboarding](<onboarding.html>)

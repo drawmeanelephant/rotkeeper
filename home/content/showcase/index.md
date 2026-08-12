@@ -7,6 +7,7 @@ rotkeeper_glued: true
 # Index of showcase
 
 <!-- ROTKEEPER-GLUE-START -->
+- [showcase-brutal](showcase-brutal.html)
 - [showcase-dark](showcase-dark.html)
 - [showcase-kawaii](showcase-kawaii.html)
 - [showcase-light](showcase-light.html)
