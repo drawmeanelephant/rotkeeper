@@ -10,8 +10,8 @@
   --border-color: #4a5042;
   --code-bg: #22251f;
 
-  --font-serif: 'Lora', 'Georgia', serif;
-  --font-heading: 'Cormorant Garamond', serif;
+  --font-serif: Georgia, 'Times New Roman', serif;
+  --font-heading: Georgia, 'Times New Roman', serif;
   --font-mono: 'Courier New', Courier, monospace;
 
   --max-width: 750px;

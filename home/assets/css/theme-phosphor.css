@@ -9,7 +9,7 @@
   --border-color: #33ff33;
   --code-bg: #002200;
 
-  --font-mono: 'VT323', 'Courier New', Courier, monospace;
+  --font-mono: 'Courier New', Courier, ui-monospace, monospace;
 
   --max-width: 900px;
   --spacing-base: 1rem;

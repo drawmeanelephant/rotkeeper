@@ -24,9 +24,10 @@ This folder contains the core shell scripts that run Rotkeeper's commands.
 - **[rc-dip.sh](rc-dip.html)**: Runs the Document Improvement Project to build and stitch documentation.
 - **[rc-status.sh](rc-status.html)**: Checks system health and version alignment.
 - **[rc-showcase.sh](rc-showcase.html)**: Renders templates using standard test pages.
-- **[rewrite-links.lua](rewrite-links.html)**: Lua script used by Pandoc to map internal `.md` links to `.html`.
 
 <!-- ROTKEEPER-GLUE-START -->
+- [tests/](<tests/index.html>)
+- [rc-apex-adapter](<rc-apex-adapter.html>)
 - [rc-assets](<rc-assets.html>)
 - [rc-autopsy](<rc-autopsy.html>)
 - [rc-book](<rc-book.html>)
@@ -35,6 +36,7 @@ This folder contains the core shell scripts that run Rotkeeper's commands.
 - [rc-env](<rc-env.html>)
 - [rc-glue](<rc-glue.html>)
 - [rc-init](<rc-init.html>)
+- [rc-links](<rc-links.html>)
 - [rc-new](<rc-new.html>)
 - [rc-pack](<rc-pack.html>)
 - [rc-release](<rc-release.html>)
@@ -44,5 +46,4 @@ This folder contains the core shell scripts that run Rotkeeper's commands.
 - [rc-status](<rc-status.html>)
 - [rc-test](<rc-test.html>)
 - [rc-utils](<rc-utils.html>)
-- [rewrite-links](<rewrite-links.html>)
 <!-- ROTKEEPER-GLUE-END -->
