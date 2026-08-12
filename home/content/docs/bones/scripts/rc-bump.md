@@ -106,6 +106,25 @@ Never invoke this ritual in a dirty working directory. If you attach this to an 
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-12T00:38:36Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-12T12:26:46Z -->
 
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
+```text
+rc-bump.sh — Explicit semver version bump
+
+Usage:
+  rotkeeper.sh bump [--major|--minor|--patch|--to X.Y.Z] -m MESSAGE [options]
+
+Options:
+  --major          Bump major segment: 0.5.1 -> 1.0.0
+  --minor          Bump minor segment: 0.5.1 -> 0.6.0
+  --patch          Bump patch segment: 0.5.1 -> 0.5.2
+  --to VERSION     Set an explicit semver-style version (X.Y.Z)
+  --message, -m MSG  Update message recorded in CHANGELOG.md and the roadmap
+  --commit         Stage changes and commit them to git
+  --dry-run        Preview changes without saving or committing
+  --verbose        Detailed output
+  --help, -h       Show help
+  --version, -v    Show version and quit
+
+Exactly one of --major, --minor, --patch, or --to is required.
+```

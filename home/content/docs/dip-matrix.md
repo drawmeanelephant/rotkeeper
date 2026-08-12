@@ -1,6 +1,6 @@
 ---
 title: "Document Improvement Project (DIP) Matrix"
-date: "2026-08-12T02:18:17Z"
+date: "2026-08-12T12:26:46Z"
 template: "rotkeeper-doc.html"
 ---
 
@@ -14,7 +14,7 @@ This page tracks the documentation status of core project files.
 | `.blessed` | [.blessed.md](.blessed.md) | 2026-08-03 | 2026-08-12 | Stub |
 | `.gitignore` | [.gitignore.md](.gitignore.md) | 2026-08-03 | 2026-08-12 | Stub |
 | `.shellcheckrc` | [.shellcheckrc.md](.shellcheckrc.md) | 2026-08-03 | 2026-08-12 | Stub |
-| `bones/asset-manifest.yaml` | [bones/asset-manifest.md](bones/asset-manifest.md) | 2026-08-03 | 2026-08-12 | Stub |
+| `bones/asset-manifest.yaml` | [bones/asset-manifest.md](bones/asset-manifest.md) | 2026-08-12 | 2026-08-12 | Stub |
 | `bones/config/dip-whitelist.txt` | [bones/config/dip-whitelist.md](bones/config/dip-whitelist.md) | 2026-08-12 | 2026-08-12 | OK |
 | `bones/config/rotkeeper.yaml` | [bones/config/rotkeeper.md](bones/config/rotkeeper.md) | 2026-08-12 | 2026-08-12 | OK |
 | `bones/config/version` | [bones/config/version.md](bones/config/version.md) | 2026-08-12 | 2026-08-12 | OK |
@@ -40,19 +40,17 @@ This page tracks the documentation status of core project files.
 | `bones/scripts/tests/rc-glue.bats` | [bones/scripts/tests/rc-glue.md](bones/scripts/tests/rc-glue.md) | 2026-08-03 | 2026-08-12 | Stub |
 | `bones/templates/rotkeeper-blog.html` | [bones/templates/rotkeeper-blog.md](bones/templates/rotkeeper-blog.md) | 2026-08-03 | 2026-08-12 | OK |
 | `bones/templates/rotkeeper-doc.html` | [bones/templates/rotkeeper-doc.md](bones/templates/rotkeeper-doc.md) | 2026-08-03 | 2026-08-12 | OK |
-| `bones/templates/theme-dark.html` | [bones/templates/theme-dark.md](bones/templates/theme-dark.md) | 2026-08-03 | 2026-08-12 | OK |
-| `bones/templates/theme-kawaii.html` | [bones/templates/theme-kawaii.md](bones/templates/theme-kawaii.md) | 2026-08-03 | 2026-08-12 | Stub |
-| `bones/templates/theme-light.html` | [bones/templates/theme-light.md](bones/templates/theme-light.md) | 2026-08-03 | 2026-08-12 | OK |
-| `bones/templates/theme-overgrown.html` | [bones/templates/theme-overgrown.md](bones/templates/theme-overgrown.md) | 2026-08-03 | 2026-08-12 | Stub |
-| `bones/templates/theme-phosphor.html` | [bones/templates/theme-phosphor.md](bones/templates/theme-phosphor.md) | 2026-08-03 | 2026-08-12 | Stub |
+| `bones/templates/theme-dark.html` | [bones/templates/theme-dark.md](bones/templates/theme-dark.md) | 2026-08-12 | 2026-08-12 | OK |
+| `bones/templates/theme-kawaii.html` | [bones/templates/theme-kawaii.md](bones/templates/theme-kawaii.md) | 2026-08-12 | 2026-08-12 | Stub |
+| `bones/templates/theme-light.html` | [bones/templates/theme-light.md](bones/templates/theme-light.md) | 2026-08-12 | 2026-08-12 | OK |
+| `bones/templates/theme-overgrown.html` | [bones/templates/theme-overgrown.md](bones/templates/theme-overgrown.md) | 2026-08-12 | 2026-08-12 | Stub |
+| `bones/templates/theme-phosphor.html` | [bones/templates/theme-phosphor.md](bones/templates/theme-phosphor.md) | 2026-08-12 | 2026-08-12 | Stub |
 | `bones/templates/theme-spooky-dark.html` | [bones/templates/theme-spooky-dark.md](bones/templates/theme-spooky-dark.md) | 2026-08-03 | 2026-08-12 | Stub |
 | `bones/templates/theme-spooky-light.html` | [bones/templates/theme-spooky-light.md](bones/templates/theme-spooky-light.md) | 2026-08-03 | 2026-08-12 | Stub |
 | `bones/templates/theme-spooky.html` | [bones/templates/theme-spooky.md](bones/templates/theme-spooky.md) | 2026-08-03 | 2026-08-12 | Stub |
 | `rotkeeper.sh` | [rotkeeper.md](rotkeeper.md) | 2026-08-12 | 2026-08-12 | OK |
 | `scripts/setup-jules.sh` | [scripts/setup-jules.md](scripts/setup-jules.md) | 2026-08-12 | 2026-08-12 | OK |
+| `Unknown` | [bones/scripts/tests/index.md](bones/scripts/tests/index.md) | Missing | 2026-08-12 | Unowned |
+| `Unknown` | [workflow.md](workflow.md) | Missing | 2026-08-12 | Unowned |
 
-**Totals:** OK: 26 | Stub: 14 | Missing: 0 | Stale: 0 | Unowned: 0 | Rows: 40
-
-## Degraded inputs
-
-- Autopsy report missing — artifact excludes incomplete.
+**Totals:** OK: 26 | Stub: 14 | Missing: 0 | Stale: 0 | Unowned: 2 | Rows: 42

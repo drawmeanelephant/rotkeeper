@@ -603,6 +603,38 @@ fi
 echo "✅ ALL COMMAND CONTRACT ASSERTIONS PASSED."
 
 echo "======================================================================"
+echo "--- DIP regression: clean dry-run, non-mutating, no absolute paths ---"
+
+# DIP must run from a clean inventory (fsbook generated on demand), the
+# dry-run must be non-mutating (matrix unchanged), and the published matrix
+# must stay free of host-specific absolute paths.
+
+./rotkeeper.sh book --fsbook > /dev/null
+
+DIP_MATRIX="$ROOT_DIR/home/content/docs/dip-matrix.md"
+matrix_before="$(rk_sha256 "$DIP_MATRIX" 2>/dev/null | cut -d' ' -f1 || true)"
+
+if ! dip_out=$(./rotkeeper.sh dip --dry-run 2>&1); then
+  echo "❌ Assertion Failed: dip --dry-run exited non-zero."
+  exit 135
+fi
+if ! grep -q 'DIP finished' <<< "$dip_out"; then
+  echo "❌ Assertion Failed: dip --dry-run did not finish cleanly."
+  exit 136
+fi
+
+matrix_after="$(rk_sha256 "$DIP_MATRIX" 2>/dev/null | cut -d' ' -f1 || true)"
+if [[ "$matrix_before" != "$matrix_after" ]]; then
+  echo "❌ Assertion Failed: dip --dry-run mutated the DIP matrix (dry-run must be non-mutating)."
+  exit 137
+fi
+if grep -q "$ROOT_DIR" "$DIP_MATRIX"; then
+  echo "❌ Assertion Failed: DIP matrix contains host-specific absolute paths."
+  exit 138
+fi
+echo "✅ DIP regression passed."
+
+echo "======================================================================"
 echo "--- Regression tests for legacy rituals (ingest, sync-inbox, cleanup, reseed) ---"
 
 for cmd in ingest sync-inbox cleanup reseed; do

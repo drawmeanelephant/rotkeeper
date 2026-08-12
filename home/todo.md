@@ -8,10 +8,12 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 *The audit is a prioritization source, not a mandate to rewrite Rotkeeper. Finish each phase as a reviewable slice and keep the project usable after every merge.*
 
 ### Phase 0 — Rebaseline after PR177
-- [ ] Record the post-PR177 baseline: clean `main`, current version, active layout, supported commands, and renderer path.
-- [ ] Confirm obsolete Apex-spike files, release exclusions, and references are gone without deleting active Apex integration.
-- [ ] Separate current failures from stale audit findings and document the result in the roadmap or changelog.
-- [ ] Define the stabilization target for `0.5.2`: no new rituals, no new runtime, no broad architecture rewrite.
+- [x] Record the post-PR177 baseline: clean `main`, current version, active layout, supported commands, and renderer path.
+- [x] Confirm obsolete Apex-spike files, release exclusions, and references are gone without deleting active Apex integration.
+- [x] Separate current failures from stale audit findings and document the result in the roadmap or changelog.
+- [x] Define the stabilization target for `0.5.2`: no new rituals, no new runtime, no broad architecture rewrite.
+
+*Baseline recorded 2026-08-12:* clean `main` at `cbfcef4` (24 commits past `v0.5.1`); version source `bones/config/version` = `0.5.1`, release target `0.5.2`; active layout `crypt` (default; config carries no `layout_style`); 17 dispatcher commands (`init new render preflight pack release bump test scan assets autopsy glue links showcase dip book status` plus `--help/--version`) with removed-command stubs for `cleanup ingest sync-inbox reseed`; renderer is Apex-only (Pandoc removed), discovery `RK_APEX_BIN` > PATH, supported 1.1.x per `apex-contract.md`, single preflight via `rotkeeper.sh preflight`. Full `bash rotkeeper.sh test` harness green on macOS 2026-08-12 (all three layouts, hermetic fixture + golden, real Apex 1.1.13, release packager, contract checks). No known current failures from the audit remain open — the remaining open items are all forward work (Phase 2 DIP, Phase 5 Ubuntu verification, exit-criteria documentation bundle).
 
 ### Phase 1 — Make Apex boring to run
 *Slice status (2026-08-12): all of Phase 1 is done. New in 0.5.2: `rotkeeper.sh preflight` command. `apex-contract.md` is verified against source and is authoritative.*
@@ -45,13 +47,13 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [x] rc-apex-adapter.sh's local `get_canonical_path` used `realpath -m || readlink -f`, both unreliable on macOS (BSD `readlink -f` resolves existing dirs to `/private/var` but fails on not-yet-written targets, producing false boundary violations). Switched to the shared `rk_canonical_path` helper, which handles nonexistent leaves portably.
 
 ### Phase 2 — Repair the DIP/documentation workflow
-- [ ] Identify why DIP became unreliable: stale generated books, oversized inventories, absolute paths, stub pages, or source/parser drift.
-- [ ] Ensure DIP can run from a clean initialized fixture without depending on stale `bones/book-reports` output.
-- [ ] Reduce filesystem-book scope to authoritative source files; exclude `.git`, temporary verification trees, generated output, logs, and caches.
-- [ ] Remove host-specific absolute paths from published books and reports.
-- [ ] Classify generated pages as authoritative reference, curated guide, or stub; do not present stubs as completed documentation.
-- [ ] Rebuild the minimum useful CLI/config/content books and verify them against the source scripts and active configuration.
-- [ ] Add a DIP regression check that catches stale paths, obsolete command references, and unexpected TODO stubs.
+- [x] Identify why DIP became unreliable: stale generated books, oversized inventories, absolute paths, stub pages, or source/parser drift. *(findings 2026-08-12: no source/parser drift; the real issues were a stale checked-in dip-matrix (40 rows vs 42 from a fresh run), a missing autopsy report degrading artifact exclusion, and 14 stub mirror pages whose help-extract markers were stale; `Unowned` rows (incl. authored `workflow.md`) are by-design reporting, never moves)*
+- [x] Ensure DIP can run from a clean initialized fixture without depending on stale `bones/book-reports` output. *(rc-dip.sh one-shot-generates the fsbook catalog when absent; the harness DIP regression runs from a freshly generated inventory)*
+- [x] Reduce filesystem-book scope to authoritative source files; exclude `.git`, temporary verification trees, generated output, logs, and caches. *(verified in rc-book.sh runfsbook: prunes `.git`, `output`, `bones/tmp`, `bones/logs`, `bones/reports`, `bones/book-reports`, `bones/archive`, `*.log`, `.DS_Store`, `*.tmp`, `bones/manifest.txt`)*
+- [x] Remove host-specific absolute paths from published books and reports. *(fsbook emits relative paths only; dip-matrix verified to contain zero host paths; harness now fails if `$ROOT_DIR` leaks into the matrix)*
+- [x] Classify generated pages as authoritative reference, curated guide, or stub; do not present stubs as completed documentation. *(matrix classifies OK=26 / Stub=14 / Unowned=2; stubs refreshed with current help-extract markers after `autopsy --all`)*
+- [ ] Rebuild the minimum useful CLI/config/content books and verify them against the source scripts and active configuration. *(books exist and rebuild via `book --fsbook/--docbook/--configbook`; a final reconcile pass remains — verify at least the docbook/configbook against the current scripts before the release)*
+- [x] Add a DIP regression check that catches stale paths, obsolete command references, and unexpected TODO stubs. *(harness block after the command contracts: fsbook regeneration, `dip --dry-run` must exit 0 and finish, matrix must be byte-identical after the dry-run, and must contain no absolute host paths)*
 
 ### Phase 3 — Stabilize the shell boundary
 - [x] Centralize checksum selection for `sha256sum` and `shasum` and use the wrapper everywhere.

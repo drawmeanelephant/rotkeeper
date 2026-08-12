@@ -60,6 +60,16 @@ A passing test suite here merely means the code compiles; it does not mean the c
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-12T00:38:36Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-12T12:26:46Z -->
 
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
+```text
+rc-test.sh — Integration test harness matrix
+
+Usage:
+  rotkeeper.sh test|smoke [--dry-run]
+
+Options:
+  --dry-run      Run only the removed-command regression checks
+  --help, -h     Show help
+  --version, -v  Show version and quit
+```

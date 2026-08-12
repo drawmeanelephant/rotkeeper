@@ -97,6 +97,25 @@ Keep the project small, or watch this script choke on its own creation. Never fe
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-12T00:38:36Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-12T12:26:46Z -->
 
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
+```text
+rc-book.sh — Aggregate documentation into bound book reports
+
+Modes:
+  --fsbook          Filesystem catalog consumed by DIP for core-file discovery
+  --docbook         Bind documentation pages
+  --docbook-clean   Bind documentation pages, cleaning stale targets
+  --scriptbook-full Bind active scripts
+  --configbook      Bind configuration and templates
+  --contentbook     Bind content pages
+  --contentmeta     Emit content metadata
+  --collapse        Collapse a book or content tree
+  --force-bind      Allow larger than safe default bind
+
+Options:
+  --dry-run      Preview the bind without writing
+  --verbose      Detailed output
+  --help, -h     Show help
+  --version, -v  Show version and quit
+```
