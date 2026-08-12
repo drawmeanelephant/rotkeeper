@@ -35,7 +35,7 @@ Rotkeeper is a terminal-driven flat-file system for compiling markdown "tombs" i
 | Command | Purpose |
 |---------|---------|
 | `init` | Full workspace initialization (reseed + assets + render + scan) |
-| `render` | Convert Markdown → HTML via Apex (or legacy Pandoc opt-in) |
+| `render` | Convert Markdown → HTML via Apex |
 | `pack` | Archive output as `.tar.gz` tomb & export `source_markdown` JSON (also: `--content`, `--self`) |
 | `release` | Create `lite` and `full` distribution `.zip` files |
 | `ingest` | Unpack `.tar.gz` from `messages-from-my-friends/` into content |
@@ -94,5 +94,5 @@ If tasked with creating a page or report:
 
 **Required:** `bash` 4+, `sha256sum`, `yq` v4+, `gawk`
 **Rendering (Apex — default):** `apex` binary via `RK_APEX_BIN=/path/to/apex` or in `$PATH` (test matrix uses fixture binary)
-**Rendering (Pandoc — legacy opt-in):** `pandoc` (only needed when using `--renderer pandoc`)
+**Rendering (Apex only):** the Pandoc renderer has been removed
 **Optional:** `jq` (pack JSON export & metadata), `rsync` + `zip` (release), `python3` (links audit), `bats` (test)

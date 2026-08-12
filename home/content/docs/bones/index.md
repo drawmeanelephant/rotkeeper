@@ -18,7 +18,7 @@ The `bones` folder holds the structural foundation of the Rotkeeper static site 
 
 - **[Ritual Scripts (scripts/)](scripts/index.html)**: The collection of core `rc-*.sh` scripts that run the system.
 - **[Configuration (config/)](config/index.html)**: Central configurations such as whitelists and parameters.
-- **[Templates (templates/)](templates/index.html)**: HTML and theme layouts used by Pandoc.
+- **[Templates (templates/)](templates/index.html)**: HTML and theme layouts used by Apex.
 - **[Log Archives (logs/)](logs/index.html)**: Standard output and error files from past operations.
 - **[Archive & Releases (archive/)](archive/index.html)**: Compiled release zipballs and historical packages.
 

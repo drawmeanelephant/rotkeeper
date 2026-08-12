@@ -19,7 +19,7 @@ Located at `.github/dependabot.yml`, it follows GitHub's standard YAML configura
 If an upstream Action introduces a breaking change in a minor version bump, Dependabot will blindly create a PR for it. The system relies entirely on `ci.yml` catching the breakage.
 
 ### Ritual Warnings
-Do not expand this to monitor arbitrary ecosystems (like npm or pip) since Rotkeeper strictly avoids frameworks and non-bash/pandoc dependencies.
+Do not expand this to monitor arbitrary ecosystems (like npm or pip) since Rotkeeper strictly avoids frameworks and non-bash dependencies.
 
 ## Necromancer's Notes
 <!-- DIP-SOUL-EXTRACTED: 0000-00-00T00:00:00Z -->

@@ -10,7 +10,7 @@ status: final
 ---
 
 ### Architectural Intent
-A deterministic environment setup script for Ubuntu. It installs necessary system packages (pandoc, jq, gawk) and grabs the pinned `yq` CLI binary before making target shell scripts executable. This script specifically prepares the sandbox for Jules, the AI agent, to seamlessly interact with the Rotkeeper repository and perform automated rituals without manual intervention.
+A deterministic environment setup script for Ubuntu. It installs necessary system packages (jq, gawk) and grabs the pinned `yq` CLI binary before making target shell scripts executable. This script specifically prepares the sandbox for Jules, the AI agent, to seamlessly interact with the Rotkeeper repository and perform automated rituals without manual intervention.
 
 ### Directory / File Schema Expectations
 The script must reside in `scripts/setup-jules.sh`. It modifies the system environment by installing packages via `apt-get` and downloading a binary to `/usr/local/bin/yq`. It also modifies file permissions within the repository, specifically targeting `rotkeeper.sh` and files in `bones/scripts/`.
@@ -26,7 +26,7 @@ Do not run this script on developer local macOS/Windows environments as it expec
 
 
 ### Architectural Intent
-A deterministic environment setup script for Ubuntu. It installs necessary system packages (pandoc, jq, gawk) and grabs the pinned `yq` CLI binary before making target shell scripts executable. This script specifically prepares the sandbox for Jules, the AI agent, to seamlessly interact with the Rotkeeper repository and perform automated rituals without manual intervention.
+A deterministic environment setup script for Ubuntu. It installs necessary system packages (jq, gawk) and grabs the pinned `yq` CLI binary before making target shell scripts executable. This script specifically prepares the sandbox for Jules, the AI agent, to seamlessly interact with the Rotkeeper repository and perform automated rituals without manual intervention.
 
 ### Directory / File Schema Expectations
 The script must reside in `scripts/setup-jules.sh`. It modifies the system environment by installing packages via `apt-get` and downloading a binary to `/usr/local/bin/yq`. It also modifies file permissions within the repository, specifically targeting `rotkeeper.sh` and files in `bones/scripts/`.

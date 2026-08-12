@@ -101,7 +101,7 @@ While we take that action item strictly off-line and raise a fatal \`trap_err\` 
 And seize B2B (Bash-to-Bone) orchestrators and re-envisioneer necromantic partnerships that evolve zero-hydration initiatives delivering synergistic dead-drops.
 
 ##### Heading 5
-To incentivize CI/CD deliverables that leverage Pandoc solutions to synergize bash-and-bone dropzones while facilitating one-to-one shell-scripts.
+To incentivize CI/CD deliverables that leverage Apex rituals to synergize bash-and-bone dropzones while facilitating one-to-one shell-scripts.
 
 ###### Heading 6
 With revolutionary Frankenstein stitching that deliver viral payloads and grow decentralized supply-chains that expedite seamless embalming.
@@ -122,7 +122,7 @@ With revolutionary Frankenstein stitching that deliver viral payloads and grow d
 ### Unordered List
 * Re-envisioneer necromantic partnerships
 * Evolve zero-hydration initiatives delivering synergistic dead-drops
-* Incentivize CI/CD deliverables that leverage Pandoc solutions
+* Incentivize CI/CD deliverables that leverage Apex rituals
 
 ### Ordered List
 1. Synergize bash-and-bone dropzones
@@ -177,7 +177,7 @@ echo "With benchmark archival channels implementing viral bash-rituals."
 
 MD_EOF
 
-    # Validate template is parseable by Apex adapter (zero Pandoc dependency).
+    # Validate template is parseable by Apex adapter (no external renderer dependency).
     # If RK_APEX_BIN is available and executable, confirm the template file is
     # non-empty and syntactically sane by checking it can be read by yq / gawk.
     # This is a lightweight structural probe — full rendering is handled by rc-render.sh.

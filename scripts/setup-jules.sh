@@ -43,13 +43,13 @@ echo "🤖 Provisioning environment for system profile: $BINARY"
 
 if [[ "$OS_TYPE" == "linux" ]]; then
   if command -v apt-get >/dev/null 2>&1; then
-    $SUDO apt-get update && $SUDO apt-get install -y pandoc jq rsync zip gawk wget curl
+    $SUDO apt-get update && $SUDO apt-get install -y jq rsync zip gawk wget curl
   fi
   wget -q "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${BINARY}" -O /tmp/yq
 elif [[ "$OS_TYPE" == "darwin" ]]; then
   # macOS environment compatibility fallback
   if command -v brew >/dev/null 2>&1; then
-    brew install pandoc jq rsync zip gawk yq
+    brew install jq rsync zip gawk yq
   else
     curl -sL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${BINARY}" -o /tmp/yq
   fi

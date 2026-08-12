@@ -143,7 +143,7 @@ run() {
 # Require explicitly listed command-line tools (use in main scripts)
 # ---
 # require_bins: Checks if the required earthly binaries exist in the PATH
-# Inputs: $@ (List of binary names like 'pandoc' or 'jq')
+# Inputs: $@ (List of binary names like 'jq' or 'gawk')
 # Outputs: Exits with code 2 if a tool is missing
 # ---
 # Checks if the required earthly binaries exist in the PATH
@@ -154,14 +154,6 @@ require_bins() {
       exit 2
     fi
   done
-}
-
-# Check all core binary dependencies used by Rotkeeper scripts
-check_dependencies() {
-  require_bins bash
-  require_sha256
-  require_yq_version
-  require_gawk_version
 }
 
 # Portable SHA-256 checksum: prefer sha256sum (Linux), fall back to
@@ -202,12 +194,38 @@ require_yq_version() {
   fi
 }
 
-# Require GNU awk (gawk) instead of macOS/BSD awk
+# Require GNU awk (gawk) instead of macOS/BSD awk. The gawk binary itself is
+# checked directly because scripts invoke `gawk` by name; probing `awk`
+# reports BSD awk on macOS even when gawk is installed.
 require_gawk_version() {
-  if ! awk --version 2>&1 | grep -qi 'GNU Awk'; then
+  if ! command -v gawk >/dev/null 2>&1 || ! gawk --version 2>&1 | grep -qi 'GNU Awk'; then
     log "ERROR" "GNU Awk required. Install it via: brew install gawk"
     exit 2
   fi
+}
+
+# Output tree ownership marker. Stale-output deletion is only permitted when
+# the output tree carries this marker, proving a generator produced it.
+OUTPUT_MARKER_NAME=".rotkeeper-generated"
+
+mark_output_generated() {
+  local out_dir="${1:-${OUTPUT_DIR:-}}"
+  if [[ -z "$out_dir" ]]; then
+    log "ERROR" "Cannot mark output tree: OUTPUT_DIR is not set"
+    return 1
+  fi
+  if [[ "${DRY_RUN:-false}" == true ]]; then
+    log "DRY-RUN" "Would mark output tree as generated: $out_dir/$OUTPUT_MARKER_NAME"
+    return 0
+  fi
+  mkdir -p "$out_dir"
+  : > "$out_dir/$OUTPUT_MARKER_NAME"
+  log "INFO" "Output tree marked as generated: $out_dir/$OUTPUT_MARKER_NAME"
+}
+
+output_is_generated() {
+  local out_dir="${1:-${OUTPUT_DIR:-}}"
+  [[ -n "$out_dir" && -f "$out_dir/$OUTPUT_MARKER_NAME" ]]
 }
 
 

@@ -17,7 +17,7 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [ ] Document the supported Apex contract: executable discovery, `RK_APEX_BIN`, input format, stdout body HTML, stderr warnings, exit codes, and supported version range.
 - [ ] Add a single preflight that reports whether Apex is found, executable, compatible, and actually runnable.
 - [ ] Make `render` fail with one actionable setup message when Apex is unavailable; include the exact command or environment variable needed.
-- [ ] Add a checked-in minimal Markdown fixture and a hermetic Apex smoke path that renders one page without Pandoc.
+- [ ] Add a checked-in minimal Markdown fixture and a hermetic Apex smoke path that renders one page.
 - [ ] Test the fixture for frontmatter, sidecar precedence, HTML escaping, internal `.md` links, external links, nested output paths, and renderer stderr.
 - [ ] Define which behavior belongs in the Apex binary versus `rc-apex-adapter.sh`; record temporary adapter responsibilities explicitly.
 - [ ] Verify Apex rendering through the dispatcher on a fresh `crypt`, `busy`, and `sterile` initialization.
@@ -33,13 +33,13 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [ ] Add a DIP regression check that catches stale paths, obsolete command references, and unexpected TODO stubs.
 
 ### Phase 3 — Stabilize the shell boundary
-- [ ] Centralize checksum selection for `sha256sum` and `shasum` and use the wrapper everywhere.
-- [ ] Replace the hidden `seq` dependency with a Bash-native or shared path-depth helper.
-- [ ] Correct GNU Awk detection so an installed `gawk` is checked directly.
-- [ ] Preflight `jq`, `yq`, `gawk`, `rsync`, archive tools, and the selected renderer only where each command needs them.
-- [ ] Add an output ownership marker and refuse stale-output deletion unless the output tree is marked generated.
-- [ ] Verify every destructive synchronization path honors `--dry-run` and has a boundary check.
-- [ ] Run `bash -n`, ShellCheck, `bash rotkeeper.sh test`, `bash rotkeeper.sh status`, and relevant dry-runs for every slice.
+- [x] Centralize checksum selection for `sha256sum` and `shasum` and use the wrapper everywhere.
+- [x] Replace the hidden `seq` dependency with a Bash-native or shared path-depth helper.
+- [x] Correct GNU Awk detection so an installed `gawk` is checked directly.
+- [x] Preflight `jq`, `yq`, `gawk`, `rsync`, archive tools, and the selected renderer only where each command needs them.
+- [x] Add an output ownership marker and refuse stale-output deletion unless the output tree is marked generated.
+- [x] Verify every destructive synchronization path honors `--dry-run` and has a boundary check.
+- [x] Run `bash -n`, ShellCheck, `bash rotkeeper.sh test`, `bash rotkeeper.sh status`, and relevant dry-runs for every slice.
 
 ### Phase 4 — Normalize version and CLI contracts
 - [ ] Introduce one plain version source and make scripts, dispatcher output, release names, tests, and docs read it.
@@ -94,7 +94,7 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 ### 4. Shell Safety Cleanup
 - [ ] Quote variables consistently and replace brittle loops/unsafe globbing.
 - [ ] Normalize `set -euo pipefail` usage and tighten trap/cleanup logic across all scripts.
-- [ ] Ensure all scripts fail clearly on missing dependencies (`jq`, `pandoc`, `yq`).
+- [ ] Ensure all scripts fail clearly on missing dependencies (`jq`, `yq`).
 - [ ] Make path handling root-relative everywhere and reduce CWD assumptions.
 - [ ] Extract `safe_tar_gz()` into `rc-utils.sh` and standardize archive logic.
 
@@ -136,7 +136,7 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [ ] Only generate stub scripts if file is empty or has `# TODO`.
 
 ### Templating, Themes & Terminal Presentation
-- [ ] Audit all existing Pandoc/HTML templates and document which are active, stale, duplicated, or drifted from reality.
+- [ ] Audit all existing HTML templates and document which are active, stale, duplicated, or drifted from reality.
 - [ ] Define a shared template contract for exposed frontmatter/template variables (`title`, `subtitle`, `date`, `description`, `tags`, `asset_meta`, `body`, warnings, navigation, etc.).
 - [ ] Standardize base layout structure across templates while preserving room for spooky variations.
 - [ ] Improve typography and reading layout for longform documentation: line length, spacing, headings, lists, tables, blockquotes, code fences, footnotes, and mobile readability.
@@ -166,4 +166,4 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [ ] Add weird mascot lore footer or 404 page entry.
 - [ ] Load `.ritual.yaml` workflows via `rotkeeper.sh perform <ritual>`.
 - [ ] Add optional Mermaid diagram injection into book outputs via `rc-book.sh` or frontmatter flag.
-- [ ] Create reusable Pandoc Lua filters to inject frontmatter fields into rendered documents.
+- [ ] Create reusable Apex hooks to inject frontmatter fields into rendered documents.

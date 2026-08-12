@@ -2,7 +2,7 @@
 
 ## What this project is
 
-Rotkeeper is a Bash-native, Pandoc-driven static site and content system. Markdown with YAML frontmatter is its source format; it has no Node or application-framework runtime requirement.
+Rotkeeper is a Bash-native, Apex-driven static site and content system. Markdown with YAML frontmatter is its source format; it has no Node or application-framework runtime requirement.
 
 Use the dispatcher for project work:
 

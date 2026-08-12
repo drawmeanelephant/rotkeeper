@@ -27,7 +27,7 @@ asset_meta:
 Welcome to the Bash-Native Necropolis. 
 
 Rotkeeper operates under a brutal, unapologetic philosophy: **No frameworks. No hydration. Just bones.** 
-It is not a stepping stone to a modern Javascript framework. It is the final destination for content that must survive the test of time. It relies entirely on Unix philosophies, Bash orchestration, and Pandoc compilation.
+It is not a stepping stone to a modern Javascript framework. It is the final destination for content that must survive the test of time. It relies entirely on Unix philosophies, Bash orchestration, and Apex compilation.
 
 Rotkeeper is permanently composed of **Four Core Pillars**, all native to the system and designed to outlive the web as we know it.
 
@@ -39,7 +39,7 @@ The Vault manages the integrity and history of the project. It handles micro-ver
 - **Purpose:** Ensure that the project's history is perfectly committed and that every asset is checksum-verified.
 
 ### 2. The Forge (Render)
-The Forge is the burning heart of Rotkeeper. It uses Apex to convert Markdown tombs into static HTML (with legacy Pandoc support as an opt-in).
+The Forge is the burning heart of Rotkeeper. It uses Apex to convert Markdown tombs into static HTML.
 - **Key Rituals:** `rc-render.sh`
 - **Purpose:** Translate semantic, flat-file Markdown into reading-optimized web pages without a single byte of unnecessary JavaScript. Apex is the primary native compiler golem. Do not attempt to replace the Forge with Node, NPM, Astro, or any other modern compiler framework.
 
@@ -60,5 +60,5 @@ A javascript dev from the coast,
 Tried to render our tombs with a post.
 But we told him, "No way!
 We use bash every day,
-And Pandoc is what we love most."
+And Apex is what we love most."
 -->

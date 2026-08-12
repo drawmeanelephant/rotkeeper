@@ -66,7 +66,8 @@ cleanup() {
 
 main() {
     TIMESTAMP=$(date +%Y-%m-%d_%H%M)
-    check_dependencies
+    require_bins bash rsync
+    require_sha256
     $VERBOSE && log "INFO" "Dependencies verified."
 
     MANIFEST="$BONES_DIR/asset-manifest.yaml"
@@ -88,13 +89,18 @@ main() {
     [[ "$DRY_RUN" == false ]] && : > "$REPORT"
 
     # Keep generated assets synchronized with the source tree so deleted
-    # assets do not linger in output/ and surprise static servers.
-    if [[ "$DRY_RUN" == false && -d "$OUTPUT_ASSET_DIR" ]]; then
+    # assets do not linger in output/ and surprise static servers. Stale
+    # output is only pruned when the output tree is marked generated.
+    if output_is_generated && [[ -d "$OUTPUT_ASSET_DIR" ]]; then
         while IFS= read -r -d '' generated_asset; do
             rel_generated="${generated_asset#"$OUTPUT_ASSET_DIR"/}"
             if ! grep -Fxq "$rel_generated" <<< "$ASSET_PATHS"; then
-                rm -f "$generated_asset"
-                log "INFO" "Pruned stale generated asset: $rel_generated"
+                if [[ "$DRY_RUN" == true ]]; then
+                    log "DRY-RUN" "Would prune stale generated asset: $rel_generated"
+                else
+                    rm -f "$generated_asset"
+                    log "INFO" "Pruned stale generated asset: $rel_generated"
+                fi
             fi
         done < <(find "$OUTPUT_ASSET_DIR" -type f -print0)
     fi
@@ -128,6 +134,8 @@ main() {
         run cp "$REPORT" "$MANIFEST"
         log "INFO" "Full asset manifest generated at: $MANIFEST"
     fi
+
+    mark_output_generated
 
     log "MARKER" "Assets synchronized: $asset_count source assets -> $OUTPUT_ASSET_DIR"
 

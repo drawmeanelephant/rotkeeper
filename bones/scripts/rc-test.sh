@@ -41,6 +41,8 @@ echo "✅ ALL REGRESSION ASSERTIONS COMPLETED SUCCESSFULLY."
 
 exit 0; fi
 
+require_bins jq
+
 echo "--- Rotkeeper Single framework Release Assertion Test Matrix ---"
 
 TEST_DIR="${ROOT_DIR:-$PWD}/bones/tmp/rotkeeper-test-env"
@@ -154,7 +156,6 @@ for mode in ${LAYOUT_MODES[@]+"${LAYOUT_MODES[@]}"}; do
 
   cp rotkeeper.sh "$pass_dir/"
   cp bones/scripts/rc-*.sh "$pass_dir/$b_scripts/"
-  cp bones/scripts/rewrite-links.lua "$pass_dir/$b_scripts/"
   cp bones/templates/*.html "$pass_dir/$b_templates/"
 
   cat << CONF_EOF > "$pass_dir/$b_config/rotkeeper.yaml"
@@ -201,9 +202,10 @@ CONF_EOF
       exit 104
     fi
 
-    # 4. Pandoc opt-in render (if pandoc is available)
-    if command -v pandoc >/dev/null 2>&1; then
-      ./rotkeeper.sh render --renderer pandoc > /dev/null
+    # 4. Removed renderer must be rejected (Pandoc support was removed)
+    if RK_RENDERER=pandoc ./rotkeeper.sh render --renderer pandoc >/dev/null 2>&1; then
+      echo "❌ Assertion Failed: removed --renderer pandoc should have been rejected."
+      exit 133
     fi
 
     # 5. Pure Bash/GAWK/YQ Apex adapter contract test (Zero Python)
@@ -453,31 +455,6 @@ FIXTURE_EOF
     if ! jq -e '.[0] | has("absolute_path") and has("relative_path") and has("frontmatter") and has("source_markdown")' "$export_json" >/dev/null 2>&1; then
       echo "❌ Assertion Failed: packager JSON export entry is missing required fields (source_markdown)."
       exit 115
-    fi
-
-    echo "  [+] Executing Pandoc-free isolation assertions..."
-    no_pandoc_bin="$pass_dir/bones/tmp/no_pandoc_bin"
-    mkdir -p "$no_pandoc_bin"
-    cat << 'PANDOC_STUB' > "$no_pandoc_bin/pandoc"
-#!/usr/bin/env bash
-echo "ERROR: Simulated Pandoc binary unavailable" >&2
-exit 127
-PANDOC_STUB
-    chmod +x "$no_pandoc_bin/pandoc"
-
-    if ! PATH="$no_pandoc_bin:$PATH" RK_APEX_BIN="$fake_bin" ./rotkeeper.sh render >/dev/null 2>&1; then
-      echo "❌ Assertion Failed: default Apex render failed with Pandoc unavailable."
-      exit 116
-    fi
-
-    if ! PATH="$no_pandoc_bin:$PATH" ./rotkeeper.sh pack --content >/dev/null 2>&1; then
-      echo "❌ Assertion Failed: pack --content failed with Pandoc unavailable."
-      exit 117
-    fi
-
-    if PATH="$no_pandoc_bin:$PATH" RK_RENDERER=pandoc ./rotkeeper.sh render --renderer pandoc >/dev/null 2>&1; then
-      echo "❌ Assertion Failed: legacy --renderer pandoc should have failed when Pandoc is unavailable."
-      exit 118
     fi
 
     echo "  [+] Executing release packager assertions..."
