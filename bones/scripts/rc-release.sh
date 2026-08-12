@@ -15,10 +15,28 @@ IFS=$'\n\t'
 #  Version : 0.5.1
 # ============================================================
 
-VERSION="${ROTKEEPER_VERSION:-0.5.1}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
+
+show_help() {
+  cat <<'HELP_EOF'
+rc-release.sh — Package the canonical single-tier framework distribution
+
+Usage:
+  rotkeeper.sh release <VERSION> [options]
+
+Arguments:
+  VERSION        Semver-style version for the distribution name (.e.g 0.5.2)
+
+Options:
+  --dry-run      Preview the release without writing archives
+  --verbose      Detailed output
+  --help, -h     Show help
+  --version, -v  Show version and quit
+HELP_EOF
+}
+
 rk_init_script "rc-release" "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR OUTPUT_DIR RELEASE_DIR
 set -euo pipefail

@@ -20,7 +20,7 @@ IFS=$'\n\t'
 # ============================================================
 show_help() {
   cat << EOF
-rc-pack.sh — Ritual Compression Packager (v0.5.1)
+rc-pack.sh — Ritual Compression Packager (v$VERSION)
 
 Usage: rc-pack.sh [options]
 
@@ -35,7 +35,6 @@ EOF
   exit 0
 }
 
-VERSION="${ROTKEEPER_VERSION:-0.5.1}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }

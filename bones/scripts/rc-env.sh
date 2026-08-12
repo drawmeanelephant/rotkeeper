@@ -18,7 +18,6 @@ IFS=$'\n\t'
 set -euo pipefail
 
 
-VERSION="0.5.1"
 [[ -n "$BASH_VERSION" ]] || {
   echo "[ERROR] rc-env.sh must be sourced in Bash." >&2
   return 1 2>/dev/null || exit 1

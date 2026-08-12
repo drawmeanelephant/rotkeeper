@@ -16,9 +16,17 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-VERSION="0.5.1"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BONES="$SCRIPT_DIR/bones/scripts"
+
+VERSION=""
+if [[ -n "${ROTKEEPER_VERSION:-}" ]]; then
+  VERSION="$ROTKEEPER_VERSION"
+elif [[ -f "$SCRIPT_DIR/bones/config/version" ]]; then
+  VERSION="$(tr -d '[:space:]' < "$SCRIPT_DIR/bones/config/version")"
+  VERSION="${VERSION#v}"
+fi
+[[ -n "$VERSION" ]] || VERSION="unknown"
 
 on_err() {
   local status=$?
@@ -69,7 +77,7 @@ case "$command" in
     show_help
     ;;
   init)
-    bash "$BONES/rc-init.sh" --force "$@"
+    bash "$BONES/rc-init.sh" "$@"
     ;;
   new)
     bash "$BONES/rc-new.sh" "$@"
@@ -86,8 +94,12 @@ case "$command" in
        rel_ver="$1"
        shift
     fi
-    echo "Creating standardized single canonical framework distribution..."
-    bash "$BONES/rc-release.sh" "$rel_ver" "$@"
+    if [[ $# -gt 0 && ( "$1" == "--help" || "$1" == "-h" || "$1" == "--version" || "$1" == "-v" ) ]]; then
+      bash "$BONES/rc-release.sh" "$@"
+    else
+      echo "Creating standardized single canonical framework distribution..."
+      bash "$BONES/rc-release.sh" "$rel_ver" "$@"
+    fi
     ;;
   bump)
     if [[ "${1:-}" == "--version" || "${1:-}" == "-v" ]]; then

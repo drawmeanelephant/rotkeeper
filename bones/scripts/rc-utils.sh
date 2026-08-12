@@ -507,8 +507,28 @@ init_log() {
   mkdir -p "$(dirname "$LOG_FILE")"
 }
 
+# Canonical version source: one plain semver line in bones/config/version.
+# ROTKEEPER_VERSION overrides it. Every dispatcher script reads the version
+# through this loader, so version stamps are never duplicated across the
+# codebase, release names, or tests.
+rk_load_version() {
+  if [[ -n "${ROTKEEPER_VERSION:-}" ]]; then
+    VERSION="$ROTKEEPER_VERSION"
+    return 0
+  fi
+  local version_file="${VERSION_FILE:-$(dirname "${BASH_SOURCE[0]:-$0}")/../config/version}"
+  VERSION="unknown"
+  if [[ -f "$version_file" ]]; then
+    VERSION="$(tr -d '[:space:]' < "$version_file")"
+    VERSION="${VERSION#v}"
+    [[ -n "$VERSION" ]] || VERSION="unknown"
+  fi
+}
+
+VERSION=""
+rk_load_version
+
 # Standardize script initialization: sets name, logs, traps, and parses common flags
-VERSION="${ROTKEEPER_VERSION:-0.5.1}"
 
 rk_init_script() {
   SCRIPTNAME="${1:-$(basename "$0" .sh)}"

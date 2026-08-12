@@ -4,6 +4,27 @@ IFS=$'\n\t'
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
+
+if [[ "${1:-}" == "--version" || "${1:-}" == "-v" ]]; then
+  echo "rc-test.sh v$VERSION"
+  exit 0
+fi
+
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  cat <<'HELP_EOF'
+rc-test.sh — Integration test harness matrix
+
+Usage:
+  rotkeeper.sh test|smoke [--dry-run]
+
+Options:
+  --dry-run      Run only the removed-command regression checks
+  --help, -h     Show help
+  --version, -v  Show version and quit
+HELP_EOF
+  exit 0
+fi
+
 rk_load_env strict
 
 # ============================================================
@@ -47,9 +68,13 @@ echo "--- Rotkeeper Single framework Release Assertion Test Matrix ---"
 
 TEST_DIR="${ROOT_DIR:-$PWD}/bones/tmp/rotkeeper-test-env"
 cleanup_ran=false
-TEST_RELEASE_VERSION=$(grep -E '^VERSION="' rotkeeper.sh | cut -d'"' -f2)
+TEST_RELEASE_VERSION="${ROTKEEPER_VERSION:-}"
+if [[ -z "$TEST_RELEASE_VERSION" && -f "$ROOT_DIR/bones/config/version" ]]; then
+  TEST_RELEASE_VERSION="$(tr -d '[:space:]' < "$ROOT_DIR/bones/config/version")"
+  TEST_RELEASE_VERSION="${TEST_RELEASE_VERSION#v}"
+fi
 if [[ -z "$TEST_RELEASE_VERSION" ]]; then
-  echo "ERROR: Could not determine test release version from rotkeeper.sh" >&2
+  echo "ERROR: Could not determine release version from bones/config/version" >&2
   exit 1
 fi
 
@@ -157,6 +182,7 @@ for mode in ${LAYOUT_MODES[@]+"${LAYOUT_MODES[@]}"}; do
   cp rotkeeper.sh "$pass_dir/"
   cp bones/scripts/rc-*.sh "$pass_dir/$b_scripts/"
   cp bones/templates/*.html "$pass_dir/$b_templates/"
+  cp "$ROOT_DIR/bones/config/version" "$pass_dir/$b_config/version"
 
   cat << CONF_EOF > "$pass_dir/$b_config/rotkeeper.yaml"
 project: "Test Tomb"
@@ -478,6 +504,52 @@ done
 echo "======================================================================"
 echo "✅ ALL SINGLE-TIER CANONICAL ARCHIVE VERIFICATIONS COMPLETED SUCCESSFULLY."
 echo "======================================================================"
+
+echo "======================================================================"
+echo "--- Command contract: --help is non-mutating, --version is consistent ---"
+
+CONTRACT_COMMANDS=(init new render pack release bump test scan assets autopsy glue links showcase dip book status)
+
+tree_snapshot() {
+  git status --porcelain 2>/dev/null
+  find "$ROOT_DIR/bones/logs" -type f 2>/dev/null | sort
+  find "$ROOT_DIR/bones/tmp" -type f 2>/dev/null | sort
+}
+
+contract_failed=false
+for cmd in ${CONTRACT_COMMANDS[@]+"${CONTRACT_COMMANDS[@]}"}; do
+  before_tree="$(tree_snapshot)"
+
+  if ! help_out=$(./rotkeeper.sh "$cmd" --help 2>&1); then
+    echo "❌ Assertion Failed: rotkeeper.sh $cmd --help exited non-zero."
+    contract_failed=true
+  fi
+  if [[ -z "$help_out" ]]; then
+    echo "❌ Assertion Failed: rotkeeper.sh $cmd --help produced no output."
+    contract_failed=true
+  fi
+
+  after_tree="$(tree_snapshot)"
+  if [[ "$before_tree" != "$after_tree" ]]; then
+    echo "❌ Assertion Failed: rotkeeper.sh $cmd --help mutated the workspace (help must be non-mutating and must not start a workflow)."
+    contract_failed=true
+  fi
+
+  if ! ver_out=$(./rotkeeper.sh "$cmd" --version 2>&1); then
+    echo "❌ Assertion Failed: rotkeeper.sh $cmd --version exited non-zero."
+    contract_failed=true
+  fi
+  if [[ ! "$ver_out" =~ v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+    echo "❌ Assertion Failed: rotkeeper.sh $cmd --version did not print a semver version: $ver_out"
+    contract_failed=true
+  fi
+done
+
+if [[ "$contract_failed" == true ]]; then
+  echo "❌ COMMAND CONTRACT ASSERTIONS FAILED."
+  exit 134
+fi
+echo "✅ ALL COMMAND CONTRACT ASSERTIONS PASSED."
 
 echo "======================================================================"
 echo "--- Regression tests for legacy rituals (ingest, sync-inbox, cleanup, reseed) ---"

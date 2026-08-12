@@ -43,14 +43,13 @@ Rotkeeper is a terminal-driven flat-file system for compiling markdown "tombs" i
 | `verify` | Check asset SHA256 integrity |
 | `assets` | Generate asset manifest and copy to output |
 | `index` | Build HTML index of rendered output |
-| `sitemap` | Generate YAML sitemap from render logs |
 | `templates` | List available HTML templates |
 | `book` | Aggregate docs into binders (`--all`, `--scriptbook-full`, `--docbook`, etc.) |
 | `meta` | Extract frontmatter metadata from content |
 | `cleanup` | Back up and prune `bones/` (⚠️ destructive) |
 | `reseed` | Reconstruct files from archive or bound markdown |
 | `status` | Display system state summary |
-| `bump` | Micro-version bump + changelog + git commit |
+| `bump` | Explicit semver bump (--major/--minor/--patch/--to) + changelog + git commit |
 | `test` | Dry-run all scripts + Bats tests |
 
 ## Available Templates
