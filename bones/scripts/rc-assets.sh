@@ -29,7 +29,6 @@ Options:
   --help, -h       Show this help message and exit
   --dry-run        Preview actions without writing files
   --verbose        Show detailed logs
-  --sitemap        Generate sitemap.yaml manifest (opt-in)
 EOF
   exit 0
 }
@@ -45,14 +44,12 @@ IFS=$'\n\t'
 
 
 # --- Helpers & Flag Parsing ---
-GENERATE_SITEMAP=false
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --version|-v) echo "$(basename "$0") v${VERSION:-unknown}"; exit 0 ;;
     --dry-run)   DRY_RUN=true; shift ;;
     --verbose)   VERBOSE=true; shift ;;
     --help|-h)   show_help ;;
-    --sitemap)   GENERATE_SITEMAP=true; shift ;;
     *) break ;;
   esac
 done
@@ -118,7 +115,7 @@ main() {
                 fi
                 run mkdir -p "$(dirname "$dest")"
                 run rsync -a "$src" "$dest"
-                checksum=$(sha256sum "$src" | awk '{print $1}')
+                checksum=$(rk_sha256 "$src" | awk '{print $1}')
                 log "INFO" "Copied asset: $relpath"
                 {
                     echo "- path: \"$relpath\""

@@ -158,9 +158,40 @@ require_bins() {
 
 # Check all core binary dependencies used by Rotkeeper scripts
 check_dependencies() {
-  require_bins bash sha256sum
+  require_bins bash
+  require_sha256
   require_yq_version
   require_gawk_version
+}
+
+# Portable SHA-256 checksum: prefer sha256sum (Linux), fall back to
+# shasum -a 256 (macOS) so scripts run on either without coreutils.
+rk_sha256() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$@"
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$@"
+  else
+    log "ERROR" "Missing SHA-256 tool: need sha256sum or shasum"
+    return 1
+  fi
+}
+
+# Preflight that a SHA-256 tool exists before checksum-using code runs.
+require_sha256() {
+  if ! command -v sha256sum >/dev/null 2>&1 && ! command -v shasum >/dev/null 2>&1; then
+    log "ERROR" "Missing SHA-256 tool: need sha256sum or shasum (e.g. brew install coreutils)"
+    exit 2
+  fi
+}
+
+# Build N levels of "../" using only Bash (replaces hidden `seq` usage).
+rk_up_dirs() {
+  local n="${1:-0}" i=0 out=""
+  for ((i = 0; i < n; i++)); do
+    out+="../"
+  done
+  printf '%s' "$out"
 }
 
 # Require yq version 4.x or higher (Go-based CLI)

@@ -206,7 +206,7 @@ for f in ${disk_list[@]+"${disk_list[@]}"}; do
   f_clean=$(echo "$f" | tr -d '\r')
   [[ -z "$f_clean" ]] && continue
   if [[ -f "$f_clean" ]]; then
-    sha=$(shasum -a 256 "$f_clean" | awk '{print $1}')
+    sha=$(rk_sha256 "$f_clean" | awk '{print $1}')
   else
     log "WARN" "File not found for digest: $f_clean"
     sha=""

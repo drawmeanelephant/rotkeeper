@@ -123,7 +123,7 @@ main() {
 
         run gzip -f "$ARCHIVE_DIR/$CONTENT_ARCHIVE"
         CONTENT_ARCHIVE="$CONTENT_ARCHIVE.gz"
-        SHA=$(sha256sum "$ARCHIVE_DIR/$CONTENT_ARCHIVE" | cut -d' ' -f1)
+        SHA=$(rk_sha256 "$ARCHIVE_DIR/$CONTENT_ARCHIVE" | cut -d' ' -f1)
         rel_archive="${ARCHIVE_DIR#"$ROOT_DIR"/}/$CONTENT_ARCHIVE"
         echo "$rel_archive  $SHA" >> "$MANIFEST_FILE"
         log "INFO" "Archived content to $CONTENT_ARCHIVE"
@@ -139,7 +139,7 @@ main() {
         run tar -cf "$ARCHIVE_DIR/$TOMB" "$OUTPUT_DIR"
         count=$(tar -tf "$ARCHIVE_DIR/$TOMB" | wc -l)
         log "INFO" "Packaged $count files into $TOMB"
-        SHA_UNCOMPRESSED=$(sha256sum "$ARCHIVE_DIR/$TOMB" | cut -d' ' -f1)
+        SHA_UNCOMPRESSED=$(rk_sha256 "$ARCHIVE_DIR/$TOMB" | cut -d' ' -f1)
 
         # Embed metadata into archive
         METADATA_FILE="$(mktemp)"
@@ -154,7 +154,7 @@ main() {
         run gzip -f "$ARCHIVE_DIR/$TOMB"
         rm "$METADATA_FILE"
         TOMB="$TOMB.gz"
-        SHA_COMPRESSED=$(sha256sum "$ARCHIVE_DIR/$TOMB" | cut -d' ' -f1)
+        SHA_COMPRESSED=$(rk_sha256 "$ARCHIVE_DIR/$TOMB" | cut -d' ' -f1)
         rel_tomb="${ARCHIVE_DIR#"$ROOT_DIR"/}/$TOMB"
         echo "$rel_tomb  $SHA_COMPRESSED" >> "$MANIFEST_FILE"
         log "INFO" "Embedded metadata.json into $TOMB"
@@ -171,7 +171,7 @@ main() {
       run tar --exclude="$ARCHIVE_DIR" -cf "$ARCHIVE_DIR/$SELF_ARCHIVE" rotkeeper.sh "${BONES_DIR#"$ROOT_DIR"/}/" "${CONTENT_DIR#"$ROOT_DIR"/}/" "${OUTPUT_DIR#"$ROOT_DIR"/}/"
       count=$(tar -tf "$ARCHIVE_DIR/$SELF_ARCHIVE" | wc -l)
       log "INFO" "Packaged $count files into $SELF_ARCHIVE"
-      SHA=$(sha256sum "$ARCHIVE_DIR/$SELF_ARCHIVE" | cut -d' ' -f1)
+      SHA=$(rk_sha256 "$ARCHIVE_DIR/$SELF_ARCHIVE" | cut -d' ' -f1)
       echo "$SELF_ARCHIVE  $SHA" >> "$MANIFEST_FILE"
 
       # Embed metadata into archive
