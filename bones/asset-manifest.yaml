@@ -1,7 +1,7 @@
 - path: "css/rotkeeper.css"
   sha256: "118d3a662d3d091fa277e7bab2b435bd4d13f4cb50119926a7abd2d69ddc7093"
 - path: "css/theme-brutal.css"
-  sha256: "7e3c94ed62ffc8824160e967535d708c1e5477901df3f1268531ef2406604dad"
+  sha256: "0150740fd14f90aa58d41590ec538fe4edddcf06586cb36f460e8d32454eb97e"
 - path: "css/theme-dark.css"
   sha256: "1dbb3b1bf12f75bfc467d10e1e26efd231f7a9c8ead52efb288031c0b504d661"
 - path: "css/theme-kawaii.css"

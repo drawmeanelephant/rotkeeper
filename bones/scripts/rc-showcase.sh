@@ -63,7 +63,7 @@ slug: \"showcase-${theme_name}\"
 template: \"$template_name\""
 
     for var in ${found_vars[@]+"${found_vars[@]}"}; do
-      if [[ "$var" == "title" || "$var" == "slug" || "$var" == "template" || "$var" == "body" || "$var" == "endif" || "$var" == "date" ]]; then
+      if [[ "$var" == "title" || "$var" == "slug" || "$var" == "template" || "$var" == "body" || "$var" == "endif" || "$var" == "date" || "$var" == "palette" ]]; then
         continue
       fi
 
