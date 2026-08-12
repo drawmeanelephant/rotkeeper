@@ -181,10 +181,18 @@ CONF_EOF
       exit 102
     fi
 
-    # 2. Missing RK_APEX_BIN must fail for default apex renderer
-    if RK_APEX_BIN="" ./rotkeeper.sh render >/dev/null 2>&1; then
-      echo "❌ Assertion Failed: default apex render without RK_APEX_BIN should have failed."
-      exit 103
+    # 2. Missing RK_APEX_BIN: falls back to PATH discovery; must fail only
+    #    when no apex executable exists on PATH (hermetic environments).
+    if command -v apex >/dev/null 2>&1; then
+      if ! RK_APEX_BIN="" ./rotkeeper.sh render >/dev/null 2>&1; then
+        echo "❌ Assertion Failed: apex on PATH should render with empty RK_APEX_BIN."
+        exit 103
+      fi
+    else
+      if RK_APEX_BIN="" ./rotkeeper.sh render >/dev/null 2>&1; then
+        echo "❌ Assertion Failed: default apex render without RK_APEX_BIN should have failed."
+        exit 103
+      fi
     fi
 
     # 3. Non-existent RK_APEX_BIN must fail for default apex renderer
