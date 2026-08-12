@@ -78,13 +78,18 @@ esac
 if command -v apex >/dev/null 2>&1; then
   echo "Apex already present at $(command -v apex), skipping install."
 else
+  # The release .sha256 sidecar lists paths relative to its parent
+  # (e.g. "release/apex-...tar.gz"), so verify from a dir containing
+  # release/ as a subdirectory.
+  rm -rf /tmp/apex-verify
+  mkdir -p /tmp/apex-verify/release
   APEX_TARBALL="apex-${APEX_VERSION#v}-${APEX_ASSET}.tar.gz"
-  wget -q "https://github.com/ApexMarkdown/apex/releases/download/${APEX_VERSION}/${APEX_TARBALL}" -O "/tmp/${APEX_TARBALL}"
-  wget -q "https://github.com/ApexMarkdown/apex/releases/download/${APEX_VERSION}/${APEX_TARBALL}.sha256" -O "/tmp/${APEX_TARBALL}.sha256"
-  (cd /tmp && sha256sum -c "${APEX_TARBALL}.sha256")
+  wget -q "https://github.com/ApexMarkdown/apex/releases/download/${APEX_VERSION}/${APEX_TARBALL}" -O "/tmp/apex-verify/release/${APEX_TARBALL}"
+  wget -q "https://github.com/ApexMarkdown/apex/releases/download/${APEX_VERSION}/${APEX_TARBALL}.sha256" -O "/tmp/apex-verify/release/${APEX_TARBALL}.sha256"
+  (cd /tmp/apex-verify && sha256sum -c "release/${APEX_TARBALL}.sha256")
   rm -rf /tmp/apex-install
   mkdir -p /tmp/apex-install
-  tar -xzf "/tmp/${APEX_TARBALL}" -C /tmp/apex-install
+  tar -xzf "/tmp/apex-verify/release/${APEX_TARBALL}" -C /tmp/apex-install
   $SUDO install -m 0755 "/tmp/apex-install/apex-${APEX_VERSION#v}-${APEX_ASSET}/apex" /usr/local/bin/apex
 fi
 
