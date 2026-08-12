@@ -349,6 +349,52 @@ SOUL_V051_EOF
       exit 123
     fi
 
+    # --- Real Apex renderer smoke pass (runs only when an executable binary
+    # is discoverable; hermetic fixture binaries cover the rest) ---
+    REAL_APEX="${RK_APEX_BIN:-}"
+    if [[ -z "$REAL_APEX" || ! -x "$REAL_APEX" ]]; then
+      REAL_APEX="$(command -v apex 2>/dev/null || true)"
+    fi
+
+    if [[ -n "$REAL_APEX" && -x "$REAL_APEX" ]]; then
+      echo "  [+] Executing real Apex renderer smoke pass ($REAL_APEX)..."
+      cat << 'FIXTURE_EOF' > "$b_content/real-apex-fixture.md"
+---
+title: "Real Apex Fixture"
+description: "Smoke fixture rendered by the real Apex binary"
+---
+
+# Real Apex Fixture
+
+[Internal Link](my-first-page.md)
+
+Text with **bold**, `code`, and a [fragment](my-first-page.md#section-1).
+FIXTURE_EOF
+
+      if ! RK_APEX_BIN="$REAL_APEX" ./rotkeeper.sh render >/dev/null 2>&1; then
+        echo "❌ Assertion Failed: real Apex render failed with $REAL_APEX."
+        exit 129
+      fi
+
+      rendered_real="$out_dir_rel/real-apex-fixture.html"
+      if [[ ! -f "$rendered_real" ]]; then
+        echo "❌ Assertion Failed: real Apex rendered output missing for real-apex-fixture.html"
+        exit 130
+      fi
+
+      if ! grep -q '<!DOCTYPE' "$rendered_real" && ! grep -q '<html' "$rendered_real"; then
+        echo "❌ Assertion Failed: real Apex output does not look like rendered HTML."
+        exit 131
+      fi
+
+      if ! grep -q 'Real Apex Fixture' "$rendered_real"; then
+        echo "❌ Assertion Failed: real Apex fixture title missing from rendered HTML."
+        exit 132
+      fi
+    else
+      echo "  [+] Skipping real Apex renderer smoke pass (no executable apex binary found)."
+    fi
+
     # Verify manifest path consistency across render, pack, and scan
     if [[ ! -f "bones/manifest.txt" ]]; then
       echo "❌ Assertion Failed: bones/manifest.txt missing after render pass."

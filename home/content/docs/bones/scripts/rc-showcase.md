@@ -19,25 +19,25 @@ Script to dynamically audit HTML templates and scaffold test markdown showcase f
 TODO: Stitch extracted help block.
 
 ## Environment
-<!-- DIP-ENV-EXTRACTED: 2026-07-23T10:54:47Z -->
+<!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
 
-- **$ROOT_DIR**: /Users/tbuddy/dev/rotkeeper
-- **$OUTPUT_DIR**: /Users/tbuddy/dev/rotkeeper/output
-- **$CONTENT_DIR**: /Users/tbuddy/dev/rotkeeper/home/content
-- **$ASSETS_DIR**: /Users/tbuddy/dev/rotkeeper/home/assets
-- **$DOCS_DIR**: /Users/tbuddy/dev/rotkeeper/home/content/docs
-- **$HELP_DIR**: /Users/tbuddy/dev/rotkeeper/home/content/help
-- **$BONES_DIR**: /Users/tbuddy/dev/rotkeeper/bones
-- **$SCRIPT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/scripts
-- **$CONFIG_DIR**: /Users/tbuddy/dev/rotkeeper/bones/config
-- **$LOG_DIR**: /Users/tbuddy/dev/rotkeeper/bones/logs
-- **$TMP_DIR**: /Users/tbuddy/dev/rotkeeper/bones/tmp
-- **$ARCHIVE_DIR**: /Users/tbuddy/dev/rotkeeper/bones/archive
-- **$REPORT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/reports
-- **$BOOK_REPORT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/book-reports
-- **$TEMPLATE_DIR**: /Users/tbuddy/dev/rotkeeper/bones/templates
-- **$META_DIR**: /Users/tbuddy/dev/rotkeeper/bones/meta
-- **$WEB_DIR**: /Users/tbuddy/dev/rotkeeper/output
+- **$ROOT_DIR**: .
+- **$OUTPUT_DIR**: output
+- **$CONTENT_DIR**: home/content
+- **$ASSETS_DIR**: home/assets
+- **$DOCS_DIR**: home/content/docs
+- **$HELP_DIR**: home/content/help
+- **$BONES_DIR**: bones
+- **$SCRIPT_DIR**: bones/scripts
+- **$CONFIG_DIR**: bones/config
+- **$LOG_DIR**: bones/logs
+- **$TMP_DIR**: bones/tmp
+- **$ARCHIVE_DIR**: bones/archive
+- **$REPORT_DIR**: bones/reports
+- **$BOOK_REPORT_DIR**: bones/book-reports
+- **$TEMPLATE_DIR**: bones/templates
+- **$META_DIR**: bones/meta
+- **$WEB_DIR**: output
 ## Ritual History
 <!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
 
@@ -56,15 +56,6 @@ This script is a vanity project for templates. It naively assumes `TEMPLATE_DIR`
 Ensure `TEMPLATE_DIR` contains valid `.html` layouts. The output markdown is rewritten each run, meaning manual annotations added to the showcase files will be crushed.
 
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-07-23T12:07:07Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-12T00:38:36Z -->
 
-```text
-rc-showcase.sh — Generate showcase content for every HTML template
-
-Usage: rotkeeper.sh showcase [options]
-
-Options:
-  --dry-run        Preview generated showcase pages without writing
-  --verbose        Show detailed logs
-  --help, -h       Show this help message
-```
+*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*

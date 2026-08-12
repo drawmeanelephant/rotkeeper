@@ -630,25 +630,38 @@ done
 
 # --- pillar content builders -----------------------------------------------
 
+# Emit a path relative to ROOT_DIR when possible so stitched docs and the
+# reports that bind them stay machine-independent (no host-specific absolutes).
+rel_path() {
+  local path="${1:-}"
+  if [[ -n "$path" && "$path" == "$ROOT_DIR" ]]; then
+    echo "."
+  elif [[ -n "$path" && "$path" == "$ROOT_DIR"/* ]]; then
+    echo "${path#"$ROOT_DIR"/}"
+  else
+    echo "$path"
+  fi
+}
+
 build_env_list() {
   cat <<INNER_EOF
-- **\$ROOT_DIR**: $ROOT_DIR
-- **\$OUTPUT_DIR**: ${OUTPUT_DIR:-}
-- **\$CONTENT_DIR**: $CONTENT_DIR
-- **\$ASSETS_DIR**: ${ASSETS_DIR:-}
-- **\$DOCS_DIR**: $DOCS_DIR
-- **\$HELP_DIR**: ${HELP_DIR:-}
-- **\$BONES_DIR**: $BONES_DIR
-- **\$SCRIPT_DIR**: $SCRIPT_DIR
-- **\$CONFIG_DIR**: $CONFIG_DIR
-- **\$LOG_DIR**: $LOG_DIR
-- **\$TMP_DIR**: $TMP_DIR
-- **\$ARCHIVE_DIR**: ${ARCHIVE_DIR:-}
-- **\$REPORT_DIR**: $REPORT_DIR
-- **\$BOOK_REPORT_DIR**: $BOOK_REPORT_DIR
-- **\$TEMPLATE_DIR**: ${TEMPLATE_DIR:-}
-- **\$META_DIR**: $META_DIR
-- **\$WEB_DIR**: ${WEB_DIR:-}
+- **\$ROOT_DIR**: $(rel_path "$ROOT_DIR")
+- **\$OUTPUT_DIR**: $(rel_path "${OUTPUT_DIR:-}")
+- **\$CONTENT_DIR**: $(rel_path "$CONTENT_DIR")
+- **\$ASSETS_DIR**: $(rel_path "${ASSETS_DIR:-}")
+- **\$DOCS_DIR**: $(rel_path "$DOCS_DIR")
+- **\$HELP_DIR**: $(rel_path "${HELP_DIR:-}")
+- **\$BONES_DIR**: $(rel_path "$BONES_DIR")
+- **\$SCRIPT_DIR**: $(rel_path "$SCRIPT_DIR")
+- **\$CONFIG_DIR**: $(rel_path "$CONFIG_DIR")
+- **\$LOG_DIR**: $(rel_path "$LOG_DIR")
+- **\$TMP_DIR**: $(rel_path "$TMP_DIR")
+- **\$ARCHIVE_DIR**: $(rel_path "${ARCHIVE_DIR:-}")
+- **\$REPORT_DIR**: $(rel_path "$REPORT_DIR")
+- **\$BOOK_REPORT_DIR**: $(rel_path "$BOOK_REPORT_DIR")
+- **\$TEMPLATE_DIR**: $(rel_path "${TEMPLATE_DIR:-}")
+- **\$META_DIR**: $(rel_path "$META_DIR")
+- **\$WEB_DIR**: $(rel_path "${WEB_DIR:-}")
 INNER_EOF
 }
 
@@ -659,7 +672,7 @@ build_help_content() {
 
   script_name=$(basename -- "$target_script")
   if [[ ! -f "$help_report" ]]; then
-    printf '%s\n' "*Not found: autopsy help report missing (\`$help_report\`). Run: ./rotkeeper.sh autopsy --help-report*"
+    printf '%s\n' "*Not found: autopsy help report missing (\`$(rel_path "$help_report")\`). Run: ./rotkeeper.sh autopsy --help-report*"
     return 0
   fi
 
@@ -959,7 +972,11 @@ for doc_path in ${SORTED_DOC_PATHS[@]+"${SORTED_DOC_PATHS[@]}"}; do
   MATRIX_ROWS+=("| \`$target_file\` | $doc_ref | $code_date | $doc_date | $status |")
 done
 
-mapfile -t SORTED_UNOWNED < <(printf '%s\n' ${UNOWNED_DOCS[@]+"${UNOWNED_DOCS[@]}"} | LC_ALL=C sort -u)
+if ((${#UNOWNED_DOCS[@]} > 0)); then
+  mapfile -t SORTED_UNOWNED < <(printf '%s\n' ${UNOWNED_DOCS[@]+"${UNOWNED_DOCS[@]}"} | LC_ALL=C sort -u)
+else
+  mapfile -t SORTED_UNOWNED < /dev/null
+fi
 for doc_path in ${SORTED_UNOWNED[@]+"${SORTED_UNOWNED[@]}"}; do
   rel_doc="${doc_path#"$DOCS_DIR"/}"
   doc_date=$(get_fs_date "$doc_path")

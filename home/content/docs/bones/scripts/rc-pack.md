@@ -137,45 +137,34 @@ Its absolute reliance on `jq` means that without it, the metadata creation proce
 ### Ritual Warnings
 Ensure `jq` is installed and functioning. Beware of injecting raw, unescaped text into the JSON metadata fields.
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
+<!-- DIP-HISTORY-EXTRACTED: 2026-08-12T00:38:36Z -->
 
+- - Formalized `source_markdown` export contract in `rc-pack.sh` for decentralized payload packaging.
 - - Update rc-pack.sh to include all config variations.
 - - Enhance rc-pack.sh compression algorithm for smaller tarballs.
 - - Update rc-pack.sh to handle content flag natively.
 - `CHANGELOG.md` records parallel `rc-render.sh` processing, smaller `rc-pack.sh`
 ## Environment
-<!-- DIP-ENV-EXTRACTED: 2026-07-23T10:54:47Z -->
+<!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
 
-- **$ROOT_DIR**: /Users/tbuddy/dev/rotkeeper
-- **$OUTPUT_DIR**: /Users/tbuddy/dev/rotkeeper/output
-- **$CONTENT_DIR**: /Users/tbuddy/dev/rotkeeper/home/content
-- **$ASSETS_DIR**: /Users/tbuddy/dev/rotkeeper/home/assets
-- **$DOCS_DIR**: /Users/tbuddy/dev/rotkeeper/home/content/docs
-- **$HELP_DIR**: /Users/tbuddy/dev/rotkeeper/home/content/help
-- **$BONES_DIR**: /Users/tbuddy/dev/rotkeeper/bones
-- **$SCRIPT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/scripts
-- **$CONFIG_DIR**: /Users/tbuddy/dev/rotkeeper/bones/config
-- **$LOG_DIR**: /Users/tbuddy/dev/rotkeeper/bones/logs
-- **$TMP_DIR**: /Users/tbuddy/dev/rotkeeper/bones/tmp
-- **$ARCHIVE_DIR**: /Users/tbuddy/dev/rotkeeper/bones/archive
-- **$REPORT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/reports
-- **$BOOK_REPORT_DIR**: /Users/tbuddy/dev/rotkeeper/bones/book-reports
-- **$TEMPLATE_DIR**: /Users/tbuddy/dev/rotkeeper/bones/templates
-- **$META_DIR**: /Users/tbuddy/dev/rotkeeper/bones/meta
-- **$WEB_DIR**: /Users/tbuddy/dev/rotkeeper/output
+- **$ROOT_DIR**: .
+- **$OUTPUT_DIR**: output
+- **$CONTENT_DIR**: home/content
+- **$ASSETS_DIR**: home/assets
+- **$DOCS_DIR**: home/content/docs
+- **$HELP_DIR**: home/content/help
+- **$BONES_DIR**: bones
+- **$SCRIPT_DIR**: bones/scripts
+- **$CONFIG_DIR**: bones/config
+- **$LOG_DIR**: bones/logs
+- **$TMP_DIR**: bones/tmp
+- **$ARCHIVE_DIR**: bones/archive
+- **$REPORT_DIR**: bones/reports
+- **$BOOK_REPORT_DIR**: bones/book-reports
+- **$TEMPLATE_DIR**: bones/templates
+- **$META_DIR**: bones/meta
+- **$WEB_DIR**: output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-07-23T12:07:07Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-12T00:38:36Z -->
 
-```text
-rc-pack.sh — Ritual Compression Packager (v0.5.0)
-
-Usage: rc-pack.sh [options]
-
-Options:
-  --version, -v    Show script version and quit
-  --help, -h       Show this help message and exit
-  --dry-run        Preview actions without writing files
-  --self           Archive the full Rotkeeper system (rotkeeper.sh, bones/, home/, output/)
-  --content        Archive only the home/content directory to preserve source files
-  --verbose        Enable detailed debug logging
-```
+*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*

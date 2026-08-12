@@ -303,7 +303,16 @@ runfsbook() {
     echo ""
     while read -r f; do
       echo "- $f"
-    done < <(cd "$ROOT_DIR" && find . -type f | sed 's|^./||' | sort)
+    done < <(
+      cd "$ROOT_DIR" || exit 1
+      find . -type d \( -path ./.git -o -path ./output -o -path ./bones/tmp -o -path ./bones/logs -o -path ./bones/reports -o -path ./bones/book-reports -o -path ./bones/archive \) -prune -o \
+        -type f \
+        ! -name '*.log' \
+        ! -name '.DS_Store' \
+        ! -name '*.tmp' \
+        ! -path './bones/manifest.txt' \
+        -print | sed 's|^./||' | sort
+    )
   } > "$OUT"
   log "INFO" "File system catalog written to $OUT"
 }

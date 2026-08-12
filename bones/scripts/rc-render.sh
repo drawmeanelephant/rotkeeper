@@ -94,7 +94,24 @@ main() {
         APEX_BIN="${RK_APEX_BIN:-$(command -v apex || true)}"
         if [[ -z "$APEX_BIN" || ! -x "$APEX_BIN" ]]; then
           log "ERROR" "Apex renderer selected (--renderer apex), but RK_APEX_BIN is unset or not executable ($APEX_BIN)."
-          echo "ERROR: Apex renderer selected, but RK_APEX_BIN is unset or not executable." >&2
+          # Surface the setup guidance on the caller's terminal (fd 3 is the
+          # pre-log stdout kept by rk_init_script; fall back to stderr).
+          if ! { cat >&3 <<'SETUP_EOF'
+ERROR: Apex renderer selected, but no usable Apex binary was found.
+Fix: install Apex, then point RK_APEX_BIN at the executable, e.g.:
+
+    # Linux (x86_64/arm64) or macOS:
+    # download from https://github.com/ApexMarkdown/apex/releases
+    # and put the `apex` binary on your PATH, then:
+    export RK_APEX_BIN=/path/to/apex
+    bash rotkeeper.sh render --renderer apex
+
+    # or just ensure `apex` is resolvable via PATH:
+    command -v apex
+SETUP_EOF
+} 2>/dev/null; then
+            echo "ERROR: Apex renderer selected, but RK_APEX_BIN is unset or not executable." >&2
+          fi
           exit 1
         fi
         require_bins bash sha256sum
