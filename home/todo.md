@@ -75,13 +75,14 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [x] Define whether a release is a framework distribution, a site-source archive, or a complete backup. *(decision: framework distribution — dispatcher, bones system, templates, configuration, project docs; documented in rc-release.sh header)*
 - [x] Build framework releases from an explicit allowlist rather than repository-wide mirroring plus exclusions. *(explicit `allowed_root` entries enforced against the archive; `.github/`, `.vscode/` now excluded from staging instead of silently shipped)*
 - [x] Generate and validate a release manifest; fail on unexpected root-level files and forbidden artifacts. *(`bones/config/release-manifest.txt` inside the archive with version/model/ruleset/entries; fail-fast on unexpected root entries, missing required spine (rotkeeper.sh, config, version, manifest, rc-utils.sh), and forbidden paths/artifacts incl. credentials: *.pem *.key *.p12 .env .npmrc id_rsa)*
-- [ ] Verify archive contents on macOS and Ubuntu, including absence of temporary trees, caches, credentials, and compiled artifacts. *(macOS: verified via real `release 0.5.2` run + per-layout harness passes. Ubuntu: pending CI confirmation — the archive checks are rk_canonical_path-based and should behave identically)*
+- [x] Verify archive contents on macOS and Ubuntu, including absence of temporary trees, caches, credentials, and compiled artifacts. *(macOS: verified via real `release 0.5.2` run + per-layout harness passes. Ubuntu: verified via CI — the full harness, including the real-Oliver renderer smoke and CommonMark contract corpus, passes on `ubuntu-latest`; the archive checks are `rk_canonical_path`-based and behaved identically)*
 
-### Phase 6 — Rationalize the Apex boundary
+### Phase 6 — Rationalize the Oliver boundary
 - [ ] Define a stable template/input contract before moving logic out of Bash.
-- [ ] Move only renderer-adjacent responsibilities into Apex incrementally: frontmatter extraction, template dialect, link rewriting, output planning, then manifest generation.
+- [ ] Move only renderer-adjacent responsibilities into Oliver incrementally: frontmatter extraction, template dialect, link rewriting, output planning, then manifest generation.
 - [ ] Keep Bash responsible for dispatch, environment setup, filesystem boundaries, orchestration, and packaging.
 - [ ] Treat `crypt`, `busy`, and `sterile` as initialization profiles and document the canonical runtime layout.
+- [x] When Oliver lands GFM tables ([drawmeanelephant/oliver#17](https://github.com/drawmeanelephant/oliver/issues/17)), flip the Rotkeeper boundary: update the `contract-table` assertions in `rc-test.sh`, move tables from "not supported" to "supported" in `oliver-contract.md`, re-render the 14 table-bearing content files, and confirm CI. *(2026-08-12: landed — oliver PR #19 shipped GFM pipe tables (alignment + escaped pipes); fixture, harness assertions, and `oliver-contract.md` flipped; real render + full harness verified locally; CI confirms on push)*
 - [ ] Do not add a new ritual or rewrite the system until the Phase 1 contract and regression fixtures are stable.
 
 ### Phase 7 — Pure-CSS theme family
@@ -197,4 +198,4 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [ ] Add weird mascot lore footer or 404 page entry.
 - [ ] Load `.ritual.yaml` workflows via `rotkeeper.sh perform <ritual>`.
 - [ ] Add optional Mermaid diagram injection into book outputs via `rc-book.sh` or frontmatter flag.
-- [ ] Create reusable Apex hooks to inject frontmatter fields into rendered documents.
+- [ ] Create reusable Oliver hooks to inject frontmatter fields into rendered documents.

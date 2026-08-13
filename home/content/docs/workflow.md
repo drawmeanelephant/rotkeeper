@@ -17,15 +17,15 @@ The cycle is: **preflight → init → author → render → verify → archive 
 
 ## 1. Preflight — is the renderer ready?
 
-Apex is the only renderer and the one external runtime dependency. Check it once up front:
+Oliver is the only renderer and the one external runtime dependency. Check it once up front:
 
 ```bash
 ./rotkeeper.sh preflight
 ```
 
-It reports whether Apex is found, executable, within the supported 1.1.x range, and actually runnable, and exits non-zero with a single actionable message when it is not. `render` runs the same check before every pass, so diagnostics never drift.
+It reports whether Oliver is found, executable, and actually runnable (a live smoke render through the real CLI), and exits non-zero with a single actionable message when it is not. `render` runs the same check before every pass, so diagnostics never drift.
 
-To install Apex on macOS or Linux, follow the install paths in `home/content/docs/apex-contract.md`, then either add `apex` to `PATH` or set `RK_APEX_BIN=/path/to/apex`.
+To install Oliver on macOS or Linux, follow the install paths in `home/content/docs/oliver-contract.md`, then either add `oliver` to `PATH` or set `RK_OLIVER_BIN=/path/to/oliver`.
 
 ## 2. Initialize — build the layout
 
@@ -54,9 +54,9 @@ Asset files (CSS, images, fonts) live in the layout's assets directory — `home
 ./rotkeeper.sh render
 ```
 
-The renderer sweeps the content tree, extracts frontmatter (sidecar wins), resolves a template, invokes Apex once per page (stdout = body HTML, stderr = warnings), rewrites internal `.md` links to `.html`, and interpolates the page into the template. The adapter's responsibilities and the Apex binary contract are recorded in `apex-contract.md`.
+The renderer sweeps the content tree, extracts frontmatter (sidecar wins), resolves a template, invokes Oliver once per page (`oliver render --from markdown < file.md`; stdout = body HTML, stderr = warnings), rewrites internal `.md` links to `.html`, and interpolates the page into the template. The adapter's responsibilities and the Oliver binary contract are recorded in `oliver-contract.md`.
 
-If a render fails, the error names the page, Apex's stderr (warnings never leak into page bodies), and the offending path. `--dry-run` previews the pass without writing; `--verbose` shows detail.
+If a render fails, the error names the page, Oliver's stderr (warnings never leak into page bodies), and the offending path. `--dry-run` previews the pass without writing; `--verbose` shows detail.
 
 ## 5. Verify — scan, links, status
 
@@ -98,4 +98,4 @@ Archives the rendered HTML and metadata into a versioned tarball under `bones/ar
 
 ## Verification gate
 
-Before any release: `bash -n` on every modified script, `shellcheck` (repository `.shellcheckrc`), `bash rotkeeper.sh test`, `bash rotkeeper.sh status`, and the relevant `--dry-run` for the changed command. The harness rebuilds `crypt`, `busy`, and `sterile` fixtures, renders the checked-in smoke fixture against its golden output, exercises the real Apex binary when present, and verifies the canonical release archive.
+Before any release: `bash -n` on every modified script, `shellcheck` (repository `.shellcheckrc`), `bash rotkeeper.sh test`, `bash rotkeeper.sh status`, and the relevant `--dry-run` for the changed command. The harness rebuilds `crypt`, `busy`, and `sterile` fixtures, renders the checked-in smoke fixture against its golden output, exercises the real Oliver binary when present, and verifies the canonical release archive.

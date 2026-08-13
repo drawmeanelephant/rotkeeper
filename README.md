@@ -1,10 +1,11 @@
 # 🪦 Rotkeeper
 
 [![Release](https://img.shields.io/github/v/release/drawmeanelephant/rotkeeper?sort=semver)](https://github.com/drawmeanelephant/rotkeeper/releases)
+[![CI](https://github.com/drawmeanelephant/rotkeeper/actions/workflows/ci.yml/badge.svg)](https://github.com/drawmeanelephant/rotkeeper/actions/workflows/ci.yml)
 
 *"What lives in `/bones/` may yet render again."*
 
-Rotkeeper is a Bash-native static-site and content system with Apex HTML rendering, integrity scanning, documentation improvement, archiving, and release packaging. No Node, NPM, or application framework is required — just Markdown, Bash, and standard Unix tooling. The outputs are raw, static, and immortal.
+Rotkeeper is a Bash-native static-site and content system with Oliver HTML rendering, integrity scanning, documentation improvement, archiving, and release packaging. No Node, NPM, or application framework is required — just Markdown, Bash, and standard Unix tooling. The outputs are raw, static, and immortal.
 
 ## Why this exists
 
@@ -31,13 +32,13 @@ Rotkeeper organizes everything around **BHO** (Bones, Home, Output) — system, 
 Check that the renderer is available, initialize a site, and render it:
 
 ```bash
-./rotkeeper.sh preflight   # Apex found, executable, 1.1.x, and runnable?
+./rotkeeper.sh preflight   # Oliver found, executable, and runnable?
 ./rotkeeper.sh init --with-sample   # Initialize layout, config, sample content
 ./rotkeeper.sh render      # Convert Markdown to HTML
 ./rotkeeper.sh status      # Environment health and content report
 ```
 
-If `preflight` fails, install a supported Apex 1.1.x binary (or set `RK_APEX_BIN=/path/to/apex`) and re-run it. Full install steps are in [home/content/docs/apex-contract.md](home/content/docs/apex-contract.md).
+If `preflight` fails, install Oliver (or set `RK_OLIVER_BIN=/path/to/oliver`) and re-run it. Full install steps are in [home/content/docs/oliver-contract.md](home/content/docs/oliver-contract.md).
 
 ## Common workflows
 
@@ -59,7 +60,7 @@ The full end-to-end walkthrough lives in [home/content/docs/workflow.md](home/co
 - `rsync`
 - `zip`, `zipinfo`, and `tar` (for `release` and `pack`)
 
-**Rendering:** Apex 1.1.x is the only renderer (Pandoc was removed). Put `apex` on `PATH` or set `RK_APEX_BIN=/path/to/apex`. `bash rotkeeper.sh preflight` is the single diagnostic for finding, executability, version range, and runnability.
+**Rendering:** Oliver is the only renderer (Pandoc was removed). Put `oliver` on `PATH` or set `RK_OLIVER_BIN=/path/to/oliver`. `bash rotkeeper.sh preflight` is the single diagnostic for finding, executability, and runnability.
 
 ## Command reference
 
@@ -67,8 +68,8 @@ The full end-to-end walkthrough lives in [home/content/docs/workflow.md](home/co
 | --- | --- |
 | `init` | Initialize the environment and configuration (`--with-sample` adds starter content) |
 | `new <file>` | Scaffold a new Markdown file with frontmatter |
-| `render` | Convert Markdown into HTML with Apex |
-| `preflight` | Report Apex availability, compatibility, and runnability |
+| `render` | Convert Markdown into HTML with Oliver |
+| `preflight` | Report Oliver availability, compatibility, and runnability |
 | `pack` | Archive rendered HTML into a versioned tarball |
 | `release [VERSION]` | Package the canonical framework zip (allowlist + manifest verified) |
 | `bump` | Record a microrelease and sync version markers |
@@ -93,8 +94,8 @@ Read [`AGENTS.md`](AGENTS.md) before modifying the crypt. It contains the archit
 
 | Symptom | Likely cause | Fix |
 | --- | --- | --- |
-| `render` fails before reanimating | Apex missing/incompatible | `bash rotkeeper.sh preflight` and follow its message |
-| `preflight` reports version out of range | Apex older/newer than 1.1.x | Install a supported 1.1.x release (see `apex-contract.md`) |
+| `render` fails before reanimating | Oliver missing/incompatible | `bash rotkeeper.sh preflight` and follow its message |
+| `preflight` reports Oliver missing | Oliver not installed or not on PATH | Install Oliver (see `oliver-contract.md`) or set `RK_OLIVER_BIN` |
 | `yq` or `gawk` errors | Missing dependency | Install `mikefarah/yq` v4+ and `gawk`; `require_*` checks exit 2 with hints |
 | Layout path mismatch error | Repository moved or config paths stale | Run `./rotkeeper.sh init` to heal path mappings |
 | Malformed YAML | Broken frontmatter or `rotkeeper.yaml` | Validate with `yq eval '.' <file>` |

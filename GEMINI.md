@@ -6,7 +6,7 @@ If you are a Gemini agent (or a specialized subagent spawned by Antigravity) wor
 
 ## Context
 
-Rotkeeper is a terminal-driven flat-file system for compiling markdown "tombs" into static HTML archives. It relies on bash scripting (the "rituals" in `bones/scripts/`), Apex HTML rendering, and a strict separation of concerns. The dispatcher is `rotkeeper.sh`.
+Rotkeeper is a terminal-driven flat-file system for compiling markdown "tombs" into static HTML archives. It relies on bash scripting (the "rituals" in `bones/scripts/`), Oliver HTML rendering, and a strict separation of concerns. The dispatcher is `rotkeeper.sh`.
 
 ## Golden Rules for Gemini Agents
 
@@ -35,7 +35,7 @@ Rotkeeper is a terminal-driven flat-file system for compiling markdown "tombs" i
 | Command | Purpose |
 |---------|---------|
 | `init` | Full workspace initialization (reseed + assets + render + scan) |
-| `render` | Convert Markdown → HTML via Apex |
+| `render` | Convert Markdown → HTML via Oliver |
 | `pack` | Archive output as `.tar.gz` tomb & export `source_markdown` JSON (also: `--content`, `--self`) |
 | `release` | Create `lite` and `full` distribution `.zip` files |
 | `ingest` | Unpack `.tar.gz` from `messages-from-my-friends/` into content |
@@ -92,6 +92,6 @@ If tasked with creating a page or report:
 ## Dependencies
 
 **Required:** `bash` 4+, `sha256sum`, `yq` v4+, `gawk`
-**Rendering (Apex — default):** `apex` binary via `RK_APEX_BIN=/path/to/apex` or in `$PATH` (test matrix uses fixture binary)
-**Rendering (Apex only):** the Pandoc renderer has been removed
+**Rendering (Oliver — default):** `oliver` binary via `RK_OLIVER_BIN=/path/to/oliver` or in `$PATH` (test matrix uses fixture binary)
+**Rendering (Oliver only):** the Pandoc renderer has been removed
 **Optional:** `jq` (pack JSON export & metadata), `rsync` + `zip` (release), `python3` (links audit), `bats` (test)

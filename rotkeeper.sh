@@ -53,7 +53,7 @@ Commands:
   new <file>  Scaffold a new markdown file
   render      Convert markdown into HTML tombs
   pack        Archive rendered HTML into a versioned tarball
-  preflight   Report Apex renderer availability and compatibility
+  preflight   Report Oliver renderer availability and compatibility
   release     Package the project into a single canonical framework zip file
               Usage: ./rotkeeper.sh release [VERSION] [options]
   bump        Record a microrelease update and synchronize version markers

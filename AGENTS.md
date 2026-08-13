@@ -2,7 +2,7 @@
 
 ## What this project is
 
-Rotkeeper is a Bash-native, Apex-driven static site and content system. Markdown with YAML frontmatter is its source format; it has no Node or application-framework runtime requirement.
+Rotkeeper is a Bash-native, Oliver-driven static site and content system. Markdown with YAML frontmatter is its source format; it has no Node or application-framework runtime requirement.
 
 Use the dispatcher for project work:
 
@@ -11,6 +11,12 @@ bash rotkeeper.sh <command>
 ```
 
 Do not invoke `bones/scripts/rc-*.sh` directly.
+
+## Renderer: Oliver
+
+- Rendering runs through the [Oliver](https://github.com/drawmeanelephant/oliver) binary: `oliver render --from markdown < file.md`, stdin → stdout body HTML, stderr = warnings. Discovery order is `RK_OLIVER_BIN` override, then `oliver` on `PATH`. The authoritative contract is `home/content/docs/oliver-contract.md`.
+- `bash rotkeeper.sh preflight` is the single renderer health check (discovery, executability, live smoke render); `render` routes through the same check. The adapter (`rc-oliver-adapter.sh`) strips a leading YAML frontmatter block before invoking Oliver.
+- Oliver has no stable release yet: `setup-jules.sh` (and CI) builds it from source with Zig 0.16. GFM pipe tables (alignment colons, escaped pipes) are supported; task lists and footnotes are not part of CommonMark and render literally — keep content CommonMark-safe for those.
 
 ## The BHO model
 

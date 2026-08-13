@@ -208,23 +208,23 @@ CONF_EOF
       exit 102
     fi
 
-    # 2. Missing RK_APEX_BIN: falls back to PATH discovery; must fail only
-    #    when no apex executable exists on PATH (hermetic environments).
-    if command -v apex >/dev/null 2>&1; then
-      if ! RK_APEX_BIN="" ./rotkeeper.sh render >/dev/null 2>&1; then
-        echo "❌ Assertion Failed: apex on PATH should render with empty RK_APEX_BIN."
+    # 2. Missing RK_OLIVER_BIN: falls back to PATH discovery; must fail only
+    #    when no oliver executable exists on PATH (hermetic environments).
+    if command -v oliver >/dev/null 2>&1; then
+      if ! RK_OLIVER_BIN="" ./rotkeeper.sh render >/dev/null 2>&1; then
+        echo "❌ Assertion Failed: oliver on PATH should render with empty RK_OLIVER_BIN."
         exit 103
       fi
     else
-      if RK_APEX_BIN="" ./rotkeeper.sh render >/dev/null 2>&1; then
-        echo "❌ Assertion Failed: default apex render without RK_APEX_BIN should have failed."
+      if RK_OLIVER_BIN="" ./rotkeeper.sh render >/dev/null 2>&1; then
+        echo "❌ Assertion Failed: default oliver render without RK_OLIVER_BIN should have failed."
         exit 103
       fi
     fi
 
-    # 3. Non-existent RK_APEX_BIN must fail for default apex renderer
-    if RK_APEX_BIN="/nonexistent/apex" ./rotkeeper.sh render >/dev/null 2>&1; then
-      echo "❌ Assertion Failed: default apex render with invalid RK_APEX_BIN should have failed."
+    # 3. Non-existent RK_OLIVER_BIN must fail for default oliver renderer
+    if RK_OLIVER_BIN="/nonexistent/oliver" ./rotkeeper.sh render >/dev/null 2>&1; then
+      echo "❌ Assertion Failed: default oliver render with invalid RK_OLIVER_BIN should have failed."
       exit 104
     fi
 
@@ -234,18 +234,19 @@ CONF_EOF
       exit 133
     fi
 
-    # 5. Pure Bash/GAWK/YQ Apex adapter contract test (Zero Python)
-    echo "  [+] Executing default pure Bash/GAWK/YQ Apex adapter contract tests..."
+    # 5. Pure Bash/GAWK/YQ Oliver adapter contract test (Zero Python)
+    echo "  [+] Executing default pure Bash/GAWK/YQ Oliver adapter contract tests..."
     mkdir -p bones/tmp
-    fake_bin="$pass_dir/bones/tmp/fake_apex"
+    fake_bin="$pass_dir/bones/tmp/fake_oliver"
     cat << 'FAKE_EOF' > "$fake_bin"
 #!/usr/bin/env bash
 set -euo pipefail
-file="${1:-}"
-if [[ -f "$file" ]]; then
-  awk '/^---$/ { f++; next } f>=2 || f==0 { print }' "$file" | \
-    sed -E 's/\[([^]]+)\]\(([^)]+)\)/<a href="\2">\1<\/a>/g'
+# Mimic Oliver's CLI shape: oliver render --from markdown < file.md
+if [[ "${1:-}" != "render" || "${2:-}" != "--from" || "${3:-}" != "markdown" ]]; then
+  exit 1
 fi
+awk '/^---$/ { f++; next } f>=2 || f==0 { print }' | \
+  sed -E 's/\[([^]]+)\]\(([^)]+)\)/<a href="\2">\1<\/a>/g'
 FAKE_EOF
     chmod +x "$fake_bin"
 
@@ -269,7 +270,7 @@ description: |-
 <a href="my-first-page.md">Raw HTML Link</a>
 UGLY_EOF
 
-    RK_APEX_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null
+    RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null
 
     # Verify link rewriting assertions on generated HTML (using dynamic $OUTPUT_DIR)
     out_dir_rel="output"
@@ -279,7 +280,7 @@ UGLY_EOF
     rendered_ugly="$out_dir_rel/ugly-edge-case.html"
 
     if [[ ! -f "$rendered_ugly" ]]; then
-      echo "❌ Assertion Failed: Apex rendered output missing for ugly-edge-case.html ($rendered_ugly)"
+      echo "❌ Assertion Failed: Oliver rendered output missing for ugly-edge-case.html ($rendered_ugly)"
       exit 105
     fi
 
@@ -319,16 +320,16 @@ UGLY_EOF
     fi
 
     # --- Checked-in hermetic smoke fixture + golden comparison ---
-    # The fixture lives at bones/scripts/tests/fixtures/apex-smoke/ and renders
-    # through the same fake binary used above (zero Apex required). The rendered
+    # The fixture lives at bones/scripts/tests/fixtures/oliver-smoke/ and renders
+    # through the same fake binary used above (zero Oliver required). The rendered
     # <body> region is layout-independent (the head's $assets_root$ link differs
     # per layout style), so the golden body is compared verbatim on every mode.
-    FIXTURE_SRC="$ROOT_DIR/bones/scripts/tests/fixtures/apex-smoke/smoke-fixture.md"
-    GOLDEN_HTML="$ROOT_DIR/bones/scripts/tests/fixtures/apex-smoke/smoke-fixture-expected.html"
+    FIXTURE_SRC="$ROOT_DIR/bones/scripts/tests/fixtures/oliver-smoke/smoke-fixture.md"
+    GOLDEN_HTML="$ROOT_DIR/bones/scripts/tests/fixtures/oliver-smoke/smoke-fixture-expected.html"
 
     if [[ -f "$FIXTURE_SRC" && -f "$GOLDEN_HTML" ]]; then
       cp "$FIXTURE_SRC" "$b_content/smoke-fixture.md"
-      RK_APEX_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null
+      RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null
 
       rendered_smoke="$out_dir_rel/smoke-fixture.html"
       if [[ ! -f "$rendered_smoke" ]]; then
@@ -350,7 +351,7 @@ UGLY_EOF
       # render into a mirrored nested output path with an identical body.
       mkdir -p "$b_content/docs"
       cp "$FIXTURE_SRC" "$b_content/docs/smoke-fixture.md"
-      RK_APEX_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null
+      RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null
 
       rendered_nested="$out_dir_rel/docs/smoke-fixture.html"
       if [[ ! -f "$rendered_nested" ]]; then
@@ -370,18 +371,19 @@ UGLY_EOF
     fi
 
     # --- v0.5.1 Specific Maintenance Contract Assertions ---
-    echo "  [+] Executing v0.5.1 literal-safe, HTML-escaping, soul sidecar & Apex stderr assertions..."
+    echo "  [+] Executing v0.5.1 literal-safe, HTML-escaping, soul sidecar & Oliver stderr assertions..."
     
-    # 1. Apex stderr separation check with fake binary emitting warnings
-    fake_warn_bin="$pass_dir/bones/tmp/fake_apex_warn"
+    # 1. Oliver stderr separation check with fake binary emitting warnings
+    fake_warn_bin="$pass_dir/bones/tmp/fake_oliver_warn"
     cat << 'WARN_BIN_EOF' > "$fake_warn_bin"
 #!/usr/bin/env bash
 set -euo pipefail
-file="${1:-}"
-echo "[APEX WARN] Sample non-fatal renderer warning" >&2
-if [[ -f "$file" ]]; then
-  awk '/^---$/ { f++; next } f>=2 || f==0 { print }' "$file"
+# Mimic Oliver's CLI shape: oliver render --from markdown < file.md
+if [[ "${1:-}" != "render" || "${2:-}" != "--from" || "${3:-}" != "markdown" ]]; then
+  exit 1
 fi
+echo "[OLIVER WARN] Sample non-fatal renderer warning" >&2
+awk '/^---$/ { f++; next } f>=2 || f==0 { print }'
 WARN_BIN_EOF
     chmod +x "$fake_warn_bin"
 
@@ -403,7 +405,7 @@ title: "Overridden Title & <Sidecar>"
 ---
 SOUL_V051_EOF
 
-    RK_APEX_BIN="$fake_warn_bin" ./rotkeeper.sh render > /dev/null
+    RK_OLIVER_BIN="$fake_warn_bin" ./rotkeeper.sh render > /dev/null
 
     rendered_v051="$out_dir_rel/v051-test.html"
     if [[ ! -f "$rendered_v051" ]]; then
@@ -430,56 +432,126 @@ SOUL_V051_EOF
       exit 122
     fi
 
-    # Verify Apex stderr did not leak into rendered HTML body
-    if grep -q 'APEX WARN' "$rendered_v051"; then
-      echo "❌ Assertion Failed: Apex stderr leaked into rendered HTML body."
+    # Verify Oliver stderr did not leak into rendered HTML body
+    if grep -q 'OLIVER WARN' "$rendered_v051"; then
+      echo "❌ Assertion Failed: Oliver stderr leaked into rendered HTML body."
       exit 123
     fi
 
-    # --- Real Apex renderer smoke pass (runs only when an executable binary
+    # --- Real Oliver renderer smoke pass (runs only when an executable binary
     # is discoverable; hermetic fixture binaries cover the rest) ---
-    REAL_APEX="${RK_APEX_BIN:-}"
-    if [[ -z "$REAL_APEX" || ! -x "$REAL_APEX" ]]; then
-      REAL_APEX="$(command -v apex 2>/dev/null || true)"
+    REAL_OLIVER="${RK_OLIVER_BIN:-}"
+    if [[ -z "$REAL_OLIVER" || ! -x "$REAL_OLIVER" ]]; then
+      REAL_OLIVER="$(command -v oliver 2>/dev/null || true)"
     fi
 
-    if [[ -n "$REAL_APEX" && -x "$REAL_APEX" ]]; then
-      echo "  [+] Executing real Apex renderer smoke pass ($REAL_APEX)..."
-      cat << 'FIXTURE_EOF' > "$b_content/real-apex-fixture.md"
+    if [[ -n "$REAL_OLIVER" && -x "$REAL_OLIVER" ]]; then
+      echo "  [+] Executing real Oliver renderer smoke pass ($REAL_OLIVER)..."
+      cat << 'FIXTURE_EOF' > "$b_content/real-oliver-fixture.md"
 ---
-title: "Real Apex Fixture"
-description: "Smoke fixture rendered by the real Apex binary"
+title: "Real Oliver Fixture"
+description: "Smoke fixture rendered by the real Oliver binary"
 ---
 
-# Real Apex Fixture
+# Real Oliver Fixture
 
 [Internal Link](my-first-page.md)
 
 Text with **bold**, `code`, and a [fragment](my-first-page.md#section-1).
 FIXTURE_EOF
 
-      if ! RK_APEX_BIN="$REAL_APEX" ./rotkeeper.sh render >/dev/null 2>&1; then
-        echo "❌ Assertion Failed: real Apex render failed with $REAL_APEX."
+      if ! RK_OLIVER_BIN="$REAL_OLIVER" ./rotkeeper.sh render >/dev/null 2>&1; then
+        echo "❌ Assertion Failed: real Oliver render failed with $REAL_OLIVER."
         exit 129
       fi
 
-      rendered_real="$out_dir_rel/real-apex-fixture.html"
+      rendered_real="$out_dir_rel/real-oliver-fixture.html"
       if [[ ! -f "$rendered_real" ]]; then
-        echo "❌ Assertion Failed: real Apex rendered output missing for real-apex-fixture.html"
+        echo "❌ Assertion Failed: real Oliver rendered output missing for real-oliver-fixture.html"
         exit 130
       fi
 
       if ! grep -q '<!DOCTYPE' "$rendered_real" && ! grep -q '<html' "$rendered_real"; then
-        echo "❌ Assertion Failed: real Apex output does not look like rendered HTML."
+        echo "❌ Assertion Failed: real Oliver output does not look like rendered HTML."
         exit 131
       fi
 
-      if ! grep -q 'Real Apex Fixture' "$rendered_real"; then
-        echo "❌ Assertion Failed: real Apex fixture title missing from rendered HTML."
+      if ! grep -q 'Real Oliver Fixture' "$rendered_real"; then
+        echo "❌ Assertion Failed: real Oliver fixture title missing from rendered HTML."
         exit 132
       fi
+
+      # --- Real Oliver CommonMark contract corpus ---
+      # The hermetic golden above is produced by the fixture (fake) binary and
+      # verifies the adapter pipeline: frontmatter stripping, link rewriting,
+      # escaping. It is NOT a CommonMark fidelity golden. This pass renders a
+      # checked-in edge-case corpus through the REAL binary and asserts
+      # Oliver-produced structures, so renderer fidelity is verified whenever
+      # a real oliver is present (see bones/scripts/tests/fixtures/oliver-contract/
+      # and the "Rendered Markdown surface" section of oliver-contract.md).
+      CONTRACT_DIR="$ROOT_DIR/bones/scripts/tests/fixtures/oliver-contract"
+      if [[ -d "$CONTRACT_DIR" ]]; then
+        echo "  [+] Executing real Oliver CommonMark contract corpus ($mode)..."
+        cp "$CONTRACT_DIR"/*.md "$b_content/"
+        RK_OLIVER_BIN="$REAL_OLIVER" ./rotkeeper.sh render > /dev/null
+
+        inline="$out_dir_rel/contract-inline.html"
+        blocks="$out_dir_rel/contract-blocks.html"
+        table="$out_dir_rel/contract-table.html"
+        contract_failed=false
+
+        check_contract() {
+          local desc="$1" file="$2"; shift 2
+          if ! grep -q "$@" "$file"; then
+            echo "❌ Assertion Failed: contract corpus missing $desc in $file"
+            contract_failed=true
+          fi
+        }
+
+        check_contract "bold" "$inline" '<strong>bold</strong>'
+        check_contract "rewritten internal link" "$inline" 'href="my-first-page.html"'
+        check_contract "fragment preserved" "$inline" 'href="my-first-page.html#section-1"'
+        check_contract "autolink escaping" "$inline" 'href="https://example.com/x?a=1&amp;b=2"'
+        check_contract "mailto autolink" "$inline" 'mailto:necromancer@example.com'
+        check_contract "raw inline HTML" "$inline" '<b>inline tag</b>'
+        check_contract "numeric entity" "$inline" 'entity &amp; numeric A'
+        check_contract "code span escaping" "$inline" 'code &quot;quotes&quot; &amp;'
+        if grep -q 'href="my-first-page.md"' "$inline"; then
+          echo "❌ Assertion Failed: contract corpus internal .md href not rewritten to .html."
+          contract_failed=true
+        fi
+
+        check_contract "heading" "$blocks" '<h1>Blocks</h1>'
+        check_contract "fenced code info string" "$blocks" '<pre><code class="language-zig">'
+        check_contract "nested blockquote" "$blocks" '<blockquote>'
+        check_contract "ordered list" "$blocks" '<ol>'
+        check_contract "thematic break" "$blocks" '<hr />'
+        if [[ "$(grep -c '<blockquote>' "$blocks")" -ne 2 ]]; then
+          echo "❌ Assertion Failed: contract corpus expected 2 nested blockquotes in $blocks."
+          contract_failed=true
+        fi
+
+        # GFM pipe tables ARE rendered by Oliver (header, body, alignment
+        # colons, escaped pipes). Task lists and footnotes are NOT part of
+        # CommonMark and must stay literal and never crash the pass.
+        check_contract "GFM table element" "$table" '<table>'
+        check_contract "GFM table header" "$table" '<th>Feature</th>'
+        check_contract "GFM table cell" "$table" '<td>GFM table</td>'
+        check_contract "GFM table alignment" "$table" 'align="center"'
+        check_contract "GFM table escaped pipe" "$table" -F '>a|b<'
+        check_contract "literal task list (documented boundary)" "$table" -F -- '- [x] done'
+        check_contract "literal footnote ref (documented boundary)" "$table" -F '[^1]'
+        check_contract "literal footnote body (documented boundary)" "$table" -F '[^1]: footnote text'
+
+        if [[ "$contract_failed" == true ]]; then
+          exit 140
+        fi
+        echo "  [+] Pass: real Oliver CommonMark contract corpus ($mode)."
+      else
+        echo "  ⚠️  Skipping real Oliver contract corpus: $CONTRACT_DIR missing."
+      fi
     else
-      echo "  [+] Skipping real Apex renderer smoke pass (no executable apex binary found)."
+      echo "  [+] Skipping real Oliver renderer smoke pass (no executable oliver binary found)."
     fi
 
     # Verify manifest path consistency across render, pack, and scan

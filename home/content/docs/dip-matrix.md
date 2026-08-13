@@ -18,7 +18,7 @@ This page tracks the documentation status of core project files.
 | `bones/config/dip-whitelist.txt` | [bones/config/dip-whitelist.md](bones/config/dip-whitelist.md) | 2026-08-12 | 2026-08-12 | OK |
 | `bones/config/rotkeeper.yaml` | [bones/config/rotkeeper.md](bones/config/rotkeeper.md) | 2026-08-12 | 2026-08-12 | OK |
 | `bones/config/version` | [bones/config/version.md](bones/config/version.md) | 2026-08-12 | 2026-08-12 | OK |
-| `bones/scripts/rc-apex-adapter.sh` | [bones/scripts/rc-apex-adapter.md](bones/scripts/rc-apex-adapter.md) | 2026-08-12 | 2026-08-12 | Stub |
+| `bones/scripts/rc-oliver-adapter.sh` | [bones/scripts/rc-oliver-adapter.md](bones/scripts/rc-oliver-adapter.md) | 2026-08-12 | 2026-08-12 | Stub |
 | `bones/scripts/rc-assets.sh` | [bones/scripts/rc-assets.md](bones/scripts/rc-assets.md) | 2026-08-12 | 2026-08-12 | OK |
 | `bones/scripts/rc-autopsy.sh` | [bones/scripts/rc-autopsy.md](bones/scripts/rc-autopsy.md) | 2026-08-12 | 2026-08-12 | Stub |
 | `bones/scripts/rc-book.sh` | [bones/scripts/rc-book.md](bones/scripts/rc-book.md) | 2026-08-12 | 2026-08-12 | OK |
