@@ -2,7 +2,7 @@
 title: "Oliver Renderer Contract"
 slug: oliver-contract
 template: rotkeeper-doc.html
-version: "1.2"
+version: "1.3"
 updated: "2026-08-13"
 description: "The supported contract between Rotkeeper and the native Oliver HTML renderer: executable discovery, input format, output streams, exit codes, the adapter boundary, and the stable template/input contract."
 tags:
@@ -27,16 +27,17 @@ If neither yields an executable file, `render` fails with exit 1 and prints a se
 
 ## The binary contract
 
-Oliver is invoked once per source file, reading the file on stdin. The input language is selected by `input_format` in `bones/config/rotkeeper.yaml` (`markdown` default, `textile` alternative); the adapter and `preflight` pass it through on every invocation:
+Oliver is invoked once per source file, reading the file on stdin. The input language comes from `input_format` in `bones/config/rotkeeper.yaml` (`markdown` default, `textile` alternative), overridden to `textile` for any source whose extension is `.textile`; the adapter and `preflight` pass the resulting format through on every invocation:
 
 ```bash
 oliver render --from markdown < file.md > body.html 2> warnings.log
 oliver render --from textile < file.md > body.html 2> warnings.log
+oliver render --from textile < file.textile > body.html 2> warnings.log
 ```
 
 | Aspect | Contract |
 | --- | --- |
-| Invocation | `oliver render --from <markdown\|textile>` — one file per invocation, stdin → stdout; format comes from `input_format` in `bones/config/rotkeeper.yaml` (default `markdown`, validated to `markdown`/`textile` at environment load; anything else warns and falls back to `markdown`) |
+| Invocation | `oliver render --from <markdown\|textile>` — one file per invocation, stdin → stdout; format comes from `input_format` in `bones/config/rotkeeper.yaml` (default `markdown`, validated to `markdown`/`textile` at environment load; anything else warns and falls back to `markdown`). A source with a `.textile` extension always invokes `--from textile`, overriding the config default for that file |
 | Input | Markdown **or Textile** on **stdin** — a leading YAML frontmatter block is stripped by the adapter before invocation (Oliver itself is a pure CommonMark/Textile renderer) |
 | stdout | Rendered **body HTML fragment** (no full page wrapping) |
 | stderr | Non-fatal renderer warnings; forwarded through the adapter as warnings, never into the page body |
@@ -73,7 +74,7 @@ This section is the stable contract that Phase 6 ("Rationalize the Oliver bounda
 
 ### Input side
 
-- Sources are UTF-8 files with an optional leading YAML frontmatter block. With `input_format: markdown` (default) the body is Markdown; with `input_format: textile` the body is Textile (Oliver's `--from textile`). Source-file discovery, soul sidecar naming, and output naming remain `*.md`-bound — Textile markup lives in `.md` sources unless discovery scope is deliberately extended.
+- Sources are UTF-8 files with an optional leading YAML frontmatter block. The body format is Markdown by default (`input_format: markdown`), Textile when `input_format: textile` is set, and Textile for any source with a `.textile` extension regardless of the config value. Source-file discovery covers `*.md` and `*.textile`; soul sidecar naming and output naming are extension-agnostic (a `.textile` source gets the same `foo.html` output and `foo.soul.md` sidecar as `foo.md`). A `foo.md` and `foo.textile` pair in the same directory is a source basename collision and aborts the render — only one source file may exist per page basename.
 - The frontmatter block must start on the **very first line** (`---` on line 1 — no BOM, no leading blank line) and close at the next `---` line. A YAML `...` document-end marker is not honored; anything after the closing `---` is body content in the configured format.
 - Only the six fields above are consumed, as **scalar strings**. Lists, maps, and other keys are ignored for template purposes.
 - A `.soul.md` sidecar under `bones/meta` may override any of the six fields **per field**; the sidecar value wins only when it is non-empty and not `null`. Without a sidecar, source frontmatter applies.
@@ -112,7 +113,7 @@ A `.soul.md` sidecar next to a source file (under `bones/meta`) may override fro
 `rc-oliver-adapter.sh` is a pure Bash + GAWK + YQ batch adapter (zero Python). It currently owns:
 
 1. Batch manifest (`TSV`) iteration with boundary assertions (source under content, destination under output).
-2. Frontmatter extraction and sidecar merge (including stripping a leading YAML frontmatter block before the Markdown reaches Oliver).
+2. Frontmatter extraction and sidecar merge (including stripping a leading YAML frontmatter block before the source reaches Oliver).
 3. Template resolution.
 4. Oliver invocation and stderr forwarding.
 5. Internal `.md`/`.textile` → `.html` link rewriting (fragment/query preserved, external and `mailto:` left alone).
