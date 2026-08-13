@@ -133,7 +133,7 @@ main() {
       exit 1
     fi
 
-    if [[ ! "$FILE" == *.md ]]; then
+    if [[ ! "$FILE" == *.md && ! "$FILE" == *.textile ]]; then
         FILE="${FILE}.md"
     fi
 
@@ -173,6 +173,9 @@ main() {
     fi
 
     TITLE="${TITLE_OVERRIDE:-$(basename "$FILE" .md)}"
+    if [[ "$TITLE" == *.textile ]]; then
+        TITLE="${TITLE%.textile}"
+    fi
     if [[ -z "$TEMPLATE_OVERRIDE" ]]; then
         TEMPLATE_OVERRIDE=$(yq e '.default_template // "theme-spooky-dark.html"' "$CONFIG_DIR/rotkeeper.yaml" 2>/dev/null || echo "theme-spooky-dark.html")
     fi
@@ -191,6 +194,12 @@ main() {
 
     # Sanitize and escape double quotes for frontmatter strings
     SAFE_TITLE="${TITLE//\"/\\\"}"
+
+    # Format-aware default heading: textile pages get h1., markdown pages get #.
+    DEFAULT_HEADING="# $TITLE"
+    if [[ "$FILE" == *.textile ]]; then
+        DEFAULT_HEADING="h1. $TITLE"
+    fi
 
     BODY_STARTS_WITH_HEADING=false
     if [[ -n "$BODY_TEXT" && "$BODY_TEXT" =~ ^[[:space:]]*#+[[:space:]]+ ]]; then
@@ -236,7 +245,7 @@ EOF
             echo "---"
             echo ""
             if [[ "$BODY_STARTS_WITH_HEADING" == false ]]; then
-                echo "# $TITLE"
+                echo "$DEFAULT_HEADING"
                 echo ""
             fi
 

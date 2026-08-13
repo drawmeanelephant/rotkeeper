@@ -475,8 +475,8 @@ if [[ -f "$FSBOOK_CATALOG" ]]; then
       if [[ "$file_path" =~ \.(png|css|jpg|jpeg|gif|svg|ico|woff2?|ttf|map|DS_Store|db)$ ]]; then
         continue
       fi
-      # Skip markdown tombs themselves (docs are outputs of DIP, not cores)
-      if [[ "$file_path" =~ \.md$ ]]; then
+      # Skip markdown/textile tombs themselves (docs are outputs of DIP, not cores)
+      if [[ "$file_path" =~ \.(md|textile)$ ]]; then
         continue
       fi
 
@@ -523,7 +523,7 @@ fi
 # --- 3. Obsolete-document handling -----------------------------------------
 
 log "INFO" "Checking for obsolete docs..."
-mapfile -d '' EXISTING_DOCS < <(find "$DOCS_DIR" -type f -name "*.md" -print0 2>/dev/null || true)
+mapfile -d '' EXISTING_DOCS < <(find "$DOCS_DIR" -type f \( -name "*.md" -o -name "*.textile" \) -print0 2>/dev/null || true)
 
 declare -A WHITELIST=()
 WHITELIST_FILE="$CONFIG_DIR/dip-whitelist.txt"

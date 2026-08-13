@@ -371,12 +371,13 @@ fi
 
 
 # --- Section 5: Content Pulse ---
-if [[ ! -d "$CONTENT_DIR" ]] || [[ -z "$(find "$CONTENT_DIR" -type f -name '*.md' -print -quit 2>/dev/null)" ]]; then
+if [[ ! -d "$CONTENT_DIR" ]] || [[ -z "$(find "$CONTENT_DIR" -type f \( -name '*.md' -o -name '*.textile' \) -print -quit 2>/dev/null)" ]]; then
     if [[ "$JSON_MODE" == true ]]; then
         JSON_PULSE="  \"content_pulse\": {
     \"status\": \"empty\",
     \"reason\": \"no content files found in home/content/\",
     \"total_md\": 0,
+    \"total_textile\": 0,
     \"stubs\": 0,
     \"drafts\": 0,
     \"docs_stubs\": 0
@@ -392,7 +393,9 @@ if [[ ! -d "$CONTENT_DIR" ]] || [[ -z "$(find "$CONTENT_DIR" -type f -name '*.md
     fi
 else
     mapfile -t c_files < <(find "$CONTENT_DIR" -type f -name '*.md' -print)
+    mapfile -t c_textile_files < <(find "$CONTENT_DIR" -type f -name '*.textile' -print)
     total_md=${#c_files[@]}
+    total_textile=${#c_textile_files[@]}
     stubs=0
     drafts=0
     if [[ $total_md -gt 0 ]]; then
@@ -402,13 +405,14 @@ else
 
     docs_stubs=0
     if [[ -d "$DOCS_DIR" ]]; then
-        docs_stubs=$(find "$DOCS_DIR" -type f -name '*.md' -exec grep -l '^status: stub' {} + 2>/dev/null | wc -l | tr -d ' ' || true)
+        docs_stubs=$(find "$DOCS_DIR" -type f \( -name '*.md' -o -name '*.textile' \) -exec grep -l '^status: stub' {} + 2>/dev/null | wc -l | tr -d ' ' || true)
     fi
 
     if [[ "$JSON_MODE" == true ]]; then
         JSON_PULSE="  \"content_pulse\": {
     \"status\": \"ok\",
     \"total_md\": $total_md,
+    \"total_textile\": $total_textile,
     \"stubs\": $stubs,
     \"drafts\": $drafts,
     \"docs_stubs\": $docs_stubs
@@ -416,6 +420,7 @@ else
     else
         echo "=== Content Pulse ==="
         echo "Total .md files : $total_md"
+        echo "Total .textile files : $total_textile"
         echo "Stubs           : $stubs"
         echo "Drafts          : $drafts"
         echo "Docs stubs      : $docs_stubs"
@@ -433,16 +438,16 @@ while IFS= read -r -d '' freshness_html; do
   [[ -n "$mtime" && ( -z "$NEWEST_HTML" || "$mtime" -gt "$NEWEST_HTML" ) ]] && NEWEST_HTML="$mtime"
 done < <(find "$OUTPUT_DIR" -type f -name '*.html' -print0 2>/dev/null)
 
-NEWEST_MD=""
-while IFS= read -r -d '' freshness_md; do
-  mtime=$(rk_mtime "$freshness_md")
-  [[ -n "$mtime" && ( -z "$NEWEST_MD" || "$mtime" -gt "$NEWEST_MD" ) ]] && NEWEST_MD="$mtime"
-done < <(find "$CONTENT_DIR" -type f -name '*.md' -print0 2>/dev/null)
+NEWEST_SRC=""
+while IFS= read -r -d '' freshness_src; do
+  mtime=$(rk_mtime "$freshness_src")
+  [[ -n "$mtime" && ( -z "$NEWEST_SRC" || "$mtime" -gt "$NEWEST_SRC" ) ]] && NEWEST_SRC="$mtime"
+done < <(find "$CONTENT_DIR" -type f \( -name '*.md' -o -name '*.textile' \) -print0 2>/dev/null)
 
 status_render="[EMPTY] no rendered output found"
 status_json="empty"
 if [[ -n "$NEWEST_HTML" ]]; then
-    if [[ -n "$NEWEST_MD" ]] && [[ "$NEWEST_MD" -gt "$NEWEST_HTML" ]]; then
+    if [[ -n "$NEWEST_SRC" ]] && [[ "$NEWEST_SRC" -gt "$NEWEST_HTML" ]]; then
         status_render="[STALE] content has changed since last render"
         status_json="stale"
     else
