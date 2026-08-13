@@ -1,6 +1,7 @@
 # 🪦 Rotkeeper
 
 [![Release](https://img.shields.io/github/v/release/drawmeanelephant/rotkeeper?sort=semver)](https://github.com/drawmeanelephant/rotkeeper/releases)
+[![CI](https://github.com/drawmeanelephant/rotkeeper/actions/workflows/ci.yml/badge.svg)](https://github.com/drawmeanelephant/rotkeeper/actions/workflows/ci.yml)
 
 *"What lives in `/bones/` may yet render again."*
 
