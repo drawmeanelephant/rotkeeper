@@ -177,6 +177,13 @@ require_sha256() {
   fi
 }
 
+# Portable file modification time in epoch seconds: GNU `stat -c %Y` (Linux)
+# falls back to BSD `stat -f %m` (macOS). Prints nothing when stat is missing.
+rk_mtime() {
+  local path="$1"
+  stat -c %Y "$path" 2>/dev/null || stat -f %m "$path" 2>/dev/null
+}
+
 # Build N levels of "../" using only Bash (replaces hidden `seq` usage).
 rk_up_dirs() {
   local n="${1:-0}" i=0 out=""
