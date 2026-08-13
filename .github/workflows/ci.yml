@@ -101,8 +101,13 @@ jobs:
       - name: Run Full Test Harness
         # The harness runs the hermetic adapter + golden passes and, because a
         # real oliver binary is on PATH, the real-Oliver renderer smoke and
-        # CommonMark contract corpus on every layout pass. macOS must run
-        # under Homebrew bash 5, never the system bash 3.2.
+        # CommonMark contract corpus on every layout pass. RK_STRICT=1 turns
+        # the harness's real-binary skip paths (missing oliver, missing
+        # contract corpus) into hard failures, so a green run always proves
+        # real Oliver was exercised. macOS must run under Homebrew bash 5,
+        # never the system bash 3.2.
+        env:
+          RK_STRICT: "1"
         run: |
           if [ "$RUNNER_OS" = "macOS" ]; then
             export PATH="$(brew --prefix)/bin:$PATH"
