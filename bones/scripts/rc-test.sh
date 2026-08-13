@@ -548,9 +548,17 @@ FIXTURE_EOF
         fi
         echo "  [+] Pass: real Oliver CommonMark contract corpus ($mode)."
       else
+        if [[ "${RK_STRICT:-0}" == "1" ]]; then
+          echo "❌ Assertion Failed: real Oliver contract corpus skipped ($CONTRACT_DIR missing) but RK_STRICT=1 requires it."
+          exit 142
+        fi
         echo "  ⚠️  Skipping real Oliver contract corpus: $CONTRACT_DIR missing."
       fi
     else
+      if [[ "${RK_STRICT:-0}" == "1" ]]; then
+        echo "❌ Assertion Failed: real Oliver renderer smoke pass skipped (no executable oliver binary found) but RK_STRICT=1 requires it."
+        exit 141
+      fi
       echo "  [+] Skipping real Oliver renderer smoke pass (no executable oliver binary found)."
     fi
 
