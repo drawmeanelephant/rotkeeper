@@ -93,7 +93,7 @@ zig build                     # builds the library and CLI into zig-out/
 install -m 0755 zig-out/bin/oliver /usr/local/bin/oliver
 ```
 
-Then either put `oliver` on `PATH` or set `RK_OLIVER_BIN=/path/to/oliver`. CI environments use `scripts/setup-jules.sh`, which clones the repository, builds it with Zig, and installs to `/usr/local/bin/oliver` when a prebuilt binary is absent.
+Then either put `oliver` on `PATH` or set `RK_OLIVER_BIN=/path/to/oliver`. CI environments (see `.github/workflows/ci.yml`) install Zig 0.16.0, then run `scripts/setup-jules.sh`, which clones the repository, builds it, and installs to `/usr/local/bin/oliver` when a prebuilt binary is absent.
 
 ## Smoke paths
 

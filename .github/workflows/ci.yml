@@ -14,9 +14,30 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v7
 
+      - name: Install Zig 0.16.0
+        # Oliver (the renderer) requires Zig 0.16.0 to build from source, and
+        # ubuntu-latest does not ship it. Installed into /usr/local/bin so the
+        # sudo'd setup-jules.sh step can find it (sudo's secure_path includes
+        # /usr/local/bin). Verified against ziglang.org's official shasum.
+        run: |
+          set -euo pipefail
+          wget -q "https://ziglang.org/download/0.16.0/zig-x86_64-linux-0.16.0.tar.xz" -O /tmp/zig.tar.xz
+          echo "70e49664a74374b48b51e6f3fdfbf437f6395d42509050588bd49abe52ba3d00  /tmp/zig.tar.xz" | sha256sum -c -
+          mkdir -p /tmp/zig
+          tar -xJf /tmp/zig.tar.xz -C /tmp/zig
+          sudo install -m 0755 "/tmp/zig/zig-x86_64-linux-0.16.0/zig" /usr/local/bin/zig
+          zig version
+
       - name: Setup Jules Environment
-        # This triggers the same deterministic setup that Jules would use
+        # This triggers the same deterministic setup that Jules would use;
+        # with Zig on PATH it clones drawmeanelephant/oliver, builds it, and
+        # installs the binary to /usr/local/bin/oliver.
         run: sudo bash scripts/setup-jules.sh
+
+      - name: Verify Oliver Renderer
+        run: |
+          command -v oliver
+          oliver --help
 
       - name: Lint with ShellCheck
         run: |
@@ -26,5 +47,8 @@ jobs:
           echo "Running ShellCheck on all ritual scripts..."
           find bones/scripts -name "rc-*.sh" -exec shellcheck {} +
 
-      - name: Run Smoke Test
-        run: bash rotkeeper.sh smoke
+      - name: Run Full Test Harness
+        # The harness runs the hermetic adapter + golden passes and, because a
+        # real oliver binary is on PATH, the real-Oliver renderer smoke and
+        # CommonMark contract corpus on every layout pass.
+        run: bash rotkeeper.sh test
