@@ -148,11 +148,12 @@ Do not rely on these utilities in truly hostile environments. Their portability 
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-12T12:26:46Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-13T10:51:03Z -->
 
 ```text
 --debug
 --dry-run
+--from
 --help
 --quiet
 --verbose

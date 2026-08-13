@@ -65,6 +65,43 @@ IFS=$'\n\t'
 # 💀 MANDATE:
 # Preserve the rot. Export with intention. Archive before deletion.
 # =============================================================================
+
+PARTIAL_ARCHIVE=""
+
+# --- cleanup: on failure, remove any half-written archive so no partial
+# --- tomb (bare .tar or truncated .gz) survives an interrupted pack.
+cleanup() {
+  if [[ "${cleanup_ran:-false}" == true ]]; then return 0; fi
+  cleanup_ran=true
+  if [[ -n "$PARTIAL_ARCHIVE" ]]; then
+    rm -f "$PARTIAL_ARCHIVE" "$PARTIAL_ARCHIVE.gz"
+    log "WARN" "Removed partial archive after failure: ${PARTIAL_ARCHIVE##*/}"
+  fi
+}
+
+# --- pack_archive: run a tar command, record the entry count, and register
+# --- the target as an in-flight partial for cleanup on failure.
+pack_archive() {
+  local target="$1"
+  shift
+  PARTIAL_ARCHIVE="$target"
+  run "$@"
+  count=$(tar -tf "$target" | wc -l | tr -d ' ')
+  log "INFO" "Packaged $count files into ${target##*/}"
+}
+
+# --- validate_gz: confirm a freshly compressed archive is not truncated.
+validate_gz() {
+  local gz="$1"
+  if ! gzip -t "$gz" 2>/dev/null; then
+    log "ERROR" "Archive integrity check failed: $gz"
+    return 1
+  fi
+  PARTIAL_ARCHIVE=""
+  log "INFO" "Archive integrity verified: ${gz##*/}"
+  return 0
+}
+
 main() {
     log "INFO" "Running rc-pack.sh."
 
@@ -93,7 +130,11 @@ main() {
     SOURCE_DIR="$CONTENT_DIR"
     OUTPUT_DIR="$OUTPUT_DIR"
     MANIFEST_FILE="$BONES_DIR/manifest.txt"
-    TIMESTAMP_VERSION=$(date +%Y-%m-%d_%H%M)
+    TIMESTAMP_VERSION=$(date +%Y-%m-%d_%H%M%S)
+    # Collision hardening: %N (nanoseconds) is GNU-only, so two packs within
+    # the same second would otherwise name-collide. A per-process random tag
+    # keeps every archive name unique on both GNU and BSD platforms.
+    TIMESTAMP_VERSION="${TIMESTAMP_VERSION}-$(printf '%04d' $((RANDOM % 10000)))"
     TOMB="tomb-$TIMESTAMP_VERSION.tar"
     EXPORT_JSON="$ARCHIVE_DIR/tomb-export-$TIMESTAMP_VERSION.json"
 
@@ -116,13 +157,12 @@ main() {
       CONTENT_ARCHIVE="tomb-content-$TIMESTAMP_VERSION.tar"
       if [[ "$DRY_RUN" == false ]]; then
         echo "📦 Packing \"$SOURCE_DIR\" into \"$CONTENT_ARCHIVE\""
-        run tar --exclude="${CONTENT_DIR#"$ROOT_DIR"/}/help" \
-                --exclude="*_temp.md" \
-                -cf "$ARCHIVE_DIR/$CONTENT_ARCHIVE" "${CONTENT_DIR#"$ROOT_DIR"/}"
-        count=$(tar -tf "$ARCHIVE_DIR/$CONTENT_ARCHIVE" | wc -l | tr -d ' ')
-        log "INFO" "Packaged $count files into $CONTENT_ARCHIVE"
-
+        pack_archive "$ARCHIVE_DIR/$CONTENT_ARCHIVE" \
+          tar --exclude="${CONTENT_DIR#"$ROOT_DIR"/}/help" \
+              --exclude="*_temp.md" \
+              -cf "$ARCHIVE_DIR/$CONTENT_ARCHIVE" "${CONTENT_DIR#"$ROOT_DIR"/}"
         run gzip -f "$ARCHIVE_DIR/$CONTENT_ARCHIVE"
+        validate_gz "$ARCHIVE_DIR/$CONTENT_ARCHIVE.gz" || exit 1
         CONTENT_ARCHIVE="$CONTENT_ARCHIVE.gz"
         SHA=$(rk_sha256 "$ARCHIVE_DIR/$CONTENT_ARCHIVE" | cut -d' ' -f1)
         rel_archive="${ARCHIVE_DIR#"$ROOT_DIR"/}/$CONTENT_ARCHIVE"
@@ -137,23 +177,23 @@ main() {
     if [[ "$SELF_MODE" == false && "$CONTENT_MODE" == false ]]; then
       if [[ "$DRY_RUN" == false ]]; then
         echo "📦 Packing \"$OUTPUT_DIR\" into \"$TOMB\""
-        run tar -cf "$ARCHIVE_DIR/$TOMB" "$OUTPUT_DIR"
-        count=$(tar -tf "$ARCHIVE_DIR/$TOMB" | wc -l | tr -d ' ')
-        log "INFO" "Packaged $count files into $TOMB"
+        pack_archive "$ARCHIVE_DIR/$TOMB" \
+          tar -C "$ROOT_DIR" -cf "$ARCHIVE_DIR/$TOMB" "${OUTPUT_DIR#"$ROOT_DIR"/}"
         SHA_UNCOMPRESSED=$(rk_sha256 "$ARCHIVE_DIR/$TOMB" | cut -d' ' -f1)
 
-        # Embed metadata into archive
-        METADATA_FILE="$(mktemp)"
+        # Embed metadata into archive as metadata.json
+        PACK_META_DIR=$(mktemp -d "$TMP_DIR/packmeta.XXXXXX" 2>/dev/null || mktemp -d)
         jq -n \
           --arg name "$TOMB" \
           --arg sha "$SHA_UNCOMPRESSED" \
           --arg timestamp "$TIMESTAMP_VERSION" \
           --arg mode "default" \
           --arg count "$count" \
-          '{name: $name, sha256: $sha, timestamp: $timestamp, mode: $mode, file_count: $count|tonumber}' > "$METADATA_FILE"
-        run tar --append --file="$ARCHIVE_DIR/$TOMB" -C "$(dirname "$METADATA_FILE")" "$(basename "$METADATA_FILE")"
+          '{name: $name, sha256: $sha, timestamp: $timestamp, mode: $mode, file_count: $count|tonumber}' > "$PACK_META_DIR/metadata.json"
+        run tar --append --file="$ARCHIVE_DIR/$TOMB" -C "$PACK_META_DIR" metadata.json
+        rm -rf "$PACK_META_DIR"
         run gzip -f "$ARCHIVE_DIR/$TOMB"
-        rm "$METADATA_FILE"
+        validate_gz "$ARCHIVE_DIR/$TOMB.gz" || exit 1
         TOMB="$TOMB.gz"
         SHA_COMPRESSED=$(rk_sha256 "$ARCHIVE_DIR/$TOMB" | cut -d' ' -f1)
         rel_tomb="${ARCHIVE_DIR#"$ROOT_DIR"/}/$TOMB"
@@ -161,6 +201,7 @@ main() {
         log "INFO" "Embedded metadata.json into $TOMB"
 
         echo "🧾 Archived to \"$ARCHIVE_DIR/$TOMB\""
+        echo "📦 Tomb summary: $(basename "$TOMB") | sha256 ${SHA_COMPRESSED:0:16}… | files $count | $(du -h "$ARCHIVE_DIR/$TOMB" | cut -f1)"
       else
         log "DRYRUN" "Would pack \"$OUTPUT_DIR\" into \"$ARCHIVE_DIR/$TOMB\""
       fi
@@ -168,29 +209,33 @@ main() {
 
     if [[ "$SELF_MODE" == true ]]; then
       SELF_ARCHIVE="tombkit-$TIMESTAMP_VERSION.tar"
-      echo "📦 Packing full rotkeeper system into \"$SELF_ARCHIVE\""
-      run tar --exclude="$ARCHIVE_DIR" -cf "$ARCHIVE_DIR/$SELF_ARCHIVE" rotkeeper.sh "${BONES_DIR#"$ROOT_DIR"/}/" "${CONTENT_DIR#"$ROOT_DIR"/}/" "${OUTPUT_DIR#"$ROOT_DIR"/}/"
-      count=$(tar -tf "$ARCHIVE_DIR/$SELF_ARCHIVE" | wc -l | tr -d ' ')
-      log "INFO" "Packaged $count files into $SELF_ARCHIVE"
-      SHA=$(rk_sha256 "$ARCHIVE_DIR/$SELF_ARCHIVE" | cut -d' ' -f1)
-      echo "$SELF_ARCHIVE  $SHA" >> "$MANIFEST_FILE"
+      if [[ "$DRY_RUN" == false ]]; then
+        echo "📦 Packing full rotkeeper system into \"$SELF_ARCHIVE\""
+        pack_archive "$ARCHIVE_DIR/$SELF_ARCHIVE" \
+          tar --exclude="$ARCHIVE_DIR" -C "$ROOT_DIR" -cf "$ARCHIVE_DIR/$SELF_ARCHIVE" rotkeeper.sh "${BONES_DIR#"$ROOT_DIR"/}/" "${CONTENT_DIR#"$ROOT_DIR"/}/" "${OUTPUT_DIR#"$ROOT_DIR"/}/"
+        SHA=$(rk_sha256 "$ARCHIVE_DIR/$SELF_ARCHIVE" | cut -d' ' -f1)
+        echo "$SELF_ARCHIVE  $SHA" >> "$MANIFEST_FILE"
 
-      # Embed metadata into archive
-      METADATA_FILE="$(mktemp)"
-      jq -n \
-        --arg name "$SELF_ARCHIVE" \
-        --arg sha "$SHA" \
-        --arg timestamp "$TIMESTAMP_VERSION" \
-        --arg mode "self" \
-        --arg count "$count" \
-        '{name: $name, sha256: $sha, timestamp: $timestamp, mode: $mode, file_count: $count|tonumber}' > "$METADATA_FILE"
-      run tar --append --file="$ARCHIVE_DIR/$SELF_ARCHIVE" -C "$(dirname "$METADATA_FILE")" "$(basename "$METADATA_FILE")"
-      run gzip -f "$ARCHIVE_DIR/$SELF_ARCHIVE"
-      rm "$METADATA_FILE"
-      SELF_ARCHIVE="$SELF_ARCHIVE.gz"
-      log "INFO" "Embedded metadata.json into $SELF_ARCHIVE"
+        # Embed metadata into archive as metadata.json
+        PACK_META_DIR=$(mktemp -d "$TMP_DIR/packmeta.XXXXXX" 2>/dev/null || mktemp -d)
+        jq -n \
+          --arg name "$SELF_ARCHIVE" \
+          --arg sha "$SHA" \
+          --arg timestamp "$TIMESTAMP_VERSION" \
+          --arg mode "self" \
+          --arg count "$count" \
+          '{name: $name, sha256: $sha, timestamp: $timestamp, mode: $mode, file_count: $count|tonumber}' > "$PACK_META_DIR/metadata.json"
+        run tar --append --file="$ARCHIVE_DIR/$SELF_ARCHIVE" -C "$PACK_META_DIR" metadata.json
+        rm -rf "$PACK_META_DIR"
+        run gzip -f "$ARCHIVE_DIR/$SELF_ARCHIVE"
+        validate_gz "$ARCHIVE_DIR/$SELF_ARCHIVE.gz" || exit 1
+        SELF_ARCHIVE="$SELF_ARCHIVE.gz"
+        log "INFO" "Embedded metadata.json into $SELF_ARCHIVE"
 
-      echo "🧾 Archived full tombkit to \"$ARCHIVE_DIR/$SELF_ARCHIVE\""
+        echo "🧾 Archived full tombkit to \"$ARCHIVE_DIR/$SELF_ARCHIVE\""
+      else
+        log "DRYRUN" "Would pack full rotkeeper system into \"$ARCHIVE_DIR/$SELF_ARCHIVE.gz\""
+      fi
     fi
 
     if [[ "$SELF_MODE" == false && "$CONTENT_MODE" == false ]]; then
@@ -199,12 +244,12 @@ main() {
 
       if [[ "$DRY_RUN" == false ]]; then
         echo "🧬 Exporting .md from \"$SOURCE_DIR\" to JSON: \"$EXPORT_JSON\""
-        TMP_EXPORT="$(mktemp)"
+        TMP_EXPORT=$(mktemp "$TMP_DIR/packexport.XXXXXX" 2>/dev/null || mktemp)
         echo "[" > "$TMP_EXPORT"
         FIRST=true
 
         while IFS= read -r -d '' mdfile; do
-          ABS_PATH=$(realpath "$mdfile")
+          ABS_PATH=$(rk_canonical_path "$mdfile")
           REL_PATH="${mdfile#"$ROOT_DIR"/}"
           FM_CONTENT=$(yq --front-matter="extract" -o=json '.' "$mdfile" 2>/dev/null || echo "{}")
 

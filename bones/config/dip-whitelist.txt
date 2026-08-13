@@ -25,3 +25,5 @@ home/content/docs/.github/index.md
 home/content/docs/.github/workflows/index.md
 home/content/docs/bones/archive/index.md
 home/content/docs/oliver-contract.md
+home/content/docs/new-ritual.md
+home/content/docs/rotkeeper-schemas.md

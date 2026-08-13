@@ -61,13 +61,23 @@ if [ -f /tmp/yq ]; then
 fi
 
 echo "2. Installing Oliver renderer..."
+# Oliver has no stable release yet, so Rotkeeper pins an exact source commit:
+# the binary built from $OLIVER_PIN is the renderer contract for 0.6.x.
+# Move the pin deliberately (see oliver-contract.md) — never on a whim.
+OLIVER_PIN="22b3c7795adb1caac160b3bc863980d35bbec379"
 if command -v oliver >/dev/null 2>&1; then
   echo "Oliver already present at $(command -v oliver), skipping install."
 elif command -v zig >/dev/null 2>&1; then
-  # Oliver has no published releases yet; build the current source with Zig.
-  # Requires Zig 0.16.0 (https://ziglang.org/download/) and git.
+  # Requires Zig 0.16.0 (https://ziglang.org/download/) and git. A full clone
+  # is required: a shallow clone lacks the pinned object once upstream advances.
   rm -rf /tmp/oliver-build
-  git clone --depth 1 https://github.com/drawmeanelephant/oliver.git /tmp/oliver-build
+  git clone https://github.com/drawmeanelephant/oliver.git /tmp/oliver-build
+  git -C /tmp/oliver-build checkout --quiet "$OLIVER_PIN"
+  if [[ "$(git -C /tmp/oliver-build rev-parse HEAD)" != "$OLIVER_PIN" ]]; then
+    echo "FATAL: could not check out pinned Oliver commit $OLIVER_PIN" >&2
+    exit 1
+  fi
+  echo "Building Oliver from pinned commit $OLIVER_PIN"
   (cd /tmp/oliver-build && zig build)
   $SUDO install -m 0755 "/tmp/oliver-build/zig-out/bin/oliver" /usr/local/bin/oliver
 else

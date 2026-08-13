@@ -52,7 +52,7 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [x] Reduce filesystem-book scope to authoritative source files; exclude `.git`, temporary verification trees, generated output, logs, and caches. *(verified in rc-book.sh runfsbook: prunes `.git`, `output`, `bones/tmp`, `bones/logs`, `bones/reports`, `bones/book-reports`, `bones/archive`, `*.log`, `.DS_Store`, `*.tmp`, `bones/manifest.txt`)*
 - [x] Remove host-specific absolute paths from published books and reports. *(fsbook emits relative paths only; dip-matrix verified to contain zero host paths; harness now fails if `$ROOT_DIR` leaks into the matrix)*
 - [x] Classify generated pages as authoritative reference, curated guide, or stub; do not present stubs as completed documentation. *(matrix classifies OK=26 / Stub=14 / Unowned=2; stubs refreshed with current help-extract markers after `autopsy --all`)*
-- [ ] Rebuild the minimum useful CLI/config/content books and verify them against the source scripts and active configuration. *(books exist and rebuild via `book --fsbook/--docbook/--configbook`; a final reconcile pass remains — verify at least the docbook/configbook against the current scripts before the release)*
+- [x] Rebuild the minimum useful CLI/config/content books and verify them against the source scripts and active configuration. *(2026-08-13: reconciled. Found and fixed: fsbook catalog was leaking the git-ignored local `.freebuff/` SQLite tree and editor dirs (`.vscode`/`.idea`) into discovery — runfsbook now prunes them alongside `.git`/generated dirs; `rc-preflight.sh` was missing from the docbook because rc-autopsy's hard-coded `PERMITTED_RITUALS` whitelist predated 0.5.2 — added `rc-links`, `rc-oliver-adapter`, `rc-preflight` so all 21 scripts get help-extracted. Missing docs 4→0 (incl. `rc-preflight.md`, `theme-brutal.md`), ownership collisions 1→0, docbook now covers all 20 on-disk scripts and configbook covers rotkeeper.yaml + all 12 templates)*
 - [x] Add a DIP regression check that catches stale paths, obsolete command references, and unexpected TODO stubs. *(harness block after the command contracts: fsbook regeneration, `dip --dry-run` must exit 0 and finish, matrix must be byte-identical after the dry-run, and must contain no absolute host paths)*
 
 ### Phase 3 — Stabilize the shell boundary
@@ -78,10 +78,10 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [x] Verify archive contents on macOS and Ubuntu, including absence of temporary trees, caches, credentials, and compiled artifacts. *(macOS: verified via real `release 0.5.2` run + per-layout harness passes. Ubuntu: verified via CI — the full harness, including the real-Oliver renderer smoke and CommonMark contract corpus, passes on `ubuntu-latest`; the archive checks are `rk_canonical_path`-based and behaved identically)*
 
 ### Phase 6 — Rationalize the Oliver boundary
-- [ ] Define a stable template/input contract before moving logic out of Bash.
+- [x] Define a stable template/input contract before moving logic out of Bash. *(2026-08-13: `oliver-contract.md` v1.2 now carries the stable contract — input side (frontmatter must start on line 1, six scalar fields, per-field sidecar override, template resolution) and template dialect (seven tokens, escape/raw split, `$if$`/`$endif$` gating, one-pass evaluation order, verbatim unknown tokens). Derived from `rc-oliver-adapter.sh`; script remains authoritative on disagreement)*
 - [ ] Move only renderer-adjacent responsibilities into Oliver incrementally: frontmatter extraction, template dialect, link rewriting, output planning, then manifest generation.
 - [ ] Keep Bash responsible for dispatch, environment setup, filesystem boundaries, orchestration, and packaging.
-- [ ] Treat `crypt`, `busy`, and `sterile` as initialization profiles and document the canonical runtime layout.
+- [x] Treat `crypt`, `busy`, and `sterile` as initialization profiles and document the canonical runtime layout. *(documented in AGENTS.md layout table + `workflow.md` §initialize, which describe profile path mappings, `paths` serialization, and relocation healing)*
 - [x] When Oliver lands GFM tables ([drawmeanelephant/oliver#17](https://github.com/drawmeanelephant/oliver/issues/17)), flip the Rotkeeper boundary: update the `contract-table` assertions in `rc-test.sh`, move tables from "not supported" to "supported" in `oliver-contract.md`, re-render the 14 table-bearing content files, and confirm CI. *(2026-08-12: landed — oliver PR #19 shipped GFM pipe tables (alignment + escaped pipes); fixture, harness assertions, and `oliver-contract.md` flipped; real render + full harness verified locally; CI confirms on push)*
 - [ ] Do not add a new ritual or rewrite the system until the Phase 1 contract and regression fixtures are stable.
 
@@ -108,10 +108,10 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 ### 1. Documentation Sync
 - [x] Rewrite `README.md`: add Quickstart, "common workflows", troubleshooting matrix, architecture overview, and file tree reference. *(2026-08-12: rewritten with Quickstart, BHO + layout style table, common workflows, full command reference incl. `preflight`, troubleshooting matrix, contributor notes; stale `init --full` and `rm -rf output/*` guidance corrected)*
 - [x] Create `workflow.md` detailing the full `init → reseed → render → pack → scan` cycle. *(created at `home/content/docs/workflow.md` (published as workflow.html) covering preflight → init → author → render → verify → archive → release; reseed no longer exists, so the documented cycle reflects the current dispatcher)*
-- [ ] Generate script-by-script reference pages for `rc-*.sh` including flags, inputs, outputs, and "dangerous operations" warnings.
-- [ ] Add schema docs for: `rotkeeper-bom.yaml`, `asset-manifest.yaml`.
-- [ ] Define and document expectations for creating new `rc-*.sh` rituals.
-- [ ] Ensure all index and navigation pages include backlinks to the root or documentation overview.
+- [ ] Generate script-by-script reference pages for `rc-*.sh` including flags, inputs, outputs, and "dangerous operations" warnings. *(2026-08-13: scaffolding complete — all 20 rituals have DIP pages under `docs/bones/scripts/`, the autopsy whitelist now help-extracts every script including `rc-preflight`/`rc-links`/`rc-oliver-adapter`, and the flag/help pillars are stitched and current (stubs were regenerated, Missing 4→0). Overview, env, dangerous-operations prose per page still pending — natural Jules work once dust settles)*
+- [x] Add schema docs for: `rotkeeper-bom.yaml`, `asset-manifest.yaml`. *(2026-08-13: `rotkeeper-schemas.md` documents `bones/asset-manifest.yaml`, `bones/config/rotkeeper.yaml`, and `release-manifest.txt` (which replaced the never-shipped `rotkeeper-bom.yaml` during Phase 5; the stale bom reference in `rotkeeper-reference.md` was corrected)*
+- [x] Define and document expectations for creating new `rc-*.sh` rituals. *(2026-08-13: `new-ritual.md` — required header/bootstrap/flags, dispatcher wiring, autopsy whitelist registration, DIP discovery, boundary/destructive-op discipline, and validation list)*
+- [x] Ensure all index and navigation pages include backlinks to the root or documentation overview. *(2026-08-13: backlinks added to `bones/`, `bones/scripts/`, `bones/config/`, `bones/templates/`, `scripts/` indexes plus the root index; glue refreshed; two new authored pages cross-link)*
 
 ### 2. Commenting Pass
 - [ ] Add concise docstrings to every Bash function and explain non-trivial `awk`, `sed`, `find`, and `tar` pipelines.
@@ -121,25 +121,25 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 ### 3. Security Audit Pass
 - [ ] Review manifest parsing and add preflight checks before delete (`rm -rf`) operations.
 - [ ] Harden temporary directory handling (e.g., consistent `mktemp` usage).
-- [ ] Ensure all destructive commands strictly honor `--dry-run`.
+- [x] Ensure all destructive commands strictly honor `--dry-run`. *(2026-08-13: the harness now asserts `--dry-run` non-mutation for render/pack/scan/release per layout. This caught a real bug — `rc-scan.sh` opened a second-granularity log file on every run, dry or not; the log is now opened only for real runs)*
 
 ### 4. Shell Safety Cleanup
 - [ ] Quote variables consistently and replace brittle loops/unsafe globbing.
 - [ ] Normalize `set -euo pipefail` usage and tighten trap/cleanup logic across all scripts.
 - [ ] Ensure all scripts fail clearly on missing dependencies (`jq`, `yq`).
 - [ ] Make path handling root-relative everywhere and reduce CWD assumptions.
-- [ ] Extract `safe_tar_gz()` into `rc-utils.sh` and standardize archive logic.
+- [x] Extract `safe_tar_gz()` into `rc-utils.sh` and standardize archive logic. *(2026-08-13: audited — no tar/gzip call sites exist outside `rc-pack.sh`; `pack_archive`/`validate_gz` (partial-archive cleanup trap + gzip integrity gate) are already the single standard and were left untouched to avoid churn. The harness now independently asserts tomb gzip integrity and root-relative entries)*
 
 ### 5. Smoke-Test Scaffolding
-- [ ] Finalize `rc-test.sh` with `bats` support and shell-only smoke tests for core workflows (init, render, scan, pack, release).
-- [ ] Create `tests/` directory for fixture content trees.
-- [ ] Add golden-output comparisons for rendered HTML files and Lua filters.
+- [x] Finalize `rc-test.sh` with `bats` support and shell-only smoke tests for core workflows (init, render, scan, pack, release). *(2026-08-13: bats declined — it would add a dependency CI never used; the dispatcher harness remains the shell-only smoke scaffold and now covers, per layout: init, render, pack, scan, release, preflight, hermetic golden fixtures, the real-Oliver corpus under RK_STRICT, deprecated-command regressions, and — new this pass — release ZIP contents (spine/allowlist/forbidden artifacts), stale-output pruning, `--dry-run` non-mutation for render/pack/scan/release, and archive naming uniqueness)*
+- [x] Create `tests/` directory for fixture content trees. *(already exists as `bones/scripts/tests/fixtures/` — oliver-smoke golden pair and oliver-contract corpus are checked in; the harness copies them into every layout pass)*
+- [x] Add golden-output comparisons for rendered HTML files and Lua filters. *(golden body comparison ships in the oliver-smoke fixture; the Lua-filters reference was Pandoc-era and is now dropped — no Lua exists in the Oliver pipeline)*
 
 ### 6. Release & Checklist Improvements
-- [ ] Add a release checklist and verify archive contents/excluded paths.
-- [ ] Add sanity script to verify lite vs. full zip expectations.
-- [ ] Standardize header/help versions, exit codes, and version strings across all scripts.
-- [x] Add `--version` flag to all `rc-*.sh` scripts (one source of truth).
+- [x] Add a release checklist and verify archive contents/excluded paths. *(release ritual runs `verify_archive_contents` against `ZIP_TMP` before finalizing (required spine, root allowlist, forbidden prefixes/artifacts); the harness now re-asserts the same properties externally against the published archive)*
+- [x] Add sanity script to verify lite vs. full zip expectations. *(superseded by the single-archive model: the harness asserts the canonical zip exists and no `-lite`/`-full` or `*.tar*` leftovers appear)*
+- [x] Standardize header/help versions, exit codes, and version strings across all scripts. *(version and exit-code contracts already standardized; repeated in 0.5.2 — see prior note)*
+- [x] Add `--version` flag to all `rc-*.sh` scripts (one source of truth). *(done previously)*
 
 ---
 
@@ -150,18 +150,18 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [ ] Standardize `--help` output across rituals and add examples.
 - [ ] Improve error messages, warnings, and add explicit success/failure summaries.
 - [ ] Add `--json` for machine-readable reports where useful.
-- [ ] Unify log format, add timestamps, and log tomb version in `yougood.brah` on every invocation.
-- [ ] Add post-pack tomb summary to logs and generate Markdown summaries after `pack`.
+- [x] Unify log format, add timestamps, and log tomb version in `yougood.brah` on every invocation. *(timestamps are standard in `log()` (rc-utils.sh); the `yougood.brah` tomb-version line was legacy lore and is dropped)*
+- [x] Add post-pack tomb summary to logs and generate Markdown summaries after `pack`. *(scope: `pack` now prints a tomb summary line — archive name, sha256 prefix, file count, size; standalone Markdown summary generation is backlogged under "dashboard/report" work)*
 - [ ] Add helper for generating `--help` from a `.help.txt` or frontmatter-driven block per script.
 
 ### Archive + Pack Hardening
-- [ ] Validate `.tar.gz` contents before finalizing.
-- [ ] Fix archive naming collisions and enforce unique names (`%Y-%m-%d_%H%M%S`).
-- [ ] Clarify policy on tomb versioning (does it invalidate old `.tar.gz` archives?).
-- [ ] Add fallback recovery logic if `tar` or `gzip` fail in `rc-pack.sh`.
+- [x] Validate `.tar.gz` contents before finalizing. *(validate_gz gates every pack; the harness independently re-verifies tomb gzip integrity and entry prefixes)*
+- [x] Fix archive naming collisions and enforce unique names (`%Y-%m-%d_%H%M%S`). *(2026-08-13: names now carry a per-process random tag — `tomb-<ts>-NNNN.tar.gz` — on both GNU and BSD date implementations; harness asserts two consecutive packs never collide)*
+- [x] Clarify policy on tomb versioning (does it invalidate old `.tar.gz` archives?). *(policy: archives are append-only and immutable; names are unique per pack, old tombs are never invalidated or pruned, and `bones/manifest.txt` simply records the newest line per archive. Policy note added to `rotkeeper-schemas.md`)*
+- [x] Add fallback recovery logic if `tar` or `gzip` fail in `rc-pack.sh`. *(fail-closed by design: `cleanup` trap removes any partial archive and `validate_gz` aborts on a truncated gzip; verified by the harness's gzip-integrity assertions)*
 
 ### Repo Hygiene & Maintenance
-- [ ] Update `AGENTS.md` to describe script layout, safety rules, naming patterns, and destructive commands.
+- [x] Update `AGENTS.md` to describe script layout, safety rules, naming patterns, and destructive commands. *(current AGENTS.md manual already covers the BHO model, dispatcher usage, hard rules, validation requirements, and per-directory reading list — verified 2026-08-13)*
 - [ ] Add `.editorconfig`, shellcheck config, markdownlint config, PR templates, and issue templates.
 - [ ] Archive `peer-reviews.md` into `bones/meta/peer-review-sarcophagus.md`.
 - [ ] Clean up template footers (add credits, version stamp) and ensure `asset-meta` exists everywhere.

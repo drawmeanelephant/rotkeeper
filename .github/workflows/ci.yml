@@ -70,11 +70,12 @@ jobs:
 
       - name: Setup Jules Environment
         # This triggers the same deterministic setup that Jules would use;
-        # with Zig on PATH it clones drawmeanelephant/oliver, builds it, and
-        # installs the binary to /usr/local/bin/oliver. Linux runs under sudo
-        # (apt + secure_path); macOS must NOT — Homebrew refuses to run as
-        # root, and the script's internal $SUDO handles the privileged
-        # installs (passwordless on GitHub runners).
+        # with Zig on PATH it clones drawmeanelephant/oliver, checks out the
+        # pinned OLIVER_PIN commit from scripts/setup-jules.sh (never unpinned
+        # main), builds it, and installs the binary to /usr/local/bin/oliver.
+        # Linux runs under sudo (apt + secure_path); macOS must NOT — Homebrew
+        # refuses to run as root, and the script's internal $SUDO handles the
+        # privileged installs (passwordless on GitHub runners).
         run: |
           if [ "$RUNNER_OS" = "macOS" ]; then
             export PATH="$(brew --prefix)/bin:$PATH"

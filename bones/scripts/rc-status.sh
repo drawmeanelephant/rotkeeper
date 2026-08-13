@@ -424,8 +424,20 @@ else
 fi
 
 # --- Section 6: Render Freshness ---
-NEWEST_HTML=$(find "$OUTPUT_DIR" -type f -name '*.html' -exec stat -c %Y {} + 2>/dev/null | sort -nr | head -n 1 || echo "")
-NEWEST_MD=$(find "$CONTENT_DIR" -type f -name '*.md' -exec stat -c %Y {} + 2>/dev/null | sort -nr | head -n 1 || echo "")
+# Portable mtime comparison: GNU `stat -c %Y` fails on BSD/macOS, so route
+# through the shared rk_mtime helper (stat -f %m fallback). Filenames are
+# consumed null-terminated; never word-split find output.
+NEWEST_HTML=""
+while IFS= read -r -d '' freshness_html; do
+  mtime=$(rk_mtime "$freshness_html")
+  [[ -n "$mtime" && ( -z "$NEWEST_HTML" || "$mtime" -gt "$NEWEST_HTML" ) ]] && NEWEST_HTML="$mtime"
+done < <(find "$OUTPUT_DIR" -type f -name '*.html' -print0 2>/dev/null)
+
+NEWEST_MD=""
+while IFS= read -r -d '' freshness_md; do
+  mtime=$(rk_mtime "$freshness_md")
+  [[ -n "$mtime" && ( -z "$NEWEST_MD" || "$mtime" -gt "$NEWEST_MD" ) ]] && NEWEST_MD="$mtime"
+done < <(find "$CONTENT_DIR" -type f -name '*.md' -print0 2>/dev/null)
 
 status_render="[EMPTY] no rendered output found"
 status_json="empty"
@@ -467,6 +479,7 @@ else
     conf_author=$(yq eval '.author // "[not set]"' "$CONFIG_FILE" 2>/dev/null | tr -d '\n' || echo "[not set]")
     conf_version=$(yq eval '.version // "[not set]"' "$CONFIG_FILE" 2>/dev/null | tr -d '\n' || echo "[not set]")
     conf_default_template=$(yq eval '.default_template // "[not set]"' "$CONFIG_FILE" 2>/dev/null | tr -d '\n' || echo "[not set]")
+    conf_input_format=$(yq eval '.input_format // "[not set]"' "$CONFIG_FILE" 2>/dev/null | tr -d '\n' || echo "[not set]")
     conf_license=$(yq eval '.license // "[not set]"' "$CONFIG_FILE" 2>/dev/null | tr -d '\n' || echo "[not set]")
 
     if [[ "$JSON_MODE" == true ]]; then
@@ -474,6 +487,7 @@ else
         conf_author_j=$(escape_json "$conf_author")
         conf_version_j=$(escape_json "$conf_version")
         conf_default_template_j=$(escape_json "$conf_default_template")
+        conf_input_format_j=$(escape_json "$conf_input_format")
         conf_license_j=$(escape_json "$conf_license")
 
         JSON_CONFIG="  \"config_summary\": {
@@ -482,6 +496,7 @@ else
     \"author\": \"$conf_author_j\",
     \"version\": \"$conf_version_j\",
     \"default_template\": \"$conf_default_template_j\",
+    \"input_format\": \"$conf_input_format_j\",
     \"license\": \"$conf_license_j\"
   }"
     else
@@ -490,6 +505,7 @@ else
         echo "Author           : $conf_author"
         echo "Version          : $conf_version"
         echo "Default Template : $conf_default_template"
+        echo "Input Format     : $conf_input_format"
         echo "License          : $conf_license"
         echo "# Config is minimal — additional fields will appear here as rotkeeper.yaml expands."
         echo ""

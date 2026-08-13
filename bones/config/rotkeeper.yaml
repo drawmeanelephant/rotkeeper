@@ -1,3 +1,4 @@
 title: "Rotkeeper Config"
 description: "Minimal valid config for rendering tests"
 default_template: "theme-spooky-dark.html"
+input_format: "markdown"

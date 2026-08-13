@@ -328,7 +328,7 @@ runfsbook() {
       echo "- $f"
     done < <(
       cd "$ROOT_DIR" || exit 1
-      find . -type d \( -path ./.git -o -path ./output -o -path ./bones/tmp -o -path ./bones/logs -o -path ./bones/reports -o -path ./bones/book-reports -o -path ./bones/archive \) -prune -o \
+      find . -type d \( -path ./.git -o -path ./.freebuff -o -path ./.vscode -o -path ./.idea -o -path ./output -o -path ./bones/tmp -o -path ./bones/logs -o -path ./bones/reports -o -path ./bones/book-reports -o -path ./bones/archive \) -prune -o \
         -type f \
         ! -name '*.log' \
         ! -name '.DS_Store' \

@@ -177,6 +177,13 @@ require_sha256() {
   fi
 }
 
+# Portable file modification time in epoch seconds: GNU `stat -c %Y` (Linux)
+# falls back to BSD `stat -f %m` (macOS). Prints nothing when stat is missing.
+rk_mtime() {
+  local path="$1"
+  stat -c %Y "$path" 2>/dev/null || stat -f %m "$path" 2>/dev/null
+}
+
 # Build N levels of "../" using only Bash (replaces hidden `seq` usage).
 rk_up_dirs() {
   local n="${1:-0}" i=0 out=""
@@ -240,7 +247,7 @@ rk_oliver_preflight() {
   if [[ -z "$reason" ]]; then
     mkdir -p "$TMP_DIR"
     printf '# preflight smoke\n' > "$smoke_doc"
-    "$candidate" render --from markdown < "$smoke_doc" > "$smoke_out" 2> "$smoke_err" || smoke_status=$?
+    "$candidate" render --from "${INPUT_FORMAT:-markdown}" < "$smoke_doc" > "$smoke_out" 2> "$smoke_err" || smoke_status=$?
     if [[ "$smoke_status" -ne 0 ]]; then
       reason="Oliver binary runs but failed its smoke render (exit $smoke_status)"
       if [[ -s "$smoke_err" ]]; then

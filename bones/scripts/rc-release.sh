@@ -159,6 +159,7 @@ verify_archive_contents() {
         "README.md"
         ".agentignore"
         ".blessed"
+        ".editorconfig"
         ".gitignore"
         ".shellcheckrc"
     )

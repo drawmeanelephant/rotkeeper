@@ -161,6 +161,7 @@ main() {
       fi
     fi
     log "INFO" "DEFAULT_TEMPLATE=$DEFAULT_TEMPLATE"
+    log "INFO" "INPUT_FORMAT=$INPUT_FORMAT"
 
     if [[ ! -d "$TEMPLATE_DIR" ]]; then
       log "ERROR" "Templates directory not found: $TEMPLATE_DIR"
