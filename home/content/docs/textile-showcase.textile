@@ -1,7 +1,7 @@
 ---
 title: "Textile Showcase"
 slug: textile-showcase
-template: rotkeeper-doc.html
+template: theme-textpattern.html
 version: "1.0"
 updated: "2026-08-13"
 description: "A rendered demonstration of Rotkeeper's Textile support: headings, emphasis, links, lists, blockquotes, and the documented literal fallbacks — this page is itself a .textile source."
