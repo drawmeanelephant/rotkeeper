@@ -1,5 +1,6 @@
 # Rotkeeper local thrash and support dump
 SUPPORT/
+.freebuff/
 
 # MacOS system junk
 .DS_Store
