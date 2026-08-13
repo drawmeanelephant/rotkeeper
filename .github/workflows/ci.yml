@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  test-matrix:
     strategy:
       fail-fast: false
       matrix:
@@ -114,3 +114,12 @@ jobs:
           fi
           bash --version | head -1
           bash rotkeeper.sh test
+
+  test:
+    name: test
+    needs: test-matrix
+    runs-on: ubuntu-latest
+    steps:
+      - name: Matrix status check aggregator
+        run: echo "All matrix test jobs completed successfully."
+
