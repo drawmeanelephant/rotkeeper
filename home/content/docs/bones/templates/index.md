@@ -23,9 +23,12 @@ HTML and CSS layouts that structure the static site output.
 - **[theme-spooky-dark.html](theme-spooky-dark.html)**: Persistent dark Spooky presentation (default).
 - **[theme-spooky-light.html](theme-spooky-light.html)**: Light reading variant of the Spooky presentation.
 
+**Back to**: [Documentation overview](../../index.html) · [Bones directory](../index.html)
+
 <!-- ROTKEEPER-GLUE-START -->
 - [rotkeeper-blog](<rotkeeper-blog.html>)
 - [rotkeeper-doc](<rotkeeper-doc.html>)
+- [theme-brutal](<theme-brutal.html>)
 - [theme-dark](<theme-dark.html>)
 - [theme-kawaii](<theme-kawaii.html>)
 - [theme-light](<theme-light.html>)

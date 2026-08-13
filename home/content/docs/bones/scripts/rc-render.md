@@ -168,10 +168,10 @@ This script is a masterclass in bureaucratic necromancy. I deeply appreciate the
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-12T12:26:46Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-13T10:51:03Z -->
 
 ```text
-rc-render.sh — Render Markdown tombs into HTML (v0.5.1)
+rc-render.sh — Render Markdown tombs into HTML (v0.5.3)
 
 Usage: rc-render.sh [options]
 

@@ -69,15 +69,16 @@ overrides a bump — bump always operates on the canonical file.
 
 *Not found: no help block for `version` in autopsy help report.*
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-08-12T02:18:17Z -->
+<!-- DIP-HISTORY-EXTRACTED: 2026-08-13T10:51:03Z -->
 
+- - Made preflight gate on a live Oliver smoke render instead of a version range (Oliver's CLI is provisional and has no stable release yet); `render` routes its failure path through the same check so diagnostics cannot drift, and `scripts/setup-jules.sh` builds Oliver from source with Zig 0.16.
+- - Added the `preflight` dispatcher command: one Apex availability check (discovery, executability, 1.1.x version range, runnable smoke) with a single actionable setup message; `render` routes its failure path through the same check so diagnostics cannot drift.
 - - Added a dispatcher-backed, version-aware microbump flow and parameterized the
 -   release test against the dispatcher version.
 - - Modified `README.md` to reflect testing support and current dev version
 - - Add --version flag to all rc-*.sh scripts
 - version: "0.5.0"
 - The dated changelog entries record template parsing repair, version flags for
-
 <!-- DIP-SOUL-EXTRACTED: 2026-08-12T02:18:42Z -->
 
 *Not found: no soul sidecar for `bones/config/version`.*

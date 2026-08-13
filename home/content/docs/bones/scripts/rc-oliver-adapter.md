@@ -17,9 +17,12 @@ Documentation for `bones/scripts/rc-oliver-adapter.sh`. This file was auto-gener
 TODO: Provide a brief overview of what this file does.
 
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-12T12:26:46Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-13T10:52:13Z -->
 
-*Not found: no help block for `rc-oliver-adapter.sh` in autopsy help report.*
+```text
+--from
+--front-matter
+```
 ## Environment
 <!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
 
@@ -41,9 +44,9 @@ TODO: Provide a brief overview of what this file does.
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-08-12T00:38:36Z -->
+<!-- DIP-HISTORY-EXTRACTED: 2026-08-13T10:51:03Z -->
 
-*Not found: no changelog/history entries matching `rc-oliver-adapter.sh`.*
+- - Replaced the Apex renderer with [Oliver](https://github.com/drawmeanelephant/oliver): the adapter (`rc-apex-adapter.sh` → `rc-oliver-adapter.sh`) now drives `oliver render --from markdown` (stdin → stdout body HTML, stderr = warnings) and strips a leading YAML frontmatter block before the Markdown reaches Oliver, a pure CommonMark renderer; the environment override is `RK_OLIVER_BIN` (was `RK_APEX_BIN`), and the authoritative contract moved from `apex-contract.md` to `oliver-contract.md`.
 ## Necromancer's Notes
 <!-- DIP-SOUL-EXTRACTED: 2026-08-12T00:38:36Z -->
 

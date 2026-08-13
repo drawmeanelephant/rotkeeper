@@ -67,6 +67,7 @@ The current workflow is deliberately small and local-first:
 
 ### 4. 🔧 Configuration & Templates
 - [`rotkeeper.yaml`](bones/config/rotkeeper.html)
+- [Schemas: asset-manifest, rotkeeper.yaml, release-manifest](rotkeeper-schemas.html)
 - [Template Expectations](bones/templates/index.html)
 - [DIP Matrix](dip-matrix.html)
 
@@ -77,6 +78,7 @@ The current workflow is deliberately small and local-first:
 ### 6. 🌀 Advanced Flags & Edge Cases
 - [Rotkeeper Reference](rotkeeper-reference.html)
 - [Rotkeeper Rituals](rotkeeper-rituals.html)
+- [Writing a New Rotkeeper Ritual](new-ritual.html)
 - [Pre-commit Notes](pre-commit.html)
 
 ### 7. 🧯 Ritual Interruptions
@@ -91,6 +93,8 @@ The current workflow is deliberately small and local-first:
 ***
 
 **Start with**: [Onboarding](onboarding.html) or jump straight to [rc-render.sh](bones/scripts/rc-render.html)
+
+**Back to the project**: [README](README.html)
 
 <!--
 Sora prompt: “A glitching wiki carved into obsidian, with glowing CLI runes etched in rust.”
@@ -110,14 +114,16 @@ Sora prompt: “A glitching wiki carved into obsidian, with glowing CLI runes et
 - [CREDITS](<CREDITS.html>)
 - [GEMINI](<GEMINI.html>)
 - [README](<README.html>)
-- [oliver-contract](<oliver-contract.html>)
 - [architecture](<architecture.html>)
-- [workflow](<workflow.html>)
 - [dip-matrix](<dip-matrix.html>)
+- [new-ritual](<new-ritual.html>)
+- [oliver-contract](<oliver-contract.html>)
 - [onboarding](<onboarding.html>)
 - [patch](<patch.html>)
 - [pre-commit](<pre-commit.html>)
 - [rotkeeper-reference](<rotkeeper-reference.html>)
 - [rotkeeper-rituals](<rotkeeper-rituals.html>)
+- [rotkeeper-schemas](<rotkeeper-schemas.html>)
 - [rotkeeper](<rotkeeper.html>)
+- [workflow](<workflow.html>)
 <!-- ROTKEEPER-GLUE-END -->

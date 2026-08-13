@@ -109,6 +109,6 @@ Do not run this script on developer local macOS/Windows environments as it expec
 
 *Not found: no help block for `setup-jules.sh` in autopsy help report.*
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
+<!-- DIP-HISTORY-EXTRACTED: 2026-08-13T10:51:03Z -->
 
-*Not found: no changelog/history entries matching `setup-jules.sh`.*
+- - Made preflight gate on a live Oliver smoke render instead of a version range (Oliver's CLI is provisional and has no stable release yet); `render` routes its failure path through the same check so diagnostics cannot drift, and `scripts/setup-jules.sh` builds Oliver from source with Zig 0.16.

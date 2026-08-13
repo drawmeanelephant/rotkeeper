@@ -56,10 +56,10 @@ Runaway log files are the hungry ghosts here, waiting to devour every last byte 
 Monitor your disk space, or this script will fill it with the endless screaming of past errors. Do not trust its interpretation of multi-line errors; it only understands the simplest of death rattles.
 
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-12T12:26:46Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-13T10:51:03Z -->
 
 ```text
-rc-autopsy.sh — Script dissection ritual v0.5.1
+rc-autopsy.sh — Script dissection ritual v0.5.3
 Usage: rc-autopsy.sh [mode] [options]
 
 Modes:

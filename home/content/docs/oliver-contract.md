@@ -2,9 +2,9 @@
 title: "Oliver Renderer Contract"
 slug: oliver-contract
 template: rotkeeper-doc.html
-version: "1.1"
-updated: "2026-08-12"
-description: "The supported contract between Rotkeeper and the native Oliver HTML renderer: executable discovery, input format, output streams, exit codes, and the adapter boundary."
+version: "1.2"
+updated: "2026-08-13"
+description: "The supported contract between Rotkeeper and the native Oliver HTML renderer: executable discovery, input format, output streams, exit codes, the adapter boundary, and the stable template/input contract."
 tags:
   - rotkeeper
   - oliver
@@ -62,8 +62,45 @@ Frontmatter is parsed by the adapter with `yq --front-matter extract`. The field
 - `author`
 - `date`
 - `template`
+- `palette`
 
 All other frontmatter keys pass through untouched. Values are HTML-escaped on template insertion.
+
+## Template and input contract (stable)
+
+This section is the stable contract that Phase 6 ("Rationalize the Oliver boundary") uses as its definition of truth before any renderer-adjacent responsibility moves out of Bash. It is derived from `rc-oliver-adapter.sh`; if the two ever disagree, the script is authoritative and this document must be updated.
+
+### Input side
+
+- Sources are UTF-8 Markdown files with an optional leading YAML frontmatter block.
+- The frontmatter block must start on the **very first line** (`---` on line 1 — no BOM, no leading blank line) and close at the next `---` line. A YAML `...` document-end marker is not honored; anything after the closing `---` is Markdown.
+- Only the six fields above are consumed, as **scalar strings**. Lists, maps, and other keys are ignored for template purposes.
+- A `.soul.md` sidecar under `bones/meta` may override any of the six fields **per field**; the sidecar value wins only when it is non-empty and not `null`. Without a sidecar, source frontmatter applies.
+- `template` resolution: `$template$` selects `${TEMPLATE_DIR}/${template}`. If the named template does not exist or escapes `TEMPLATE_DIR`, the batch manifest's default template (from `default_template` in `bones/config/rotkeeper.yaml`) is used. The page fails if no valid template resolves.
+
+### Template dialect
+
+Templates are HTML files containing exactly seven tokens:
+
+| Token | Source | Insertion |
+| --- | --- | --- |
+| `$title$` | frontmatter `title` (sidecar wins) | HTML-escaped |
+| `$description$` | frontmatter `description` (sidecar wins) | HTML-escaped |
+| `$author$` | frontmatter `author` (sidecar wins) | HTML-escaped |
+| `$date$` | frontmatter `date` (sidecar wins) | HTML-escaped |
+| `$palette$` | frontmatter `palette` (sidecar wins) | HTML-escaped |
+| `$assets_root$` | render batch (path prefix to the layout's assets dir) | literal, not escaped |
+| `$body$` | Oliver-rendered body fragment | literal, not escaped (it is trusted rendered HTML) |
+
+Escaping is `&` `<` `>` `"` `'` → `&amp;` `&lt;` `&gt;` `&quot;` `&#39;`. `$assets_root$` and `$body$` are the only tokens exempt from escaping — templates must never place untrusted values there, and `$body$` must never be escaped.
+
+Conditionals: `$if(name)$ … $endif$` for `title`, `description`, `author`, `date`, `palette`. When the value is empty (or `null`) the whole block — including its interior newlines — is removed; otherwise the interior text is kept.
+
+- Evaluation is one variable pass at a time (title → description → author → date → palette), and the **first** `$endif$` in the document closes the opener. Do not nest the same variable twice; keep conditionals single-level in practice.
+- Order of operations: all `$if$` blocks are resolved first, then the literal token substitution runs.
+- Any unrecognized `$word$` token passes through to the output verbatim; it is not an error.
+
+This dialect — seven tokens, five conditional gates, escape/raw split — is the candidate for incremental movement into Oliver. Until then, `rc-oliver-adapter.sh` is its canonical implementation.
 
 ## Sidecar precedence
 

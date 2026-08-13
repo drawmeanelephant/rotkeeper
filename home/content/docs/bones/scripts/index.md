@@ -18,6 +18,7 @@ This folder contains the core shell scripts that run Rotkeeper's commands.
 
 - **[rc-init.sh](rc-init.html)**: Prepares the directory layouts and template configurations.
 - **[rc-render.sh](rc-render.html)**: Invokes Oliver to compile Markdown files into HTML.
+- **[rc-preflight.sh](rc-preflight.html)**: Reports whether the Oliver renderer is discoverable, executable, and runnable.
 - **[rc-assets.sh](rc-assets.html)**: Scans HTML and generates the SHA256 assets manifest.
 - **[rc-scan.sh](rc-scan.html)**: Audits file integrity and metadata drift.
 - **[rc-pack.sh](rc-pack.html)**: Packages directories into a compressed archive.
@@ -25,9 +26,10 @@ This folder contains the core shell scripts that run Rotkeeper's commands.
 - **[rc-status.sh](rc-status.html)**: Checks system health and version alignment.
 - **[rc-showcase.sh](rc-showcase.html)**: Renders templates using standard test pages.
 
+**Back to**: [Documentation overview](../../index.html) · [Reports & consultations](../index.html)
+
 <!-- ROTKEEPER-GLUE-START -->
 - [tests/](<tests/index.html>)
-- [rc-oliver-adapter](<rc-oliver-adapter.html>)
 - [rc-assets](<rc-assets.html>)
 - [rc-autopsy](<rc-autopsy.html>)
 - [rc-book](<rc-book.html>)
@@ -38,7 +40,9 @@ This folder contains the core shell scripts that run Rotkeeper's commands.
 - [rc-init](<rc-init.html>)
 - [rc-links](<rc-links.html>)
 - [rc-new](<rc-new.html>)
+- [rc-oliver-adapter](<rc-oliver-adapter.html>)
 - [rc-pack](<rc-pack.html>)
+- [rc-preflight](<rc-preflight.html>)
 - [rc-release](<rc-release.html>)
 - [rc-render](<rc-render.html>)
 - [rc-scan](<rc-scan.html>)

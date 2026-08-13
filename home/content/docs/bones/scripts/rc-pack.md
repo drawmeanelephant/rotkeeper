@@ -165,10 +165,10 @@ Ensure `jq` is installed and functioning. Beware of injecting raw, unescaped tex
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-12T12:26:46Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-13T10:51:03Z -->
 
 ```text
-rc-pack.sh — Ritual Compression Packager (v0.5.1)
+rc-pack.sh — Ritual Compression Packager (v0.5.3)
 
 Usage: rc-pack.sh [options]
 

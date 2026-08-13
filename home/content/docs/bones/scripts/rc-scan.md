@@ -136,10 +136,10 @@ Do not treat its manifest as absolute truth. It is easily fooled by the slightes
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-12T12:26:46Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-13T10:51:03Z -->
 
 ```text
-rc-scan.sh — Audit manifest and scan environment for file reports (v0.5.1)
+rc-scan.sh — Audit manifest and scan environment for file reports (v0.5.3)
 
 Options:
   --version, -v    Show script version and quit
