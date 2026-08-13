@@ -11,4 +11,4 @@ Rotkeeper is permanently sustained by the contributions of human scholars and au
 ## 🏛️ Foundational Council
 - **The Pilot:** For managing the cockpit, logging intensive stick time, and engineering the core `rc-glue.sh` non-destructive link engine out of pure spite for corporate software bloat.
 - **Jules (Lite Tier):** The autonomous sandbox delegate. For ingesting sterile payloads, holding configuration stacks, and trying its absolute best to parse visual text prompts through standard shell filters.
-- **Apex (`apex`):** The primary native compile golem bending Markdown into pristine static HTML tombs.
+- **Oliver (`oliver`):** The primary native compile golem bending Markdown into pristine static HTML tombs — successor to Apex ([drawmeanelephant/oliver](https://github.com/drawmeanelephant/oliver)).

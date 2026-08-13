@@ -20,7 +20,7 @@ Zero-hydration HTML template used for static rendering. It relies on standard CS
 
 
 ### Architectural Intent
-The primary Apex HTML template for rendering static documentation pages. It handles layout rendering, side navigation, headers, footers, and scripts integration.
+The primary Oliver-rendered HTML template for static documentation pages. It handles layout rendering, side navigation, headers, footers, and scripts integration.
 
 ### Directory / File Schema Expectations
 It is deeply dependent on the CSS structures declared in `rotkeeper.css`. If layout classes are renamed in the stylesheet, the documentation grid layout will crumble. Modify this layout only when updating global documentation typography or page headers.

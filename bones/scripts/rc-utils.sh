@@ -205,80 +205,68 @@ require_gawk_version() {
 }
 
 # ---
-# rk_apex_preflight: The single Apex availability check (Slice 1B). Resolves
-# the binary (RK_APEX_BIN override, then PATH discovery), asserts
-# executability, probes the version against the supported 1.1.x range from
-# apex-contract.md, and smoke-renders an empty document to prove the binary
-# actually runs. Prints one actionable setup message on failure.
-# Inputs: reads RK_APEX_BIN; uses TMP_DIR for the smoke document
-# Outputs: sets APEX_BIN to the resolved executable on success
+# rk_oliver_preflight: The single Oliver availability check (Slice 1B). Resolves
+# the binary (RK_OLIVER_BIN override, then PATH discovery), asserts
+# executability, and smoke-renders an empty document through the real Oliver
+# CLI (oliver render --from markdown) to prove the binary actually runs.
+# Oliver's CLI is provisional and has no stable release yet, so the live smoke
+# render is the compatibility gate (see oliver-contract.md). Prints one
+# actionable setup message on failure.
+# Inputs: reads RK_OLIVER_BIN; uses TMP_DIR for the smoke document
+# Outputs: sets OLIVER_BIN to the resolved executable on success
 # Returns: 0 on pass; 1 on failure
 # ---
-rk_apex_preflight() {
-  local candidate="" reason="" version_raw="" version_num="" major="" minor=""
-  local smoke_status=0
-  local smoke_doc="$TMP_DIR/apex-preflight-smoke.md"
-  local smoke_out="$TMP_DIR/apex-preflight-smoke.html"
-  local smoke_err="$TMP_DIR/apex-preflight-smoke.log"
-  APEX_BIN=""
+rk_oliver_preflight() {
+  local candidate="" reason="" smoke_status=0
+  local smoke_doc="$TMP_DIR/oliver-preflight-smoke.md"
+  local smoke_out="$TMP_DIR/oliver-preflight-smoke.html"
+  local smoke_err="$TMP_DIR/oliver-preflight-smoke.log"
+  OLIVER_BIN=""
 
-  candidate="${RK_APEX_BIN:-}"
+  candidate="${RK_OLIVER_BIN:-}"
   if [[ -n "$candidate" ]]; then
     if [[ ! -x "$candidate" ]]; then
-      reason="RK_APEX_BIN is set but not executable: $candidate"
+      reason="RK_OLIVER_BIN is set but not executable: $candidate"
     fi
   else
-    candidate="$(command -v apex 2>/dev/null || true)"
+    candidate="$(command -v oliver 2>/dev/null || true)"
     if [[ -z "$candidate" ]]; then
-      reason="no Apex binary found: RK_APEX_BIN is unset and 'apex' is not on PATH"
+      reason="no Oliver binary found: RK_OLIVER_BIN is unset and 'oliver' is not on PATH"
     elif [[ ! -x "$candidate" ]]; then
-      reason="found 'apex' on PATH but it is not executable: $candidate"
-    fi
-  fi
-
-  if [[ -z "$reason" ]]; then
-    version_raw="$("$candidate" --version 2>/dev/null | head -n 1 || true)"
-    version_num="$(printf '%s' "$version_raw" | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -n 1 2>/dev/null || true)"
-    if [[ -n "$version_num" ]]; then
-      major="${version_num%%.*}"
-      minor="${version_num#*.}"
-      minor="${minor%%.*}"
-      if [[ "$major" != "1" || "$minor" != "1" ]]; then
-        reason="Apex version $version_num is outside the supported 1.1.x range (see apex-contract.md)"
-      fi
+      reason="found 'oliver' on PATH but it is not executable: $candidate"
     fi
   fi
 
   if [[ -z "$reason" ]]; then
     mkdir -p "$TMP_DIR"
     printf '# preflight smoke\n' > "$smoke_doc"
-    "$candidate" "$smoke_doc" > "$smoke_out" 2> "$smoke_err" || smoke_status=$?
+    "$candidate" render --from markdown < "$smoke_doc" > "$smoke_out" 2> "$smoke_err" || smoke_status=$?
     if [[ "$smoke_status" -ne 0 ]]; then
-      reason="Apex binary runs but failed its smoke render (exit $smoke_status)"
+      reason="Oliver binary runs but failed its smoke render (exit $smoke_status)"
       if [[ -s "$smoke_err" ]]; then
         reason="$reason: $(head -n 1 "$smoke_err")"
       fi
     elif [[ ! -s "$smoke_out" ]]; then
-      reason="Apex binary produced empty output on its smoke render"
+      reason="Oliver binary produced empty output on its smoke render"
     fi
     rm -f "$smoke_doc" "$smoke_out" "$smoke_err"
   fi
 
   if [[ -z "$reason" ]]; then
-    APEX_BIN="$candidate"
-    log "INFO" "Apex preflight passed: $APEX_BIN (${version_num:-version unknown})"
+    OLIVER_BIN="$candidate"
+    log "INFO" "Oliver preflight passed: $OLIVER_BIN"
     return 0
   fi
 
-  log "ERROR" "Apex preflight failed: $reason"
+  log "ERROR" "Oliver preflight failed: $reason"
   {
-    echo "ERROR: Apex preflight failed: $reason"
-    cat <<'APEX_GUIDE_EOF'
-Fix: install a supported Apex 1.1.x binary, then either:
-  export RK_APEX_BIN=/path/to/apex
-  # or ensure 'apex' is on PATH
-Full install steps (macOS/Linux): see home/content/docs/apex-contract.md (Install paths)
-APEX_GUIDE_EOF
+    echo "ERROR: Oliver preflight failed: $reason"
+    cat <<'OLIVER_GUIDE_EOF'
+Fix: install the Oliver renderer, then either:
+  export RK_OLIVER_BIN=/path/to/oliver
+  # or ensure 'oliver' is on PATH
+Full install steps (macOS/Linux): see home/content/docs/oliver-contract.md (Install paths)
+OLIVER_GUIDE_EOF
   } >&3
   return 1
 }

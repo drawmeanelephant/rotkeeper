@@ -1,3 +1,7 @@
+## [Unreleased]
+
+- Replaced the Apex renderer with [Oliver](https://github.com/drawmeanelephant/oliver): the adapter (`rc-oliver-adapter.sh`), preflight, hermetic fixtures, and docs now drive `oliver render --from markdown` (stdin → stdout); the adapter strips a leading YAML frontmatter block before the Markdown reaches Oliver (a pure CommonMark renderer); `RK_APEX_BIN` is now `RK_OLIVER_BIN`. Oliver's CLI is provisional and has no stable release yet, so `preflight` gates on a live smoke render instead of a version range, and `scripts/setup-jules.sh` builds Oliver from source with Zig 0.16.
+
 ## [0.5.2] - 2026-08-12
 
 - Added the `preflight` dispatcher command: one Apex availability check (discovery, executability, 1.1.x version range, runnable smoke) with a single actionable setup message; `render` routes its failure path through the same check so diagnostics cannot drift.

@@ -101,7 +101,7 @@ While we take that action item strictly off-line and raise a fatal \`trap_err\` 
 And seize B2B (Bash-to-Bone) orchestrators and re-envisioneer necromantic partnerships that evolve zero-hydration initiatives delivering synergistic dead-drops.
 
 ##### Heading 5
-To incentivize CI/CD deliverables that leverage Apex rituals to synergize bash-and-bone dropzones while facilitating one-to-one shell-scripts.
+To incentivize CI/CD deliverables that leverage Oliver rituals to synergize bash-and-bone dropzones while facilitating one-to-one shell-scripts.
 
 ###### Heading 6
 With revolutionary Frankenstein stitching that deliver viral payloads and grow decentralized supply-chains that expedite seamless embalming.
@@ -122,7 +122,7 @@ With revolutionary Frankenstein stitching that deliver viral payloads and grow d
 ### Unordered List
 * Re-envisioneer necromantic partnerships
 * Evolve zero-hydration initiatives delivering synergistic dead-drops
-* Incentivize CI/CD deliverables that leverage Apex rituals
+* Incentivize CI/CD deliverables that leverage Oliver rituals
 
 ### Ordered List
 1. Synergize bash-and-bone dropzones
@@ -177,20 +177,20 @@ echo "With benchmark archival channels implementing viral bash-rituals."
 
 MD_EOF
 
-    # Validate template is parseable by Apex adapter (no external renderer dependency).
-    # If RK_APEX_BIN is available and executable, confirm the template file is
+    # Validate template is parseable by Oliver adapter (no external renderer dependency).
+    # If RK_OLIVER_BIN is available and executable, confirm the template file is
     # non-empty and syntactically sane by checking it can be read by yq / gawk.
     # This is a lightweight structural probe — full rendering is handled by rc-render.sh.
-    APEX_BIN="${RK_APEX_BIN:-$(command -v apex 2>/dev/null || true)}"
-    if [[ -n "$APEX_BIN" && -x "$APEX_BIN" ]]; then
+    OLIVER_BIN="${RK_OLIVER_BIN:-$(command -v oliver 2>/dev/null || true)}"
+    if [[ -n "$OLIVER_BIN" && -x "$OLIVER_BIN" ]]; then
       if [[ ! -s "$template_file" ]]; then
-        log "ERROR" "Template $(basename "$template_file") is empty or missing — Apex cannot render against it."
+        log "ERROR" "Template $(basename "$template_file") is empty or missing — Oliver cannot render against it."
         trap_err $LINENO
       else
-        log "INFO" "Template $(basename "$template_file") passed Apex structural check (non-empty, readable)."
+        log "INFO" "Template $(basename "$template_file") passed Oliver structural check (non-empty, readable)."
       fi
     else
-      log "WARN" "RK_APEX_BIN is unset or not executable; skipping live template validation for $(basename "$template_file"). Set RK_APEX_BIN to enable."
+      log "WARN" "RK_OLIVER_BIN is unset or not executable; skipping live template validation for $(basename "$template_file"). Set RK_OLIVER_BIN to enable."
     fi
 
     count=$((count + 1))

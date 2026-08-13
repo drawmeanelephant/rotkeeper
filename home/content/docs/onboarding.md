@@ -21,7 +21,7 @@ asset_meta:
 
 Welcome, unlucky soul. You’ve just inherited Rotkeeper — a Bash-based static documentation embalmer. It’s not a site generator. It’s a system of modular rituals (`rc-*.sh`) that:
 - Expand structured YAML tombs
-- Render Markdown and HTML via Apex
+- Render Markdown and HTML via Oliver
 - Scan for rot
 - Pack results into `.tar.gz` tombkits
 

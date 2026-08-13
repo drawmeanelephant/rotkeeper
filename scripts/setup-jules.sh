@@ -43,7 +43,7 @@ echo "🤖 Provisioning environment for system profile: $BINARY"
 
 if [[ "$OS_TYPE" == "linux" ]]; then
   if command -v apt-get >/dev/null 2>&1; then
-    $SUDO apt-get update && $SUDO apt-get install -y jq rsync zip gawk wget curl
+    $SUDO apt-get update && $SUDO apt-get install -y jq rsync zip gawk wget curl git
   fi
   wget -q "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${BINARY}" -O /tmp/yq
 elif [[ "$OS_TYPE" == "darwin" ]]; then
@@ -60,37 +60,20 @@ if [ -f /tmp/yq ]; then
   $SUDO chmod +x /usr/local/bin/yq
 fi
 
-echo "2. Installing Apex renderer..."
-APEX_VERSION="v1.1.15"
-case "$OS_TYPE" in
-  linux)
-    case "$ARCH" in
-      amd64) APEX_ASSET="linux-x86_64" ;;
-      arm64) APEX_ASSET="linux-aarch64" ;;
-      *)     APEX_ASSET="linux-x86_64" ;;
-    esac
-    ;;
-  darwin)
-    APEX_ASSET="macos-universal"
-    ;;
-esac
-
-if command -v apex >/dev/null 2>&1; then
-  echo "Apex already present at $(command -v apex), skipping install."
+echo "2. Installing Oliver renderer..."
+if command -v oliver >/dev/null 2>&1; then
+  echo "Oliver already present at $(command -v oliver), skipping install."
+elif command -v zig >/dev/null 2>&1; then
+  # Oliver has no published releases yet; build the current source with Zig.
+  # Requires Zig 0.16.0 (https://ziglang.org/download/) and git.
+  rm -rf /tmp/oliver-build
+  git clone --depth 1 https://github.com/drawmeanelephant/oliver.git /tmp/oliver-build
+  (cd /tmp/oliver-build && zig build)
+  $SUDO install -m 0755 "/tmp/oliver-build/zig-out/bin/oliver" /usr/local/bin/oliver
 else
-  # The release .sha256 sidecar lists paths relative to its parent
-  # (e.g. "release/apex-...tar.gz"), so verify from a dir containing
-  # release/ as a subdirectory.
-  rm -rf /tmp/apex-verify
-  mkdir -p /tmp/apex-verify/release
-  APEX_TARBALL="apex-${APEX_VERSION#v}-${APEX_ASSET}.tar.gz"
-  wget -q "https://github.com/ApexMarkdown/apex/releases/download/${APEX_VERSION}/${APEX_TARBALL}" -O "/tmp/apex-verify/release/${APEX_TARBALL}"
-  wget -q "https://github.com/ApexMarkdown/apex/releases/download/${APEX_VERSION}/${APEX_TARBALL}.sha256" -O "/tmp/apex-verify/release/${APEX_TARBALL}.sha256"
-  (cd /tmp/apex-verify && sha256sum -c "release/${APEX_TARBALL}.sha256")
-  rm -rf /tmp/apex-install
-  mkdir -p /tmp/apex-install
-  tar -xzf "/tmp/apex-verify/release/${APEX_TARBALL}" -C /tmp/apex-install
-  $SUDO install -m 0755 "/tmp/apex-install/apex-${APEX_VERSION#v}-${APEX_ASSET}/apex" /usr/local/bin/apex
+  echo "WARN: Oliver not found on PATH and Zig 0.16.0 is not installed."
+  echo "      Install Zig 0.16.0 (https://ziglang.org/download/), then re-run this script"
+  echo "      to build Oliver from https://github.com/drawmeanelephant/oliver."
 fi
 
 

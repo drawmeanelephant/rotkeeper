@@ -17,7 +17,7 @@ This folder contains the core shell scripts that run Rotkeeper's commands.
 ## Scripts Overview
 
 - **[rc-init.sh](rc-init.html)**: Prepares the directory layouts and template configurations.
-- **[rc-render.sh](rc-render.html)**: Invokes Apex to compile Markdown files into HTML.
+- **[rc-render.sh](rc-render.html)**: Invokes Oliver to compile Markdown files into HTML.
 - **[rc-assets.sh](rc-assets.html)**: Scans HTML and generates the SHA256 assets manifest.
 - **[rc-scan.sh](rc-scan.html)**: Audits file integrity and metadata drift.
 - **[rc-pack.sh](rc-pack.html)**: Packages directories into a compressed archive.
@@ -27,7 +27,7 @@ This folder contains the core shell scripts that run Rotkeeper's commands.
 
 <!-- ROTKEEPER-GLUE-START -->
 - [tests/](<tests/index.html>)
-- [rc-apex-adapter](<rc-apex-adapter.html>)
+- [rc-oliver-adapter](<rc-oliver-adapter.html>)
 - [rc-assets](<rc-assets.html>)
 - [rc-autopsy](<rc-autopsy.html>)
 - [rc-book](<rc-book.html>)

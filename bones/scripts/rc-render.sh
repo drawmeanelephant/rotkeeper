@@ -12,7 +12,7 @@ IFS=$'\n\t'
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-render.sh
-#  Purpose : Render markdown tombs into HTML using Apex
+#  Purpose : Render markdown tombs into HTML using Oliver
 #  Version : 0.5.1
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
@@ -29,11 +29,11 @@ Options:
   --help, -h       Show this help message and exit
   --dry-run        Preview actions without invoking renderer
   --verbose        Show detailed logs
-  --renderer NAME  Select renderer: apex (the only supported renderer; pandoc was removed)
+  --renderer NAME  Select renderer: oliver (the only supported renderer; pandoc was removed)
 
 Examples:
   bash rotkeeper.sh render
-  RK_APEX_BIN=/path/to/apex bash rotkeeper.sh render --renderer apex
+  RK_OLIVER_BIN=/path/to/oliver bash rotkeeper.sh render --renderer oliver
 EOF
   exit 0
 }
@@ -42,7 +42,7 @@ EOF
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
 
-RENDERER="${RK_RENDERER:-apex}"
+RENDERER="${RK_RENDERER:-oliver}"
 
 # Parse position-independent --renderer arguments
 parse_render_args() {
@@ -53,7 +53,7 @@ parse_render_args() {
     case "$arg" in
       --renderer)
         if [[ $((i + 1)) -ge ${#args[@]} ]]; then
-          log "ERROR" "--renderer requires an argument (apex)"
+          log "ERROR" "--renderer requires an argument (oliver)"
           echo "ERROR: --renderer requires an argument." >&2
           exit 1
         fi
@@ -86,14 +86,14 @@ main() {
     # Renderer-aware dependency validation
     case "${RENDERER,,}" in
       pandoc)
-        log "ERROR" "The Pandoc renderer has been removed. Rotkeeper renders exclusively with Apex."
-        echo "ERROR: The Pandoc renderer has been removed. Use --renderer apex (the default)." >&2
+        log "ERROR" "The Pandoc renderer has been removed. Rotkeeper renders exclusively with Oliver."
+        echo "ERROR: The Pandoc renderer has been removed. Use --renderer oliver (the default)." >&2
         exit 1
         ;;
-      apex)
-        if ! rk_apex_preflight; then
-          log "ERROR" "Render aborted: Apex preflight failed."
-          echo "ERROR: Render aborted: Apex preflight failed. Run 'bash rotkeeper.sh preflight' for the diagnosis." >&2
+      oliver)
+        if ! rk_oliver_preflight; then
+          log "ERROR" "Render aborted: Oliver preflight failed."
+          echo "ERROR: Render aborted: Oliver preflight failed. Run 'bash rotkeeper.sh preflight' for the diagnosis." >&2
           exit 1
         fi
         require_bins bash
@@ -102,8 +102,8 @@ main() {
         require_gawk_version
         ;;
       *)
-        log "ERROR" "Invalid renderer selected: '$RENDERER'. Supported options: apex"
-        echo "ERROR: Invalid renderer '$RENDERER'. Supported renderers: apex" >&2
+        log "ERROR" "Invalid renderer selected: '$RENDERER'. Supported options: oliver"
+        echo "ERROR: Invalid renderer '$RENDERER'. Supported renderers: oliver" >&2
         exit 1
         ;;
     esac
@@ -242,10 +242,10 @@ main() {
       log "WARN" "rc-assets.sh not found; skipping asset sync."
     fi
 
-    if [[ "${RENDERER,,}" == "apex" ]]; then
-      # --- APEX RENDERER PASS (PURE BASH / GAWK / YQ) ---
+    if [[ "${RENDERER,,}" == "oliver" ]]; then
+      # --- OLIVER RENDERER PASS (PURE BASH / GAWK / YQ) ---
       mkdir -p "$TMP_DIR"
-      local batch_tsv="$TMP_DIR/apex-batch-$$.tsv"
+      local batch_tsv="$TMP_DIR/oliver-batch-$$.tsv"
       rm -f "$batch_tsv"
 
       for mdfile in ${md_corpses[@]+"${md_corpses[@]}"}; do
@@ -278,15 +278,15 @@ main() {
         template_file="$TEMPLATE_DIR/$DEFAULT_TEMPLATE"
         printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
           "$canonical_mdpath" "$outfile" "$template_file" "$ASSETS_ROOT" "$soul_param" \
-          "$APEX_BIN" "$ROOT_DIR" "$CANONICAL_CONTENT_DIR" "$OUTPUT_DIR" "$CANONICAL_TEMPLATE_DIR" \
+          "$OLIVER_BIN" "$ROOT_DIR" "$CANONICAL_CONTENT_DIR" "$OUTPUT_DIR" "$CANONICAL_TEMPLATE_DIR" \
           "$CANONICAL_META_DIR" "$DRY_RUN" "$VERBOSE" >> "$batch_tsv"
       done
 
-      log "INFO" "Executing Apex batch adapter pass..."
+      log "INFO" "Executing Oliver batch adapter pass..."
       if [[ "$DRY_RUN" == true ]]; then
-        log "DRY-RUN" "Would invoke bash $SCRIPT_DIR/rc-apex-adapter.sh $batch_tsv"
+        log "DRY-RUN" "Would invoke bash $SCRIPT_DIR/rc-oliver-adapter.sh $batch_tsv"
       else
-        bash "$SCRIPT_DIR/rc-apex-adapter.sh" "$batch_tsv"
+        bash "$SCRIPT_DIR/rc-oliver-adapter.sh" "$batch_tsv"
       fi
 
       for mdfile in ${md_corpses[@]+"${md_corpses[@]}"}; do

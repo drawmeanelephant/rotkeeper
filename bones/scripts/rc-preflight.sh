@@ -4,27 +4,27 @@ IFS=$'\n\t'
 # ============================================================
 #  Project : Rotkeeper
 #  Script  : bones/scripts/rc-preflight.sh
-#  Purpose : Report Apex renderer availability and compatibility
+#  Purpose : Report Oliver renderer availability and compatibility
 #  Version : 0.5.1
 #  Updated : 2026-08-12
 # ============================================================
 # shellcheck disable=SC2329 # invoked indirectly by rk_init_script's help handling
 show_help() {
   cat << EOF
-rc-preflight.sh — Report Apex renderer availability (v$VERSION)
+rc-preflight.sh — Report Oliver renderer availability (v$VERSION)
 
 Usage: rc-preflight.sh
 
-Reports whether the Apex renderer is discoverable, executable, within the
-supported 1.1.x version range (see home/content/docs/apex-contract.md), and
-actually runnable. Exits 0 when rendering is ready; exits 1 with one
-actionable setup message when it is not.
+Reports whether the Oliver renderer is discoverable, executable, and actually
+runnable (a live smoke render through the real CLI; see
+home/content/docs/oliver-contract.md). Exits 0 when rendering is ready; exits
+1 with one actionable setup message when it is not.
 
 Options:
   --version, -v    Show script version and quit
   --help, -h       Show this help message and exit
   --verbose        Show detailed findings
-  --dry-run        Report the check without invoking the Apex binary
+  --dry-run        Report the check without invoking the Oliver binary
 EOF
   exit 0
 }
@@ -36,16 +36,16 @@ require_env_vars TMP_DIR
 
 main() {
   if [[ "${DRY_RUN:-false}" == true ]]; then
-    log "DRY-RUN" "Preflight would report Apex renderer availability and compatibility."
-    log "MARKER" "Apex preflight: DRY-RUN (checks skipped). Set RK_APEX_BIN or PATH, then run without --dry-run."
+    log "DRY-RUN" "Preflight would report Oliver renderer availability and compatibility."
+    log "MARKER" "Oliver preflight: DRY-RUN (checks skipped). Set RK_OLIVER_BIN or PATH, then run without --dry-run."
     exit 0
   fi
 
-  if rk_apex_preflight; then
-    log "MARKER" "Apex preflight: PASS ($APEX_BIN)."
+  if rk_oliver_preflight; then
+    log "MARKER" "Oliver preflight: PASS ($OLIVER_BIN)."
     exit 0
   fi
-  log "MARKER" "Apex preflight: FAIL."
+  log "MARKER" "Oliver preflight: FAIL."
   exit 1
 }
 

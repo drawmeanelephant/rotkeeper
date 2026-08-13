@@ -77,9 +77,9 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [x] Generate and validate a release manifest; fail on unexpected root-level files and forbidden artifacts. *(`bones/config/release-manifest.txt` inside the archive with version/model/ruleset/entries; fail-fast on unexpected root entries, missing required spine (rotkeeper.sh, config, version, manifest, rc-utils.sh), and forbidden paths/artifacts incl. credentials: *.pem *.key *.p12 .env .npmrc id_rsa)*
 - [ ] Verify archive contents on macOS and Ubuntu, including absence of temporary trees, caches, credentials, and compiled artifacts. *(macOS: verified via real `release 0.5.2` run + per-layout harness passes. Ubuntu: pending CI confirmation — the archive checks are rk_canonical_path-based and should behave identically)*
 
-### Phase 6 — Rationalize the Apex boundary
+### Phase 6 — Rationalize the Oliver boundary
 - [ ] Define a stable template/input contract before moving logic out of Bash.
-- [ ] Move only renderer-adjacent responsibilities into Apex incrementally: frontmatter extraction, template dialect, link rewriting, output planning, then manifest generation.
+- [ ] Move only renderer-adjacent responsibilities into Oliver incrementally: frontmatter extraction, template dialect, link rewriting, output planning, then manifest generation.
 - [ ] Keep Bash responsible for dispatch, environment setup, filesystem boundaries, orchestration, and packaging.
 - [ ] Treat `crypt`, `busy`, and `sterile` as initialization profiles and document the canonical runtime layout.
 - [ ] Do not add a new ritual or rewrite the system until the Phase 1 contract and regression fixtures are stable.
@@ -197,4 +197,4 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [ ] Add weird mascot lore footer or 404 page entry.
 - [ ] Load `.ritual.yaml` workflows via `rotkeeper.sh perform <ritual>`.
 - [ ] Add optional Mermaid diagram injection into book outputs via `rc-book.sh` or frontmatter flag.
-- [ ] Create reusable Apex hooks to inject frontmatter fields into rendered documents.
+- [ ] Create reusable Oliver hooks to inject frontmatter fields into rendered documents.

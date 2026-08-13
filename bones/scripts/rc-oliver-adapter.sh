@@ -3,8 +3,8 @@ set -euo pipefail
 IFS=$'\n\t'
 # ============================================================
 #  Project : Rotkeeper
-#  Script  : bones/scripts/rc-apex-adapter.sh
-#  Purpose : Pure Bash + GAWK + YQ batch adapter for Apex renderer.
+#  Script  : bones/scripts/rc-oliver-adapter.sh
+#  Purpose : Pure Bash + GAWK + YQ batch adapter for Oliver renderer.
 #            Zero Python requirement. Evaluates Rotkeeper HTML templates,
 #            enforces path boundaries, applies sidecar metadata precedence,
 #            evaluates template conditionals, and rewrites internal .md links.
@@ -14,11 +14,11 @@ IFS=$'\n\t'
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
-rk_init_script "rc-apex-adapter" "$@"
+rk_init_script "rc-oliver-adapter" "$@"
 
 if [[ $# -lt 1 ]]; then
-  log "ERROR" "Usage: rc-apex-adapter.sh <batch_manifest.tsv>"
-  echo "Usage: rc-apex-adapter.sh <batch_manifest.tsv>" >&2
+  log "ERROR" "Usage: rc-oliver-adapter.sh <batch_manifest.tsv>"
+  echo "Usage: rc-oliver-adapter.sh <batch_manifest.tsv>" >&2
   exit 1
 fi
 
@@ -50,7 +50,7 @@ is_within_boundary() {
 }
 
 # Process each item in the TSV batch manifest
-while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path apex_bin root_dir content_dir output_dir template_dir meta_dir dry_run verbose || [[ -n "$src_path" ]]; do
+while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path oliver_bin root_dir content_dir output_dir template_dir meta_dir dry_run verbose || [[ -n "$src_path" ]]; do
   [[ -z "$src_path" || "$src_path" =~ ^[[:space:]]*# ]] && continue
 
   # Boundary safety assertions
@@ -66,9 +66,9 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ap
     exit 1
   fi
 
-  if [[ ! -x "$apex_bin" ]]; then
-    log "ERROR" "Apex binary is missing or not executable: '$apex_bin'"
-    echo "ERROR: Apex binary is missing or not executable: '$apex_bin'" >&2
+  if [[ ! -x "$oliver_bin" ]]; then
+    log "ERROR" "Oliver binary is missing or not executable: '$oliver_bin'"
+    echo "ERROR: Oliver binary is missing or not executable: '$oliver_bin'" >&2
     exit 1
   fi
 
@@ -141,29 +141,36 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ap
     exit 1
   fi
 
-  # 4. Invoke Apex to convert Markdown to body HTML snippet
+  # 4. Invoke Oliver to convert Markdown to body HTML snippet.
+  #    Oliver is a pure CommonMark renderer, so the adapter strips a leading
+  #    YAML frontmatter block before piping the body into the CLI.
   mkdir -p "$TMP_DIR"
-  body_tmp="$TMP_DIR/apex-body-$$.html"
-  body_rewritten="$TMP_DIR/apex-body-rewritten-$$.html"
-  apex_err="$TMP_DIR/apex-err-$$.log"
-  rm -f "$body_tmp" "$body_rewritten" "$apex_err"
+  body_tmp="$TMP_DIR/oliver-body-$$.html"
+  body_rewritten="$TMP_DIR/oliver-body-rewritten-$$.html"
+  oliver_err="$TMP_DIR/oliver-err-$$.log"
+  rm -f "$body_tmp" "$body_rewritten" "$oliver_err"
 
-  if ! "$apex_bin" "$src_path" > "$body_tmp" 2>"$apex_err"; then
-    log "ERROR" "Apex rendering failed for page '$src_path' using template '$template_path'"
-    echo "ERROR: Apex rendering failed for page '$src_path' using template '$template_path'" >&2
-    if [[ -f "$apex_err" && -s "$apex_err" ]]; then
-      cat "$apex_err" >&2
+  if ! awk '
+      BEGIN { skip = 0 }
+      NR == 1 && $0 == "---" { skip = 1; next }
+      skip == 1 && $0 == "---" { skip = 0; next }
+      skip == 0 { print }
+    ' "$src_path" | "$oliver_bin" render --from markdown > "$body_tmp" 2> "$oliver_err"; then
+    log "ERROR" "Oliver rendering failed for page '$src_path' using template '$template_path'"
+    echo "ERROR: Oliver rendering failed for page '$src_path' using template '$template_path'" >&2
+    if [[ -f "$oliver_err" && -s "$oliver_err" ]]; then
+      cat "$oliver_err" >&2
     fi
-    rm -f "$body_tmp" "$body_rewritten" "$apex_err"
+    rm -f "$body_tmp" "$body_rewritten" "$oliver_err"
     exit 1
   fi
 
-  if [[ -f "$apex_err" && -s "$apex_err" ]]; then
+  if [[ -f "$oliver_err" && -s "$oliver_err" ]]; then
     while IFS= read -r line || [[ -n "$line" ]]; do
-      log "WARN" "Apex warning for '$src_path': $line"
-    done < "$apex_err"
+      log "WARN" "Oliver warning for '$src_path': $line"
+    done < "$oliver_err"
   fi
-  rm -f "$apex_err"
+  rm -f "$oliver_err"
 
   # 5. Link Rewriting Pass via GAWK (Linear scan, string slicing for robust replacement)
   # NOTE: inner match() calls must not clobber the outer RSTART/RLENGTH used to

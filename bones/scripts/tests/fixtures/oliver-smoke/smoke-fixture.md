@@ -1,6 +1,6 @@
 ---
 title: "Smoke Fixture & <Tomb>"
-description: "Hermetic smoke fixture for the Apex renderer contract"
+description: "Hermetic smoke fixture for the Oliver renderer contract"
 author: "Rotkeeper Harness"
 date: "2026-08-12"
 palette: "phosphor"

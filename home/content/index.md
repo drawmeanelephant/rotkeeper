@@ -3,7 +3,7 @@ title: "Welcome to Rotkeeper"
 slug: home
 version: "0.5.0"
 updated: "2026-07-23"
-description: "A Bash-native, Apex-driven static site and content system for Markdown, documentation, and local-first themes."
+description: "A Bash-native, Oliver-driven static site and content system for Markdown, documentation, and local-first themes."
 tags:
   - rotkeeper
   - homepage
@@ -20,7 +20,7 @@ asset_meta:
 
 # Rotkeeper: A Ritual CLI for Flat-File Decay
 
-Rotkeeper turns Markdown with YAML frontmatter into a static site with Apex. The system is Bash-native, locally vendored, and organized around three places: `bones/` for the machinery, `home/` for authored content, and `output/` for rendered artifacts.
+Rotkeeper turns Markdown with YAML frontmatter into a static site with Oliver. The system is Bash-native, locally vendored, and organized around three places: `bones/` for the machinery, `home/` for authored content, and `output/` for rendered artifacts.
 
 Each file is a tomb. Each version is a ritual. Each render is final.
 
