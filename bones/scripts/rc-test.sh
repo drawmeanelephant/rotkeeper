@@ -241,9 +241,13 @@ CONF_EOF
     cat << 'FAKE_EOF' > "$fake_bin"
 #!/usr/bin/env bash
 set -euo pipefail
-# Mimic Oliver's CLI shape: oliver render --from markdown < file.md
-if [[ "${1:-}" != "render" || "${2:-}" != "--from" || "${3:-}" != "markdown" ]]; then
+# Mimic Oliver's CLI shape: oliver render --from <markdown|textile> < file
+if [[ "${1:-}" != "render" || "${2:-}" != "--from" || ( "${3:-}" != "markdown" && "${3:-}" != "textile" ) ]]; then
   exit 1
+fi
+if [[ "${3:-}" == "textile" ]]; then
+  printf '<h1>textile-input-confirmed</h1>\n<a href="sibling.textile">Sibling</a>\n'
+  exit 0
 fi
 awk '/^---$/ { f++; next } f>=2 || f==0 { print }' | \
   sed -E 's/\[([^]]+)\]\(([^)]+)\)/<a href="\2">\1<\/a>/g'
@@ -573,6 +577,41 @@ FIXTURE_EOF
       exit 125
     fi
 
+    echo "  [+] Executing configurable input format (textile) assertions..."
+    yq eval '.input_format = "textile"' -i "$b_config/rotkeeper.yaml"
+    cat << 'TEXTILE_EOF' > "$b_content/textile-check.md"
+---
+title: "Textile Check"
+description: "Textile input format verification"
+---
+
+h1. Textile headline
+
+"Textile Link":sibling.textile
+TEXTILE_EOF
+
+    if ! RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null; then
+      echo "❌ Assertion Failed: render with input_format=textile failed."
+      exit 144
+    fi
+
+    rendered_textile="$out_dir_rel/textile-check.html"
+    if [[ ! -f "$rendered_textile" ]]; then
+      echo "❌ Assertion Failed: textile-format page missing after render: $rendered_textile"
+      exit 145
+    fi
+    if ! grep -q 'textile-input-confirmed' "$rendered_textile"; then
+      echo "❌ Assertion Failed: rendered output does not prove --from textile reached the renderer."
+      exit 146
+    fi
+    if ! grep -q 'href="sibling.html"' "$rendered_textile"; then
+      echo "❌ Assertion Failed: .textile internal link was not rewritten to .html."
+      exit 147
+    fi
+
+    yq eval '.input_format = "markdown"' -i "$b_config/rotkeeper.yaml"
+    echo "  [+] Pass: input_format=textile propagated to renderer ($mode)."
+
     # Execute pack to generate tomb archives & json export
     ./rotkeeper.sh pack > /dev/null
 
@@ -614,6 +653,27 @@ FIXTURE_EOF
       exit 115
     fi
 
+    echo "  [+] Executing pack integrity assertions..."
+    newest_tomb=$(find "$b_archive" -name 'tomb-*.tar.gz' 2>/dev/null | sort | tail -n 1)
+    if [[ -z "$newest_tomb" || ! -f "$newest_tomb" ]]; then
+      echo "❌ Assertion Failed: no tomb-*.tar.gz archive found after pack."
+      exit 116
+    fi
+    if ! gzip -t "$newest_tomb" 2>/dev/null; then
+      echo "❌ Assertion Failed: tomb archive failed gzip integrity check: $newest_tomb"
+      exit 117
+    fi
+    if ! tar -tzf "$newest_tomb" | grep -q '^metadata.json$'; then
+      echo "❌ Assertion Failed: tomb archive missing metadata.json entry: $newest_tomb"
+      exit 118
+    fi
+    if tar -tzf "$newest_tomb" | grep -vEq "^metadata\.json$|^$out_dir_rel/"; then
+      echo "❌ Assertion Failed: tomb archive contains entries outside root-relative prefixes (absolute path leak?)."
+      echo "--- Tomb entries ---"
+      tar -tzf "$newest_tomb" | head -n 5
+      exit 139
+    fi
+
     echo "  [+] Executing release packager assertions..."
     ./rotkeeper.sh release "$TEST_RELEASE_VERSION" > /dev/null
 
@@ -626,6 +686,76 @@ FIXTURE_EOF
     if [[ -f "$b_archive/releases/rotkeeper-0.4.0.4-lite.zip" || -f "$b_archive/releases/rotkeeper-0.4.0.4-full.zip" ]]; then
        echo "❌ Assertion Failed: Deprecated multi-tier packages still generated."
        exit 100
+    fi
+
+    echo "  [+] Executing release ZIP content assertions..."
+    release_zip="$b_archive/releases/rotkeeper-$TEST_RELEASE_VERSION.zip"
+    if ! unzip -tq "$release_zip" > /dev/null 2>&1; then
+      echo "❌ Assertion Failed: release ZIP failed integrity test."
+      exit 148
+    fi
+    release_entries=$(zipinfo -1 "$release_zip")
+    if [[ -z "$release_entries" ]]; then
+      echo "❌ Assertion Failed: release ZIP listing is empty."
+      exit 148
+    fi
+    for req_entry in "rotkeeper/rotkeeper.sh" "rotkeeper/bones/config/rotkeeper.yaml" "rotkeeper/bones/config/version" "rotkeeper/bones/config/release-manifest.txt" "rotkeeper/bones/scripts/rc-utils.sh"; do
+      if ! grep -Fxq "$req_entry" <<< "$release_entries"; then
+        echo "❌ Assertion Failed: framework spine entry missing from release archive: $req_entry"
+        exit 149
+      fi
+    done
+    if grep -vq '^rotkeeper/' <<< "$release_entries"; then
+      echo "❌ Assertion Failed: release archive contains entries outside the rotkeeper/ framework root."
+      exit 150
+    fi
+    if grep -Eq '^rotkeeper/(output|bones/logs|bones/tmp|bones/archive|bones/reports|bones/book-reports|home/content/messages)/' <<< "$release_entries"; then
+      echo "❌ Assertion Failed: forbidden generated/cache tree shipped in release archive."
+      exit 151
+    fi
+    if grep -Eq '(\.pem|\.key|\.p12|\.pyc|\.npmrc|id_rsa|\.DS_Store|_temp\.md)$|(^|/)\.env(\.|$)' <<< "$release_entries"; then
+      echo "❌ Assertion Failed: forbidden artifact shipped in release archive."
+      exit 151
+    fi
+    if find "$b_archive/releases" -name 'rotkeeper-*.tar*' 2>/dev/null | grep -q .; then
+      echo "❌ Assertion Failed: non-canonical archive leftovers found in release directory."
+      exit 152
+    fi
+
+    echo "  [+] Executing --dry-run non-mutation assertions..."
+    # Payload files only: bones/logs is excluded because routine log files are
+    # minute-granular telemetry, not rendered/archived/reported state.
+    pre_count=$(find . -path './bones/logs' -prune -o -type f -print | wc -l | tr -d ' ')
+    ./rotkeeper.sh render --dry-run > /dev/null
+    ./rotkeeper.sh pack --dry-run > /dev/null
+    ./rotkeeper.sh scan --dry-run > /dev/null
+    ./rotkeeper.sh release "$TEST_RELEASE_VERSION" --dry-run > /dev/null
+    post_count=$(find . -path './bones/logs' -prune -o -type f -print | wc -l | tr -d ' ')
+    if [[ "$pre_count" != "$post_count" ]]; then
+      echo "❌ Assertion Failed: --dry-run mutated the workspace ($pre_count -> $post_count files)."
+      exit 153
+    fi
+
+    echo "  [+] Executing stale-output pruning assertions..."
+    rm -f "$b_content/ugly-edge-case.md"
+    if ! RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null; then
+      echo "❌ Assertion Failed: render after source removal failed."
+      exit 154
+    fi
+    if [[ -f "$out_dir_rel/ugly-edge-case.html" ]]; then
+      echo "❌ Assertion Failed: stale rendered page survived after its source was pruned."
+      exit 154
+    fi
+    echo "  [+] Pass: stale rendered output pruned ($mode)."
+
+    echo "  [+] Executing archive naming uniqueness assertions..."
+    ./rotkeeper.sh pack > /dev/null
+    ./rotkeeper.sh pack > /dev/null
+    newest_tomb=$(find "$b_archive" -name 'tomb-*.tar.gz' 2>/dev/null | sort | tail -n 1)
+    prev_tomb=$(find "$b_archive" -name 'tomb-*.tar.gz' 2>/dev/null | sort | tail -n 2 | head -n 1)
+    if [[ -z "$newest_tomb" || "$newest_tomb" == "$prev_tomb" ]]; then
+      echo "❌ Assertion Failed: consecutive pack runs produced colliding archive names."
+      exit 155
     fi
 
     echo "  🎉 Pass [$mode] successful: canonical distribution payload matches criteria."

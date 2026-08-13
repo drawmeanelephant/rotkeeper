@@ -7,7 +7,8 @@ IFS=$'\n\t'
 #  Purpose : Pure Bash + GAWK + YQ batch adapter for Oliver renderer.
 #            Zero Python requirement. Evaluates Rotkeeper HTML templates,
 #            enforces path boundaries, applies sidecar metadata precedence,
-#            evaluates template conditionals, and rewrites internal .md links.
+#            evaluates template conditionals, and rewrites internal
+#            .md/.textile links to .html.
 #  Version : 0.5.1
 #  Updated : 2026-03-23
 # ============================================================
@@ -141,9 +142,10 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
     exit 1
   fi
 
-  # 4. Invoke Oliver to convert Markdown to body HTML snippet.
-  #    Oliver is a pure CommonMark renderer, so the adapter strips a leading
-  #    YAML frontmatter block before piping the body into the CLI.
+  # 4. Invoke Oliver to convert the source (Markdown or Textile per
+  #    input_format in rotkeeper.yaml, default markdown) to body HTML snippet.
+  #    The adapter strips a leading YAML frontmatter block before piping the
+  #    body into the CLI.
   mkdir -p "$TMP_DIR"
   body_tmp="$TMP_DIR/oliver-body-$$.html"
   body_rewritten="$TMP_DIR/oliver-body-rewritten-$$.html"
@@ -155,7 +157,7 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
       NR == 1 && $0 == "---" { skip = 1; next }
       skip == 1 && $0 == "---" { skip = 0; next }
       skip == 0 { print }
-    ' "$src_path" | "$oliver_bin" render --from markdown > "$body_tmp" 2> "$oliver_err"; then
+    ' "$src_path" | "$oliver_bin" render --from "${INPUT_FORMAT:-markdown}" > "$body_tmp" 2> "$oliver_err"; then
     log "ERROR" "Oliver rendering failed for page '$src_path' using template '$template_path'"
     echo "ERROR: Oliver rendering failed for page '$src_path' using template '$template_path'" >&2
     if [[ -f "$oliver_err" && -s "$oliver_err" ]]; then
@@ -212,6 +214,10 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
       } else if (match(target, /\.md(\?|#|$)/)) {
         t_base = substr(target, 1, RSTART - 1)
         t_tail = substr(target, RSTART + 3)
+        new_target = t_base ".html" t_tail
+      } else if (match(target, /\.textile(\?|#|$)/)) {
+        t_base = substr(target, 1, RSTART - 1)
+        t_tail = substr(target, RSTART + 8)
         new_target = t_base ".html" t_tail
       } else {
         new_target = target

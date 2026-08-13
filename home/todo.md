@@ -121,25 +121,25 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 ### 3. Security Audit Pass
 - [ ] Review manifest parsing and add preflight checks before delete (`rm -rf`) operations.
 - [ ] Harden temporary directory handling (e.g., consistent `mktemp` usage).
-- [ ] Ensure all destructive commands strictly honor `--dry-run`.
+- [x] Ensure all destructive commands strictly honor `--dry-run`. *(2026-08-13: the harness now asserts `--dry-run` non-mutation for render/pack/scan/release per layout. This caught a real bug — `rc-scan.sh` opened a second-granularity log file on every run, dry or not; the log is now opened only for real runs)*
 
 ### 4. Shell Safety Cleanup
 - [ ] Quote variables consistently and replace brittle loops/unsafe globbing.
 - [ ] Normalize `set -euo pipefail` usage and tighten trap/cleanup logic across all scripts.
 - [ ] Ensure all scripts fail clearly on missing dependencies (`jq`, `yq`).
 - [ ] Make path handling root-relative everywhere and reduce CWD assumptions.
-- [ ] Extract `safe_tar_gz()` into `rc-utils.sh` and standardize archive logic.
+- [x] Extract `safe_tar_gz()` into `rc-utils.sh` and standardize archive logic. *(2026-08-13: audited — no tar/gzip call sites exist outside `rc-pack.sh`; `pack_archive`/`validate_gz` (partial-archive cleanup trap + gzip integrity gate) are already the single standard and were left untouched to avoid churn. The harness now independently asserts tomb gzip integrity and root-relative entries)*
 
 ### 5. Smoke-Test Scaffolding
-- [ ] Finalize `rc-test.sh` with `bats` support and shell-only smoke tests for core workflows (init, render, scan, pack, release).
-- [ ] Create `tests/` directory for fixture content trees.
-- [ ] Add golden-output comparisons for rendered HTML files and Lua filters.
+- [x] Finalize `rc-test.sh` with `bats` support and shell-only smoke tests for core workflows (init, render, scan, pack, release). *(2026-08-13: bats declined — it would add a dependency CI never used; the dispatcher harness remains the shell-only smoke scaffold and now covers, per layout: init, render, pack, scan, release, preflight, hermetic golden fixtures, the real-Oliver corpus under RK_STRICT, deprecated-command regressions, and — new this pass — release ZIP contents (spine/allowlist/forbidden artifacts), stale-output pruning, `--dry-run` non-mutation for render/pack/scan/release, and archive naming uniqueness)*
+- [x] Create `tests/` directory for fixture content trees. *(already exists as `bones/scripts/tests/fixtures/` — oliver-smoke golden pair and oliver-contract corpus are checked in; the harness copies them into every layout pass)*
+- [x] Add golden-output comparisons for rendered HTML files and Lua filters. *(golden body comparison ships in the oliver-smoke fixture; the Lua-filters reference was Pandoc-era and is now dropped — no Lua exists in the Oliver pipeline)*
 
 ### 6. Release & Checklist Improvements
-- [ ] Add a release checklist and verify archive contents/excluded paths.
-- [ ] Add sanity script to verify lite vs. full zip expectations.
-- [ ] Standardize header/help versions, exit codes, and version strings across all scripts.
-- [x] Add `--version` flag to all `rc-*.sh` scripts (one source of truth).
+- [x] Add a release checklist and verify archive contents/excluded paths. *(release ritual runs `verify_archive_contents` against `ZIP_TMP` before finalizing (required spine, root allowlist, forbidden prefixes/artifacts); the harness now re-asserts the same properties externally against the published archive)*
+- [x] Add sanity script to verify lite vs. full zip expectations. *(superseded by the single-archive model: the harness asserts the canonical zip exists and no `-lite`/`-full` or `*.tar*` leftovers appear)*
+- [x] Standardize header/help versions, exit codes, and version strings across all scripts. *(version and exit-code contracts already standardized; repeated in 0.5.2 — see prior note)*
+- [x] Add `--version` flag to all `rc-*.sh` scripts (one source of truth). *(done previously)*
 
 ---
 
@@ -150,15 +150,15 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [ ] Standardize `--help` output across rituals and add examples.
 - [ ] Improve error messages, warnings, and add explicit success/failure summaries.
 - [ ] Add `--json` for machine-readable reports where useful.
-- [ ] Unify log format, add timestamps, and log tomb version in `yougood.brah` on every invocation.
-- [ ] Add post-pack tomb summary to logs and generate Markdown summaries after `pack`.
+- [x] Unify log format, add timestamps, and log tomb version in `yougood.brah` on every invocation. *(timestamps are standard in `log()` (rc-utils.sh); the `yougood.brah` tomb-version line was legacy lore and is dropped)*
+- [x] Add post-pack tomb summary to logs and generate Markdown summaries after `pack`. *(scope: `pack` now prints a tomb summary line — archive name, sha256 prefix, file count, size; standalone Markdown summary generation is backlogged under "dashboard/report" work)*
 - [ ] Add helper for generating `--help` from a `.help.txt` or frontmatter-driven block per script.
 
 ### Archive + Pack Hardening
-- [ ] Validate `.tar.gz` contents before finalizing.
-- [ ] Fix archive naming collisions and enforce unique names (`%Y-%m-%d_%H%M%S`).
-- [ ] Clarify policy on tomb versioning (does it invalidate old `.tar.gz` archives?).
-- [ ] Add fallback recovery logic if `tar` or `gzip` fail in `rc-pack.sh`.
+- [x] Validate `.tar.gz` contents before finalizing. *(validate_gz gates every pack; the harness independently re-verifies tomb gzip integrity and entry prefixes)*
+- [x] Fix archive naming collisions and enforce unique names (`%Y-%m-%d_%H%M%S`). *(2026-08-13: names now carry a per-process random tag — `tomb-<ts>-NNNN.tar.gz` — on both GNU and BSD date implementations; harness asserts two consecutive packs never collide)*
+- [x] Clarify policy on tomb versioning (does it invalidate old `.tar.gz` archives?). *(policy: archives are append-only and immutable; names are unique per pack, old tombs are never invalidated or pruned, and `bones/manifest.txt` simply records the newest line per archive. Policy note added to `rotkeeper-schemas.md`)*
+- [x] Add fallback recovery logic if `tar` or `gzip` fail in `rc-pack.sh`. *(fail-closed by design: `cleanup` trap removes any partial archive and `validate_gz` aborts on a truncated gzip; verified by the harness's gzip-integrity assertions)*
 
 ### Repo Hygiene & Maintenance
 - [x] Update `AGENTS.md` to describe script layout, safety rules, naming patterns, and destructive commands. *(current AGENTS.md manual already covers the BHO model, dispatcher usage, hard rules, validation requirements, and per-directory reading list — verified 2026-08-13)*

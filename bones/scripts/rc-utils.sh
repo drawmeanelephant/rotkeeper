@@ -247,7 +247,7 @@ rk_oliver_preflight() {
   if [[ -z "$reason" ]]; then
     mkdir -p "$TMP_DIR"
     printf '# preflight smoke\n' > "$smoke_doc"
-    "$candidate" render --from markdown < "$smoke_doc" > "$smoke_out" 2> "$smoke_err" || smoke_status=$?
+    "$candidate" render --from "${INPUT_FORMAT:-markdown}" < "$smoke_doc" > "$smoke_out" 2> "$smoke_err" || smoke_status=$?
     if [[ "$smoke_status" -ne 0 ]]; then
       reason="Oliver binary runs but failed its smoke render (exit $smoke_status)"
       if [[ -s "$smoke_err" ]]; then

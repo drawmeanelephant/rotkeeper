@@ -13,7 +13,7 @@ tags:
 
 This guide walks the full Rotkeeper cycle from a cold checkout to a shipped framework zip. Every operation runs through the dispatcher: `bash rotkeeper.sh <command>` (or `./rotkeeper.sh`).
 
-The cycle is: **preflight → init → author → render → verify → archive → release**.
+The cycle is: **preflight → init → author → render → verify → archive → release**, finished by the [release-day checklist](#8-release-day-checklist).
 
 ## 1. Preflight — is the renderer ready?
 
@@ -54,7 +54,7 @@ Asset files (CSS, images, fonts) live in the layout's assets directory — `home
 ./rotkeeper.sh render
 ```
 
-The renderer sweeps the content tree, extracts frontmatter (sidecar wins), resolves a template, invokes Oliver once per page (`oliver render --from markdown < file.md`; stdout = body HTML, stderr = warnings), rewrites internal `.md` links to `.html`, and interpolates the page into the template. The adapter's responsibilities and the Oliver binary contract are recorded in `oliver-contract.md`.
+The renderer sweeps the content tree, extracts frontmatter (sidecar wins), resolves a template, invokes Oliver once per page (`oliver render --from <markdown|textile>` per `input_format` in `rotkeeper.yaml`; stdout = body HTML, stderr = warnings), rewrites internal `.md`/`.textile` links to `.html`, and interpolates the page into the template. The adapter's responsibilities and the Oliver binary contract are recorded in `oliver-contract.md`.
 
 If a render fails, the error names the page, Oliver's stderr (warnings never leak into page bodies), and the offending path. `--dry-run` previews the pass without writing; `--verbose` shows detail.
 
@@ -85,6 +85,20 @@ Archives the rendered HTML and metadata into a versioned tarball under `bones/ar
 ```
 
 `release` stages the repository against an explicit root-entry allowlist, excludes dev-only and forbidden trees (caches, logs, temp, output, credentials), generates `bones/config/release-manifest.txt` inside the archive, and fails fast on unexpected root entries, missing required files, or forbidden artifacts. The zip lands at `bones/archive/releases/rotkeeper-<VERSION>.zip`.
+
+## 8. Release-day checklist
+
+Run the full loop before tagging a version — a release is only real when a clean environment reproduces the advertised workflow:
+
+1. **Clean clone.** `git clone` the repo into a fresh directory (no cached env, no leftover `paths` block).
+2. **Pinned renderer.** Install Zig 0.16.0, then `bash scripts/setup-jules.sh` — it builds Oliver from the pinned `OLIVER_PIN` commit (never unpinned `main`). Do not pre-install an Oliver from a different source.
+3. **Gate.** `./rotkeeper.sh preflight` must PASS, and `bash rotkeeper.sh test` must be green with `RK_STRICT=1` (forces the real-Oliver renderer smoke and CommonMark contract corpus on every layout pass).
+4. **Initialize all three profiles.** `./rotkeeper.sh init --with-sample` in `crypt` (default), then init a `busy` and a `sterile` fixture and render each.
+5. **Verify.** `scan`, `links`, `assets`, and `status` report zero drift; `book --docbook` and `dip` bind without new stubs.
+6. **Archive.** `pack`, then confirm the tomb: `gzip -t bones/archive/tomb-*.tar.gz` and check `metadata.json` is embedded.
+7. **Release.** `./rotkeeper.sh bump --to <VERSION>` (records changelog + roadmap), then `./rotkeeper.sh release <VERSION>`.
+8. **Inspect the artifact.** The zip must contain the framework spine (`rotkeeper.sh`, `bones/config/rotkeeper.yaml`, `bones/config/version`, `bones/config/release-manifest.txt`, `bones/scripts/rc-utils.sh`), only `rotkeeper/`-rooted entries, and no caches, logs, archives, or credentials. The harness asserts all of this on every run; spot-check the manifest inside the archive.
+9. **Extract and replay.** Unzip to a second clean directory, run preflight → init → render → scan → pack, and confirm the quickstart works from the shipped artifact — then tag the version.
 
 ## Day-two operations
 

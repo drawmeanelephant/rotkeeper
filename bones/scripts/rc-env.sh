@@ -105,7 +105,22 @@ else
     WEB_DIR="$OUTPUT_DIR"
 fi
 
+# Source format toggle: markdown (default) or textile. Oliver's CLI gates
+# both (`oliver render --from <markdown|textile>`); the adapter and preflight
+# pass this value through on every invocation.
+INPUT_FORMAT="markdown"
+if [[ -f "$CONFIG_TARGET" ]]; then
+    INPUT_FORMAT=$(yq eval '.input_format // "markdown"' "$CONFIG_TARGET" 2>/dev/null | tr -d '\n' || echo "markdown")
+fi
+case "${INPUT_FORMAT,,}" in
+    markdown|textile) ;;
+    *)
+        echo "[WARN] Unsupported input_format '$INPUT_FORMAT' in config; falling back to 'markdown'." >&2
+        INPUT_FORMAT="markdown"
+        ;;
+esac
+
 export ROOT_DIR BONES_DIR OUTPUT_DIR CONTENT_DIR ASSETS_DIR DOCS_DIR HELP_DIR
 export LOG_DIR TMP_DIR CONFIG_DIR ARCHIVE_DIR RELEASE_DIR REPORT_DIR BOOK_REPORT_DIR SCRIPT_DIR TEMPLATE_DIR META_DIR
 
-export WEB_DIR LAYOUT_STYLE
+export WEB_DIR LAYOUT_STYLE INPUT_FORMAT

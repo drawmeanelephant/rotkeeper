@@ -55,6 +55,7 @@ paths:                       # optional serialized path cache (init writes it)
 | `version` | string | status | `[not set]` (the authoritative version is `bones/config/version`) |
 | `license` | string | status | `[not set]` |
 | `default_template` | string | render, glue, new, bootstrap | `theme-spooky-dark.html` |
+| `input_format` | string | env, render, preflight, adapter | `markdown`; valid values `markdown` \| `textile` (anything else warns and falls back to `markdown`) |
 | `layout_style` | string | env | `crypt`; valid profiles `crypt` \| `busy` \| `sterile` |
 | `paths` | map | env | derived per layout style when absent |
 
@@ -85,6 +86,12 @@ rotkeeper/bones/config/release-manifest.txt
 | `entries:` | One sorted, root-relative path per file inside the archive — the allowlist the packager verifies against |
 
 Verification failures (unexpected root files, missing required spine, forbidden credentials/artifacts) abort the release before the archive is finalized.
+
+## `bones/archive/` — tomb archives
+
+`pack` writes versioned `.tar.gz` tombs (`tomb-<YYYY-MM-DD_HHMMSS>-NNNN.tar.gz`), tombkit bundles (`tombkit-*`), content archives (`tomb-content-*`), JSON exports (`tomb-export-*`), and releases (`releases/rotkeeper-<version>.zip`).
+
+**Tomb versioning policy:** archives are append-only and immutable. The random `-NNNN` tag (GNU and BSD safe — `%N` is GNU-only) guarantees unique names even for packs within the same second; old tombs are never invalidated, overwritten, or pruned. Each archive embeds a `metadata.json` (name, sha256 of the uncompressed tar, timestamp, mode, file count) and is recorded in `bones/manifest.txt` as `<relative-path>  <sha256>`. `gzip -t` integrity is verified at pack time (`validate_gz`) and re-asserted by the test harness; any failed or interrupted pack is cleaned up by the partial-archive trap (no half-written `.tar` or truncated `.gz` survives).
 
 ## Related
 

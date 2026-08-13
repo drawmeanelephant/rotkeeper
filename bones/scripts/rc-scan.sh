@@ -120,9 +120,13 @@ done
 #
 mkdir -p "$REPORT_DIR" "$LOG_DIR"
 
-LOG_FILE="$LOG_DIR/rc-scan-$(date +%Y%m%d_%H%M%S).log"
+# --dry-run must stay non-mutating: the per-run scan log is only opened for
+# real runs.
+if [[ "${DRY_RUN:-false}" != true ]]; then
+  LOG_FILE="$LOG_DIR/rc-scan-$(date +%Y%m%d_%H%M%S).log"
 
-echo "[INFO] rc-scan started at $(date)"
+  echo "[INFO] rc-scan started at $(date)"
+fi
 
 #
 # --- Step 1: Load Manifest ---

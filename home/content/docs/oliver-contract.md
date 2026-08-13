@@ -27,23 +27,24 @@ If neither yields an executable file, `render` fails with exit 1 and prints a se
 
 ## The binary contract
 
-Oliver is invoked once per Markdown source file, reading the file on stdin:
+Oliver is invoked once per source file, reading the file on stdin. The input language is selected by `input_format` in `bones/config/rotkeeper.yaml` (`markdown` default, `textile` alternative); the adapter and `preflight` pass it through on every invocation:
 
 ```bash
 oliver render --from markdown < file.md > body.html 2> warnings.log
+oliver render --from textile < file.md > body.html 2> warnings.log
 ```
 
 | Aspect | Contract |
 | --- | --- |
-| Invocation | `oliver render --from markdown` — one file per invocation, stdin → stdout |
-| Input | Markdown on **stdin** — a leading YAML frontmatter block is stripped by the adapter before invocation (Oliver itself is a pure CommonMark renderer) |
+| Invocation | `oliver render --from <markdown\|textile>` — one file per invocation, stdin → stdout; format comes from `input_format` in `bones/config/rotkeeper.yaml` (default `markdown`, validated to `markdown`/`textile` at environment load; anything else warns and falls back to `markdown`) |
+| Input | Markdown **or Textile** on **stdin** — a leading YAML frontmatter block is stripped by the adapter before invocation (Oliver itself is a pure CommonMark/Textile renderer) |
 | stdout | Rendered **body HTML fragment** (no full page wrapping) |
 | stderr | Non-fatal renderer warnings; forwarded through the adapter as warnings, never into the page body |
 | Exit 0 | Success |
 | Exit 1 | Render failure (e.g. missing input); page is aborted |
-| Version | Oliver's CLI is provisional and has no stable release yet. `preflight` gates on a live smoke render through the real CLI instead of a version range; this table is the compatibility target |
+| Version | Oliver's CLI is provisional and has no stable release yet, so Rotkeeper pins an exact source revision: CI and `scripts/setup-jules.sh` build from commit `22b3c7795adb1caac160b3bc863980d35bbec379` (the `OLIVER_PIN` variable in `setup-jules.sh`). Moving the pin is a deliberate act — upgrade it, re-run the harness, and update this table. `preflight`'s live smoke render (in the configured format) remains the behavioral safety net on top of the pin |
 
-The binary is deliberately narrow: it converts Markdown to a body fragment. Everything around that — frontmatter extraction, sidecars, templates, link rewriting, output planning — lives in Rotkeeper's Bash layer, not in Oliver.
+The binary is deliberately narrow: it converts Markdown or Textile to a body fragment. Everything around that — frontmatter extraction, sidecars, templates, link rewriting, output planning — lives in Rotkeeper's Bash layer, not in Oliver.
 
 ## Rendered Markdown surface
 
@@ -72,8 +73,8 @@ This section is the stable contract that Phase 6 ("Rationalize the Oliver bounda
 
 ### Input side
 
-- Sources are UTF-8 Markdown files with an optional leading YAML frontmatter block.
-- The frontmatter block must start on the **very first line** (`---` on line 1 — no BOM, no leading blank line) and close at the next `---` line. A YAML `...` document-end marker is not honored; anything after the closing `---` is Markdown.
+- Sources are UTF-8 files with an optional leading YAML frontmatter block. With `input_format: markdown` (default) the body is Markdown; with `input_format: textile` the body is Textile (Oliver's `--from textile`). Source-file discovery, soul sidecar naming, and output naming remain `*.md`-bound — Textile markup lives in `.md` sources unless discovery scope is deliberately extended.
+- The frontmatter block must start on the **very first line** (`---` on line 1 — no BOM, no leading blank line) and close at the next `---` line. A YAML `...` document-end marker is not honored; anything after the closing `---` is body content in the configured format.
 - Only the six fields above are consumed, as **scalar strings**. Lists, maps, and other keys are ignored for template purposes.
 - A `.soul.md` sidecar under `bones/meta` may override any of the six fields **per field**; the sidecar value wins only when it is non-empty and not `null`. Without a sidecar, source frontmatter applies.
 - `template` resolution: `$template$` selects `${TEMPLATE_DIR}/${template}`. If the named template does not exist or escapes `TEMPLATE_DIR`, the batch manifest's default template (from `default_template` in `bones/config/rotkeeper.yaml`) is used. The page fails if no valid template resolves.
@@ -114,7 +115,7 @@ A `.soul.md` sidecar next to a source file (under `bones/meta`) may override fro
 2. Frontmatter extraction and sidecar merge (including stripping a leading YAML frontmatter block before the Markdown reaches Oliver).
 3. Template resolution.
 4. Oliver invocation and stderr forwarding.
-5. Internal `.md` → `.html` link rewriting (fragment/query preserved, external and `mailto:` left alone).
+5. Internal `.md`/`.textile` → `.html` link rewriting (fragment/query preserved, external and `mailto:` left alone).
 6. Template interpolation: `$if(name)$/$endif$` conditionals, then literal replacement of `$title$`, `$description$`, `$author$`, `$date$`, `$assets_root$`, `$body$` with HTML escaping.
 
 Per the stabilization roadmap, these responsibilities are candidates for incremental movement into Oliver only after the contract above is stable. Bash keeps dispatch, environment setup, filesystem boundaries, orchestration, and packaging.

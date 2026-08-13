@@ -131,6 +131,10 @@ main() {
     OUTPUT_DIR="$OUTPUT_DIR"
     MANIFEST_FILE="$BONES_DIR/manifest.txt"
     TIMESTAMP_VERSION=$(date +%Y-%m-%d_%H%M%S)
+    # Collision hardening: %N (nanoseconds) is GNU-only, so two packs within
+    # the same second would otherwise name-collide. A per-process random tag
+    # keeps every archive name unique on both GNU and BSD platforms.
+    TIMESTAMP_VERSION="${TIMESTAMP_VERSION}-$(printf '%04d' $((RANDOM % 10000)))"
     TOMB="tomb-$TIMESTAMP_VERSION.tar"
     EXPORT_JSON="$ARCHIVE_DIR/tomb-export-$TIMESTAMP_VERSION.json"
 
@@ -197,6 +201,7 @@ main() {
         log "INFO" "Embedded metadata.json into $TOMB"
 
         echo "🧾 Archived to \"$ARCHIVE_DIR/$TOMB\""
+        echo "📦 Tomb summary: $(basename "$TOMB") | sha256 ${SHA_COMPRESSED:0:16}… | files $count | $(du -h "$ARCHIVE_DIR/$TOMB" | cut -f1)"
       else
         log "DRYRUN" "Would pack \"$OUTPUT_DIR\" into \"$ARCHIVE_DIR/$TOMB\""
       fi
