@@ -159,10 +159,15 @@ ${DEFAULT_YAML}
     done < <(find "$DIR" -maxdepth 1 -mindepth 1 -type d -print0 2>/dev/null | sort -z)
 
     while IFS= read -r -d '' FILE; do
-      FILE_NAME=$(basename "$FILE" .md)
+      RAW_NAME=$(basename "$FILE")
+      case "$RAW_NAME" in
+        *.md) FILE_NAME="${RAW_NAME%.md}" ;;
+        *.textile) FILE_NAME="${RAW_NAME%.textile}" ;;
+        *) FILE_NAME="$RAW_NAME" ;;
+      esac
       GLUE_CONTENT+=$'
 '"- [$FILE_NAME](<$FILE_NAME.html>)"
-    done < <(find "$DIR" -maxdepth 1 -mindepth 1 -type f -name "*.md" ! -name "index.md" -print0 2>/dev/null | sort -z)
+    done < <(find "$DIR" -maxdepth 1 -mindepth 1 -type f \( -name "*.md" -o -name "*.textile" \) ! -name "index.md" -print0 2>/dev/null | sort -z)
     GLUE_CONTENT+=$'
 '"<!-- ROTKEEPER-GLUE-END -->"
 
