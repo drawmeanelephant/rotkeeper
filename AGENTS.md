@@ -12,6 +12,12 @@ bash rotkeeper.sh <command>
 
 Do not invoke `bones/scripts/rc-*.sh` directly.
 
+## Renderer: Oliver
+
+- Rendering runs through the [Oliver](https://github.com/drawmeanelephant/oliver) binary: `oliver render --from markdown < file.md`, stdin → stdout body HTML, stderr = warnings. Discovery order is `RK_OLIVER_BIN` override, then `oliver` on `PATH`. The authoritative contract is `home/content/docs/oliver-contract.md`.
+- `bash rotkeeper.sh preflight` is the single renderer health check (discovery, executability, live smoke render); `render` routes through the same check. The adapter (`rc-oliver-adapter.sh`) strips a leading YAML frontmatter block before invoking Oliver.
+- Oliver has no stable release yet: `setup-jules.sh` (and CI) builds it from source with Zig 0.16. Until Oliver ships GFM tables (drawmeanelephant/oliver#17), pipe tables in content render literally — use raw-HTML `<table>` blocks for tables that must render today.
+
 ## The BHO model
 
 - `bones/` is the system: scripts, configuration, templates, reports, logs, archives, and metadata.
