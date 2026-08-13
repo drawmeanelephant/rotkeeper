@@ -133,7 +133,7 @@ verify_archive_contents() {
     local forbidden_prefix
     local -a forbidden_prefixes=(
         "rotkeeper/.git/"
-        "rotkeeper/output/"
+        "rotkeeper/${OUTPUT_DIR#"$ROOT_DIR"/}/"
         "rotkeeper/${LOG_DIR#"$ROOT_DIR"/}/"
         "rotkeeper/${TMP_DIR#"$ROOT_DIR"/}/"
         "rotkeeper/${ARCHIVE_DIR#"$ROOT_DIR"/}/"
@@ -147,6 +147,10 @@ verify_archive_contents() {
         "home/"
         "docs/"
         "scripts/"
+        "templates/"
+        "assets/"
+        "src/"
+        "config/"
         "AGENTS.md"
         "CHANGELOG.md"
         "CONTRIBUTING.md"
@@ -178,11 +182,23 @@ verify_archive_contents() {
     done
 
     local root_entry allowed
+    local entry_first
+    local entry_top
     while IFS= read -r entry; do
-        if [[ "$entry" != */* && -n "$entry" ]]; then
+        if [[ -n "$entry" ]]; then
+            entry_first="${entry%%/*}"
+            entry_top="${entry#*/}"
+            entry_top="${entry_top%%/*}"
+            if [[ "$entry_first" != "rotkeeper" ]]; then
+                log "ERROR" "Unexpected archive entry outside the framework root: $entry"
+                return 1
+            fi
+            if [[ -z "$entry_top" ]]; then
+                continue
+            fi
             allowed=false
             for root_entry in ${allowed_root[@]+"${allowed_root[@]}"}; do
-                if [[ "$entry" == "$root_entry" ]]; then
+                if [[ "${entry_top%/}" == "${root_entry%/}" ]]; then
                     allowed=true
                     break
                 fi
@@ -233,7 +249,8 @@ main() {
         --exclude='.git/' \
         --exclude='.github/' \
         --exclude='.vscode/' \
-        --exclude='output/' \
+        --exclude='.freebuff/' \
+        --exclude="${OUTPUT_DIR#"$ROOT_DIR"/}/" \
         --exclude="${LOG_DIR#"$ROOT_DIR"/}/" \
         --exclude="${TMP_DIR#"$ROOT_DIR"/}/" \
         --exclude="${ARCHIVE_DIR#"$ROOT_DIR"/}/releases/" \

@@ -20,6 +20,7 @@ their exact Git commit. Where the source is silent, the ledger stays silent.
 
 ## Living Buildlog
 <!-- LIVING_BUILDLOG_START -->
+* `v0.5.3` - (2026-08-13 00:08) - Oliver renderer swap: rc-oliver-adapter, preflight gating, hermetic GFM contract fixtures, CI matrix hardening
 * `v0.5.2` - (2026-08-12 08:30) - 0.5.2 stabilization slice: preflight, hermetic fixtures, deterministic releases, DIP repairs, docs
 * `v0.5.1` - (2026-07-26 08:56) - Release Rotkeeper v0.5.1
 * `v0.5.0` - (2026-07-23) - Native Apex renderer integration, link audit tool, spooky theme, and atomic release packaging

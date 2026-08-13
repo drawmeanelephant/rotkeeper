@@ -1,6 +1,10 @@
-## [Unreleased]
+## [0.5.3] - 2026-08-13
 
-- Replaced the Apex renderer with [Oliver](https://github.com/drawmeanelephant/oliver): the adapter (`rc-oliver-adapter.sh`), preflight, hermetic fixtures, and docs now drive `oliver render --from markdown` (stdin → stdout); the adapter strips a leading YAML frontmatter block before the Markdown reaches Oliver (a pure CommonMark renderer); `RK_APEX_BIN` is now `RK_OLIVER_BIN`. Oliver's CLI is provisional and has no stable release yet, so `preflight` gates on a live smoke render instead of a version range, and `scripts/setup-jules.sh` builds Oliver from source with Zig 0.16.
+- Replaced the Apex renderer with [Oliver](https://github.com/drawmeanelephant/oliver): the adapter (`rc-apex-adapter.sh` → `rc-oliver-adapter.sh`) now drives `oliver render --from markdown` (stdin → stdout body HTML, stderr = warnings) and strips a leading YAML frontmatter block before the Markdown reaches Oliver, a pure CommonMark renderer; the environment override is `RK_OLIVER_BIN` (was `RK_APEX_BIN`), and the authoritative contract moved from `apex-contract.md` to `oliver-contract.md`.
+- Flipped GFM pipe-table support: alignment colons and escaped pipes are now asserted by the hermetic `oliver-contract` fixtures (`contract-table.md`); task lists and footnotes are not CommonMark and still render literally — keep content CommonMark-safe.
+- Made preflight gate on a live Oliver smoke render instead of a version range (Oliver's CLI is provisional and has no stable release yet); `render` routes its failure path through the same check so diagnostics cannot drift, and `scripts/setup-jules.sh` builds Oliver from source with Zig 0.16.
+- Hardened CI: added macOS to the test matrix, made skipped real-Oliver passes fail loudly under `RK_STRICT`, and added a test job aggregator to satisfy the required status check.
+- Refreshed docs and DIP artifacts for the renderer swap: `oliver-contract.md`, `workflow.md`, onboarding, README, GEMINI, and the checked-in DIP matrix.
 
 ## [0.5.2] - 2026-08-12
 
