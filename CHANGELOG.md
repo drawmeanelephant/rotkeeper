@@ -1,3 +1,7 @@
+## [0.6.0] - 2026-08-13
+
+- 0.6.0 engineering pass — shell safety, hardening, hygiene
+
 ## [0.5.3] - 2026-08-13
 
 - Replaced the Apex renderer with [Oliver](https://github.com/drawmeanelephant/oliver): the adapter (`rc-apex-adapter.sh` → `rc-oliver-adapter.sh`) now drives `oliver render --from markdown` (stdin → stdout body HTML, stderr = warnings) and strips a leading YAML frontmatter block before the Markdown reaches Oliver, a pure CommonMark renderer; the environment override is `RK_OLIVER_BIN` (was `RK_APEX_BIN`), and the authoritative contract moved from `apex-contract.md` to `oliver-contract.md`.

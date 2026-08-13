@@ -177,14 +177,20 @@ else
   log "WARN" "Roadmap file not found: $ROADMAP_FILE"
 fi
 
-# Step 3: Append to CHANGELOG.md
+# Step 3: Prepend to CHANGELOG.md (newest-first convention)
 CHANGELOG_FILE="$ROOT_DIR/CHANGELOG.md"
 if [[ -f "$CHANGELOG_FILE" ]]; then
   if [[ "$DRY_RUN" == true ]]; then
-    log "DRY-RUN" "Would append to CHANGELOG.md"
+    log "DRY-RUN" "Would prepend to CHANGELOG.md"
   else
-    printf '\n## [%s] - %s\n\n- %s\n' "$NEW_VERSION" "$(date +%Y-%m-%d)" "$MESSAGE" >> "$CHANGELOG_FILE"
-    log "INFO" "Appended to CHANGELOG.md."
+    awk -v new_version="$NEW_VERSION" -v date_str="$(date +%Y-%m-%d)" -v msg="$MESSAGE" '
+      !inserted && /^## \[/ {
+        printf "## [%s] - %s\n\n- %s\n\n", new_version, date_str, msg
+        inserted = 1
+      }
+      { print }
+    ' "$CHANGELOG_FILE" > "$CHANGELOG_FILE.tmp" && mv "$CHANGELOG_FILE.tmp" "$CHANGELOG_FILE"
+    log "INFO" "Prepended to CHANGELOG.md."
   fi
 else
   log "WARN" "CHANGELOG.md not found at $CHANGELOG_FILE"
