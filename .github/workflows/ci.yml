@@ -36,9 +36,12 @@ jobs:
         run: sudo bash scripts/setup-jules.sh
 
       - name: Verify Oliver Renderer
+        # oliver --help exits non-zero (provisional CLI), so prove the binary
+        # works with a real stdin -> stdout render instead.
         run: |
           command -v oliver
-          oliver --help
+          printf '# CI smoke\n' | oliver render --from markdown | grep -q '<h1>CI smoke</h1>'
+          echo "oliver renders markdown"
 
       - name: Lint with ShellCheck
         run: |
