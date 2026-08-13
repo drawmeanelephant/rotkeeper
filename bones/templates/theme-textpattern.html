@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en"$if(palette)$ class="palette-$palette$"$endif$>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>$title$ — Rotkeeper &amp; Textile</title>
+  $if(description)$
+  <meta name="description" content="$description$">
+  $endif$
+  <link rel="stylesheet" href="$assets_root$css/theme-textpattern.css">
+</head>
+<body class="txp-body">
+  <div id="container" class="txp-container">
+
+    <!-- Masthead & Site Branding -->
+    <header id="header" class="txp-header">
+      <div class="txp-branding">
+        <h1 class="txp-site-name"><a href="$assets_root$../index.html" title="Return to Rotkeeper Home">ROTKEEPER <span class="txp-amp">&amp;</span> TEXTILE</a></h1>
+        <p class="txp-tagline">Immortal Flat-File Static Publishing in Pure Unix &amp; Humane Textile Markup</p>
+      </div>
+
+      <!-- Classic Textpattern Horizontal Navigation Tabs -->
+      <nav id="nav" class="txp-nav" aria-label="Primary Navigation">
+        <ul>
+          <li><a href="$assets_root$../index.html" class="txp-nav-link" id="nav-home">Home</a></li>
+          <li><a href="$assets_root$../docs/textile-guide.html" class="txp-nav-link" id="nav-textile">Textile Guide</a></li>
+          <li><a href="$assets_root$../docs/textile-showcase.html" class="txp-nav-link" id="nav-showcase">Textile Showcase</a></li>
+          <li><a href="$assets_root$../docs/oliver-contract.html" class="txp-nav-link" id="nav-contract">Oliver Contract</a></li>
+          <li><a href="$assets_root$../docs/workflow.html" class="txp-nav-link" id="nav-workflow">Workflow</a></li>
+          <li><a href="$assets_root$../docs/index.html" class="txp-nav-link" id="nav-docs">Docs Index</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <!-- Main Content & Sidebar Wrapper -->
+    <div id="layout-body" class="txp-layout-body">
+
+      <!-- Primary Article Content Column -->
+      <main id="content" class="txp-content">
+        <article class="txp-article">
+
+          <header class="txp-article-header">
+            <h1 class="txp-article-title">$title$</h1>
+
+            <div class="txp-article-meta">
+              $if(date)$
+              <span class="txp-meta-item txp-meta-date">
+                <span class="txp-meta-label">Filed:</span> $date$
+              </span>
+              $endif$
+
+              $if(author)$
+              <span class="txp-meta-divider">&bull;</span>
+              <span class="txp-meta-item txp-meta-author">
+                <span class="txp-meta-label">Author:</span> $author$
+              </span>
+              $endif$
+
+              <span class="txp-meta-divider">&bull;</span>
+              <span class="txp-meta-item txp-meta-section">
+                <span class="txp-meta-label">Section:</span> <a href="$assets_root$../docs/index.html">Rotkeeper Archives</a>
+              </span>
+            </div>
+
+            $if(description)$
+            <div class="txp-article-deck">
+              <p>$description$</p>
+            </div>
+            $endif$
+          </header>
+
+          <!-- Rendered Body Content (from Oliver Textile/Markdown) -->
+          <div class="txp-article-body">
+            $body$
+          </div>
+
+          <!-- Article Footer & Colophon -->
+          <footer class="txp-article-footer">
+            <div class="txp-article-signature">
+              <p><em>Published via <strong>Rotkeeper</strong> with the native <strong>Oliver</strong> rendering engine. Zero runtime dependencies, no JavaScript trackers, static and immortal.</em></p>
+            </div>
+            <div class="txp-article-back-top">
+              <a href="#container">&uarr; Back to Top</a>
+            </div>
+          </footer>
+
+        </article>
+      </main>
+
+      <!-- Classic Textpattern Sidebar -->
+      <aside id="sidebar" class="txp-sidebar" aria-label="Sidebar Navigation & Widgets">
+
+        <!-- Widget 1: About the Site -->
+        <section class="txp-widget txp-widget-about">
+          <h3 class="txp-widget-title">About Rotkeeper</h3>
+          <p>Rotkeeper is a Bash-native static-site engine designed to outlive ephemeral web frameworks. Using flat files, standard Unix tools, and the Oliver renderer, it produces pure, immortal HTML.</p>
+          <div class="txp-badge-container">
+            <span class="txp-pill">Bash 4+</span>
+            <span class="txp-pill">Oliver Native</span>
+            <span class="txp-pill">No JS</span>
+            <span class="txp-pill">Textile</span>
+          </div>
+        </section>
+
+        <!-- Widget 2: Sections Menu -->
+        <section class="txp-widget txp-widget-sections">
+          <h3 class="txp-widget-title">Site Sections</h3>
+          <ul class="txp-sidebar-list">
+            <li><a href="$assets_root$../index.html">&raquo; Home &amp; Introduction</a></li>
+            <li><a href="$assets_root$../docs/textile-guide.html">&raquo; Textile Authoring Guide</a></li>
+            <li><a href="$assets_root$../docs/textile-showcase.html">&raquo; Textile Showcase</a></li>
+            <li><a href="$assets_root$../docs/oliver-contract.html">&raquo; Oliver Renderer Contract</a></li>
+            <li><a href="$assets_root$../docs/workflow.html">&raquo; Content Workflow</a></li>
+            <li><a href="$assets_root$../docs/road-to-bones/index.html">&raquo; The Road to Bones</a></li>
+          </ul>
+        </section>
+
+        <!-- Widget 3: Textile Quick Reference -->
+        <section class="txp-widget txp-widget-cheatsheet">
+          <h3 class="txp-widget-title">Textile Quick Ref</h3>
+          <table class="txp-mini-table">
+            <tbody>
+              <tr><td><code>h1. Title</code></td><td>Heading 1</td></tr>
+              <tr><td><code>*bold*</code></td><td><strong>bold</strong></td></tr>
+              <tr><td><code>_italic_</code></td><td><em>italic</em></td></tr>
+              <tr><td><code>@code@</code></td><td><code>code</code></td></tr>
+              <tr><td><code>bq. Quote</code></td><td>Blockquote</td></tr>
+              <tr><td><code>* Item</code></td><td>Bullet list</td></tr>
+              <tr><td><code># Item</code></td><td>Numbered list</td></tr>
+              <tr><td><code>"Link":url</code></td><td>Hyperlink</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Widget 4: Crypt Status -->
+        <section class="txp-widget txp-widget-status">
+          <h3 class="txp-widget-title">Crypt Health</h3>
+          <div class="txp-status-box">
+            <div class="txp-status-row">
+              <span class="txp-status-key">Engine:</span>
+              <span class="txp-status-val">Rotkeeper</span>
+            </div>
+            <div class="txp-status-row">
+              <span class="txp-status-key">Renderer:</span>
+              <span class="txp-status-val">Oliver (Zig)</span>
+            </div>
+            <div class="txp-status-row">
+              <span class="txp-status-key">Markup:</span>
+              <span class="txp-status-val">Textile + Markdown</span>
+            </div>
+            <div class="txp-status-row">
+              <span class="txp-status-key">Security:</span>
+              <span class="txp-status-val">Hermetic &bull; Offline</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Widget 5: Colophon -->
+        <section class="txp-widget txp-widget-colophon">
+          <h3 class="txp-widget-title">Colophon</h3>
+          <p class="txp-small-text">Styled in the classic, dignified tradition of Dean Allen&#39;s original Textpattern design. Rendered locally with zero cloud assets or external fonts.</p>
+        </section>
+
+      </aside>
+
+    </div>
+
+    <!-- Site Footer -->
+    <footer id="footer" class="txp-footer">
+      <div class="txp-footer-content">
+        <p class="txp-footer-line">
+          &copy; 2026 <strong>Rotkeeper Necropolis</strong> &bull; Crafted with <a href="$assets_root$../docs/textile-guide.html">Textile Markup</a> &amp; Bash.
+        </p>
+        <p class="txp-footer-meta">
+          What lives in <code>/bones/</code> may yet render again &bull; All pages generated statically by Rotkeeper.
+        </p>
+      </div>
+    </footer>
+
+  </div>
+</body>
+</html>

@@ -18,6 +18,8 @@
   sha256: "76feac7189f63118c5793795f3b1730106c60fe4bd49efaa80759a258185a21a"
 - path: "css/theme-spooky.css"
   sha256: "0e68a6f3fdb62d2006017a11dd6cb4aa11e49763e25b3c9dfc75c55734eff2db"
+- path: "css/theme-textpattern.css"
+  sha256: "6af7aeed7a7508884e13140d272cba884ece7887be3fe1714bb3ed257daf5f09"
 - path: "dummy.txt"
   sha256: "41599e09d27724ad0749cc49b37b7d3e1781d49d65c34ba0564b559dbc5e14d8"
 - path: "fonts/Fira-LICENSE.txt"
