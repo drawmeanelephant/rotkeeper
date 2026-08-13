@@ -5,10 +5,17 @@ on:
     branches: [ "main", "master" ]
   pull_request:
     branches: [ "main", "master" ]
+  # Manual dispatch: run the full matrix on any branch (useful while stacked
+  # PRs target non-main bases, which the pull_request filter skips).
+  workflow_dispatch:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout Repository
@@ -16,24 +23,65 @@ jobs:
 
       - name: Install Zig 0.16.0
         # Oliver (the renderer) requires Zig 0.16.0 to build from source, and
-        # ubuntu-latest does not ship it. The full tarball goes under
-        # /usr/local/lib with a /usr/local/bin symlink: `zig build` needs its
-        # installation tree (lib/) next to the real binary, and /usr/local/bin
-        # is on sudo's secure_path so the setup-jules.sh step can find it.
-        # Verified against ziglang.org's official shasum.
+        # neither runner ships it. Tarball + SHA-256 come from ziglang.org's
+        # official index, selected per runner OS/architecture. The full
+        # tarball goes under /usr/local/lib with a /usr/local/bin symlink:
+        # `zig build` needs its installation tree (lib/) next to the real
+        # binary, and /usr/local/bin is on PATH (and sudo's secure_path on
+        # Linux) so the setup-jules.sh step can find it.
         run: |
           set -euo pipefail
-          wget -q "https://ziglang.org/download/0.16.0/zig-x86_64-linux-0.16.0.tar.xz" -O /tmp/zig.tar.xz
-          echo "70e49664a74374b48b51e6f3fdfbf437f6395d42509050588bd49abe52ba3d00  /tmp/zig.tar.xz" | sha256sum -c -
+          sudo mkdir -p /usr/local/lib /usr/local/bin
+          case "$RUNNER_OS" in
+            Linux)
+              ZIG=zig-x86_64-linux-0.16.0
+              SUM="70e49664a74374b48b51e6f3fdfbf437f6395d42509050588bd49abe52ba3d00  /tmp/zig.tar.xz"
+              wget -q "https://ziglang.org/download/0.16.0/${ZIG}.tar.xz" -O /tmp/zig.tar.xz
+              echo "$SUM" | sha256sum -c -
+              ;;
+            macOS)
+              if [ "$(uname -m)" = "arm64" ]; then
+                ZIG=zig-aarch64-macos-0.16.0
+                SUM="b23d70deaa879b5c2d486ed3316f7eaa53e84acf6fc9cc747de152450d401489  /tmp/zig.tar.xz"
+              else
+                ZIG=zig-x86_64-macos-0.16.0
+                SUM="0387557ed1877bc6a2e1802c8391953baddba76081876301c522f52977b52ba7  /tmp/zig.tar.xz"
+              fi
+              curl -sL "https://ziglang.org/download/0.16.0/${ZIG}.tar.xz" -o /tmp/zig.tar.xz
+              echo "$SUM" | shasum -a 256 -c -
+              ;;
+            *)
+              echo "Unsupported runner OS: $RUNNER_OS" >&2
+              exit 1
+              ;;
+          esac
           sudo tar -xJf /tmp/zig.tar.xz -C /usr/local/lib
-          sudo ln -sf /usr/local/lib/zig-x86_64-linux-0.16.0/zig /usr/local/bin/zig
+          sudo ln -sf "/usr/local/lib/${ZIG}/zig" /usr/local/bin/zig
           zig version
+
+      - name: Install bash 5 and ShellCheck (macOS)
+        # macOS /bin/bash is 3.2 and Rotkeeper requires Bash 4+ (e.g. ${var,,}).
+        # Homebrew's bash lands in $(brew --prefix)/bin, which the harness
+        # steps below prepend to PATH. ubuntu-latest already ships ShellCheck.
+        if: runner.os == 'macOS'
+        run: |
+          brew install bash shellcheck
+          brew --prefix
 
       - name: Setup Jules Environment
         # This triggers the same deterministic setup that Jules would use;
         # with Zig on PATH it clones drawmeanelephant/oliver, builds it, and
-        # installs the binary to /usr/local/bin/oliver.
-        run: sudo bash scripts/setup-jules.sh
+        # installs the binary to /usr/local/bin/oliver. Linux runs under sudo
+        # (apt + secure_path); macOS must NOT — Homebrew refuses to run as
+        # root, and the script's internal $SUDO handles the privileged
+        # installs (passwordless on GitHub runners).
+        run: |
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            export PATH="$(brew --prefix)/bin:$PATH"
+            bash scripts/setup-jules.sh
+          else
+            sudo bash scripts/setup-jules.sh
+          fi
 
       - name: Verify Oliver Renderer
         # oliver --help exits non-zero (provisional CLI), so prove the binary
@@ -45,7 +93,6 @@ jobs:
 
       - name: Lint with ShellCheck
         run: |
-          # The ubuntu-latest runner comes with shellcheck pre-installed
           echo "Running ShellCheck on dispatcher..."
           shellcheck rotkeeper.sh
           echo "Running ShellCheck on all ritual scripts..."
@@ -54,5 +101,11 @@ jobs:
       - name: Run Full Test Harness
         # The harness runs the hermetic adapter + golden passes and, because a
         # real oliver binary is on PATH, the real-Oliver renderer smoke and
-        # CommonMark contract corpus on every layout pass.
-        run: bash rotkeeper.sh test
+        # CommonMark contract corpus on every layout pass. macOS must run
+        # under Homebrew bash 5, never the system bash 3.2.
+        run: |
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            export PATH="$(brew --prefix)/bin:$PATH"
+          fi
+          bash --version | head -1
+          bash rotkeeper.sh test

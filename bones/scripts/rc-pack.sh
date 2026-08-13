@@ -119,7 +119,7 @@ main() {
         run tar --exclude="${CONTENT_DIR#"$ROOT_DIR"/}/help" \
                 --exclude="*_temp.md" \
                 -cf "$ARCHIVE_DIR/$CONTENT_ARCHIVE" "${CONTENT_DIR#"$ROOT_DIR"/}"
-        count=$(tar -tf "$ARCHIVE_DIR/$CONTENT_ARCHIVE" | wc -l)
+        count=$(tar -tf "$ARCHIVE_DIR/$CONTENT_ARCHIVE" | wc -l | tr -d ' ')
         log "INFO" "Packaged $count files into $CONTENT_ARCHIVE"
 
         run gzip -f "$ARCHIVE_DIR/$CONTENT_ARCHIVE"
@@ -138,7 +138,7 @@ main() {
       if [[ "$DRY_RUN" == false ]]; then
         echo "📦 Packing \"$OUTPUT_DIR\" into \"$TOMB\""
         run tar -cf "$ARCHIVE_DIR/$TOMB" "$OUTPUT_DIR"
-        count=$(tar -tf "$ARCHIVE_DIR/$TOMB" | wc -l)
+        count=$(tar -tf "$ARCHIVE_DIR/$TOMB" | wc -l | tr -d ' ')
         log "INFO" "Packaged $count files into $TOMB"
         SHA_UNCOMPRESSED=$(rk_sha256 "$ARCHIVE_DIR/$TOMB" | cut -d' ' -f1)
 
@@ -170,7 +170,7 @@ main() {
       SELF_ARCHIVE="tombkit-$TIMESTAMP_VERSION.tar"
       echo "📦 Packing full rotkeeper system into \"$SELF_ARCHIVE\""
       run tar --exclude="$ARCHIVE_DIR" -cf "$ARCHIVE_DIR/$SELF_ARCHIVE" rotkeeper.sh "${BONES_DIR#"$ROOT_DIR"/}/" "${CONTENT_DIR#"$ROOT_DIR"/}/" "${OUTPUT_DIR#"$ROOT_DIR"/}/"
-      count=$(tar -tf "$ARCHIVE_DIR/$SELF_ARCHIVE" | wc -l)
+      count=$(tar -tf "$ARCHIVE_DIR/$SELF_ARCHIVE" | wc -l | tr -d ' ')
       log "INFO" "Packaged $count files into $SELF_ARCHIVE"
       SHA=$(rk_sha256 "$ARCHIVE_DIR/$SELF_ARCHIVE" | cut -d' ' -f1)
       echo "$SELF_ARCHIVE  $SHA" >> "$MANIFEST_FILE"
