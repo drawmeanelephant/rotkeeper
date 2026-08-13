@@ -531,16 +531,17 @@ FIXTURE_EOF
           contract_failed=true
         fi
 
-        # Documented CommonMark boundary: GFM tables, task lists, and footnotes
-        # are NOT rendered (Oliver implements CommonMark 0.31.2); they must stay
-        # literal and never crash the pass. Raw-HTML tables are the escape hatch.
-        check_contract "literal GFM table (documented boundary)" "$table" '| Feature |'
+        # GFM pipe tables ARE rendered by Oliver (header, body, alignment
+        # colons, escaped pipes). Task lists and footnotes are NOT part of
+        # CommonMark and must stay literal and never crash the pass.
+        check_contract "GFM table element" "$table" '<table>'
+        check_contract "GFM table header" "$table" '<th>Feature</th>'
+        check_contract "GFM table cell" "$table" '<td>GFM table</td>'
+        check_contract "GFM table alignment" "$table" 'align="center"'
+        check_contract "GFM table escaped pipe" "$table" -F '>a|b<'
         check_contract "literal task list (documented boundary)" "$table" -F -- '- [x] done'
         check_contract "literal footnote ref (documented boundary)" "$table" -F '[^1]'
-        if grep -q '<table>' "$table"; then
-          echo "❌ Assertion Failed: contract corpus unexpectedly produced a <table> (CommonMark boundary changed?)."
-          contract_failed=true
-        fi
+        check_contract "literal footnote body (documented boundary)" "$table" -F '[^1]: footnote text'
 
         if [[ "$contract_failed" == true ]]; then
           exit 140

@@ -82,7 +82,7 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [ ] Move only renderer-adjacent responsibilities into Oliver incrementally: frontmatter extraction, template dialect, link rewriting, output planning, then manifest generation.
 - [ ] Keep Bash responsible for dispatch, environment setup, filesystem boundaries, orchestration, and packaging.
 - [ ] Treat `crypt`, `busy`, and `sterile` as initialization profiles and document the canonical runtime layout.
-- [ ] When Oliver lands GFM tables ([drawmeanelephant/oliver#17](https://github.com/drawmeanelephant/oliver/issues/17)), flip the Rotkeeper boundary: update the `contract-table` assertions in `rc-test.sh`, move tables from "not supported" to "supported" in `oliver-contract.md`, re-render the 14 table-bearing content files, and confirm CI.
+- [x] When Oliver lands GFM tables ([drawmeanelephant/oliver#17](https://github.com/drawmeanelephant/oliver/issues/17)), flip the Rotkeeper boundary: update the `contract-table` assertions in `rc-test.sh`, move tables from "not supported" to "supported" in `oliver-contract.md`, re-render the 14 table-bearing content files, and confirm CI. *(2026-08-12: landed — oliver PR #19 shipped GFM pipe tables (alignment + escaped pipes); fixture, harness assertions, and `oliver-contract.md` flipped; real render + full harness verified locally; CI confirms on push)*
 - [ ] Do not add a new ritual or rewrite the system until the Phase 1 contract and regression fixtures are stable.
 
 ### Phase 7 — Pure-CSS theme family

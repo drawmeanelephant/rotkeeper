@@ -6,7 +6,11 @@ title: "Contract Table"
 
 | Feature | Status |
 |---|---|
-| GFM table | literal |
+| GFM table | rendered |
+
+| Left | Center | Right |
+|:-----|:------:|------:|
+| a\|b | c | d |
 
 Task list: - [x] done
 
