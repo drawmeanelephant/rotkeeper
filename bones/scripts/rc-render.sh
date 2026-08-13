@@ -181,14 +181,14 @@ main() {
         log "INFO" "Surgically pruning internal system docs and platform messages from user space."
         while IFS= read -r -d '' corpse; do
             md_corpses+=("$corpse")
-        done < <(find "$CONTENT_DIR" \( -type d -a \( -name "docs" -o -name "messages" -o -name "help" \) -prune \) -o \( -type f -name "*.md" -print0 \))
+        done < <(find "$CONTENT_DIR" \( -type d -a \( -name "docs" -o -name "messages" -o -name "help" \) -prune \) -o \( -type f \( -name "*.md" -o -name "*.textile" \) -print0 \))
     else
         while IFS= read -r -d '' corpse; do
             md_corpses+=("$corpse")
-        done < <(find "$CONTENT_DIR" -type f -name "*.md" -print0)
+        done < <(find "$CONTENT_DIR" -type f \( -name "*.md" -o -name "*.textile" \) -print0)
     fi
 
-    log "INFO" "Discovered ${#md_corpses[@]} markdown files for compilation."
+    log "INFO" "Discovered ${#md_corpses[@]} source files for compilation."
 
     get_canonical_path() {
       local path="$1"
@@ -197,23 +197,41 @@ main() {
       echo "$canonical_path"
     }
 
+    strip_source_ext() {
+      # Source extensions are .md and .textile; anything else passes through
+      # untouched so a misnamed source fails loudly rather than silently.
+      case "$1" in
+        *.md) printf '%s' "${1%.md}" ;;
+        *.textile) printf '%s' "${1%.textile}" ;;
+        *) printf '%s' "$1" ;;
+      esac
+    }
+
     CANONICAL_CONTENT_DIR=$(get_canonical_path "$CONTENT_DIR")
     CANONICAL_META_DIR=$(get_canonical_path "$META_DIR")
     CANONICAL_TEMPLATE_DIR=$(get_canonical_path "$TEMPLATE_DIR")
 
     declare -A EXPECTED_OUTPUTS=()
+    declare -A OUTPUT_SOURCES=()
     for mdfile in ${md_corpses[@]+"${md_corpses[@]}"}; do
       [ -f "$mdfile" ] || continue
       canonical_mdpath=$(get_canonical_path "$mdfile")
       [[ "$canonical_mdpath" == "$CANONICAL_CONTENT_DIR"* ]] || continue
       relpath="${canonical_mdpath#"$CANONICAL_CONTENT_DIR"/}"
-      base=$(basename "$relpath" .md)
+      base=$(strip_source_ext "$(basename "$relpath")")
       reldir=$(dirname "$relpath")
       if [[ "$reldir" == "." ]]; then
-        EXPECTED_OUTPUTS["$OUTPUT_DIR/$base.html"]=1
+        outkey="$OUTPUT_DIR/$base.html"
       else
-        EXPECTED_OUTPUTS["$OUTPUT_DIR/$reldir/$base.html"]=1
+        outkey="$OUTPUT_DIR/$reldir/$base.html"
       fi
+      if [[ -n "${OUTPUT_SOURCES[$outkey]:-}" && "${OUTPUT_SOURCES[$outkey]}" != "$relpath" ]]; then
+        log "ERROR" "Source basename collision in '$reldir': '${OUTPUT_SOURCES[$outkey]}' and '$relpath' both map to page '$base.html'. Only one source file may exist per page basename (foo.md vs foo.textile)."
+        echo "ERROR: Source basename collision: '${OUTPUT_SOURCES[$outkey]}' and '$relpath' both map to page '$base.html'. Rename or remove one." >&2
+        exit 1
+      fi
+      EXPECTED_OUTPUTS[$outkey]=1
+      OUTPUT_SOURCES[$outkey]="$relpath"
     done
 
     if output_is_generated; then
@@ -254,7 +272,7 @@ main() {
         canonical_mdpath=$(get_canonical_path "$mdfile")
         [[ -n "$canonical_mdpath" && "$canonical_mdpath" == "$CANONICAL_CONTENT_DIR"* ]] || continue
         relpath="${canonical_mdpath#"$CANONICAL_CONTENT_DIR"/}"
-        base=$(basename "$relpath" .md)
+        base=$(strip_source_ext "$(basename "$relpath")")
         reldir=$(dirname "$relpath")
         if [[ "$reldir" == "." ]]; then
           outdir="$OUTPUT_DIR"
@@ -262,7 +280,7 @@ main() {
           outdir="$OUTPUT_DIR/$reldir"
         fi
         outfile="$outdir/${base}.html"
-        soul_file="$META_DIR/${relpath%.md}.soul.md"
+        soul_file="$META_DIR/$(strip_source_ext "$relpath").soul.md"
         canonical_soul=$(get_canonical_path "$soul_file")
         if [[ "$canonical_soul" != "$CANONICAL_META_DIR"* ]]; then
           canonical_soul=""
@@ -295,7 +313,7 @@ main() {
         canonical_mdpath=$(get_canonical_path "$mdfile")
         [[ -n "$canonical_mdpath" && "$canonical_mdpath" == "$CANONICAL_CONTENT_DIR"* ]] || continue
         relpath="${canonical_mdpath#"$CANONICAL_CONTENT_DIR"/}"
-        base=$(basename "$relpath" .md)
+        base=$(strip_source_ext "$(basename "$relpath")")
         reldir=$(dirname "$relpath")
         if [[ "$reldir" == "." ]]; then
           outdir="$OUTPUT_DIR"

@@ -85,6 +85,10 @@ The current workflow is deliberately small and local-first:
 - [Patch Notes](patch.html)
 - [Setup Jules](scripts/setup-jules.html)
 
+### ✒️ Textile Content
+- [Textile Formatting Guide](textile-guide.html)
+- [Textile Showcase](textile-showcase.html)
+
 ### 8. 📎 Appendix
 - [Bones Index](bones/index.html)
 - [Configuration Index](bones/config/index.html)

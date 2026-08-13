@@ -54,7 +54,7 @@ Asset files (CSS, images, fonts) live in the layout's assets directory — `home
 ./rotkeeper.sh render
 ```
 
-The renderer sweeps the content tree, extracts frontmatter (sidecar wins), resolves a template, invokes Oliver once per page (`oliver render --from <markdown|textile>` per `input_format` in `rotkeeper.yaml`; stdout = body HTML, stderr = warnings), rewrites internal `.md`/`.textile` links to `.html`, and interpolates the page into the template. The adapter's responsibilities and the Oliver binary contract are recorded in `oliver-contract.md`.
+The renderer sweeps the content tree (`*.md` and `*.textile` sources), extracts frontmatter (sidecar wins), resolves a template, invokes Oliver once per page (`oliver render --from <markdown|textile>` per `input_format` in `rotkeeper.yaml`, with a `.textile` source always rendering as textile; stdout = body HTML, stderr = warnings), rewrites internal `.md`/`.textile` links to `.html`, and interpolates the page into the template. The adapter's responsibilities and the Oliver binary contract are recorded in `oliver-contract.md`.
 
 If a render fails, the error names the page, Oliver's stderr (warnings never leak into page bodies), and the offending path. `--dry-run` previews the pass without writing; `--verbose` shows detail.
 

@@ -1,0 +1,53 @@
+---
+title: "Textile Showcase"
+slug: textile-showcase
+template: rotkeeper-doc.html
+version: "1.0"
+updated: "2026-08-13"
+description: "A rendered demonstration of Rotkeeper's Textile support: headings, emphasis, links, lists, blockquotes, and the documented literal fallbacks — this page is itself a .textile source."
+tags:
+  - rotkeeper
+  - textile
+  - showcase
+---
+
+h1. 🏺 The Textile Showcase
+
+This page is a .textile source file rendered by Oliver, end to end through the Rotkeeper pipeline — same frontmatter, same template, same .html fate as its markdown neighbors, but every word below was written in Textile. The "Textile Formatting Guide":textile-guide.textile explains each feature and its boundaries; this page simply shows the ritual working.
+
+h2. Headings and emphasis
+
+Every heading on this page — from this one down — is a "h2." marker, and the title above is "h1.". Strength and slant come cheap: *bold* for shouting, _italic_ for whispers, -strikethrough- for the disowned, +underline+ for the inscribed. They nest: *_bold italics_* and _*the other way*_ and even *_nested _double_ depth_*.
+
+h2. Links and images
+
+"Reader, it links.":https://opencode.ai An internal "link":textile-guide.textile trailing a pointed .textile extension is rewritten to .html at render — the hunted extension becomes the tombstone path. Bare URLs, no ceremony: https://opencode.ai
+
+Images are exclamation-marked URLs: !https://bresdel.com/image-placeholder.png!
+
+h2. Words in rows
+
+The dead belong in lists. Unnumbered:
+
+* the bones
+* the blood
+** the marrow beneath
+* the rot
+
+Numbered, for ritual order:
+
+# first the coffin
+# then the nails
+## the inner nails
+## the outer nails
+# then forgiveness
+
+h2. Voices from beyond
+
+bq. The blockquote carries *ornamented* testimony from those who render no more.
+
+h2. Both tongues in one directory
+
+Textile and Markdown pages coexist in this very folder. The "Oliver Renderer Contract":oliver-contract.md page — a .md source — sits beside this .textile one, and they link to each other across the boundary. Which tongue you pick per page is a choice, not a regime: the text is the message, the format is just the mouth it speaks through.
+
+The tongue does gate the table though. Markdown here renders GFM tables; the Textile table syntax |_.below|_.does|_.not| — it survives only as *literal* text, as does the bc. code block and the fn1. footnote. The "Textile Formatting Guide":textile-guide.textile keeps the ledger of what must stay literal; this page ends where that one begins.

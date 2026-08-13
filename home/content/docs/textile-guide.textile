@@ -1,0 +1,100 @@
+---
+title: "Textile Formatting Guide"
+slug: textile-guide
+template: rotkeeper-doc.html
+version: "1.0"
+updated: "2026-08-13"
+description: "The supported Textile surface for Rotkeeper sources: what Oliver renders, what falls back to literal text, and the dialects that must stay literal."
+tags:
+  - rotkeeper
+  - textile
+  - reference
+---
+
+h1. ✒️ Textile Formatting Guide
+
+Textile is the older, terser cousin of Markdown: same frontmatter, same .soul.md sidecars, same page.md → page.html fate — but the body syntax is Textile, and Oliver's Textile tastes are narrower than its CommonMark ones. This page is itself a .textile source; what you see rendered is what the dialect produces.
+
+A source file carries its fate in its extension. A .textile file always renders as Textile, whatever "input_format" says in "rotkeeper.yaml":bones/config/rotkeeper.html. A .md file renders as Textile only when that config toggle is set. The full invocation contract lives in the "Oliver Renderer Contract":oliver-contract.md.
+
+h2. Headings
+
+A heading is a "h" plus a level and a period: "h1." down to "h6.". This page's title above is "h1."; the sections below are "h2.".
+
+h2. Emphasis
+
+Wrap text in a single asterisk pair for *bold*, a single underscore pair for _italic_. Nest freely; combine.
+
+*This whole line is bold.* Inline *bold* and _italic_ mix well, and *_nested emphasis_* works.
+
+Strikethrough uses a single hyphen pair: -like this-. Underline uses a plus pair: +like this+.
+
+h2. Links
+
+A link is "label":target. A title in parentheses after the label becomes the hover title. Parentheses in the URL itself clash with the title syntax and get eaten — keep link URLs parenthetical-free.
+
+"Textile on Wikipedia":https://en.wikipedia.org/wiki/Textile is external. Bare URLs are links without ceremony: https://opencode.ai
+
+Internal links point at .md or .textile sources and the renderer rewrites them to .html, exactly like Markdown links. This sentence links the "Textile Showcase":textile-showcase.textile — the rewrite is why the target is .html in the rendered page.
+
+h2. Images
+
+A bare image is a URL in exclamation marks: !https://bresdel.com/image-placeholder.png!
+
+The alt-text syntax !alt text!url is *not* supported and renders literally, so keep images bare.
+
+h2. Lists
+
+Unnumbered lists use "*", numbered lists use "#". Nesting is a matter of depth:
+
+* unnumbered one
+* unnumbered two
+** nested under two
+* unnumbered three
+
+# numbered one
+# numbered two
+## nested under two
+# numbered three
+
+Inline markup works inside list items, as this item *demonstrates* with a "link":textile-showcase.textile.
+
+h2. Blockquotes
+
+A line beginning "bq." becomes a blockquote. Ornaments inside are honored.
+
+bq. Every file dies. Not every file *decays* with style.
+
+h2. Line breaks
+
+A single newline inside a paragraph is a soft break; a blank line starts a new paragraph. No double-space or backslash magic needed — just write.
+
+h2. Special characters
+
+Ampersands, angle brackets, and quotes are escaped on output; UTF-8 passes through untouched. Ampersand: & — plus the museum pieces óöüäß survive verbatim.
+
+There is no escape hatch. A backslash does not neutralize markup — \*not bold\* keeps the backslashes *and* still renders bold. For a literal ampersand write &amp; in the source; for a literal angle bracket write &lt; or &gt;. The entities pass through and display as their characters.
+
+h2. Raw HTML
+
+Where Markdown passes raw HTML through verbatim, Textile escapes it. No <b>smuggled tags</b> in textile tombs — the angle brackets come out as text, not markup. If you need raw HTML, the page belongs on the Markdown side of the cemetery.
+
+h2. The literal boundary
+
+Textile markup Oliver does not implement renders as literal text — never a crash, never a guess. These are the known fallbacks:
+
+bc. code blocks (bc. and bc..)
+
+pre. preformatted blocks
+
+|_.tables|_.with|_.pipes|
+
+fn1. footnotes (and their [1] references)
+
+-- horizontal rules
+
+dl. definition lists
+
+%{styled}% percent spans (the % wrapper survives only as a bare span, attributes lost) and notextile. blocks
+
+If you need a table or a code block, write the page in Markdown — GFM tables and fenced code are first-class there (see the "Oliver Renderer Contract":oliver-contract.md for the Markdown surface). The two formats coexist per directory; only the basenames must not collide: foo.md and foo.textile in the same directory abort the render rather than fight over one foo.html tombstone.

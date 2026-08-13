@@ -73,7 +73,7 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
     exit 1
   fi
 
-  # 1. Extract metadata from Markdown source in 1 single yq call
+  # 1. Extract metadata from source in 1 single yq call
   meta_json="$TMP_DIR/doc-meta-$$.json"
   yq --front-matter extract -o json '{"title": .title, "description": .description, "author": .author, "date": .date, "template": .template, "palette": .palette}' "$src_path" > "$meta_json" 2>/dev/null || echo "{}" > "$meta_json"
 
@@ -143,21 +143,27 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
   fi
 
   # 4. Invoke Oliver to convert the source (Markdown or Textile per
-  #    input_format in rotkeeper.yaml, default markdown) to body HTML snippet.
-  #    The adapter strips a leading YAML frontmatter block before piping the
-  #    body into the CLI.
+  #    input_format in rotkeeper.yaml, default markdown; a source with a
+  #    .textile extension always renders as textile, overriding the config
+  #    default for that file) to body HTML snippet. The adapter strips a
+  #    leading YAML frontmatter block before piping the body into the CLI.
   mkdir -p "$TMP_DIR"
   body_tmp="$TMP_DIR/oliver-body-$$.html"
   body_rewritten="$TMP_DIR/oliver-body-rewritten-$$.html"
   oliver_err="$TMP_DIR/oliver-err-$$.log"
   rm -f "$body_tmp" "$body_rewritten" "$oliver_err"
 
+  input_format="${INPUT_FORMAT:-markdown}"
+  if [[ "$src_path" == *.textile ]]; then
+    input_format="textile"
+  fi
+
   if ! awk '
       BEGIN { skip = 0 }
       NR == 1 && $0 == "---" { skip = 1; next }
       skip == 1 && $0 == "---" { skip = 0; next }
       skip == 0 { print }
-    ' "$src_path" | "$oliver_bin" render --from "${INPUT_FORMAT:-markdown}" > "$body_tmp" 2> "$oliver_err"; then
+    ' "$src_path" | "$oliver_bin" render --from "$input_format" > "$body_tmp" 2> "$oliver_err"; then
     log "ERROR" "Oliver rendering failed for page '$src_path' using template '$template_path'"
     echo "ERROR: Oliver rendering failed for page '$src_path' using template '$template_path'" >&2
     if [[ -f "$oliver_err" && -s "$oliver_err" ]]; then

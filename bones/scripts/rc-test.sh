@@ -612,6 +612,58 @@ TEXTILE_EOF
     yq eval '.input_format = "markdown"' -i "$b_config/rotkeeper.yaml"
     echo "  [+] Pass: input_format=textile propagated to renderer ($mode)."
 
+    echo "  [+] Executing .textile source extension assertions..."
+    cat << 'TEXTILE_SRC_EOF' > "$b_content/textile-src.textile"
+---
+title: "Textile Source"
+description: "Textile extension source verification"
+---
+
+h1. Textile headline
+
+"Textile Link":sibling.textile
+TEXTILE_SRC_EOF
+
+    if ! RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null; then
+      echo "❌ Assertion Failed: render with a .textile source failed."
+      exit 158
+    fi
+
+    rendered_textile_src="$out_dir_rel/textile-src.html"
+    if [[ ! -f "$rendered_textile_src" ]]; then
+      echo "❌ Assertion Failed: .textile source page missing after render: $rendered_textile_src"
+      exit 159
+    fi
+    if ! grep -q 'textile-input-confirmed' "$rendered_textile_src"; then
+      echo "❌ Assertion Failed: .textile source did not render with --from textile (extension must override the config default markdown)."
+      exit 160
+    fi
+    if ! grep -q 'href="sibling.html"' "$rendered_textile_src"; then
+      echo "❌ Assertion Failed: .textile source internal link was not rewritten to .html."
+      exit 161
+    fi
+
+    echo "  [+] Executing source basename collision assertions..."
+    cat << 'COLLIDE_MD_EOF' > "$b_content/collision.md"
+---
+title: "Collision Markdown"
+---
+Collision markdown body.
+COLLIDE_MD_EOF
+    cat << 'COLLIDE_TX_EOF' > "$b_content/collision.textile"
+---
+title: "Collision Textile"
+---
+h1. Collision textile body.
+COLLIDE_TX_EOF
+
+    if RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null 2>&1; then
+      echo "❌ Assertion Failed: render with colliding collision.md + collision.textile sources should have failed."
+      exit 162
+    fi
+    rm -f "$b_content/collision.md" "$b_content/collision.textile"
+    echo "  [+] Pass: source basename collision refused ($mode)."
+
     # Execute pack to generate tomb archives & json export
     ./rotkeeper.sh pack > /dev/null
 
