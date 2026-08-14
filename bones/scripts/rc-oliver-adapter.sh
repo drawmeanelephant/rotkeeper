@@ -142,10 +142,11 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
     exit 1
   fi
 
-  # 4. Invoke Oliver to convert the source (Markdown or Textile per
+  # 4. Invoke Oliver to convert the source (Markdown, Textile, or Cooklang per
   #    input_format in rotkeeper.yaml, default markdown; a source with a
-  #    .textile extension always renders as textile, overriding the config
-  #    default for that file) to body HTML snippet. The adapter strips a
+  #    .textile extension always renders as textile and one with a .cook
+  #    extension always renders as cooklang, overriding the config default
+  #    for that file) to body HTML snippet. The adapter strips a
   #    leading YAML frontmatter block before piping the body into the CLI.
   mkdir -p "$TMP_DIR"
   body_tmp="$TMP_DIR/oliver-body-$$.html"
@@ -156,6 +157,8 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
   input_format="${INPUT_FORMAT:-markdown}"
   if [[ "$src_path" == *.textile ]]; then
     input_format="textile"
+  elif [[ "$src_path" == *.cook ]]; then
+    input_format="cooklang"
   fi
 
   if ! awk '
@@ -224,6 +227,10 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
       } else if (match(target, /\.textile(\?|#|$)/)) {
         t_base = substr(target, 1, RSTART - 1)
         t_tail = substr(target, RSTART + 8)
+        new_target = t_base ".html" t_tail
+      } else if (match(target, /\.cook(\?|#|$)/)) {
+        t_base = substr(target, 1, RSTART - 1)
+        t_tail = substr(target, RSTART + 5)
         new_target = t_base ".html" t_tail
       } else {
         new_target = target

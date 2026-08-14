@@ -241,12 +241,16 @@ CONF_EOF
     cat << 'FAKE_EOF' > "$fake_bin"
 #!/usr/bin/env bash
 set -euo pipefail
-# Mimic Oliver's CLI shape: oliver render --from <markdown|textile> < file
-if [[ "${1:-}" != "render" || "${2:-}" != "--from" || ( "${3:-}" != "markdown" && "${3:-}" != "textile" ) ]]; then
+# Mimic Oliver's CLI shape: oliver render --from <markdown|textile|cooklang> < file
+if [[ "${1:-}" != "render" || "${2:-}" != "--from" || ( "${3:-}" != "markdown" && "${3:-}" != "textile" && "${3:-}" != "cooklang" ) ]]; then
   exit 1
 fi
 if [[ "${3:-}" == "textile" ]]; then
   printf '<h1>textile-input-confirmed</h1>\n<a href="sibling.textile">Sibling</a>\n'
+  exit 0
+fi
+if [[ "${3:-}" == "cooklang" ]]; then
+  printf '<article class="recipe"><h1>cooklang-input-confirmed</h1>\n<a href="sibling.cook">Sibling</a>\n</article>\n'
   exit 0
 fi
 awk '/^---$/ { f++; next } f>=2 || f==0 { print }' | \
@@ -663,6 +667,62 @@ COLLIDE_TX_EOF
     fi
     rm -f "$b_content/collision.md" "$b_content/collision.textile"
     echo "  [+] Pass: source basename collision refused ($mode)."
+
+    echo "  [+] Executing .cook source extension assertions..."
+    cat << 'COOK_SRC_EOF' > "$b_content/necromancer-stew.cook"
+---
+title: "Necromancer's Stew"
+description: "Cooklang extension source verification"
+---
+Add @stock#2 cups to the kettle. Simmer for ~20 minutes#. Serve.
+COOK_SRC_EOF
+
+    if ! RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null; then
+      echo "❌ Assertion Failed: render with a .cook source failed."
+      exit 163
+    fi
+
+    rendered_cook_src="$out_dir_rel/necromancer-stew.html"
+    if [[ ! -f "$rendered_cook_src" ]]; then
+      echo "❌ Assertion Failed: .cook source page missing after render: $rendered_cook_src"
+      exit 164
+    fi
+    if ! grep -q 'cooklang-input-confirmed' "$rendered_cook_src"; then
+      echo "❌ Assertion Failed: .cook source did not render with --from cooklang (extension must override the config default markdown)."
+      exit 165
+    fi
+    if ! grep -q 'href="sibling.html"' "$rendered_cook_src"; then
+      echo "❌ Assertion Failed: .cook source internal link was not rewritten to .html."
+      exit 166
+    fi
+
+    echo "  [+] Executing configurable input format (cooklang) assertions..."
+    yq eval '.input_format = "cooklang"' -i "$b_config/rotkeeper.yaml"
+    cat << 'COOK_CFG_EOF' > "$b_content/cooklang-check.md"
+---
+title: "Cooklang Check"
+description: "Cooklang input format verification"
+---
+Bake at ~350 F# for ~45 minutes#.
+COOK_CFG_EOF
+
+    if ! RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null; then
+      echo "❌ Assertion Failed: render with input_format=cooklang failed."
+      exit 167
+    fi
+    rendered_cook_cfg="$out_dir_rel/cooklang-check.html"
+    if [[ ! -f "$rendered_cook_cfg" ]]; then
+      echo "❌ Assertion Failed: cooklang-format page missing after render: $rendered_cook_cfg"
+      exit 168
+    fi
+    if ! grep -q 'cooklang-input-confirmed' "$rendered_cook_cfg"; then
+      echo "❌ Assertion Failed: rendered output does not prove --from cooklang reached the renderer."
+      exit 169
+    fi
+
+    yq eval '.input_format = "markdown"' -i "$b_config/rotkeeper.yaml"
+    rm -f "$b_content/necromancer-stew.cook" "$b_content/cooklang-check.md"
+    echo "  [+] Pass: .cook extension and input_format=cooklang propagated to renderer ($mode)."
 
     # Execute pack to generate tomb archives & json export
     ./rotkeeper.sh pack > /dev/null

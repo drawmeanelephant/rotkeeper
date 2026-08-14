@@ -163,11 +163,12 @@ ${DEFAULT_YAML}
       case "$RAW_NAME" in
         *.md) FILE_NAME="${RAW_NAME%.md}" ;;
         *.textile) FILE_NAME="${RAW_NAME%.textile}" ;;
+        *.cook) FILE_NAME="${RAW_NAME%.cook}" ;;
         *) FILE_NAME="$RAW_NAME" ;;
       esac
       GLUE_CONTENT+=$'
 '"- [$FILE_NAME](<$FILE_NAME.html>)"
-    done < <(find "$DIR" -maxdepth 1 -mindepth 1 -type f \( -name "*.md" -o -name "*.textile" \) ! -name "index.md" -print0 2>/dev/null | sort -z)
+    done < <(find "$DIR" -maxdepth 1 -mindepth 1 -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) ! -name "index.md" -print0 2>/dev/null | sort -z)
     GLUE_CONTENT+=$'
 '"<!-- ROTKEEPER-GLUE-END -->"
 

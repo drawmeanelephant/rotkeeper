@@ -89,6 +89,9 @@ The current workflow is deliberately small and local-first:
 - [Textile Formatting Guide](textile-guide.html)
 - [Textile Showcase](textile-showcase.html)
 
+### 🍲 Recipe Grimoire
+- [Recipes](../recipes/index.html) — the dead eat well; sources are `.cook` (Cooklang)
+
 ### 8. 📎 Appendix
 - [Bones Index](bones/index.html)
 - [Configuration Index](bones/config/index.html)
@@ -129,5 +132,7 @@ Sora prompt: “A glitching wiki carved into obsidian, with glowing CLI runes et
 - [rotkeeper-rituals](<rotkeeper-rituals.html>)
 - [rotkeeper-schemas](<rotkeeper-schemas.html>)
 - [rotkeeper](<rotkeeper.html>)
+- [textile-guide](<textile-guide.html>)
+- [textile-showcase](<textile-showcase.html>)
 - [workflow](<workflow.html>)
 <!-- ROTKEEPER-GLUE-END -->
