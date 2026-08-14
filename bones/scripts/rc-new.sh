@@ -200,12 +200,15 @@ main() {
 
     # Format-aware default heading: textile pages get h1., markdown pages get #,
     # cooklang recipes get none (Cooklang has no heading syntax — the recipe
-    # body is the heading).
+    # body is the heading). IS_COOK is hoisted before the write block so the
+    # body emission never reads $FILE while appending to it (SC2094).
     DEFAULT_HEADING="# $TITLE"
+    IS_COOK=false
     if [[ "$FILE" == *.textile ]]; then
         DEFAULT_HEADING="h1. $TITLE"
     elif [[ "$FILE" == *.cook ]]; then
         DEFAULT_HEADING=""
+        IS_COOK=true
     fi
 
     BODY_STARTS_WITH_HEADING=false
@@ -275,7 +278,7 @@ EOF
             else
                 if [[ -n "$BODY_TEXT" ]]; then
                     echo "$BODY_TEXT"
-                elif [[ "$FILE" == *.cook ]]; then
+                elif [[ "$IS_COOK" == true ]]; then
                     echo "Add @ingredient#1 to the kettle. Simmer for ~5 minutes#. Serve."
                 fi
             fi
