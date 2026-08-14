@@ -181,11 +181,11 @@ main() {
         log "INFO" "Surgically pruning internal system docs and platform messages from user space."
         while IFS= read -r -d '' corpse; do
             md_corpses+=("$corpse")
-        done < <(find "$CONTENT_DIR" \( -type d -a \( -name "docs" -o -name "messages" -o -name "help" \) -prune \) -o \( -type f \( -name "*.md" -o -name "*.textile" \) -print0 \))
+        done < <(find "$CONTENT_DIR" \( -type d -a \( -name "docs" -o -name "messages" -o -name "help" \) -prune \) -o \( -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) -print0 \))
     else
         while IFS= read -r -d '' corpse; do
             md_corpses+=("$corpse")
-        done < <(find "$CONTENT_DIR" -type f \( -name "*.md" -o -name "*.textile" \) -print0)
+        done < <(find "$CONTENT_DIR" -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) -print0)
     fi
 
     log "INFO" "Discovered ${#md_corpses[@]} source files for compilation."
@@ -198,11 +198,12 @@ main() {
     }
 
     strip_source_ext() {
-      # Source extensions are .md and .textile; anything else passes through
-      # untouched so a misnamed source fails loudly rather than silently.
+      # Source extensions are .md, .textile, and .cook; anything else passes
+      # through untouched so a misnamed source fails loudly rather than silently.
       case "$1" in
         *.md) printf '%s' "${1%.md}" ;;
         *.textile) printf '%s' "${1%.textile}" ;;
+        *.cook) printf '%s' "${1%.cook}" ;;
         *) printf '%s' "$1" ;;
       esac
     }
@@ -226,7 +227,7 @@ main() {
         outkey="$OUTPUT_DIR/$reldir/$base.html"
       fi
       if [[ -n "${OUTPUT_SOURCES[$outkey]:-}" && "${OUTPUT_SOURCES[$outkey]}" != "$relpath" ]]; then
-        log "ERROR" "Source basename collision in '$reldir': '${OUTPUT_SOURCES[$outkey]}' and '$relpath' both map to page '$base.html'. Only one source file may exist per page basename (foo.md vs foo.textile)."
+        log "ERROR" "Source basename collision in '$reldir': '${OUTPUT_SOURCES[$outkey]}' and '$relpath' both map to page '$base.html'. Only one source file may exist per page basename (foo.md vs foo.textile vs foo.cook)."
         echo "ERROR: Source basename collision: '${OUTPUT_SOURCES[$outkey]}' and '$relpath' both map to page '$base.html'. Rename or remove one." >&2
         exit 1
       fi

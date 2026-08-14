@@ -172,7 +172,7 @@ rundocbook() {
     echo "---"
     echo ""
   } > "$OUT"
-  mapfile -t docfiles < <(find "$DOCS_DIR" -type f \( -name "*.md" -o -name "*.textile" \) | sort)
+  mapfile -t docfiles < <(find "$DOCS_DIR" -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) | sort)
   for file in ${docfiles[@]+"${docfiles[@]}"}; do
     if [[ -f "$file" ]]; then
       rel="${file#"$ROOT_DIR"/}"
@@ -212,7 +212,7 @@ rundocbookclean() {
     if [[ -f "$file" ]]; then
       local TITLE
       TITLE=$(awk 'BEGIN{found=0} /^---$/{found++; next} found==1 && /^title:/{print substr($0, index($0,$2)); exit}' "$file" | head -n1 | sed 's/^ //;s/ $//')
-      [[ -z "$TITLE" ]] && TITLE=$(basename -- "$file" .md) && TITLE="${TITLE%.textile}"
+      [[ -z "$TITLE" ]] && TITLE=$(basename -- "$file" .md) && TITLE="${TITLE%.textile}" && TITLE="${TITLE%.cook}"
       {
         echo "$TITLE"
         echo ""
@@ -220,7 +220,7 @@ rundocbookclean() {
         echo ""
       } >> "$OUT"
     fi
-  done < <(find "$DOCS_DIR" -type f \( -name "*.md" -o -name "*.textile" \) | sort)
+  done < <(find "$DOCS_DIR" -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) | sort)
   log "INFO" "Cleaned Docbook written to $OUT"
 }
 
@@ -265,7 +265,7 @@ runcontentbook() {
     echo "---"
     echo ""
   } > "$OUT"
-  mapfile -t contentfiles < <(find "$CONTENT_DIR" -type f \( -name "*.md" -o -name "*.textile" \) | sort)
+  mapfile -t contentfiles < <(find "$CONTENT_DIR" -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) | sort)
   for file in ${contentfiles[@]+"${contentfiles[@]}"}; do
     if [[ -f "$file" ]]; then
       rel="${file#"$ROOT_DIR"/}"
@@ -373,7 +373,7 @@ collapse() {
 
 runmode() {
   local total_size
-  total_size=$( { find "$DOCS_DIR" "$CONTENT_DIR" -type f \( -name "*.md" -o -name "*.textile" \) 2>/dev/null || true; } | sort -u | tr "\n" "\0" | xargs -0 wc -c 2>/dev/null | awk 'END{print $1}' )
+  total_size=$( { find "$DOCS_DIR" "$CONTENT_DIR" -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) 2>/dev/null || true; } | sort -u | tr "\n" "\0" | xargs -0 wc -c 2>/dev/null | awk 'END{print $1}' )
   [[ -z "$total_size" ]] && total_size=0
   if [[ "$total_size" -gt 5242880 ]]; then
     if [[ "$FORCE_BIND" != "true" ]]; then

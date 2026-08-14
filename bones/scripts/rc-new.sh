@@ -133,7 +133,7 @@ main() {
       exit 1
     fi
 
-    if [[ ! "$FILE" == *.md && ! "$FILE" == *.textile ]]; then
+    if [[ ! "$FILE" == *.md && ! "$FILE" == *.textile && ! "$FILE" == *.cook ]]; then
         FILE="${FILE}.md"
     fi
 
@@ -176,6 +176,9 @@ main() {
     if [[ "$TITLE" == *.textile ]]; then
         TITLE="${TITLE%.textile}"
     fi
+    if [[ "$TITLE" == *.cook ]]; then
+        TITLE="${TITLE%.cook}"
+    fi
     if [[ -z "$TEMPLATE_OVERRIDE" ]]; then
         TEMPLATE_OVERRIDE=$(yq e '.default_template // "theme-spooky-dark.html"' "$CONFIG_DIR/rotkeeper.yaml" 2>/dev/null || echo "theme-spooky-dark.html")
     fi
@@ -195,10 +198,17 @@ main() {
     # Sanitize and escape double quotes for frontmatter strings
     SAFE_TITLE="${TITLE//\"/\\\"}"
 
-    # Format-aware default heading: textile pages get h1., markdown pages get #.
+    # Format-aware default heading: textile pages get h1., markdown pages get #,
+    # cooklang recipes get none (Cooklang has no heading syntax — the recipe
+    # body is the heading). IS_COOK is hoisted before the write block so the
+    # body emission never reads $FILE while appending to it (SC2094).
     DEFAULT_HEADING="# $TITLE"
+    IS_COOK=false
     if [[ "$FILE" == *.textile ]]; then
         DEFAULT_HEADING="h1. $TITLE"
+    elif [[ "$FILE" == *.cook ]]; then
+        DEFAULT_HEADING=""
+        IS_COOK=true
     fi
 
     BODY_STARTS_WITH_HEADING=false
@@ -244,7 +254,7 @@ EOF
         {
             echo "---"
             echo ""
-            if [[ "$BODY_STARTS_WITH_HEADING" == false ]]; then
+            if [[ "$BODY_STARTS_WITH_HEADING" == false && -n "$DEFAULT_HEADING" ]]; then
                 echo "$DEFAULT_HEADING"
                 echo ""
             fi
@@ -268,6 +278,8 @@ EOF
             else
                 if [[ -n "$BODY_TEXT" ]]; then
                     echo "$BODY_TEXT"
+                elif [[ "$IS_COOK" == true ]]; then
+                    echo "Add @ingredient#1 to the kettle. Simmer for ~5 minutes#. Serve."
                 fi
             fi
         } >> "$FILE"

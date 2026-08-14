@@ -371,13 +371,14 @@ fi
 
 
 # --- Section 5: Content Pulse ---
-if [[ ! -d "$CONTENT_DIR" ]] || [[ -z "$(find "$CONTENT_DIR" -type f \( -name '*.md' -o -name '*.textile' \) -print -quit 2>/dev/null)" ]]; then
+if [[ ! -d "$CONTENT_DIR" ]] || [[ -z "$(find "$CONTENT_DIR" -type f \( -name '*.md' -o -name '*.textile' -o -name '*.cook' \) -print -quit 2>/dev/null)" ]]; then
     if [[ "$JSON_MODE" == true ]]; then
         JSON_PULSE="  \"content_pulse\": {
     \"status\": \"empty\",
     \"reason\": \"no content files found in home/content/\",
     \"total_md\": 0,
     \"total_textile\": 0,
+    \"total_cook\": 0,
     \"stubs\": 0,
     \"drafts\": 0,
     \"docs_stubs\": 0
@@ -386,6 +387,8 @@ if [[ ! -d "$CONTENT_DIR" ]] || [[ -z "$(find "$CONTENT_DIR" -type f \( -name '*
         echo "=== Content Pulse ==="
         echo "[EMPTY] no content files found in home/content/"
         echo "Total .md files : 0"
+        echo "Total .textile files : 0"
+        echo "Total .cook files : 0"
         echo "Stubs           : 0"
         echo "Drafts          : 0"
         echo "Docs stubs      : 0"
@@ -394,8 +397,10 @@ if [[ ! -d "$CONTENT_DIR" ]] || [[ -z "$(find "$CONTENT_DIR" -type f \( -name '*
 else
     mapfile -t c_files < <(find "$CONTENT_DIR" -type f -name '*.md' -print)
     mapfile -t c_textile_files < <(find "$CONTENT_DIR" -type f -name '*.textile' -print)
+    mapfile -t c_cook_files < <(find "$CONTENT_DIR" -type f -name '*.cook' -print)
     total_md=${#c_files[@]}
     total_textile=${#c_textile_files[@]}
+    total_cook=${#c_cook_files[@]}
     stubs=0
     drafts=0
     if [[ $total_md -gt 0 ]]; then
@@ -405,7 +410,7 @@ else
 
     docs_stubs=0
     if [[ -d "$DOCS_DIR" ]]; then
-        docs_stubs=$(find "$DOCS_DIR" -type f \( -name '*.md' -o -name '*.textile' \) -exec grep -l '^status: stub' {} + 2>/dev/null | wc -l | tr -d ' ' || true)
+        docs_stubs=$(find "$DOCS_DIR" -type f \( -name '*.md' -o -name '*.textile' -o -name '*.cook' \) -exec grep -l '^status: stub' {} + 2>/dev/null | wc -l | tr -d ' ' || true)
     fi
 
     if [[ "$JSON_MODE" == true ]]; then
@@ -413,6 +418,7 @@ else
     \"status\": \"ok\",
     \"total_md\": $total_md,
     \"total_textile\": $total_textile,
+    \"total_cook\": $total_cook,
     \"stubs\": $stubs,
     \"drafts\": $drafts,
     \"docs_stubs\": $docs_stubs
@@ -421,6 +427,7 @@ else
         echo "=== Content Pulse ==="
         echo "Total .md files : $total_md"
         echo "Total .textile files : $total_textile"
+        echo "Total .cook files : $total_cook"
         echo "Stubs           : $stubs"
         echo "Drafts          : $drafts"
         echo "Docs stubs      : $docs_stubs"
@@ -442,7 +449,7 @@ NEWEST_SRC=""
 while IFS= read -r -d '' freshness_src; do
   mtime=$(rk_mtime "$freshness_src")
   [[ -n "$mtime" && ( -z "$NEWEST_SRC" || "$mtime" -gt "$NEWEST_SRC" ) ]] && NEWEST_SRC="$mtime"
-done < <(find "$CONTENT_DIR" -type f \( -name '*.md' -o -name '*.textile' \) -print0 2>/dev/null)
+done < <(find "$CONTENT_DIR" -type f \( -name '*.md' -o -name '*.textile' -o -name '*.cook' \) -print0 2>/dev/null)
 
 status_render="[EMPTY] no rendered output found"
 status_json="empty"

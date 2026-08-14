@@ -2,7 +2,7 @@
 title: "Oliver Renderer Contract"
 slug: oliver-contract
 template: rotkeeper-doc.html
-version: "1.3"
+version: "1.4"
 updated: "2026-08-13"
 description: "The supported contract between Rotkeeper and the native Oliver HTML renderer: executable discovery, input format, output streams, exit codes, the adapter boundary, and the stable template/input contract."
 tags:
@@ -14,7 +14,7 @@ tags:
 
 # Oliver Renderer Contract
 
-This page is the authoritative reference for how Rotkeeper drives the native [Oliver](https://github.com/drawmeanelephant/oliver) renderer — a small, freestanding CommonMark/Textile parsing and rendering library in Zig, and the successor to the Apex renderer. It records the stable contract between the Oliver binary and `rc-oliver-adapter.sh`.
+This page is the authoritative reference for how Rotkeeper drives the native [Oliver](https://github.com/drawmeanelephant/oliver) renderer — a small, freestanding CommonMark/Textile/Cooklang parsing and rendering library in Zig, and the successor to the Apex renderer. It records the stable contract between the Oliver binary and `rc-oliver-adapter.sh`.
 
 ## Executable discovery
 
@@ -27,25 +27,27 @@ If neither yields an executable file, `render` fails with exit 1 and prints a se
 
 ## The binary contract
 
-Oliver is invoked once per source file, reading the file on stdin. The input language comes from `input_format` in `bones/config/rotkeeper.yaml` (`markdown` default, `textile` alternative), overridden to `textile` for any source whose extension is `.textile`; the adapter and `preflight` pass the resulting format through on every invocation:
+Oliver is invoked once per source file, reading the file on stdin. The input language comes from `input_format` in `bones/config/rotkeeper.yaml` (`markdown` default, `textile` and `cooklang` alternatives), overridden to `textile` for any source whose extension is `.textile` and to `cooklang` for any source whose extension is `.cook`; the adapter and `preflight` pass the resulting format through on every invocation:
 
 ```bash
 oliver render --from markdown < file.md > body.html 2> warnings.log
 oliver render --from textile < file.md > body.html 2> warnings.log
 oliver render --from textile < file.textile > body.html 2> warnings.log
+oliver render --from cooklang < file.md > body.html 2> warnings.log
+oliver render --from cooklang < file.cook > body.html 2> warnings.log
 ```
 
 | Aspect | Contract |
 | --- | --- |
-| Invocation | `oliver render --from <markdown\|textile>` — one file per invocation, stdin → stdout; format comes from `input_format` in `bones/config/rotkeeper.yaml` (default `markdown`, validated to `markdown`/`textile` at environment load; anything else warns and falls back to `markdown`). A source with a `.textile` extension always invokes `--from textile`, overriding the config default for that file |
-| Input | Markdown **or Textile** on **stdin** — a leading YAML frontmatter block is stripped by the adapter before invocation (Oliver itself is a pure CommonMark/Textile renderer) |
+| Invocation | `oliver render --from <markdown\|textile\|cooklang>` — one file per invocation, stdin → stdout; format comes from `input_format` in `bones/config/rotkeeper.yaml` (default `markdown`, validated to `markdown`/`textile`/`cooklang` at environment load; anything else warns and falls back to `markdown`). A source with a `.textile` extension always invokes `--from textile` and one with a `.cook` extension always invokes `--from cooklang`, overriding the config default for that file |
+| Input | Markdown, **Textile, or Cooklang** on **stdin** — a leading YAML frontmatter block is stripped by the adapter before invocation (Oliver itself is a pure CommonMark/Textile/Cooklang renderer) |
 | stdout | Rendered **body HTML fragment** (no full page wrapping) |
 | stderr | Non-fatal renderer warnings; forwarded through the adapter as warnings, never into the page body |
 | Exit 0 | Success |
 | Exit 1 | Render failure (e.g. missing input); page is aborted |
-| Version | Oliver's CLI is provisional and has no stable release yet, so Rotkeeper pins an exact source revision: CI and `scripts/setup-jules.sh` build from commit `22b3c7795adb1caac160b3bc863980d35bbec379` (the `OLIVER_PIN` variable in `setup-jules.sh`). Moving the pin is a deliberate act — upgrade it, re-run the harness, and update this table. `preflight`'s live smoke render (in the configured format) remains the behavioral safety net on top of the pin |
+| Version | Oliver's CLI is provisional and has no stable release yet, so Rotkeeper pins an exact source revision: CI and `scripts/setup-jules.sh` build from commit `e314dbbe74d0cffb269039c3cb750d55140fa26e` (the `OLIVER_PIN` variable in `setup-jules.sh`). Moving the pin is a deliberate act — upgrade it, re-run the harness, and update this table. The pin moved 2026-08-13 from `22b3c779` to `e314dbbe` to pick up the Cooklang frontend (CK1) plus CK2–CK5 (canonical serializer, `scaleRecipe`, richer HTML policy, `.menu` view); Markdown and Textile rendering are byte-identical across the move (Oliver's own gates: CommonMark 652/652, Textile suite untouched). `preflight`'s live smoke render (in the configured format) remains the behavioral safety net on top of the pin |
 
-The binary is deliberately narrow: it converts Markdown or Textile to a body fragment. Everything around that — frontmatter extraction, sidecars, templates, link rewriting, output planning — lives in Rotkeeper's Bash layer, not in Oliver.
+The binary is deliberately narrow: it converts Markdown, Textile, or Cooklang to a body fragment. Everything around that — frontmatter extraction, sidecars, templates, link rewriting, output planning — lives in Rotkeeper's Bash layer, not in Oliver.
 
 ## Rendered Markdown surface
 
@@ -54,6 +56,14 @@ Oliver implements the CommonMark 0.31.2 specification; its own conformance harne
 - **Supported:** ATX and Setext headings, thematic breaks, fenced and indented code blocks (info strings become `language-*` classes), block quotes, tight and loose lists (ordered/unordered, nesting), code spans, emphasis and strong emphasis, inline links and autolinks (URI and email `mailto:`), images, raw HTML (block and inline, passed through verbatim), entity and numeric character references, reference-style links, and GFM pipe tables (header row with required delimiter row, alignment colons `:---` `:---:` `---:`, escaped `\|` pipes, and inline-parsed cells producing `<table><thead>…<tbody>…`).
 - **Not supported (not part of CommonMark):** task lists and footnotes render as literal text. Content that needs them should stay CommonMark-safe; raw HTML is passed through verbatim as an escape hatch. The test harness asserts this boundary stays literal in `contract-table.html`.
 - **Fidelity verification:** the hermetic golden (`smoke-fixture-expected.html`) is produced by the fixture (fake) binary and verifies the adapter pipeline — frontmatter stripping, link rewriting, escaping — not CommonMark fidelity. Renderer fidelity is asserted by the real-Oliver contract-corpus pass in the test harness (`bones/scripts/tests/fixtures/oliver-contract/`), which runs whenever an `oliver` binary is present.
+
+## Rendered Cooklang surface
+
+Oliver implements Cooklang per the official spec and canonical corpus (60/60 on its conformance wall). That is the contract for what `render` produces for `.cook` sources and `input_format: cooklang`:
+
+- **Supported:** `@ingredient` (with `{braced multiword names}`, quantities/units preserved as source text), `#cookware`, `~timers` (single-word and braced; named timers render the name, unnamed the quantity/units), `(preparations)` shorthand, `--` and `[- -]` comments (removed from the tree), `> notes`, `=` sections, and `@./path` recipe references (parsed, never resolved). Output follows Oliver's own deterministic HTML policy: `<article class="recipe">`, sections with `<h2>`, `<ol class="steps">` with `<li>` and `<br>` breaks, `<aside class="note">`, `<span class="ingredient" data-quantity data-units>`, `<span class="cookware">`, `<span class="timer">`, `<span class="preparation">`, `<span class="recipe-ref" data-ref="...">`. Frontmatter is data, not content: it is never rendered.
+- **Not supported (degrades to literal text, per the corpus):** invalid tokens; unclosed `{`, `(`, `[-`, or fenced blocks additionally emit a structured warning diagnostic. Recipe-reference resolution, metadata authority, and scaling are consumer territory (the `.menu` view and `scaleRecipe` live in the Oliver library, not Rotkeeper).
+- **Recipe metadata** (title, author, servings, etc.) belongs in the leading YAML frontmatter, which Rotkeeper's adapter strips before Oliver sees it — exactly as for Markdown and Textile sources.
 
 ## Frontmatter
 
@@ -74,7 +84,7 @@ This section is the stable contract that Phase 6 ("Rationalize the Oliver bounda
 
 ### Input side
 
-- Sources are UTF-8 files with an optional leading YAML frontmatter block. The body format is Markdown by default (`input_format: markdown`), Textile when `input_format: textile` is set, and Textile for any source with a `.textile` extension regardless of the config value. Source-file discovery covers `*.md` and `*.textile`; soul sidecar naming and output naming are extension-agnostic (a `.textile` source gets the same `foo.html` output and `foo.soul.md` sidecar as `foo.md`). A `foo.md` and `foo.textile` pair in the same directory is a source basename collision and aborts the render — only one source file may exist per page basename.
+- Sources are UTF-8 files with an optional leading YAML frontmatter block. The body format is Markdown by default (`input_format: markdown`), Textile when `input_format: textile` is set, Cooklang when `input_format: cooklang` is set, and any source whose extension is `.textile` or `.cook` renders in that format regardless of the config value. Source-file discovery covers `*.md`, `*.textile`, and `*.cook`; soul sidecar naming and output naming are extension-agnostic (a `.textile` or `.cook` source gets the same `foo.html` output and `foo.soul.md` sidecar as `foo.md`). A `foo.md`/`foo.textile`/`foo.cook` pair in the same directory is a source basename collision and aborts the render — only one source file may exist per page basename.
 - The frontmatter block must start on the **very first line** (`---` on line 1 — no BOM, no leading blank line) and close at the next `---` line. A YAML `...` document-end marker is not honored; anything after the closing `---` is body content in the configured format.
 - Only the six fields above are consumed, as **scalar strings**. Lists, maps, and other keys are ignored for template purposes.
 - A `.soul.md` sidecar under `bones/meta` may override any of the six fields **per field**; the sidecar value wins only when it is non-empty and not `null`. Without a sidecar, source frontmatter applies.
@@ -116,7 +126,7 @@ A `.soul.md` sidecar next to a source file (under `bones/meta`) may override fro
 2. Frontmatter extraction and sidecar merge (including stripping a leading YAML frontmatter block before the source reaches Oliver).
 3. Template resolution.
 4. Oliver invocation and stderr forwarding.
-5. Internal `.md`/`.textile` → `.html` link rewriting (fragment/query preserved, external and `mailto:` left alone).
+5. Internal `.md`/`.textile`/`.cook` → `.html` link rewriting (fragment/query preserved, external and `mailto:` left alone).
 6. Template interpolation: `$if(name)$/$endif$` conditionals, then literal replacement of `$title$`, `$description$`, `$author$`, `$date$`, `$assets_root$`, `$body$` with HTML escaping.
 
 Per the stabilization roadmap, these responsibilities are candidates for incremental movement into Oliver only after the contract above is stable. Bash keeps dispatch, environment setup, filesystem boundaries, orchestration, and packaging.

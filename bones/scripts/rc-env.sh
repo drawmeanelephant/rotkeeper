@@ -105,15 +105,15 @@ else
     WEB_DIR="$OUTPUT_DIR"
 fi
 
-# Source format toggle: markdown (default) or textile. Oliver's CLI gates
-# both (`oliver render --from <markdown|textile>`); the adapter and preflight
-# pass this value through on every invocation.
+# Source format toggle: markdown (default), textile, or cooklang. Oliver's
+# CLI gates all three (`oliver render --from <markdown|textile|cooklang>`);
+# the adapter and preflight pass this value through on every invocation.
 INPUT_FORMAT="markdown"
 if [[ -f "$CONFIG_TARGET" ]]; then
     INPUT_FORMAT=$(yq eval '.input_format // "markdown"' "$CONFIG_TARGET" 2>/dev/null | tr -d '\n' || echo "markdown")
 fi
 case "${INPUT_FORMAT,,}" in
-    markdown|textile) ;;
+    markdown|textile|cooklang) ;;
     *)
         echo "[WARN] Unsupported input_format '$INPUT_FORMAT' in config; falling back to 'markdown'." >&2
         INPUT_FORMAT="markdown"

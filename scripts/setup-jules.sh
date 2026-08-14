@@ -64,7 +64,9 @@ echo "2. Installing Oliver renderer..."
 # Oliver has no stable release yet, so Rotkeeper pins an exact source commit:
 # the binary built from $OLIVER_PIN is the renderer contract for 0.6.x.
 # Move the pin deliberately (see oliver-contract.md) — never on a whim.
-OLIVER_PIN="22b3c7795adb1caac160b3bc863980d35bbec379"
+# 2026-08-13: bumped to e314dbbe — Cooklang frontend (CK1) plus CK2-CK5
+# (canonical serializer, scaleRecipe, richer HTML policy, .menu view).
+OLIVER_PIN="e314dbbe74d0cffb269039c3cb750d55140fa26e"
 if command -v oliver >/dev/null 2>&1; then
   echo "Oliver already present at $(command -v oliver), skipping install."
 elif command -v zig >/dev/null 2>&1; then
