@@ -120,7 +120,22 @@ case "${INPUT_FORMAT,,}" in
         ;;
 esac
 
+# Output profile toggle: html (default) or xhtml. Oliver's CLI gates both
+# (`oliver render --to <html|xhtml>`); the adapter appends `--to xhtml` only
+# when the profile is xhtml, so the default invocation stays byte-identical.
+RENDER_PROFILE="html"
+if [[ -f "$CONFIG_TARGET" ]]; then
+    RENDER_PROFILE=$(yq eval '.render_profile // "html"' "$CONFIG_TARGET" 2>/dev/null | tr -d '\n' || echo "html")
+fi
+case "${RENDER_PROFILE,,}" in
+    html|xhtml) ;;
+    *)
+        echo "[WARN] Unsupported render_profile '$RENDER_PROFILE' in config; falling back to 'html'." >&2
+        RENDER_PROFILE="html"
+        ;;
+esac
+
 export ROOT_DIR BONES_DIR OUTPUT_DIR CONTENT_DIR ASSETS_DIR DOCS_DIR HELP_DIR
 export LOG_DIR TMP_DIR CONFIG_DIR ARCHIVE_DIR RELEASE_DIR REPORT_DIR BOOK_REPORT_DIR SCRIPT_DIR TEMPLATE_DIR META_DIR
 
-export WEB_DIR LAYOUT_STYLE INPUT_FORMAT
+export WEB_DIR LAYOUT_STYLE INPUT_FORMAT RENDER_PROFILE

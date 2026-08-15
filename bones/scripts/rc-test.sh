@@ -241,9 +241,15 @@ CONF_EOF
     cat << 'FAKE_EOF' > "$fake_bin"
 #!/usr/bin/env bash
 set -euo pipefail
-# Mimic Oliver's CLI shape: oliver render --from <markdown|textile|cooklang> < file
+# Mimic Oliver's CLI shape: oliver render --from <markdown|textile|cooklang> [--to <html|xhtml>] < file
 if [[ "${1:-}" != "render" || "${2:-}" != "--from" || ( "${3:-}" != "markdown" && "${3:-}" != "textile" && "${3:-}" != "cooklang" ) ]]; then
   exit 1
+fi
+if [[ "${4:-}" == "--to" && "${5:-}" == "xhtml" ]]; then
+  printf '<h1>xhtml-profile-confirmed</h1>\n<hr />\n'
+  awk '/^---$/ { f++; next } f>=2 || f==0 { print }' | \
+    sed -E 's/\[([^]]+)\]\(([^)]+)\)/<a href="\2">\1<\/a>/g'
+  exit 0
 fi
 if [[ "${3:-}" == "textile" ]]; then
   printf '<h1>textile-input-confirmed</h1>\n<a href="sibling.textile">Sibling</a>\n'
@@ -562,6 +568,85 @@ FIXTURE_EOF
         fi
         echo "  ⚠️  Skipping real Oliver contract corpus: $CONTRACT_DIR missing."
       fi
+
+      # --- Real Oliver XHTML output profile pass ---
+      # Renders a page through --to xhtml with the XHTML theme wrapper variant
+      # and verifies the wrapped document is well-formed via an independent XML
+      # parser (xmllint), then asserts the fail-closed raw-HTML path fails
+      # loudly with Oliver's typed error (see the "XHTML output profile"
+      # section of oliver-contract.md).
+      cat << 'XHTML_REAL_EOF' > "$b_content/xhtml-real-check.md"
+---
+title: "XHTML Real Check"
+description: "XHTML profile rendered by the real Oliver binary"
+render_profile: xhtml
+template: theme-spooky-dark-xhtml.html
+---
+
+# XHTML Real Check
+
+CommonMark-safe body with **bold** and a [link](my-first-page.md).
+XHTML_REAL_EOF
+
+      if ! RK_OLIVER_BIN="$REAL_OLIVER" ./rotkeeper.sh render >/dev/null 2>&1; then
+        echo "❌ Assertion Failed: real Oliver XHTML render failed with $REAL_OLIVER."
+        exit 183
+      fi
+
+      rendered_xhtml_real="$out_dir_rel/xhtml-real-check.html"
+      if [[ ! -f "$rendered_xhtml_real" ]]; then
+        echo "❌ Assertion Failed: real Oliver XHTML output missing for xhtml-real-check.html"
+        exit 184
+      fi
+      if ! grep -q 'xmlns="http://www.w3.org/1999/xhtml"' "$rendered_xhtml_real"; then
+        echo "❌ Assertion Failed: real Oliver XHTML page missing the XHTML namespace wrapper."
+        exit 185
+      fi
+      if command -v xmllint >/dev/null 2>&1; then
+        if ! xmllint --noout "$rendered_xhtml_real"; then
+          echo "❌ Assertion Failed: real Oliver XHTML page is not well-formed XML (xmllint)."
+          exit 186
+        fi
+        echo "  [+] Pass: real Oliver XHTML page well-formed per xmllint ($mode)."
+      else
+        if [[ "${RK_STRICT:-0}" == "1" ]]; then
+          echo "❌ Assertion Failed: xmllint unavailable for the XHTML well-formedness gate but RK_STRICT=1 requires it."
+          exit 187
+        fi
+        echo "  ⚠️  Skipping xmllint well-formedness gate: xmllint not found."
+      fi
+
+      cat << 'XHTML_RAW_REAL_EOF' > "$b_content/xhtml-raw-real.md"
+---
+title: "XHTML Raw Real"
+description: "XHTML fail-closed raw HTML verification with the real binary"
+render_profile: xhtml
+template: theme-spooky-dark-xhtml.html
+---
+
+# XHTML Raw Real
+
+<b>Raw HTML that must fail closed.</b>
+XHTML_RAW_REAL_EOF
+
+      fail_marker="$pass_dir/bones/tmp/xhtml-fail-marker"
+      touch "$fail_marker"
+      if RK_OLIVER_BIN="$REAL_OLIVER" ./rotkeeper.sh render >/dev/null 2>&1; then
+        echo "❌ Assertion Failed: real Oliver render with raw HTML under render_profile=xhtml should have failed."
+        exit 188
+      fi
+      adapter_log="$(find "$pass_dir/bones/logs" -name 'rc-oliver-adapter-*.log' -newer "$fail_marker" | head -n 1)"
+      rm -f "$fail_marker"
+      if ! grep -q 'RawHtmlNotXmlWellFormed' "$adapter_log"; then
+        echo "❌ Assertion Failed: real Oliver fail-closed XHTML error missing the typed RawHtmlNotXmlWellFormed error."
+        exit 189
+      fi
+      rm -f "$b_content/xhtml-raw-real.md"
+      if ! RK_OLIVER_BIN="$REAL_OLIVER" ./rotkeeper.sh render >/dev/null 2>&1; then
+        echo "❌ Assertion Failed: real Oliver render after removing the fail-closed XHTML page failed."
+        exit 190
+      fi
+      echo "  [+] Pass: real Oliver XHTML output profile (well-formed + fail-closed) ($mode)."
     else
       if [[ "${RK_STRICT:-0}" == "1" ]]; then
         echo "❌ Assertion Failed: real Oliver renderer smoke pass skipped (no executable oliver binary found) but RK_STRICT=1 requires it."
@@ -724,6 +809,8 @@ COOK_CFG_EOF
     rm -f "$b_content/necromancer-stew.cook" "$b_content/cooklang-check.md"
     echo "  [+] Pass: .cook extension and input_format=cooklang propagated to renderer ($mode)."
 
+    echo "  [+] Pass: XHTML fail-closed raw HTML path ($mode)."
+
     # Execute pack to generate tomb archives & json export
     ./rotkeeper.sh pack > /dev/null
 
@@ -749,6 +836,137 @@ COOK_CFG_EOF
       echo ""
       exit 128
     fi
+
+    # --- XHTML output profile (hermetic) assertions ---
+    # These render and prune fixture pages after the manifest-vs-disk scan above,
+    # because render prunes stale output while bones/manifest.txt is append-only;
+    # a later render+removal cycle would otherwise surface phantom scan misses.
+    echo "  [+] Executing XHTML output profile (per-page frontmatter) assertions..."
+    cat << 'XHTML_EOF' > "$b_content/xhtml-check.md"
+---
+title: "XHTML Check"
+description: "XHTML output profile verification"
+render_profile: xhtml
+template: theme-spooky-dark-xhtml.html
+---
+
+# XHTML Check
+
+A CommonMark-safe body with **bold** and an [internal link](my-first-page.md).
+XHTML_EOF
+
+    if ! RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null; then
+      echo "❌ Assertion Failed: render with render_profile=xhtml frontmatter failed."
+      exit 170
+    fi
+
+    rendered_xhtml="$out_dir_rel/xhtml-check.html"
+    if [[ ! -f "$rendered_xhtml" ]]; then
+      echo "❌ Assertion Failed: xhtml-profile page missing after render: $rendered_xhtml"
+      exit 171
+    fi
+    if ! grep -q 'xhtml-profile-confirmed' "$rendered_xhtml"; then
+      echo "❌ Assertion Failed: rendered output does not prove --to xhtml reached the renderer."
+      exit 172
+    fi
+    if ! grep -q 'xmlns="http://www.w3.org/1999/xhtml"' "$rendered_xhtml"; then
+      echo "❌ Assertion Failed: XHTML theme wrapper variant (xmlns) missing from page."
+      exit 173
+    fi
+    if ! grep -q 'href="my-first-page.html"' "$rendered_xhtml"; then
+      echo "❌ Assertion Failed: internal link not rewritten in XHTML page."
+      exit 174
+    fi
+
+    echo "  [+] Executing XHTML output profile (config render_profile) assertions..."
+    yq eval '.render_profile = "xhtml"' -i "$b_config/rotkeeper.yaml"
+    cat << 'XHTML_CFG_EOF' > "$b_content/xhtml-cfg-check.md"
+---
+title: "XHTML Config Check"
+description: "XHTML render_profile config verification"
+---
+
+# XHTML Config Check
+
+Body without a frontmatter render_profile; the config default must apply.
+XHTML_CFG_EOF
+
+    if ! RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null; then
+      echo "❌ Assertion Failed: render with render_profile=xhtml in config failed."
+      exit 175
+    fi
+
+    rendered_xhtml_cfg="$out_dir_rel/xhtml-cfg-check.html"
+    if [[ ! -f "$rendered_xhtml_cfg" ]]; then
+      echo "❌ Assertion Failed: xhtml config page missing after render: $rendered_xhtml_cfg"
+      exit 176
+    fi
+    if ! grep -q 'xhtml-profile-confirmed' "$rendered_xhtml_cfg"; then
+      echo "❌ Assertion Failed: config render_profile=xhtml did not reach the renderer."
+      exit 177
+    fi
+
+    yq eval '.render_profile = "html"' -i "$b_config/rotkeeper.yaml"
+    echo "  [+] Pass: render_profile=xhtml propagated to renderer ($mode)."
+
+    echo "  [+] Executing XHTML fail-closed (raw HTML) assertions..."
+    fake_xhtml_fail_bin="$pass_dir/bones/tmp/fake_oliver_xhtml_fail"
+    cat << 'XHTML_FAIL_EOF' > "$fake_xhtml_fail_bin"
+#!/usr/bin/env bash
+set -euo pipefail
+# Mimic Oliver's CLI shape, failing closed under --to xhtml the way the real
+# binary fails on raw HTML (error.RawHtmlNotXmlWellFormed, never repaired).
+if [[ "${1:-}" != "render" || "${2:-}" != "--from" || ( "${3:-}" != "markdown" && "${3:-}" != "textile" && "${3:-}" != "cooklang" ) ]]; then
+  exit 1
+fi
+if [[ "${4:-}" == "--to" && "${5:-}" == "xhtml" ]]; then
+  echo "oliver: render failed: RawHtmlNotXmlWellFormed" >&2
+  echo "oliver: --to xhtml rejects raw HTML that cannot be guaranteed well-formed XML" >&2
+  exit 1
+fi
+printf '<h1>html-mode-ok</h1>\n'
+XHTML_FAIL_EOF
+    chmod +x "$fake_xhtml_fail_bin"
+
+    # Remove the other XHTML fixture pages so the fail-closed render below fails
+    # on exactly one page: xhtml-raw-check.md (the only XHTML page in the batch).
+    rm -f "$b_content/xhtml-check.md" "$b_content/xhtml-cfg-check.md" "$b_content/xhtml-real-check.md"
+
+    cat << 'XHTML_RAW_EOF' > "$b_content/xhtml-raw-check.md"
+---
+title: "XHTML Raw Check"
+description: "XHTML fail-closed raw HTML verification"
+render_profile: xhtml
+template: theme-spooky-dark-xhtml.html
+---
+
+# XHTML Raw Check
+
+<b>This raw HTML must fail the XHTML profile.</b>
+XHTML_RAW_EOF
+
+    fail_marker="$pass_dir/bones/tmp/xhtml-fail-marker"
+    touch "$fail_marker"
+    if RK_OLIVER_BIN="$fake_xhtml_fail_bin" ./rotkeeper.sh render > /dev/null 2>&1; then
+      echo "❌ Assertion Failed: render with raw HTML under render_profile=xhtml should have failed."
+      exit 179
+    fi
+    adapter_log="$(find "$pass_dir/bones/logs" -name 'rc-oliver-adapter-*.log' -newer "$fail_marker" | head -n 1)"
+    rm -f "$fail_marker"
+    if ! grep -q 'RawHtmlNotXmlWellFormed' "$adapter_log"; then
+      echo "❌ Assertion Failed: fail-closed XHTML error missing the typed RawHtmlNotXmlWellFormed error."
+      exit 180
+    fi
+    rm -f "$b_content/xhtml-raw-check.md"
+    if ! RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null; then
+      echo "❌ Assertion Failed: render after removing the fail-closed XHTML page failed."
+      exit 181
+    fi
+    if [[ -f "$out_dir_rel/xhtml-raw-check.html" ]]; then
+      echo "❌ Assertion Failed: failed XHTML page left stale output behind."
+      exit 182
+    fi
+    echo "  [+] Pass: XHTML fail-closed raw HTML path ($mode)."
 
     echo "  [+] Executing packager JSON export assertions..."
     export_json=$(find "$b_archive" -name "tomb-export-*.json" 2>/dev/null | head -n 1)

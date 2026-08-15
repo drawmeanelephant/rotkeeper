@@ -43,7 +43,7 @@ echo "🤖 Provisioning environment for system profile: $BINARY"
 
 if [[ "$OS_TYPE" == "linux" ]]; then
   if command -v apt-get >/dev/null 2>&1; then
-    $SUDO apt-get update && $SUDO apt-get install -y jq rsync zip gawk wget curl git
+    $SUDO apt-get update && $SUDO apt-get install -y jq rsync zip gawk wget curl git libxml2-utils
   fi
   wget -q "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${BINARY}" -O /tmp/yq
 elif [[ "$OS_TYPE" == "darwin" ]]; then
@@ -64,9 +64,11 @@ echo "2. Installing Oliver renderer..."
 # Oliver has no stable release yet, so Rotkeeper pins an exact source commit:
 # the binary built from $OLIVER_PIN is the renderer contract for 0.6.x.
 # Move the pin deliberately (see oliver-contract.md) — never on a whim.
-# 2026-08-13: bumped to e314dbbe — Cooklang frontend (CK1) plus CK2-CK5
-# (canonical serializer, scaleRecipe, richer HTML policy, .menu view).
-OLIVER_PIN="e314dbbe74d0cffb269039c3cb750d55140fa26e"
+# 2026-08-14: bumped to c8a8e06 — XHTML output profile (--to html|xhtml,
+# oliver #54, docs/XHTML.md), fail-closed on raw HTML under --to xhtml
+# (error.RawHtmlNotXmlWellFormed), plus audit fixes #55-#58 (NUL -> U+FFFD
+# under the XHTML profile, CLI subcommand grammar with --to render-only).
+OLIVER_PIN="c8a8e066de9c2aa5046cc3985a25670d33aeaa3b"
 if command -v oliver >/dev/null 2>&1; then
   echo "Oliver already present at $(command -v oliver), skipping install."
 elif command -v zig >/dev/null 2>&1; then
