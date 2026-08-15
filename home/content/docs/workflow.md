@@ -91,7 +91,7 @@ Archives the rendered HTML and metadata into a versioned tarball under `bones/ar
 Run the full loop before tagging a version — a release is only real when a clean environment reproduces the advertised workflow:
 
 1. **Clean clone.** `git clone` the repo into a fresh directory (no cached env, no leftover `paths` block).
-2. **Pinned renderer.** Install Zig 0.16.0, then `bash scripts/setup-jules.sh` — it builds Oliver from the pinned `OLIVER_PIN` commit (never unpinned `main`). Do not pre-install an Oliver from a different source.
+2. **Pinned renderer.** Install Zig 0.16.0, then `bash scripts/setup.sh` — it builds Oliver from the pinned `OLIVER_PIN` commit (never unpinned `main`). Do not pre-install an Oliver from a different source.
 3. **Gate.** `./rotkeeper.sh preflight` must PASS, and `bash rotkeeper.sh test` must be green with `RK_STRICT=1` (forces the real-Oliver renderer smoke and CommonMark contract corpus on every layout pass).
 4. **Initialize all three profiles.** `./rotkeeper.sh init --with-sample` in `crypt` (default), then init a `busy` and a `sterile` fixture and render each.
 5. **Verify.** `scan`, `links`, `assets`, and `status` report zero drift; `book --docbook` and `dip` bind without new stubs.

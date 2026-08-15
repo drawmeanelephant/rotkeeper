@@ -1,6 +1,6 @@
 # ✅ Rotkeeper Task Ledger
 
-This ledger tracks the backlog of work for Rotkeeper, explicitly structured for async agent (Jules) handoffs and general improvements.
+This ledger tracks the backlog of work for Rotkeeper, explicitly structured for async agent handoffs and general improvements.
 
 ---
 
@@ -24,7 +24,7 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
   - [x] Install path folded into the doc; `render`'s failure message now routes through the shared preflight instead of duplicating guidance.
 - [x] Define which behavior belongs in the Apex binary versus `rc-apex-adapter.sh`; record temporary adapter responsibilities explicitly.
   - [x] Adapter boundary recorded in `apex-contract.md` §adapter boundary: yq frontmatter, sidecar precedence, template interpolation, link rewriting stay in `rc-apex-adapter.sh` until Phase 6.
-- [x] Add a documented macOS and Ubuntu execution path using the real Apex binary, with the fixture fallback retained for repository tests. *(install paths in `apex-contract.md`; docs also point to `scripts/setup-jules.sh`)*
+- [x] Add a documented macOS and Ubuntu execution path using the real Apex binary, with the fixture fallback retained for repository tests. *(install paths in `apex-contract.md`; docs also point to `scripts/setup.sh`)*
 
 #### Slice 1B — One preflight, one message
 - [x] Add a single preflight that reports whether Apex is found, executable, compatible, and actually runnable.
@@ -102,13 +102,13 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 
 ---
 
-## 🤖 Jules Action Queue
-*These are bounded, tedious, reviewable tasks designed for async agent execution. Hand these to Jules one by one.*
+## 🤖 Agent Action Queue
+*These are bounded, tedious, reviewable tasks designed for async agent execution. Hand these to an agent one by one.*
 
 ### 1. Documentation Sync
 - [x] Rewrite `README.md`: add Quickstart, "common workflows", troubleshooting matrix, architecture overview, and file tree reference. *(2026-08-12: rewritten with Quickstart, BHO + layout style table, common workflows, full command reference incl. `preflight`, troubleshooting matrix, contributor notes; stale `init --full` and `rm -rf output/*` guidance corrected)*
 - [x] Create `workflow.md` detailing the full `init → reseed → render → pack → scan` cycle. *(created at `home/content/docs/workflow.md` (published as workflow.html) covering preflight → init → author → render → verify → archive → release; reseed no longer exists, so the documented cycle reflects the current dispatcher)*
-- [ ] Generate script-by-script reference pages for `rc-*.sh` including flags, inputs, outputs, and "dangerous operations" warnings. *(2026-08-13: scaffolding complete — all 20 rituals have DIP pages under `docs/bones/scripts/`, the autopsy whitelist now help-extracts every script including `rc-preflight`/`rc-links`/`rc-oliver-adapter`, and the flag/help pillars are stitched and current (stubs were regenerated, Missing 4→0). Overview, env, dangerous-operations prose per page still pending — natural Jules work once dust settles)*
+- [ ] Generate script-by-script reference pages for `rc-*.sh` including flags, inputs, outputs, and "dangerous operations" warnings. *(2026-08-13: scaffolding complete — all 20 rituals have DIP pages under `docs/bones/scripts/`, the autopsy whitelist now help-extracts every script including `rc-preflight`/`rc-links`/`rc-oliver-adapter`, and the flag/help pillars are stitched and current (stubs were regenerated, Missing 4→0). Overview, env, dangerous-operations prose per page still pending — natural agent work once dust settles)*
 - [x] Add schema docs for: `rotkeeper-bom.yaml`, `asset-manifest.yaml`. *(2026-08-13: `rotkeeper-schemas.md` documents `bones/asset-manifest.yaml`, `bones/config/rotkeeper.yaml`, and `release-manifest.txt` (which replaced the never-shipped `rotkeeper-bom.yaml` during Phase 5; the stale bom reference in `rotkeeper-reference.md` was corrected)*
 - [x] Define and document expectations for creating new `rc-*.sh` rituals. *(2026-08-13: `new-ritual.md` — required header/bootstrap/flags, dispatcher wiring, autopsy whitelist registration, DIP discovery, boundary/destructive-op discipline, and validation list)*
 - [x] Ensure all index and navigation pages include backlinks to the root or documentation overview. *(2026-08-13: backlinks added to `bones/`, `bones/scripts/`, `bones/config/`, `bones/templates/`, `scripts/` indexes plus the root index; glue refreshed; two new authored pages cross-link)*

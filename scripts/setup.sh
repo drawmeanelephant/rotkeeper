@@ -8,15 +8,15 @@
 #   ╚════╝  ╚═════╝ ╚══════╝╚══════╝╚══════╝
 # ============================================================
 #  Project : Rotkeeper
-#  Script  : setup-jules.sh
-#  Purpose : Deterministic environment prep for Jules (Ubuntu)
+#  Script  : setup.sh
+#  Purpose : Deterministic environment prep (Ubuntu/macOS)
 # ============================================================
 
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/../bones/scripts/rc-utils.sh"
 
 echo "============================================================"
-echo " Starting Rotkeeper Setup for Jules..."
+echo " Starting Rotkeeper Setup..."
 echo "============================================================"
 
 # Ensure we're running as root or with sudo if apt-get is used

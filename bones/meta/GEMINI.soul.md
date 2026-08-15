@@ -5,7 +5,7 @@ status: "complete"
 ---
 
 ### Architectural Intent
-A specialized guide acting as a system prompt extension for LLMs and AI agents (like Jules) interacting with the Rotkeeper environment, explaining its constraints and structural rules.
+A specialized guide acting as a system prompt extension for LLMs and AI agents interacting with the Rotkeeper environment, explaining its constraints and structural rules.
 
 ### Directory / File Schema Expectations
 Expected at the root of the repository.
@@ -15,7 +15,7 @@ Expected at the root of the repository.
 
 
 ### Architectural Intent
-A specialized guide acting as a system prompt extension for LLMs and AI agents (like Jules) interacting with the Rotkeeper environment, explaining its constraints and structural rules.
+A specialized guide acting as a system prompt extension for LLMs and AI agents interacting with the Rotkeeper environment, explaining its constraints and structural rules.
 
 ### Directory / File Schema Expectations
 Expected at the root of the repository.

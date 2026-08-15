@@ -2,7 +2,6 @@
 target_file: bones/scripts/rc-render.sh
 source: migrated
 generated: 2026-06-27
-model: jules-model
 version: 0.1.0
 status: final
 ---
