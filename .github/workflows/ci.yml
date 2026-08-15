@@ -1,4 +1,4 @@
-name: Rotkeeper CI (Jules Compat)
+name: Rotkeeper CI
 
 on:
   push:
@@ -28,7 +28,7 @@ jobs:
         # tarball goes under /usr/local/lib with a /usr/local/bin symlink:
         # `zig build` needs its installation tree (lib/) next to the real
         # binary, and /usr/local/bin is on PATH (and sudo's secure_path on
-        # Linux) so the setup-jules.sh step can find it.
+        # Linux) so the setup.sh step can find it.
         run: |
           set -euo pipefail
           sudo mkdir -p /usr/local/lib /usr/local/bin
@@ -68,20 +68,20 @@ jobs:
           brew install bash shellcheck
           brew --prefix
 
-      - name: Setup Jules Environment
-        # This triggers the same deterministic setup that Jules would use;
-        # with Zig on PATH it clones drawmeanelephant/oliver, checks out the
-        # pinned OLIVER_PIN commit from scripts/setup-jules.sh (never unpinned
-        # main), builds it, and installs the binary to /usr/local/bin/oliver.
+      - name: Setup Environment
+        # This triggers the same deterministic setup used locally; with Zig on
+        # PATH it clones drawmeanelephant/oliver, checks out the pinned
+        # OLIVER_PIN commit from scripts/setup.sh (never unpinned main), builds
+        # it, and installs the binary to /usr/local/bin/oliver.
         # Linux runs under sudo (apt + secure_path); macOS must NOT — Homebrew
         # refuses to run as root, and the script's internal $SUDO handles the
         # privileged installs (passwordless on GitHub runners).
         run: |
           if [ "$RUNNER_OS" = "macOS" ]; then
             export PATH="$(brew --prefix)/bin:$PATH"
-            bash scripts/setup-jules.sh
+            bash scripts/setup.sh
           else
-            sudo bash scripts/setup-jules.sh
+            sudo bash scripts/setup.sh
           fi
 
       - name: Verify Oliver Renderer

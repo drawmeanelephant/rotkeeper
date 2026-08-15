@@ -45,7 +45,7 @@ oliver render --from cooklang < file.cook > body.html 2> warnings.log
 | stderr | Non-fatal renderer warnings; forwarded through the adapter as warnings, never into the page body |
 | Exit 0 | Success |
 | Exit 1 | Render failure (e.g. missing input); page is aborted |
-| Version | Oliver's CLI is provisional and has no stable release yet, so Rotkeeper pins an exact source revision: CI and `scripts/setup-jules.sh` build from commit `e314dbbe74d0cffb269039c3cb750d55140fa26e` (the `OLIVER_PIN` variable in `setup-jules.sh`). Moving the pin is a deliberate act — upgrade it, re-run the harness, and update this table. The pin moved 2026-08-13 from `22b3c779` to `e314dbbe` to pick up the Cooklang frontend (CK1) plus CK2–CK5 (canonical serializer, `scaleRecipe`, richer HTML policy, `.menu` view); Markdown and Textile rendering are byte-identical across the move (Oliver's own gates: CommonMark 652/652, Textile suite untouched). `preflight`'s live smoke render (in the configured format) remains the behavioral safety net on top of the pin |
+| Version | Oliver's CLI is provisional and has no stable release yet, so Rotkeeper pins an exact source revision: CI and `scripts/setup.sh` build from commit `e314dbbe74d0cffb269039c3cb750d55140fa26e` (the `OLIVER_PIN` variable in `setup.sh`). Moving the pin is a deliberate act — upgrade it, re-run the harness, and update this table. The pin moved 2026-08-13 from `22b3c779` to `e314dbbe` to pick up the Cooklang frontend (CK1) plus CK2–CK5 (canonical serializer, `scaleRecipe`, richer HTML policy, `.menu` view); Markdown and Textile rendering are byte-identical across the move (Oliver's own gates: CommonMark 652/652, Textile suite untouched). `preflight`'s live smoke render (in the configured format) remains the behavioral safety net on top of the pin |
 
 The binary is deliberately narrow: it converts Markdown, Textile, or Cooklang to a body fragment. Everything around that — frontmatter extraction, sidecars, templates, link rewriting, output planning — lives in Rotkeeper's Bash layer, not in Oliver.
 
@@ -142,7 +142,7 @@ zig build                     # builds the library and CLI into zig-out/
 install -m 0755 zig-out/bin/oliver /usr/local/bin/oliver
 ```
 
-Then either put `oliver` on `PATH` or set `RK_OLIVER_BIN=/path/to/oliver`. CI environments (see `.github/workflows/ci.yml`) install Zig 0.16.0, then run `scripts/setup-jules.sh`, which clones the repository, builds it, and installs to `/usr/local/bin/oliver` when a prebuilt binary is absent.
+Then either put `oliver` on `PATH` or set `RK_OLIVER_BIN=/path/to/oliver`. CI environments (see `.github/workflows/ci.yml`) install Zig 0.16.0, then run `scripts/setup.sh`, which clones the repository, builds it, and installs to `/usr/local/bin/oliver` when a prebuilt binary is absent.
 
 ## Smoke paths
 

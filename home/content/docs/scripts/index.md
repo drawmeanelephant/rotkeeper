@@ -9,5 +9,5 @@ rotkeeper_glued: true
 **Back to**: [Documentation overview](../index.html)
 
 <!-- ROTKEEPER-GLUE-START -->
-- [setup-jules](setup-jules.html)
+- [setup](setup.html)
 <!-- ROTKEEPER-GLUE-END -->

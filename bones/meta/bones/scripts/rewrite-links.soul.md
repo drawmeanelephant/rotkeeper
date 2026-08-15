@@ -1,8 +1,7 @@
 ---
 target_file: bones/scripts/rewrite-links.lua
 source: generated
-generated: 2026-06-27
-model: jules-model
+generated: 2026-07-03
 version: 0.1.0
 status: final
 ---

@@ -4,7 +4,6 @@ description: "Metadata for the Dependabot automated dependency update configurat
 target_file: .github/dependabot.yml
 source: generated
 generated: 2026-07-03
-model: jules-model
 version: 0.1.0
 status: final
 ---
