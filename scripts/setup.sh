@@ -64,13 +64,71 @@ echo "2. Installing Oliver renderer..."
 # Oliver has no stable release yet, so Rotkeeper pins an exact source commit:
 # the binary built from $OLIVER_PIN is the renderer contract for 0.6.x.
 # Move the pin deliberately (see oliver-contract.md) — never on a whim.
-# 2026-08-14: bumped to c8a8e06 — XHTML output profile (--to html|xhtml,
-# oliver #54, docs/XHTML.md), fail-closed on raw HTML under --to xhtml
+# 2026-08-15: bumped to 6edb520c — upstream now publishes prebuilt binaries
+# via a rolling `builds` release (oliver-<os>-<arch> + sha256sums.txt), so
+# the install path is download-first with checksum + `--version` verification,
+# falling back to a Zig 0.16.0 source build. The prior pin (2026-08-14,
+# c8a8e06) shipped the XHTML output profile (--to html|xhtml, oliver #54,
+# docs/XHTML.md), fail-closed on raw HTML under --to xhtml
 # (error.RawHtmlNotXmlWellFormed), plus audit fixes #55-#58 (NUL -> U+FFFD
-# under the XHTML profile, CLI subcommand grammar with --to render-only).
-OLIVER_PIN="c8a8e066de9c2aa5046cc3985a25670d33aeaa3b"
+# under the XHTML profile, CLI subcommand grammar with --to render-only);
+# the 2026-08-13 pin (e314dbbe) added the Cooklang frontend (CK1) plus CK2-CK5.
+OLIVER_PIN="6edb520cabb31220995e676a95bf59cfb0e1ce4b"
+
+install_oliver_binary() {
+  # Prebuilt-binary fast path: upstream publishes a rolling `builds` release.
+  # We download the platform binary, verify it against the published
+  # sha256sums.txt, and assert `oliver --version` reports exactly the pinned
+  # commit before installing. Any failure falls back to the source build
+  # below — the pin is never silently satisfied by a different commit.
+  local os_token="" arch_token=""
+  case "$OS_TYPE" in
+    linux) os_token="linux" ;;
+    darwin) os_token="macos" ;;
+  esac
+  case "$ARCH_TYPE" in
+    x86_64) arch_token="x86_64" ;;
+    aarch64|arm64) arch_token="aarch64" ;;
+  esac
+  [[ -n "$os_token" && -n "$arch_token" ]] || return 1
+
+  local url="https://github.com/drawmeanelephant/oliver/releases/download/builds/oliver-${os_token}-${arch_token}"
+  local tmpdir bin_path reported expected actual
+  tmpdir="$(mktemp -d)"
+  bin_path="$tmpdir/oliver-${os_token}-${arch_token}"
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL --max-time 120 "$url" -o "$bin_path" || { rm -rf "$tmpdir"; return 1; }
+    curl -fsSL --max-time 60 "${url%/*}/sha256sums.txt" -o "$tmpdir/sha256sums.txt" || { rm -rf "$tmpdir"; return 1; }
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q -T 120 "$url" -O "$bin_path" || { rm -rf "$tmpdir"; return 1; }
+    wget -q -T 60 "${url%/*}/sha256sums.txt" -O "$tmpdir/sha256sums.txt" || { rm -rf "$tmpdir"; return 1; }
+  else
+    rm -rf "$tmpdir"
+    return 1
+  fi
+  expected="$(grep -F "oliver-${os_token}-${arch_token}" "$tmpdir/sha256sums.txt" | awk '{print $1}')"
+  actual="$(rk_sha256 "$bin_path" | awk '{print $1}')"
+  if [[ -z "$expected" || "$actual" != "$expected" ]]; then
+    echo "WARN: builds checksum mismatch for oliver-${os_token}-${arch_token}; falling back to source build."
+    rm -rf "$tmpdir"
+    return 1
+  fi
+  chmod +x "$bin_path"
+  reported="$("$bin_path" --version 2>/dev/null)" || { rm -rf "$tmpdir"; return 1; }
+  if [[ "$reported" != *"commit $OLIVER_PIN"* ]]; then
+    echo "WARN: builds binary reports '$reported', expected commit $OLIVER_PIN; falling back to source build."
+    rm -rf "$tmpdir"
+    return 1
+  fi
+  $SUDO install -m 0755 "$bin_path" /usr/local/bin/oliver
+  echo "Installed oliver from the upstream builds release ($reported)."
+  rm -rf "$tmpdir"
+}
+
 if command -v oliver >/dev/null 2>&1; then
   echo "Oliver already present at $(command -v oliver), skipping install."
+elif install_oliver_binary; then
+  :
 elif command -v zig >/dev/null 2>&1; then
   # Requires Zig 0.16.0 (https://ziglang.org/download/) and git. A full clone
   # is required: a shallow clone lacks the pinned object once upstream advances.
@@ -85,7 +143,7 @@ elif command -v zig >/dev/null 2>&1; then
   (cd /tmp/oliver-build && zig build)
   $SUDO install -m 0755 "/tmp/oliver-build/zig-out/bin/oliver" /usr/local/bin/oliver
 else
-  echo "WARN: Oliver not found on PATH and Zig 0.16.0 is not installed."
+  echo "WARN: Oliver not found on PATH, the builds release was unavailable, and Zig 0.16.0 is not installed."
   echo "      Install Zig 0.16.0 (https://ziglang.org/download/), then re-run this script"
   echo "      to build Oliver from https://github.com/drawmeanelephant/oliver."
 fi

@@ -46,7 +46,7 @@ oliver render --from markdown --to xhtml < file.md > body.xhtml 2> warnings.log
 | stderr | Non-fatal renderer warnings; forwarded through the adapter as warnings, never into the page body. Under `--to xhtml`, raw HTML fails closed on stderr with `error.RawHtmlNotXmlWellFormed` and an actionable hint, and the page aborts with exit 1 |
 | Exit 0 | Success |
 | Exit 1 | Render failure (e.g. missing input, or raw HTML under `--to xhtml`); page is aborted |
-| Version | Oliver's CLI is provisional and has no stable release yet, so Rotkeeper pins an exact source revision: CI and `scripts/setup.sh` build from commit `c8a8e066de9c2aa5046cc3985a25670d33aeaa3b` (the `OLIVER_PIN` variable in `setup.sh`). Moving the pin is a deliberate act — upgrade it, re-run the harness, and update this table. The pin moved 2026-08-14 from `e314dbbe` to `c8a8e06` to pick up the XHTML output profile (`--to html\|xhtml`, oliver PR #54, `docs/XHTML.md`) — same semantics, different serialization bytes; Markdown/Textile/Cooklang parsing untouched, CommonMark 652/652 and Cooklang 60/60 gates unchanged — plus the audit fixes #55–#58 (NUL → U+FFFD under the XHTML profile, CLI subcommand grammar with `--to` render-only). The prior move (2026-08-13) from `22b3c779` to `e314dbbe` had added the Cooklang frontend (CK1) plus CK2–CK5. `preflight`'s live smoke render (in the configured format and profile) remains the behavioral safety net on top of the pin |
+| Version | Oliver's CLI is provisional and has no stable release yet, so Rotkeeper pins an exact source revision: CI and `scripts/setup.sh` install the binary published by the upstream rolling `builds` release and verify it reports exactly `commit <OLIVER_PIN>`; the Zig source build remains the fallback (the `OLIVER_PIN` variable in `setup.sh`). Moving the pin is a deliberate act — upgrade it, re-run the harness, and update this table. The pin moved 2026-08-15 from `c8a8e06` to `6edb520c` to adopt the upstream `builds` release (prebuilt binaries + published `sha256sums.txt`, download-first with checksum and `--version` commit verification), plus the `--version` stdout fix, GFM footnote reference/backref fixes, and the XHTML footnote-attribute serialization fix — Markdown/Textile/Cooklang parsing untouched, footnote/task-list literals remain out of scope. The prior move (2026-08-14) from `e314dbbe` to `c8a8e06` had picked up the XHTML output profile (`--to html\|xhtml`, oliver PR #54, `docs/XHTML.md`) — same semantics, different serialization bytes; Markdown/Textile/Cooklang parsing untouched, CommonMark 652/652 and Cooklang 60/60 gates unchanged — plus the audit fixes #55–#58 (NUL → U+FFFD under the XHTML profile, CLI subcommand grammar with `--to` render-only). The move before that (2026-08-13) from `22b3c779` to `e314dbbe` had added the Cooklang frontend (CK1) plus CK2–CK5. `preflight`'s live smoke render (in the configured format and profile) remains the behavioral safety net on top of the pin |
 
 The binary is deliberately narrow: it converts Markdown, Textile, or Cooklang to a body fragment. Everything around that — frontmatter extraction, sidecars, templates, link rewriting, output planning — lives in Rotkeeper's Bash layer, not in Oliver.
 
@@ -145,16 +145,17 @@ Per the stabilization roadmap, these responsibilities are candidates for increme
 
 ## Install paths
 
-Oliver has no published releases yet — build the current source with Zig 0.16.0:
+Oliver has no stable release yet, but upstream publishes a rolling `builds` release with prebuilt binaries (`oliver-<os>-<arch>` for linux/macos × x86_64/aarch64) plus a published `sha256sums.txt`. `scripts/setup.sh` is download-first: it fetches the platform binary, verifies it against the published checksum, and asserts `oliver --version` reports exactly `commit <OLIVER_PIN>` before installing to `/usr/local/bin/oliver`. Any failure falls back to building the pinned commit from source with Zig 0.16.0:
 
 ```bash
-git clone --depth 1 https://github.com/drawmeanelephant/oliver.git /tmp/oliver
+git clone https://github.com/drawmeanelephant/oliver.git /tmp/oliver
 cd /tmp/oliver
-zig build                     # builds the library and CLI into zig-out/
+git checkout --quiet <OLIVER_PIN>   # exact commit, never unpinned main
+zig build                           # builds the library and CLI into zig-out/
 install -m 0755 zig-out/bin/oliver /usr/local/bin/oliver
 ```
 
-Then either put `oliver` on `PATH` or set `RK_OLIVER_BIN=/path/to/oliver`. CI environments (see `.github/workflows/ci.yml`) install Zig 0.16.0, then run `scripts/setup.sh`, which clones the repository, builds it, and installs to `/usr/local/bin/oliver` when a prebuilt binary is absent.
+Then either put `oliver` on `PATH` or set `RK_OLIVER_BIN=/path/to/oliver`. CI environments (see `.github/workflows/ci.yml`) run `scripts/setup.sh`, which prefers the builds release (checksum + commit-version verified) and falls back to the Zig 0.16.0 source build when the download path is unavailable.
 
 ## Smoke paths
 
