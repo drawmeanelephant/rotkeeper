@@ -2,9 +2,9 @@
 title: "Oliver Renderer Contract"
 slug: oliver-contract
 template: rotkeeper-doc.html
-version: "1.4"
-updated: "2026-08-13"
-description: "The supported contract between Rotkeeper and the native Oliver HTML renderer: executable discovery, input format, output streams, exit codes, the adapter boundary, and the stable template/input contract."
+version: "1.5"
+updated: "2026-08-14"
+description: "The supported contract between Rotkeeper and the native Oliver HTML renderer: executable discovery, input format and output profile, output streams, exit codes, the adapter boundary, and the stable template/input contract."
 tags:
   - rotkeeper
   - oliver
@@ -27,7 +27,7 @@ If neither yields an executable file, `render` fails with exit 1 and prints a se
 
 ## The binary contract
 
-Oliver is invoked once per source file, reading the file on stdin. The input language comes from `input_format` in `bones/config/rotkeeper.yaml` (`markdown` default, `textile` and `cooklang` alternatives), overridden to `textile` for any source whose extension is `.textile` and to `cooklang` for any source whose extension is `.cook`; the adapter and `preflight` pass the resulting format through on every invocation:
+Oliver is invoked once per source file, reading the file on stdin. The input language comes from `input_format` in `bones/config/rotkeeper.yaml` (`markdown` default, `textile` and `cooklang` alternatives), overridden to `textile` for any source whose extension is `.textile` and to `cooklang` for any source whose extension is `.cook`; the adapter and `preflight` pass the resulting format through on every invocation. The output profile comes from `render_profile` in `bones/config/rotkeeper.yaml` (`html` default, `xhtml` opt-in), overridden per page by a `render_profile` frontmatter key; only an `xhtml` profile appends `--to xhtml`, so the default invocation is byte-identical to the html-only contract:
 
 ```bash
 oliver render --from markdown < file.md > body.html 2> warnings.log
@@ -35,17 +35,18 @@ oliver render --from textile < file.md > body.html 2> warnings.log
 oliver render --from textile < file.textile > body.html 2> warnings.log
 oliver render --from cooklang < file.md > body.html 2> warnings.log
 oliver render --from cooklang < file.cook > body.html 2> warnings.log
+oliver render --from markdown --to xhtml < file.md > body.xhtml 2> warnings.log
 ```
 
 | Aspect | Contract |
 | --- | --- |
-| Invocation | `oliver render --from <markdown\|textile\|cooklang>` — one file per invocation, stdin → stdout; format comes from `input_format` in `bones/config/rotkeeper.yaml` (default `markdown`, validated to `markdown`/`textile`/`cooklang` at environment load; anything else warns and falls back to `markdown`). A source with a `.textile` extension always invokes `--from textile` and one with a `.cook` extension always invokes `--from cooklang`, overriding the config default for that file |
+| Invocation | `oliver render --from <markdown\|textile\|cooklang> [--to <html\|xhtml>]` — one file per invocation, stdin → stdout; format comes from `input_format` in `bones/config/rotkeeper.yaml` (default `markdown`, validated to `markdown`/`textile`/`cooklang` at environment load; anything else warns and falls back to `markdown`). A source with a `.textile` extension always invokes `--from textile` and one with a `.cook` extension always invokes `--from cooklang`, overriding the config default for that file. The output profile comes from `render_profile` in `bones/config/rotkeeper.yaml` (default `html`, validated to `html`/`xhtml` at environment load; anything else warns and falls back to `html`), overridden per page by a `render_profile` frontmatter key; `--to xhtml` is appended only when the effective profile is `xhtml`, so the default invocation carries no `--to` flag and is byte-identical to the pre-XHTML contract. `--to` is rejected by Oliver on `serialize`/`scale`/`menu` |
 | Input | Markdown, **Textile, or Cooklang** on **stdin** — a leading YAML frontmatter block is stripped by the adapter before invocation (Oliver itself is a pure CommonMark/Textile/Cooklang renderer) |
-| stdout | Rendered **body HTML fragment** (no full page wrapping) |
-| stderr | Non-fatal renderer warnings; forwarded through the adapter as warnings, never into the page body |
+| stdout | Rendered **body HTML fragment** (no full page wrapping) — an **XHTML fragment** under `--to xhtml` (no DOCTYPE, no document wrappers; see [XHTML output profile](#xhtml-output-profile-opt-in)) |
+| stderr | Non-fatal renderer warnings; forwarded through the adapter as warnings, never into the page body. Under `--to xhtml`, raw HTML fails closed on stderr with `error.RawHtmlNotXmlWellFormed` and an actionable hint, and the page aborts with exit 1 |
 | Exit 0 | Success |
-| Exit 1 | Render failure (e.g. missing input); page is aborted |
-| Version | Oliver's CLI is provisional and has no stable release yet, so Rotkeeper pins an exact source revision: CI and `scripts/setup-jules.sh` build from commit `e314dbbe74d0cffb269039c3cb750d55140fa26e` (the `OLIVER_PIN` variable in `setup-jules.sh`). Moving the pin is a deliberate act — upgrade it, re-run the harness, and update this table. The pin moved 2026-08-13 from `22b3c779` to `e314dbbe` to pick up the Cooklang frontend (CK1) plus CK2–CK5 (canonical serializer, `scaleRecipe`, richer HTML policy, `.menu` view); Markdown and Textile rendering are byte-identical across the move (Oliver's own gates: CommonMark 652/652, Textile suite untouched). `preflight`'s live smoke render (in the configured format) remains the behavioral safety net on top of the pin |
+| Exit 1 | Render failure (e.g. missing input, or raw HTML under `--to xhtml`); page is aborted |
+| Version | Oliver's CLI is provisional and has no stable release yet, so Rotkeeper pins an exact source revision: CI and `scripts/setup-jules.sh` build from commit `c8a8e066de9c2aa5046cc3985a25670d33aeaa3b` (the `OLIVER_PIN` variable in `setup-jules.sh`). Moving the pin is a deliberate act — upgrade it, re-run the harness, and update this table. The pin moved 2026-08-14 from `e314dbbe` to `c8a8e06` to pick up the XHTML output profile (`--to html\|xhtml`, oliver PR #54, `docs/XHTML.md`) — same semantics, different serialization bytes; Markdown/Textile/Cooklang parsing untouched, CommonMark 652/652 and Cooklang 60/60 gates unchanged — plus the audit fixes #55–#58 (NUL → U+FFFD under the XHTML profile, CLI subcommand grammar with `--to` render-only). The prior move (2026-08-13) from `22b3c779` to `e314dbbe` had added the Cooklang frontend (CK1) plus CK2–CK5. `preflight`'s live smoke render (in the configured format and profile) remains the behavioral safety net on top of the pin |
 
 The binary is deliberately narrow: it converts Markdown, Textile, or Cooklang to a body fragment. Everything around that — frontmatter extraction, sidecars, templates, link rewriting, output planning — lives in Rotkeeper's Bash layer, not in Oliver.
 
@@ -65,6 +66,16 @@ Oliver implements Cooklang per the official spec and canonical corpus (60/60 on 
 - **Not supported (degrades to literal text, per the corpus):** invalid tokens; unclosed `{`, `(`, `[-`, or fenced blocks additionally emit a structured warning diagnostic. Recipe-reference resolution, metadata authority, and scaling are consumer territory (the `.menu` view and `scaleRecipe` live in the Oliver library, not Rotkeeper).
 - **Recipe metadata** (title, author, servings, etc.) belongs in the leading YAML frontmatter, which Rotkeeper's adapter strips before Oliver sees it — exactly as for Markdown and Textile sources.
 
+## XHTML output profile (opt-in)
+
+Oliver ships an explicit, deterministic, XML-compatible XHTML serialization of the same rendered document — same normalized IR, same semantics, different bytes (oliver PR #54, `docs/XHTML.md` upstream). Rotkeeper exposes it as an opt-in page render mode; the default (`html`) path is byte-identical to the pre-XHTML contract.
+
+- **Selection:** `render_profile` in `bones/config/rotkeeper.yaml` (`html` default, `xhtml` opt-in; validated at environment load, anything else warns and falls back to `html`) arrives at the adapter as `RENDER_PROFILE`. A per-page `render_profile` key in the source frontmatter overrides the config value for that file — the per-page knob exists because raw-HTML content makes XHTML a per-page decision, not a global one.
+- **Flag:** the adapter appends `--to xhtml` only when the effective profile is `xhtml`; an `html` profile appends nothing, keeping the default invocation byte-identical. `preflight`'s smoke render passes `--to xhtml` too when the config selects it, so the compatibility gate covers the configured profile.
+- **Fragments only:** the XHTML profile serializes a body fragment — no DOCTYPE, no `<html>`/`<head>`/`<body>` wrappers. Rotkeeper's themes own the document wrapper, so an XHTML *document* is a theme variant (XML declaration + `<html xmlns="http://www.w3.org/1999/xhtml">`), not an adapter concern. `bones/templates/theme-spooky-dark-xhtml.html` is the reference variant; a page opts in with `template: theme-spooky-dark-xhtml.html` plus `render_profile: xhtml` (see [XHTML Output Profile](xhtml-profile.md), itself an XHTML page). Void elements always serialize XML-form under `--to xhtml` (`<hr />`, `<br />`, `<img ... />`); attributes stay double-quoted in the existing fixed order; escaping is the existing policy (XML predefined escapes, NUL → U+FFFD, raw Unicode preserved).
+- **Fail-closed on raw HTML:** Markdown raw HTML (`.raw_html` and `.html_block` leaves, and Textile `pre.`) passes through verbatim under `html` but fails under `xhtml` with Oliver's typed `error.RawHtmlNotXmlWellFormed` and an actionable hint on stderr. Oliver never repairs, rewrites, or escapes raw HTML into fake XHTML, and the adapter surfaces the failure as ERROR + exit 1 for that page. A site flipping pages to XHTML must sweep its raw HTML first (the site's own docs historically contain raw HTML). The harness asserts both the fail-closed error path and XHTML well-formedness through an independent XML parser (`xmllint`) when a real Oliver binary is present.
+- **Cooklang:** the forced line break is the one byte delta (`<br>` → `<br />`); recipes render through the same profile mechanism.
+
 ## Frontmatter
 
 Frontmatter is parsed by the adapter with `yq --front-matter extract`. The fields Rotkeeper reads are:
@@ -75,6 +86,7 @@ Frontmatter is parsed by the adapter with `yq --front-matter extract`. The field
 - `date`
 - `template`
 - `palette`
+- `render_profile` (per-page XHTML opt-in; `html`/`xhtml`, overrides `render_profile` in `rotkeeper.yaml` for that page only)
 
 All other frontmatter keys pass through untouched. Values are HTML-escaped on template insertion.
 
@@ -86,8 +98,8 @@ This section is the stable contract that Phase 6 ("Rationalize the Oliver bounda
 
 - Sources are UTF-8 files with an optional leading YAML frontmatter block. The body format is Markdown by default (`input_format: markdown`), Textile when `input_format: textile` is set, Cooklang when `input_format: cooklang` is set, and any source whose extension is `.textile` or `.cook` renders in that format regardless of the config value. Source-file discovery covers `*.md`, `*.textile`, and `*.cook`; soul sidecar naming and output naming are extension-agnostic (a `.textile` or `.cook` source gets the same `foo.html` output and `foo.soul.md` sidecar as `foo.md`). A `foo.md`/`foo.textile`/`foo.cook` pair in the same directory is a source basename collision and aborts the render — only one source file may exist per page basename.
 - The frontmatter block must start on the **very first line** (`---` on line 1 — no BOM, no leading blank line) and close at the next `---` line. A YAML `...` document-end marker is not honored; anything after the closing `---` is body content in the configured format.
-- Only the six fields above are consumed, as **scalar strings**. Lists, maps, and other keys are ignored for template purposes.
-- A `.soul.md` sidecar under `bones/meta` may override any of the six fields **per field**; the sidecar value wins only when it is non-empty and not `null`. Without a sidecar, source frontmatter applies.
+- Only the seven fields above are consumed, as **scalar strings**. Lists, maps, and other keys are ignored for template purposes.
+- A `.soul.md` sidecar under `bones/meta` may override any of the six metadata fields **per field** (`render_profile` is frontmatter-only); the sidecar value wins only when it is non-empty and not `null`. Without a sidecar, source frontmatter applies.
 - `template` resolution: `$template$` selects `${TEMPLATE_DIR}/${template}`. If the named template does not exist or escapes `TEMPLATE_DIR`, the batch manifest's default template (from `default_template` in `bones/config/rotkeeper.yaml`) is used. The page fails if no valid template resolves.
 
 ### Template dialect
@@ -125,7 +137,7 @@ A `.soul.md` sidecar next to a source file (under `bones/meta`) may override fro
 1. Batch manifest (`TSV`) iteration with boundary assertions (source under content, destination under output).
 2. Frontmatter extraction and sidecar merge (including stripping a leading YAML frontmatter block before the source reaches Oliver).
 3. Template resolution.
-4. Oliver invocation and stderr forwarding.
+4. Oliver invocation and stderr forwarding (including the `--to xhtml` flag when the effective `render_profile` is `xhtml`).
 5. Internal `.md`/`.textile`/`.cook` → `.html` link rewriting (fragment/query preserved, external and `mailto:` left alone).
 6. Template interpolation: `$if(name)$/$endif$` conditionals, then literal replacement of `$title$`, `$description$`, `$author$`, `$date$`, `$assets_root$`, `$body$` with HTML escaping.
 
@@ -148,5 +160,5 @@ Then either put `oliver` on `PATH` or set `RK_OLIVER_BIN=/path/to/oliver`. CI en
 
 - **Availability check:** `bash rotkeeper.sh preflight` reports whether Oliver is found, executable, and actually runnable (a live smoke render through the real CLI); it fails with one setup message otherwise. `render` runs the same check before rendering.
 - **Hermetic (always):** the test harness (`bash rotkeeper.sh test`) builds fixture binaries and exercises frontmatter, sidecars, escaping, links, stderr separation, and manifest consistency without any Oliver dependency. The checked-in fixture at `bones/scripts/tests/fixtures/oliver-smoke/` renders through a fixture binary and its body is compared against `smoke-fixture-expected.html` on every layout pass.
-- **Real binary (when present):** the same harness renders `real-oliver-fixture.md` through the discovered executable and asserts exit 0, a well-formed HTML page, and the fixture title in the output. It runs on every layout pass. Setting `RK_STRICT=1` turns the real-binary skip paths (missing `oliver`, missing contract corpus) into hard failures so a green run always proves the real binary was exercised — CI runs the harness with `RK_STRICT=1`.
+- **Real binary (when present):** the same harness renders `real-oliver-fixture.md` through the discovered executable and asserts exit 0, a well-formed HTML page, and the fixture title in the output. It runs on every layout pass. With a real binary present, the harness also renders an XHTML-profile page through `--to xhtml` and asserts the wrapped document is well-formed via `xmllint`, and asserts that a raw-HTML page selected for XHTML fails with `error.RawHtmlNotXmlWellFormed`. Setting `RK_STRICT=1` turns the real-binary skip paths (missing `oliver`, missing contract corpus) into hard failures so a green run always proves the real binary was exercised — CI runs the harness with `RK_STRICT=1`.
 - **Quick local check:** `bash rotkeeper.sh render` on a checkout with content renders everything through Oliver; failures list the page and Oliver's stderr.

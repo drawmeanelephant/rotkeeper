@@ -215,11 +215,12 @@ require_gawk_version() {
 # rk_oliver_preflight: The single Oliver availability check (Slice 1B). Resolves
 # the binary (RK_OLIVER_BIN override, then PATH discovery), asserts
 # executability, and smoke-renders an empty document through the real Oliver
-# CLI (oliver render --from markdown) to prove the binary actually runs.
+# CLI (oliver render --from markdown, plus --to xhtml when render_profile in
+# rotkeeper.yaml selects it) to prove the binary actually runs.
 # Oliver's CLI is provisional and has no stable release yet, so the live smoke
 # render is the compatibility gate (see oliver-contract.md). Prints one
 # actionable setup message on failure.
-# Inputs: reads RK_OLIVER_BIN; uses TMP_DIR for the smoke document
+# Inputs: reads RK_OLIVER_BIN and RENDER_PROFILE; uses TMP_DIR for the smoke document
 # Outputs: sets OLIVER_BIN to the resolved executable on success
 # Returns: 0 on pass; 1 on failure
 # ---
@@ -228,6 +229,7 @@ rk_oliver_preflight() {
   local smoke_doc="$TMP_DIR/oliver-preflight-smoke.md"
   local smoke_out="$TMP_DIR/oliver-preflight-smoke.html"
   local smoke_err="$TMP_DIR/oliver-preflight-smoke.log"
+  local profile="${RENDER_PROFILE:-html}"
   OLIVER_BIN=""
 
   candidate="${RK_OLIVER_BIN:-}"
@@ -247,7 +249,11 @@ rk_oliver_preflight() {
   if [[ -z "$reason" ]]; then
     mkdir -p "$TMP_DIR"
     printf '# preflight smoke\n' > "$smoke_doc"
-    "$candidate" render --from "${INPUT_FORMAT:-markdown}" < "$smoke_doc" > "$smoke_out" 2> "$smoke_err" || smoke_status=$?
+    if [[ "$profile" == "xhtml" ]]; then
+      "$candidate" render --from "${INPUT_FORMAT:-markdown}" --to xhtml < "$smoke_doc" > "$smoke_out" 2> "$smoke_err" || smoke_status=$?
+    else
+      "$candidate" render --from "${INPUT_FORMAT:-markdown}" < "$smoke_doc" > "$smoke_out" 2> "$smoke_err" || smoke_status=$?
+    fi
     if [[ "$smoke_status" -ne 0 ]]; then
       reason="Oliver binary runs but failed its smoke render (exit $smoke_status)"
       if [[ -s "$smoke_err" ]]; then

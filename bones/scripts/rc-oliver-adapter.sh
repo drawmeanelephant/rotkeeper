@@ -9,8 +9,8 @@ IFS=$'\n\t'
 #            enforces path boundaries, applies sidecar metadata precedence,
 #            evaluates template conditionals, and rewrites internal
 #            .md/.textile links to .html.
-#  Version : 0.5.1
-#  Updated : 2026-03-23
+#  Version : 0.6.0
+#  Updated : 2026-08-14
 # ============================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -75,7 +75,7 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
 
   # 1. Extract metadata from source in 1 single yq call
   meta_json="$TMP_DIR/doc-meta-$$.json"
-  yq --front-matter extract -o json '{"title": .title, "description": .description, "author": .author, "date": .date, "template": .template, "palette": .palette}' "$src_path" > "$meta_json" 2>/dev/null || echo "{}" > "$meta_json"
+  yq --front-matter extract -o json '{"title": .title, "description": .description, "author": .author, "date": .date, "template": .template, "palette": .palette, "render_profile": .render_profile}' "$src_path" > "$meta_json" 2>/dev/null || echo "{}" > "$meta_json"
 
   doc_title=$(yq -r '.title // ""' "$meta_json" 2>/dev/null || echo "")
   doc_desc=$(yq -r '.description // ""' "$meta_json" 2>/dev/null || echo "")
@@ -83,6 +83,7 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
   doc_date=$(yq -r '.date // ""' "$meta_json" 2>/dev/null || echo "")
   doc_tmpl=$(yq -r '.template // ""' "$meta_json" 2>/dev/null || echo "")
   doc_palette=$(yq -r '.palette // ""' "$meta_json" 2>/dev/null || echo "")
+  doc_render_profile=$(yq -r '.render_profile // ""' "$meta_json" 2>/dev/null || echo "")
   rm -f "$meta_json"
 
   [[ "$doc_title" == "null" ]] && doc_title=""
@@ -91,6 +92,7 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
   [[ "$doc_date" == "null" ]] && doc_date=""
   [[ "$doc_tmpl" == "null" ]] && doc_tmpl=""
   [[ "$doc_palette" == "null" ]] && doc_palette=""
+  [[ "$doc_render_profile" == "null" ]] && doc_render_profile=""
 
   title="$doc_title"
   desc="$doc_desc"
@@ -98,6 +100,7 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
   date="$doc_date"
   tmpl="$doc_tmpl"
   palette="$doc_palette"
+  render_profile="$doc_render_profile"
 
   [[ "$soul_path" == "NONE" ]] && soul_path=""
 
@@ -148,6 +151,11 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
   #    extension always renders as cooklang, overriding the config default
   #    for that file) to body HTML snippet. The adapter strips a
   #    leading YAML frontmatter block before piping the body into the CLI.
+  #    The output profile mirrors the input-format pattern: render_profile in
+  #    rotkeeper.yaml (html default, xhtml opt-in) arrives via RENDER_PROFILE,
+  #    and a per-page render_profile in the source frontmatter overrides it
+  #    for that file. Only an xhtml profile appends `--to xhtml`, so the
+  #    default invocation is byte-identical to the html-only contract.
   mkdir -p "$TMP_DIR"
   body_tmp="$TMP_DIR/oliver-body-$$.html"
   body_rewritten="$TMP_DIR/oliver-body-rewritten-$$.html"
@@ -161,12 +169,31 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
     input_format="cooklang"
   fi
 
+  profile="${render_profile:-${RENDER_PROFILE:-html}}"
+  case "${profile,,}" in
+    xhtml)
+      profile="xhtml"
+      ;;
+    html)
+      profile="html"
+      ;;
+    *)
+      log "WARN" "Unsupported render_profile '$profile' for '$src_path'; falling back to '${RENDER_PROFILE:-html}'."
+      profile="${RENDER_PROFILE:-html}"
+      ;;
+  esac
+
+  oliver_cmd=("$oliver_bin" render --from "$input_format")
+  if [[ "$profile" == "xhtml" ]]; then
+    oliver_cmd+=(--to xhtml)
+  fi
+
   if ! awk '
       BEGIN { skip = 0 }
       NR == 1 && $0 == "---" { skip = 1; next }
       skip == 1 && $0 == "---" { skip = 0; next }
       skip == 0 { print }
-    ' "$src_path" | "$oliver_bin" render --from "$input_format" > "$body_tmp" 2> "$oliver_err"; then
+    ' "$src_path" | "${oliver_cmd[@]}" > "$body_tmp" 2> "$oliver_err"; then
     log "ERROR" "Oliver rendering failed for page '$src_path' using template '$template_path'"
     echo "ERROR: Oliver rendering failed for page '$src_path' using template '$template_path'" >&2
     if [[ -f "$oliver_err" && -s "$oliver_err" ]]; then
