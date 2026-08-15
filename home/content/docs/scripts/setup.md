@@ -1,17 +1,16 @@
 ---
-title: "setup-jules.sh"
-slug: setup-jules
+title: "setup.sh"
+slug: setup
 version: "v0.3.1.4"
 updated: 2026-03-23
-description: "Reference for setup-jules.sh script which installs dependencies and prepares the Jules environment."
+description: "Reference for setup.sh script which installs dependencies and prepares the environment."
 tags:
   - rotkeeper
   - scripts
   - init
   - bootstrap
-  - jules
 asset_meta:
-  name: "setup-jules.md"
+  name: "setup.md"
   version: "v0.3.1.4"
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
@@ -19,14 +18,14 @@ asset_meta:
   license: "All Rights Reserved"
 ---
 
-# 🤖 setup-jules.sh — Environment Prep
+# 🤖 setup.sh — Environment Prep
 
-The `setup-jules.sh` script is designed to quickly provision a deterministic Ubuntu environment for Jules agents or new system instances working with Rotkeeper.
+The `setup.sh` script is designed to quickly provision a deterministic Ubuntu or macOS environment for new system instances working with Rotkeeper.
 
 This script lives at the root of the repository in the `scripts/` directory:
 
 ```
-scripts/setup-jules.sh
+scripts/setup.sh
 ```
 
 ---
@@ -52,7 +51,7 @@ scripts/setup-jules.sh
 Run from the root of your Rotkeeper repository:
 
 ```bash
-bash scripts/setup-jules.sh
+bash scripts/setup.sh
 ```
 
 Once complete, your environment is ready for the smoke test or initialization:
@@ -74,10 +73,10 @@ Once complete, your environment is ready for the smoke test or initialization:
 
 
 ### Architectural Intent
-A deterministic environment setup script for Ubuntu. It installs necessary system packages (jq, gawk) and grabs the pinned `yq` CLI binary before making target shell scripts executable. This script specifically prepares the sandbox for Jules, the AI agent, to seamlessly interact with the Rotkeeper repository and perform automated rituals without manual intervention.
+A deterministic environment setup script for Ubuntu and macOS. It installs necessary system packages (jq, gawk) and grabs the pinned `yq` CLI binary before making target shell scripts executable. This script prepares the environment for automated workflows and CI without manual intervention.
 
 ### Directory / File Schema Expectations
-The script must reside in `scripts/setup-jules.sh`. It modifies the system environment by installing packages via `apt-get` and downloading a binary to `/usr/local/bin/yq`. It also modifies file permissions within the repository, specifically targeting `rotkeeper.sh` and files in `bones/scripts/`.
+The script must reside in `scripts/setup.sh`. It modifies the system environment by installing packages via `apt-get` or `brew` and downloading a binary to `/usr/local/bin/yq`. It also modifies file permissions within the repository, specifically targeting `rotkeeper.sh` and files in `bones/scripts/`.
 
 ### Restless Spirits
 This script executes arbitrary commands and downloads binaries as root or sudo, representing a major risk if run on unvetted environments. It hardcodes the `yq` version (`v4.40.5`) and binary architecture (`yq_linux_amd64`), which will fail on non-Linux platforms or alternative chip architectures (like ARM or Apple Silicon).
@@ -107,7 +106,7 @@ Do not run this script on developer local macOS/Windows environments as it expec
 ###### CLI Usage
 <!-- DIP-HELP-EXTRACTED: 2026-08-12T12:26:46Z -->
 
-*Not found: no help block for `setup-jules.sh` in autopsy help report.*
+*Not found: no help block for `setup.sh` in autopsy help report.*
 ## Ritual History
 <!-- DIP-HISTORY-EXTRACTED: 2026-08-13T10:51:03Z -->
 

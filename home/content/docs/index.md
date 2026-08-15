@@ -83,7 +83,7 @@ The current workflow is deliberately small and local-first:
 
 ### 7. 🧯 Ritual Interruptions
 - [Patch Notes](patch.html)
-- [Setup Jules](scripts/setup-jules.html)
+- [Setup](scripts/setup.html)
 
 ### ✒️ Textile Content
 - [Textile Formatting Guide](textile-guide.html)

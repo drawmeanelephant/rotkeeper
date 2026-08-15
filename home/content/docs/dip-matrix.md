@@ -52,7 +52,7 @@ This page tracks the documentation status of core project files.
 | `bones/templates/theme-spooky-light.html` | [bones/templates/theme-spooky-light.md](bones/templates/theme-spooky-light.md) | 2026-08-03 | 2026-08-12 | Stub |
 | `bones/templates/theme-spooky.html` | [bones/templates/theme-spooky.md](bones/templates/theme-spooky.md) | 2026-08-03 | 2026-08-12 | Stub |
 | `rotkeeper.sh` | [rotkeeper.md](rotkeeper.md) | 2026-08-13 | 2026-08-13 | OK |
-| `scripts/setup-jules.sh` | [scripts/setup-jules.md](scripts/setup-jules.md) | 2026-08-13 | 2026-08-13 | OK |
+| `scripts/setup.sh` | [scripts/setup.md](scripts/setup.md) | 2026-08-13 | 2026-08-13 | OK |
 | `Unknown` | [bones/scripts/tests/fixtures/index.md](bones/scripts/tests/fixtures/index.md) | Missing | 2026-08-13 | Unowned |
 | `Unknown` | [bones/scripts/tests/fixtures/oliver-smoke/index.md](bones/scripts/tests/fixtures/oliver-smoke/index.md) | Missing | 2026-08-13 | Unowned |
 | `Unknown` | [bones/scripts/tests/index.md](bones/scripts/tests/index.md) | Missing | 2026-08-12 | Unowned |

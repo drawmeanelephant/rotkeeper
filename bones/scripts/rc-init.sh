@@ -9,7 +9,7 @@ IFS=$'\n\t'
 #  ██║██║ ╚████║██║   ██║
 #  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝
 # ============================================================
-#  Project : Rotkeeper (Jules Compat Prototype)
+#  Project : Rotkeeper
 #  Script  : rc-init.sh
 #  Purpose : Minimal, non-destructive environment initialization
 # ============================================================

@@ -31,7 +31,7 @@ This file lives at:
 
 ## 🛠️ What It Does
 
-1. **Environment Setup**: Provisions an Ubuntu runner and installs required dependencies using `scripts/setup-jules.sh`.
+1. **Environment Setup**: Provisions an Ubuntu runner and installs required dependencies using `scripts/setup.sh`.
 2. **Smoke Testing**: Executes the core `./rotkeeper.sh smoke` ritual to verify system integrity.
 3. **Test Suite**: Runs the full bats-core test suite via `./rotkeeper.sh test`.
 

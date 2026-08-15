@@ -1,8 +1,7 @@
 ---
 target_file: bones/scripts/rc-test.sh
 source: generated
-generated: 2026-06-26
-model: jules-model
+generated: 2026-07-03
 version: 0.1.0
 status: final
 ---
