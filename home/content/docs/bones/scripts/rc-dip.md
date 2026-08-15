@@ -64,18 +64,6 @@ Do not feed it self-referential sidecars. Handle empty notes with care, or the e
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-12T12:26:46Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
 
-```text
-rc-dip.sh — Document Improvement Project audit
-
-Scans documentation coverage, ownership, staleness, and obsolete
-references. Reads source scripts and generated books critically.
-
-Options:
-  --dry-run      Preview actions without moving or writing docs
-  --verbose      Detailed output
-  --quiet        Suppress informational output
-  --help, -h     Show help
-  --version, -v  Show version and quit
-```
+*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*

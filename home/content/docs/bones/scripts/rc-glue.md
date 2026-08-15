@@ -101,17 +101,6 @@ Sanitize your inputs. If your injected code contains special characters, prepare
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-12T12:26:46Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
 
-```text
-rc-glue.sh — Generate navigation glue for unindexed content directories
-
-Usage: rotkeeper.sh glue [options]
-
-Options:
-  --path DIR       Limit glue to a directory under home/content/
-  --force          Refresh existing auto-generated indexes
-  --dry-run        Preview changes without writing
-  --verbose        Show detailed logs
-  --help, -h       Show this help message
-```
+*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*

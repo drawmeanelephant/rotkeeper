@@ -148,14 +148,6 @@ Do not rely on these utilities in truly hostile environments. Their portability 
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-13T10:51:03Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
 
-```text
---debug
---dry-run
---from
---help
---quiet
---verbose
---version
-```
+*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*

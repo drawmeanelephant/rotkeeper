@@ -55,6 +55,6 @@ Provides a retro-brutalist CRT terminal layout block for users or agents checkin
 - Requires accompanying layout styling in `home/assets/css/theme-phosphor.css`.
 - Must parse template flags dynamically without fracturing the common `$body$` structure.
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-12T12:26:46Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
 
-*Not found: no help block for `theme-phosphor.html` in autopsy help report.*
+*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*

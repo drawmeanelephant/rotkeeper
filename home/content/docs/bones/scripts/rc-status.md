@@ -111,15 +111,6 @@ Do not mistake silence for health. An empty log often means the patient is alrea
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-12T12:26:46Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
 
-```text
-rc-status.sh — Display environment health status reports
-
-Options:
-  --json         Emit a machine-readable JSON report
-  --dry-run      No-op flag accepted for contract consistency
-  --verbose      Detailed output
-  --help, -h     Show help
-  --version, -v  Show version and quit
-```
+*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*

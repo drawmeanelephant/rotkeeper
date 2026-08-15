@@ -165,18 +165,6 @@ Ensure `jq` is installed and functioning. Beware of injecting raw, unescaped tex
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-13T10:51:03Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
 
-```text
-rc-pack.sh — Ritual Compression Packager (v0.5.3)
-
-Usage: rc-pack.sh [options]
-
-Options:
-  --version, -v    Show script version and quit
-  --help, -h       Show this help message and exit
-  --dry-run        Preview actions without writing files
-  --self           Archive the full Rotkeeper system (rotkeeper.sh, bones/, home/, output/)
-  --content        Archive only the home/content directory to preserve source files
-  --verbose        Enable detailed debug logging
-```
+*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*

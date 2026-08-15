@@ -56,15 +56,6 @@ This script is a vanity project for templates. It naively assumes `TEMPLATE_DIR`
 Ensure `TEMPLATE_DIR` contains valid `.html` layouts. The output markdown is rewritten each run, meaning manual annotations added to the showcase files will be crushed.
 
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-12T12:26:46Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
 
-```text
-rc-showcase.sh — Generate showcase content for every HTML template
-
-Usage: rotkeeper.sh showcase [options]
-
-Options:
-  --dry-run        Preview generated showcase pages without writing
-  --verbose        Show detailed logs
-  --help, -h       Show this help message
-```
+*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
