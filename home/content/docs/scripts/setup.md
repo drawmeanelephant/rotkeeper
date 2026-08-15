@@ -104,10 +104,10 @@ Do not run this script on developer local macOS/Windows environments as it expec
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-12T12:26:46Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
 
-*Not found: no help block for `setup.sh` in autopsy help report.*
+*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
 ## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-08-13T10:51:03Z -->
+<!-- DIP-HISTORY-EXTRACTED: 2026-08-15T15:43:55Z -->
 
-- - Made preflight gate on a live Oliver smoke render instead of a version range (Oliver's CLI is provisional and has no stable release yet); `render` routes its failure path through the same check so diagnostics cannot drift, and `scripts/setup-jules.sh` builds Oliver from source with Zig 0.16.
+*Not found: no changelog/history entries matching `setup.sh`.*

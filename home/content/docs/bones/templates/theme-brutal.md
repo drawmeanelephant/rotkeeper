@@ -17,9 +17,9 @@ Documentation for `bones/templates/theme-brutal.html`. This file was auto-genera
 TODO: Provide a brief overview of what this file does.
 
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-13T10:51:03Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
 
-*Not found: no help block for `theme-brutal.html` in autopsy help report.*
+*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
 ## Environment
 <!-- DIP-ENV-EXTRACTED: 2026-08-13T10:51:03Z -->
 

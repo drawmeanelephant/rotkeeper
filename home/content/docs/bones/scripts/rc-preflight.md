@@ -17,24 +17,9 @@ Documentation for `bones/scripts/rc-preflight.sh`. This file was auto-generated 
 TODO: Provide a brief overview of what this file does.
 
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-13T10:52:13Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
 
-```text
-rc-preflight.sh — Report Oliver renderer availability (v0.5.3)
-
-Usage: rc-preflight.sh
-
-Reports whether the Oliver renderer is discoverable, executable, and actually
-runnable (a live smoke render through the real CLI; see
-home/content/docs/oliver-contract.md). Exits 0 when rendering is ready; exits
-1 with one actionable setup message when it is not.
-
-Options:
-  --version, -v    Show script version and quit
-  --help, -h       Show this help message and exit
-  --verbose        Show detailed findings
-  --dry-run        Report the check without invoking the Oliver binary
-```
+*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
 ## Environment
 <!-- DIP-ENV-EXTRACTED: 2026-08-13T10:51:03Z -->
 

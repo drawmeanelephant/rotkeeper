@@ -17,9 +17,9 @@ Documentation for `bones/scripts/tests/rc-glue.bats`. This file was auto-generat
 TODO: Provide a brief overview of what this file does.
 
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-12T12:26:46Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
 
-*Not found: no help block for `rc-glue.bats` in autopsy help report.*
+*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
 ## Environment
 <!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
 

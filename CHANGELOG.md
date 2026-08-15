@@ -1,3 +1,7 @@
+## [0.7.0] - 2026-08-15
+
+- Release 0.7.0: Oliver pinned to 6edb520c with download-first install from upstream builds release
+
 ## [0.6.0] - 2026-08-13
 
 - 0.6.0 engineering pass — shell safety, hardening, hygiene

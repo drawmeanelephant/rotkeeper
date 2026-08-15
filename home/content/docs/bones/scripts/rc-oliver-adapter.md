@@ -17,12 +17,9 @@ Documentation for `bones/scripts/rc-oliver-adapter.sh`. This file was auto-gener
 TODO: Provide a brief overview of what this file does.
 
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-13T10:52:13Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
 
-```text
---from
---front-matter
-```
+*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
 ## Environment
 <!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
 

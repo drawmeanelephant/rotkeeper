@@ -60,20 +60,9 @@ rotkeeper.sh links [options]
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-13T10:52:13Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
 
-```text
-rc-links.sh — Audit rendered HTML links and local asset references
-
-Usage: rotkeeper.sh links [options]
-
-Options:
-  --root DIR       Rendered directory to scan; defaults to output/
-  --report FILE    Report destination; defaults to bones/reports/link-report-*.md
-  --dry-run        Scan without writing a report
-  --verbose        Show detailed logs
-  --help, -h       Show this help message
-```
+*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
 ## Ritual History
 <!-- DIP-HISTORY-EXTRACTED: 2026-08-12T00:38:36Z -->
 

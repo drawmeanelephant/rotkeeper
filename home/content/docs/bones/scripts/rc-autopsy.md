@@ -56,20 +56,6 @@ Runaway log files are the hungry ghosts here, waiting to devour every last byte 
 Monitor your disk space, or this script will fill it with the endless screaming of past errors. Do not trust its interpretation of multi-line errors; it only understands the simplest of death rattles.
 
 ###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-13T10:51:03Z -->
+<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
 
-```text
-rc-autopsy.sh — Script dissection ritual v0.5.3
-Usage: rc-autopsy.sh [mode] [options]
-
-Modes:
-  --help-report    Extract --help output from all rc-*.sh into a reference report
-  --output-report  Scan scripts for file-write operations and catalog outputs
-  --all            Run both reports (default)
-
-Options:
-  --dry-run        Preview without writing
-  --verbose        Detailed logging
-  --help, -h       Show this message
-  --version, -v    Show version
-```
+*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
