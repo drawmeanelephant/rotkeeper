@@ -2,7 +2,6 @@
 title: "Showcase: rotkeeper-doc"
 slug: "showcase-rotkeeper-doc"
 template: "rotkeeper-doc.html"
-description: "Programmatic description for rotkeeper-doc"
 ---
 
 # Heading 1
@@ -91,3 +90,4 @@ echo "With benchmark archival channels implementing viral bash-rituals."
 |---|---|---|---|---|---|
 | A very long string that might cause overflow | Data | Data | Data | Data | Data |
 | Data | A very long string that might cause overflow | Data | Data | Data | Data |
+

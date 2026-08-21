@@ -2,7 +2,6 @@
 title: "Showcase: dark"
 slug: "showcase-dark"
 template: "theme-dark.html"
-description: "Programmatic description for dark"
 ---
 
 # Heading 1

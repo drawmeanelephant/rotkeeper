@@ -2,7 +2,6 @@
 title: "Showcase: light"
 slug: "showcase-light"
 template: "theme-light.html"
-description: "Programmatic description for light"
 ---
 
 # Heading 1
