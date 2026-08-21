@@ -139,15 +139,10 @@ main() {
       if [[ -n "$MANIFEST" ]]; then
         mkdir -p "$(dirname "$MANIFEST")"
         touch "$MANIFEST"
-        # Phase 6 S5: try Oliver manifest --add, fallback to Bash grep
-        if [[ -n "${OLIVER_BIN:-}" && -x "${OLIVER_BIN:-}" ]] && "$OLIVER_BIN" manifest --help >/dev/null 2>&1; then
-          if "$OLIVER_BIN" manifest --manifest "$MANIFEST" --add "$rel_entry" >/dev/null 2>&1; then
-            return 0
-          fi
-          log "INFO" "Oliver manifest --add failed for '$rel_entry' — falling back to Bash"
-        fi
-        if ! grep -Fxq "$rel_entry" "$MANIFEST"; then
-          echo "$rel_entry" >> "$MANIFEST"
+        if ! "$OLIVER_BIN" manifest --manifest "$MANIFEST" --add "$rel_entry" >/dev/null 2>&1; then
+          log "ERROR" "Oliver manifest --add failed for '$rel_entry'"
+          echo "ERROR: Oliver manifest --add failed for '$rel_entry'" >&2
+          exit 1
         fi
       fi
     }
@@ -287,75 +282,33 @@ main() {
     fi
 
     if [[ "${RENDERER,,}" == "oliver" ]]; then
-      # --- OLIVER RENDERER PASS — Phase 6 S4: Oliver plan with Bash fallback ---
+      # --- OLIVER RENDERER PASS — Phase 6 S5: Oliver plan (no fallback, pin 9ad86a3) ---
       mkdir -p "$TMP_DIR"
       local batch_tsv="$TMP_DIR/oliver-batch-$$.tsv"
       rm -f "$batch_tsv"
 
-      oliver_plan_ok=false
-      if "$OLIVER_BIN" plan --help >/dev/null 2>&1; then
-        # Oliver owns src→dst mapping, collision, ASSETS_ROOT, soul derivation.
-        # TSV columns: src dst template assets_root soul oliver_bin root content output template_dir meta_dir dry_run verbose
-        if "$OLIVER_BIN" plan \
-          --content-dir "$CANONICAL_CONTENT_DIR" \
-          --output-dir "$OUTPUT_DIR" \
-          --template-dir "$CANONICAL_TEMPLATE_DIR" \
-          --meta-dir "$CANONICAL_META_DIR" \
-          --default-template "$DEFAULT_TEMPLATE" \
-          --oliver-bin "$OLIVER_BIN" \
-          --root-dir "$ROOT_DIR" \
-          --dry-run "$DRY_RUN" \
-          --verbose "$VERBOSE" > "$batch_tsv" 2>/dev/null; then
-          if [[ -s "$batch_tsv" ]]; then
-            oliver_plan_ok=true
-            log "INFO" "Oliver plan succeeded — using batch TSV from Oliver (${#md_corpses[@]} sources)"
-          else
-            log "INFO" "Oliver plan returned empty TSV — falling back to Bash"
-            rm -f "$batch_tsv"
-          fi
-        else
-          log "INFO" "Oliver plan failed — falling back to Bash"
-          rm -f "$batch_tsv"
-        fi
-      else
-        log "INFO" "Oliver plan not available (pin 6edb520c) — using Bash planning"
+      if ! "$OLIVER_BIN" plan \
+        --content-dir "$CANONICAL_CONTENT_DIR" \
+        --output-dir "$OUTPUT_DIR" \
+        --template-dir "$CANONICAL_TEMPLATE_DIR" \
+        --meta-dir "$CANONICAL_META_DIR" \
+        --default-template "$DEFAULT_TEMPLATE" \
+        --oliver-bin "$OLIVER_BIN" \
+        --root-dir "$ROOT_DIR" \
+        --dry-run "$DRY_RUN" \
+        --verbose "$VERBOSE" > "$batch_tsv" 2> "$TMP_DIR/oliver-plan-$$.log"; then
+        log "ERROR" "Oliver plan failed"
+        cat "$TMP_DIR/oliver-plan-$$.log" >&2
+        rm -f "$TMP_DIR/oliver-plan-$$.log"
+        exit 1
       fi
-
-      if [[ "$oliver_plan_ok" == false ]]; then
-        for mdfile in ${md_corpses[@]+"${md_corpses[@]}"}; do
-          [ -f "$mdfile" ] || continue
-          canonical_mdpath=$(get_canonical_path "$mdfile")
-          [[ -n "$canonical_mdpath" && "$canonical_mdpath" == "$CANONICAL_CONTENT_DIR"* ]] || continue
-          relpath="${canonical_mdpath#"$CANONICAL_CONTENT_DIR"/}"
-          base=$(strip_source_ext "$(basename "$relpath")")
-          reldir=$(dirname "$relpath")
-          if [[ "$reldir" == "." ]]; then
-            outdir="$OUTPUT_DIR"
-          else
-            outdir="$OUTPUT_DIR/$reldir"
-          fi
-          outfile="$outdir/${base}.html"
-          soul_file="$META_DIR/$(strip_source_ext "$relpath").soul.md"
-          canonical_soul=$(get_canonical_path "$soul_file")
-          if [[ "$canonical_soul" != "$CANONICAL_META_DIR"* ]]; then
-            canonical_soul=""
-          fi
-
-          if [[ "$reldir" == "." ]]; then
-            ASSETS_ROOT="./assets/"
-          else
-            depth=$(echo "$reldir" | tr -cd '/' | wc -c)
-            ASSETS_ROOT="$(rk_up_dirs $((depth + 1)))assets/"
-          fi
-
-          local soul_param="${canonical_soul:-NONE}"
-          template_file="$TEMPLATE_DIR/$DEFAULT_TEMPLATE"
-          printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-            "$canonical_mdpath" "$outfile" "$template_file" "$ASSETS_ROOT" "$soul_param" \
-            "$OLIVER_BIN" "$ROOT_DIR" "$CANONICAL_CONTENT_DIR" "$OUTPUT_DIR" "$CANONICAL_TEMPLATE_DIR" \
-            "$CANONICAL_META_DIR" "$DRY_RUN" "$VERBOSE" >> "$batch_tsv"
-        done
+      if [[ ! -s "$batch_tsv" ]]; then
+        log "ERROR" "Oliver plan returned empty TSV"
+        rm -f "$TMP_DIR/oliver-plan-$$.log"
+        exit 1
       fi
+      log "INFO" "Oliver plan succeeded (${#md_corpses[@]} sources)"
+      rm -f "$TMP_DIR/oliver-plan-$$.log"
 
       log "INFO" "Executing Oliver batch adapter pass..."
       if [[ "$DRY_RUN" == true ]]; then

@@ -62,8 +62,10 @@ fi
 
 echo "2. Installing Oliver renderer..."
 # Oliver has no stable release yet, so Rotkeeper pins an exact source commit:
-# the binary built from $OLIVER_PIN is the renderer contract for 0.6.x.
+# the binary built from $OLIVER_PIN is the renderer contract for 0.7.x.
 # Move the pin deliberately (see oliver-contract.md) — never on a whim.
+# 2026-08-21: bumped to 06dd640 — wrap fix #115 via 06dd6403c505b4863a54c548c978e494b55eb759 (PR #116, parseArgs missing wrap)
+# 2026-08-21: bumped to 9ad86a3 — Phase 6 S1+S2+S3+S4+S5 (oliver meta #107, wrap #108, render links #109, plan+manifest #110) via 9ad86a3763b8bd2f227fd5da94be9fc8ea5fa5fc
 # 2026-08-15: bumped to 6edb520c — upstream now publishes prebuilt binaries
 # via a rolling `builds` release (oliver-<os>-<arch> + sha256sums.txt), so
 # the install path is download-first with checksum + `--version` verification,
@@ -73,7 +75,7 @@ echo "2. Installing Oliver renderer..."
 # (error.RawHtmlNotXmlWellFormed), plus audit fixes #55-#58 (NUL -> U+FFFD
 # under the XHTML profile, CLI subcommand grammar with --to render-only);
 # the 2026-08-13 pin (e314dbbe) added the Cooklang frontend (CK1) plus CK2-CK5.
-OLIVER_PIN="6edb520cabb31220995e676a95bf59cfb0e1ce4b"
+OLIVER_PIN="06dd6403c505b4863a54c548c978e494b55eb759"
 
 install_oliver_binary() {
   # Prebuilt-binary fast path: upstream publishes a rolling `builds` release.

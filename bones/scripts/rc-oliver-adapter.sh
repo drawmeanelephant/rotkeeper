@@ -4,14 +4,13 @@ IFS=$'\n\t'
 # ============================================================
 #  Project : Rotkeeper
 #  Script  : bones/scripts/rc-oliver-adapter.sh
-#  Purpose : Pure Bash + GAWK + YQ batch adapter for Oliver renderer.
-#            Zero Python requirement. Evaluates Rotkeeper HTML templates,
-#            enforces path boundaries, applies sidecar metadata precedence,
-#            evaluates template conditionals, and rewrites internal
-#            .md/.textile links to .html.
+#  Purpose : Pure Bash batch adapter for Oliver renderer.
+#            Zero Python requirement. Enforces path boundaries and
+#            orchestrates Oliver `meta`/`render`/`wrap` for frontmatter,
+#            link rewriting, and template interpolation.
 #  Version : 0.7.0
 #  Updated : 2026-08-21
-#  Phase 6 complete: frontmatter `oliver meta`, template `oliver wrap`, link rewriting `oliver render`, output planning `oliver plan`, manifest `oliver manifest` — all with yq/gawk/gfind fallback on pin 6edb520c.
+#  Phase 6 complete: frontmatter `oliver meta`, template `oliver wrap`, link rewriting `oliver render`, output planning `oliver plan`, manifest `oliver manifest` — direct on pin 9ad86a3, no GAWK/YQ fallback.
 # ============================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -74,21 +73,7 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
     exit 1
   fi
 
-# Probe once per batch whether Oliver natively rewrites internal links (S3)
-# Used to decide GAWK fallback; cached in OLIVER_REWRITES (unknown→true/false)
-if [[ "${OLIVER_REWRITES:-unknown}" == unknown ]]; then
-  _probe_out=$(mktemp)
-  if printf '[x](foo.md)\n' | "$oliver_bin" render --from markdown > "$_probe_out" 2>/dev/null && grep -q 'foo.html' "$_probe_out" 2>/dev/null; then
-    OLIVER_REWRITES=true
-    log "INFO" "Oliver natively rewrites links (.md/.textile/.cook → .html) — GAWK link pass will be skipped"
-  else
-    OLIVER_REWRITES=false
-    log "INFO" "Oliver does not natively rewrite links — using GAWK link pass"
-  fi
-  rm -f "$_probe_out"
-fi
-
-  # 1. Extract metadata — Phase 6 S1: Oliver meta with yq fallback
+  # 1. Extract metadata — Phase 6 S1: Oliver meta (no fallback, pin 9ad86a3)
   #    Input format is derived from extension (overrides config) so --from matches render.
   meta_input_format="${INPUT_FORMAT:-markdown}"
   if [[ "$src_path" == *.textile ]]; then
@@ -97,17 +82,15 @@ fi
     meta_input_format="cooklang"
   fi
   meta_json="$TMP_DIR/doc-meta-$$.json"
-  oliver_meta_ok=false
-  if "$oliver_bin" meta --help >/dev/null 2>&1; then
-    if "$oliver_bin" meta --from "$meta_input_format" --format json < "$src_path" > "$meta_json" 2>/dev/null; then
-      if yq eval '.' "$meta_json" >/dev/null 2>&1; then
-        oliver_meta_ok=true
-        log "INFO" "Oliver meta extraction succeeded for '$src_path' (from=$meta_input_format)"
-      fi
-    fi
+  if ! "$oliver_bin" meta --from "$meta_input_format" --format json < "$src_path" > "$meta_json" 2>/dev/null; then
+    log "ERROR" "Oliver meta failed for '$src_path' (from=$meta_input_format)"
+    echo "ERROR: Oliver meta failed for '$src_path'" >&2
+    exit 1
   fi
-  if [[ "$oliver_meta_ok" == false ]]; then
-    yq --front-matter extract -o json '{"title": .title, "description": .description, "author": .author, "date": .date, "template": .template, "palette": .palette, "render_profile": .render_profile}' "$src_path" > "$meta_json" 2>/dev/null || echo "{}" > "$meta_json"
+  if ! yq eval '.' "$meta_json" >/dev/null 2>&1; then
+    log "ERROR" "Oliver meta returned invalid JSON for '$src_path'"
+    echo "ERROR: Oliver meta returned invalid JSON for '$src_path'" >&2
+    exit 1
   fi
 
   doc_title=$(yq -r '.title // ""' "$meta_json" 2>/dev/null || echo "")
@@ -146,17 +129,15 @@ fi
     fi
 
     soul_json="$TMP_DIR/soul-meta-$$.json"
-    soul_meta_ok=false
-    if "$oliver_bin" meta --help >/dev/null 2>&1; then
-      if "$oliver_bin" meta --from "$meta_input_format" --format json < "$soul_path" > "$soul_json" 2>/dev/null; then
-        if yq eval '.' "$soul_json" >/dev/null 2>&1; then
-          soul_meta_ok=true
-          log "INFO" "Oliver meta extraction succeeded for sidecar '$soul_path'"
-        fi
-      fi
+    if ! "$oliver_bin" meta --from "$meta_input_format" --format json < "$soul_path" > "$soul_json" 2>/dev/null; then
+      log "ERROR" "Oliver meta failed for sidecar '$soul_path'"
+      echo "ERROR: Oliver meta failed for sidecar '$soul_path'" >&2
+      exit 1
     fi
-    if [[ "$soul_meta_ok" == false ]]; then
-      yq --front-matter extract -o json '{"title": .title, "description": .description, "author": .author, "date": .date, "template": .template, "palette": .palette}' "$soul_path" > "$soul_json" 2>/dev/null || echo "{}" > "$soul_json"
+    if ! yq eval '.' "$soul_json" >/dev/null 2>&1; then
+      log "ERROR" "Oliver meta returned invalid JSON for sidecar '$soul_path'"
+      echo "ERROR: Oliver meta returned invalid JSON for sidecar '$soul_path'" >&2
+      exit 1
     fi
 
     s_title=$(yq -r '.title // ""' "$soul_json" 2>/dev/null || echo "")
@@ -234,24 +215,13 @@ fi
       ;;
   esac
 
-  oliver_cmd=("$oliver_bin" render --from "$input_format")
+  oliver_cmd=("$oliver_bin" render --from "$input_format" --frontmatter yaml)
   if [[ "$profile" == "xhtml" ]]; then
     oliver_cmd+=(--to xhtml)
   fi
 
-  if ! awk '
-      BEGIN { skip = 0 }
-      NR == 1 && $0 == "---" { skip = 1; next }
-      skip == 1 && $0 == "---" { skip = 0; next }
-      skip == 0 { print }
-    ' "$src_path" | "${oliver_cmd[@]}" > "$body_tmp" 2> "$oliver_err"; then
-    # ERR trap is suppressed inside `if !` (bash manual), so we can safely
-    # read PIPESTATUS for the pipeline's exit codes.
-    oliver_status=${PIPESTATUS[1]:-1}
-    if [[ $oliver_status -eq 0 ]]; then
-      oliver_status=${PIPESTATUS[0]:-1}
-      [[ $oliver_status -eq 0 ]] && oliver_status=1
-    fi
+  if ! "${oliver_cmd[@]}" < "$src_path" > "$body_tmp" 2> "$oliver_err"; then
+    oliver_status=$?
     first_err_line="$(head -n1 "$oliver_err" 2>/dev/null || echo "no details")"
     log "ERROR" "Oliver rendering failed for page '$src_path' using template '$template_path' (exit $oliver_status): $first_err_line"
     log "MARKER" "✗ Oliver failed for '$(basename "$src_path")' (exit $oliver_status): $first_err_line"
@@ -285,201 +255,31 @@ fi
   fi
   rm -f "$oliver_err"
 
-  # 5. Link Rewriting Pass — Phase 6 S3: Oliver-owned with GAWK fallback
-  # NOTE: inner match() calls must not clobber the outer RSTART/RLENGTH used to
-  # advance `line`. Save outer_rstart and outer_rlen before any inner match() call.
-  # Probe result OLIVER_REWRITES decides: true → Oliver already rewrote (AST), skip GAWK.
-  if [[ "${OLIVER_REWRITES:-false}" == true ]]; then
-    cp "$body_tmp" "$body_rewritten"
-    log "INFO" "Skipped GAWK link rewriting for '$src_path' (Oliver native)"
-  else
-    gawk '
-  {
-    line = $0
-    out_line = ""
-
-    while (match(line, /(href|src)=("|\x27)([^"\x27]+)("|\x27)/, arr)) {
-      outer_rstart = RSTART
-      outer_rlen   = RLENGTH
-      prefix = substr(line, 1, outer_rstart - 1)
-      attr   = arr[1]
-      quote  = arr[2]
-      target = arr[3]
-
-      if (target ~ /^(%3C|<|&lt;).*(%3E|>|&gt;)$/) {
-        if (substr(target, 1, 3) == "%3C") {
-          target = substr(target, 4)
-        } else if (substr(target, 1, 4) == "&lt;") {
-          target = substr(target, 5)
-        } else if (substr(target, 1, 1) == "<") {
-          target = substr(target, 2)
-        }
-
-        t_len = length(target)
-        if (t_len >= 3 && substr(target, t_len - 2) == "%3E") {
-          target = substr(target, 1, t_len - 3)
-        } else if (t_len >= 4 && substr(target, t_len - 3) == "&gt;") {
-          target = substr(target, 1, t_len - 4)
-        } else if (t_len >= 1 && substr(target, t_len) == ">") {
-          target = substr(target, 1, t_len - 1)
-        }
-      }
-
-      if (target ~ /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\// || target ~ /^mailto:/) {
-        new_target = target
-      } else if (match(target, /\.md(\?|#|$)/)) {
-        t_base = substr(target, 1, RSTART - 1)
-        t_tail = substr(target, RSTART + 3)
-        new_target = t_base ".html" t_tail
-      } else if (match(target, /\.textile(\?|#|$)/)) {
-        t_base = substr(target, 1, RSTART - 1)
-        t_tail = substr(target, RSTART + 8)
-        new_target = t_base ".html" t_tail
-      } else if (match(target, /\.cook(\?|#|$)/)) {
-        t_base = substr(target, 1, RSTART - 1)
-        t_tail = substr(target, RSTART + 5)
-        new_target = t_base ".html" t_tail
-      } else {
-        new_target = target
-      }
-
-      out_line = out_line prefix attr "=" quote new_target quote
-      line = substr(line, outer_rstart + outer_rlen)
-    }
-
-    out_line = out_line line
-    print out_line
-  }' "$body_tmp" > "$body_rewritten"
-  fi
+  # 5. Link Rewriting — Phase 6 S3: Oliver render AST rewrites (no GAWK, pin 9ad86a3)
+  cp "$body_tmp" "$body_rewritten"
 
 
-  # 6. Template Interpolation Pass — Phase 6 S2: Oliver wrap with GAWK fallback
+  # 6. Template Interpolation Pass — Phase 6 S2: Oliver wrap (direct, pin 9ad86a3)
   #    Seven tokens, html_escape for 5 fields, $assets_root$/$body$ literal,
-  #    $if$/$endif$ gating. Bash keeps TEMPLATE_DIR boundary; Oliver handles interpolation when available.
+  #    $if$/$endif$ gating. Bash keeps TEMPLATE_DIR boundary; Oliver handles interpolation.
   if [[ "$dry_run" == "true" ]]; then
     if [[ "$verbose" == "true" ]]; then
       log "DRY-RUN" "Would write rendered HTML for '$src_path' -> '$dst_path'"
     fi
   else
     mkdir -p "$(dirname "$dst_path")"
-    # Build meta JSON for Oliver wrap (jq handles escaping). Fallback to manual if jq missing.
     wrap_meta="$TMP_DIR/wrap-meta-$$.json"
-    if command -v jq >/dev/null 2>&1; then
-      jq -n --arg title "$title" --arg desc "$desc" --arg author "$author" --arg date "$date" --arg palette "$palette" \
-        '{title:$title, description:$desc, author:$author, date:$date, palette:$palette}' > "$wrap_meta" 2>/dev/null || echo "{\"title\":\"\",\"description\":\"\",\"author\":\"\",\"date\":\"\",\"palette\":\"\"}" > "$wrap_meta"
-    else
-      # Minimal fallback: use yq to build JSON (yq can emit json from env)
-      printf '{"title":%s,"description":%s,"author":%s,"date":%s,"palette":%s}' \
-        "$(printf '%s' "$title" | jq -Rs . 2>/dev/null || printf '"%s"' "$title")" \
-        "$(printf '%s' "$desc" | jq -Rs . 2>/dev/null || printf '"%s"' "$desc")" \
-        "$(printf '%s' "$author" | jq -Rs . 2>/dev/null || printf '"%s"' "$author")" \
-        "$(printf '%s' "$date" | jq -Rs . 2>/dev/null || printf '"%s"' "$date")" \
-        "$(printf '%s' "$palette" | jq -Rs . 2>/dev/null || printf '"%s"' "$palette")" > "$wrap_meta" 2>/dev/null || echo '{"title":"","description":"","author":"","date":"","palette":""}' > "$wrap_meta"
+    jq -n --arg title "$title" --arg desc "$desc" --arg author "$author" --arg date "$date" --arg palette "$palette" \
+      '{title:$title, description:$desc, author:$author, date:$date, palette:$palette}' > "$wrap_meta" 2>/dev/null || echo "{\"title\":\"\",\"description\":\"\",\"author\":\"\",\"date\":\"\",\"palette\":\"\"}" > "$wrap_meta"
+
+    if ! "$oliver_bin" wrap --template "$template_path" --meta-json "$wrap_meta" --assets-root "$assets_root" --body "$body_rewritten" > "$dst_path" 2> "$TMP_DIR/oliver-wrap-$$.log"; then
+      log "ERROR" "Oliver wrap failed for '$src_path'"
+      cat "$TMP_DIR/oliver-wrap-$$.log" >&2
+      rm -f "$wrap_meta" "$TMP_DIR/oliver-wrap-$$.log" "$dst_path"
+      exit 1
     fi
-
-    oliver_wrap_ok=false
-    if "$oliver_bin" wrap --help >/dev/null 2>&1; then
-      if "$oliver_bin" wrap --template "$template_path" --meta-json "$wrap_meta" --assets-root "$assets_root" --body "$body_rewritten" > "$dst_path" 2>/dev/null; then
-        oliver_wrap_ok=true
-        log "INFO" "Oliver wrap succeeded for '$src_path'"
-      else
-        log "INFO" "Oliver wrap failed for '$src_path' — falling back to GAWK"
-        rm -f "$dst_path"
-      fi
-    fi
-    rm -f "$wrap_meta"
-
-    if [[ "$oliver_wrap_ok" == false ]]; then
-      gawk \
-        -v title="$title" \
-        -v desc="$desc" \
-        -v author="$author" \
-        -v date="$date" \
-        -v palette="$palette" \
-        -v assets_root="$assets_root" \
-        -v body_file="$body_rewritten" \
-        -v template_file="$template_path" \
-      '
-      function html_escape(str,   s) {
-        s = str
-        gsub(/&/, "\\&amp;", s)
-        gsub(/</, "\\&lt;", s)
-        gsub(/>/, "\\&gt;", s)
-        gsub(/"/, "\\&quot;", s)
-        gsub(/\x27/, "\\&#39;", s)
-        return s
-      }
-      function literal_replace(str, search, replace,   pos, len, result, tail) {
-        len = length(search)
-        result = ""
-        tail = str
-        while ((pos = index(tail, search)) > 0) {
-          result = result substr(tail, 1, pos - 1) replace
-          tail = substr(tail, pos + len)
-        }
-        return result tail
-      }
-      function evaluate_if(tmpl, var_name, var_val,   start_tag, end_tag, sp, ep, before, after, inner) {
-        start_tag = "$if(" var_name ")$"
-        end_tag = "$endif$"
-        
-        while ((sp = index(tmpl, start_tag)) > 0) {
-          ep = index(substr(tmpl, sp), end_tag)
-          if (ep == 0) break
-          ep = sp + ep - 1 + length(end_tag) - 1
-          
-          before = substr(tmpl, 1, sp - 1)
-          after = substr(tmpl, ep + 1)
-          
-          if (var_val == "" || var_val == "null") {
-            tmpl = before after
-          } else {
-            inner = substr(tmpl, sp + length(start_tag), ep - sp - length(start_tag) - length(end_tag) + 1)
-            tmpl = before inner after
-          }
-        }
-        return tmpl
-      }
-      BEGIN {
-        title_esc = html_escape(title)
-        desc_esc  = html_escape(desc)
-        author_esc = html_escape(author)
-        date_esc  = html_escape(date)
-        palette_esc = html_escape(palette)
-
-        body = ""
-        while ((getline line < body_file) > 0) {
-          body = body line "\n"
-        }
-        close(body_file)
-        if (length(body) > 0 && substr(body, length(body)) == "\n") {
-          body = substr(body, 1, length(body)-1)
-        }
-
-        tmpl = ""
-        while ((getline line < template_file) > 0) {
-          tmpl = tmpl line "\n"
-        }
-        close(template_file)
-
-        tmpl = evaluate_if(tmpl, "title", title)
-        tmpl = evaluate_if(tmpl, "description", desc)
-        tmpl = evaluate_if(tmpl, "author", author)
-        tmpl = evaluate_if(tmpl, "date", date)
-        tmpl = evaluate_if(tmpl, "palette", palette)
-
-        tmpl = literal_replace(tmpl, "$title$", title_esc)
-        tmpl = literal_replace(tmpl, "$description$", desc_esc)
-        tmpl = literal_replace(tmpl, "$author$", author_esc)
-        tmpl = literal_replace(tmpl, "$date$", date_esc)
-        tmpl = literal_replace(tmpl, "$palette$", palette_esc)
-        tmpl = literal_replace(tmpl, "$assets_root$", assets_root)
-        tmpl = literal_replace(tmpl, "$body$", body)
-
-        printf "%s", tmpl
-        exit
-      }' > "$dst_path"
-    fi
+    rm -f "$wrap_meta" "$TMP_DIR/oliver-wrap-$$.log"
+    log "INFO" "Oliver wrap succeeded for '$src_path'"
     if [[ "$verbose" == "true" ]]; then
       # shellcheck disable=SC2295
       rel_src="${src_path#$content_dir/}"
