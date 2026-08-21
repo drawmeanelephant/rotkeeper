@@ -241,6 +241,25 @@ CONF_EOF
     cat << 'FAKE_EOF' > "$fake_bin"
 #!/usr/bin/env bash
 set -euo pipefail
+# Mimic Oliver CLI shape for S1: supports `oliver meta --from <fmt> --format json` and `oliver render ...`
+if [[ "${1:-}" == "meta" ]]; then
+  if [[ "${2:-}" == "--help" ]]; then
+    echo "Usage: oliver meta --from <markdown|textile|cooklang> --format json"
+    exit 0
+  fi
+  if [[ "${2:-}" != "--from" || ( "${3:-}" != "markdown" && "${3:-}" != "textile" && "${3:-}" != "cooklang" ) ]]; then
+    exit 1
+  fi
+  if [[ "${4:-}" != "--format" || "${5:-}" != "json" ]]; then
+    exit 1
+  fi
+  tmp_in=$(mktemp)
+  cat > "$tmp_in"
+  # yq frontmatter extraction is the contract for scalar fields; lists/maps are ignored by the selected keys.
+  yq --front-matter extract -o json '{"title": .title, "description": .description, "author": .author, "date": .date, "template": .template, "palette": .palette, "render_profile": .render_profile}' "$tmp_in" 2>/dev/null || echo "{}"
+  rm -f "$tmp_in"
+  exit 0
+fi
 # Mimic Oliver's CLI shape: oliver render --from <markdown|textile|cooklang> [--to <html|xhtml>] < file
 if [[ "${1:-}" != "render" || "${2:-}" != "--from" || ( "${3:-}" != "markdown" && "${3:-}" != "textile" && "${3:-}" != "cooklang" ) ]]; then
   exit 1
@@ -451,6 +470,95 @@ SOUL_V051_EOF
       echo "❌ Assertion Failed: Oliver stderr leaked into rendered HTML body."
       exit 123
     fi
+
+    # --- S1: Frontmatter extraction via Oliver meta (with yq fallback) ---
+    echo "  [+] Executing S1 frontmatter extraction assertions (Oliver meta + yq fallback)..."
+    # 1. Multiline description + scalar-only: lists/maps ignored, null handling
+    cat << 'FRONT_S1_EOF' > "$b_content/frontmatter-s1.md"
+---
+title: "S1 Frontmatter"
+description: |-
+  Multiline with "quotes" & amps
+  second line
+author: "Author & <Test>"
+date: "2026-08-20"
+palette: "phosphor"
+tags: [ignored, list]
+extra_map:
+  key: value
+render_profile: html
+---
+Body for S1.
+FRONT_S1_EOF
+    RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null
+    rendered_s1="$out_dir_rel/frontmatter-s1.html"
+    if [[ ! -f "$rendered_s1" ]]; then
+      echo "❌ Assertion Failed: frontmatter-s1.html missing (S1)."
+      exit 191
+    fi
+    if ! grep -q 'S1 Frontmatter' "$rendered_s1"; then
+      echo "❌ Assertion Failed: S1 title not rendered."
+      exit 192
+    fi
+    if ! grep -q 'Multiline with &quot;quotes&quot; &amp; amps' "$rendered_s1"; then
+      echo "❌ Assertion Failed: S1 multiline description escaping failed (via meta)."
+      exit 193
+    fi
+    if grep -q 'ignored' "$rendered_s1" || grep -q 'extra_map' "$rendered_s1"; then
+      echo "❌ Assertion Failed: S1 list/map field leaked into output (must be ignored)."
+      exit 194
+    fi
+    # 2. Line-1 rule: frontmatter must start on line 1, no BOM/blank line — else treated as body
+    cat << 'FRONT_S1B_EOF' > "$b_content/frontmatter-s1b.md"
+
+---
+title: "Should Not Parse"
+---
+Body with leading blank line — title must be empty.
+FRONT_S1B_EOF
+    RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null
+    rendered_s1b="$out_dir_rel/frontmatter-s1b.html"
+    if grep -q 'Should Not Parse' "$rendered_s1b"; then
+      echo "❌ Assertion Failed: S1 line-1 rule violated — frontmatter parsed despite leading blank line."
+      exit 195
+    fi
+    if ! grep -q 'Body with leading blank line' "$rendered_s1b"; then
+      echo "❌ Assertion Failed: S1 body missing after failed frontmatter parse."
+      exit 196
+    fi
+    # 3. Oliver meta CLI probe: fake binary must handle `meta --from <fmt> --format json`
+    tmp_meta_in="$pass_dir/bones/tmp/meta-probe.md"
+    cat << 'META_PROBE_EOF' > "$tmp_meta_in"
+---
+title: "Probe"
+---
+Body
+META_PROBE_EOF
+    if ! "$fake_bin" meta --from markdown --format json < "$tmp_meta_in" | grep -q '"title": "Probe"'; then
+      echo "❌ Assertion Failed: fake Oliver meta did not return JSON with title."
+      exit 197
+    fi
+    if ! "$fake_bin" meta --help | grep -q 'meta'; then
+      echo "❌ Assertion Failed: fake Oliver meta --help not advertised."
+      exit 198
+    fi
+    # Real Oliver meta probe (when present, but not required for green on current pin)
+    _real_probe="${RK_OLIVER_BIN:-}"
+    if [[ -z "$_real_probe" || ! -x "$_real_probe" ]]; then
+      _real_probe="$(command -v oliver 2>/dev/null || true)"
+    fi
+    if [[ -n "$_real_probe" && -x "$_real_probe" ]]; then
+      if "$_real_probe" meta --help >/dev/null 2>&1; then
+        if ! "$_real_probe" meta --from markdown --format json < "$tmp_meta_in" | grep -q '"title"'; then
+          echo "❌ Assertion Failed: real Oliver meta returned no JSON."
+          exit 199
+        fi
+        echo "  [+] Pass: real Oliver meta extraction probe ($mode)."
+      else
+        echo "  [+] Skipping real Oliver meta probe — binary lacks meta (expected on pin 6edb520c, S1 will bump)."
+      fi
+    fi
+    echo "  [+] Pass: S1 frontmatter extraction assertions ($mode)."
 
     # --- Real Oliver renderer smoke pass (runs only when an executable binary
     # is discoverable; hermetic fixture binaries cover the rest) ---
