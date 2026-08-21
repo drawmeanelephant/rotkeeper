@@ -92,8 +92,14 @@ main() {
         ;;
       oliver)
         if ! rk_oliver_preflight; then
-          log "ERROR" "Render aborted: Oliver preflight failed."
-          echo "ERROR: Render aborted: Oliver preflight failed. Run 'bash rotkeeper.sh preflight' for the diagnosis." >&2
+          # rk_oliver_preflight already printed Tried: ... + Fix: ... to fd 3 (visible even in QUIET)
+          # Surface a concise, copy-pasteable hint also via MARKER for the render context
+          tried_rk="${RK_OLIVER_BIN:-unset}"
+          tried_path="$(command -v oliver 2>/dev/null || echo none)"
+          log "MARKER" "✗ Render aborted: Oliver preflight failed — Tried: RK_OLIVER_BIN=$tried_rk, PATH oliver=$tried_path"
+          log "ERROR" "Render aborted: Oliver preflight failed — Tried: RK_OLIVER_BIN=$tried_rk, PATH oliver=$tried_path — try: export RK_OLIVER_BIN=/usr/local/bin/oliver or ensure 'oliver' is on PATH"
+          echo "ERROR: Render aborted: Oliver preflight failed. Tried: RK_OLIVER_BIN=$tried_rk, PATH oliver=$tried_path — try: export RK_OLIVER_BIN=/usr/local/bin/oliver" >&2
+          echo "Run 'bash rotkeeper.sh preflight' for full diagnosis (see home/content/docs/oliver-contract.md)." >&2
           exit 1
         fi
         require_bins bash
@@ -306,7 +312,84 @@ main() {
       if [[ "$DRY_RUN" == true ]]; then
         log "DRY-RUN" "Would invoke bash $SCRIPT_DIR/rc-oliver-adapter.sh $batch_tsv"
       else
+        set +e
         bash "$SCRIPT_DIR/rc-oliver-adapter.sh" "$batch_tsv"
+        adapter_status=$?
+        set -e
+        if [[ $adapter_status -ne 0 ]]; then
+          log "MARKER" "✗ Render failed — Oliver adapter exited $adapter_status"
+          # Surface first error line for copy-paste (prefer ✗ MARKER from either log)
+          # Adapter's MARKER via >&3 lands in render's LOG_FILE, not adapter's; check both.
+          # shellcheck disable=SC2012
+          latest_adapter_log=$(ls -t "$LOG_DIR"/rc-oliver-adapter-*.log 2>/dev/null | head -n1 || true)
+          first_err=""
+          # Prefer render's own log (contains adapter's >&3 MARKER) then adapter's log
+          # Use ASCII pattern "Oliver failed" to avoid UTF-8 ✗ matching issues in C locale
+          if [[ -f "${LOG_FILE:-}" ]]; then
+            first_err=$(grep -a -m1 "Oliver failed" "$LOG_FILE" 2>/dev/null | head -n1 || true)
+          fi
+          if [[ -z "$first_err" && -n "$latest_adapter_log" && -f "$latest_adapter_log" ]]; then
+            first_err=$(grep -a -m1 "Oliver failed" "$latest_adapter_log" 2>/dev/null | head -n1 || true)
+          fi
+          if [[ -z "$first_err" && -f "${LOG_FILE:-}" ]]; then
+            first_err=$(grep -a -m1 -E "Oliver rendering failed|RawHtmlNotXmlWellFormed" "$LOG_FILE" 2>/dev/null | head -n1 || true)
+          fi
+          if [[ -z "$first_err" && -n "$latest_adapter_log" && -f "$latest_adapter_log" ]]; then
+            first_err=$(grep -a -m1 -E "Oliver rendering failed|RawHtmlNotXmlWellFormed" "$latest_adapter_log" 2>/dev/null | head -n1 || true)
+          fi
+          if [[ -z "$first_err" && -f "${LOG_FILE:-}" ]]; then
+            first_err=$(grep -a -m1 "ERROR" "$LOG_FILE" 2>/dev/null | head -n1 || true)
+          fi
+          if [[ -z "$first_err" && -n "$latest_adapter_log" && -f "$latest_adapter_log" ]]; then
+            first_err=$(grep -a -m1 "ERROR" "$latest_adapter_log" 2>/dev/null | head -n1 || true)
+          fi
+          if [[ -n "$first_err" ]]; then
+            # Strip timestamp prefix for cleaner MARKER
+            clean_err=$(echo "$first_err" | sed -E 's/^\[[^]]+\] \[[^]]+\] //; s/^ERROR: //; s/^.*\[MARKER\] //')
+            # Ensure we show the ✗ prefix if stripped
+            if [[ "$clean_err" != "✗"* && "$clean_err" == *"Oliver failed"* ]]; then
+              clean_err="✗ $clean_err"
+            elif [[ "$clean_err" == *"Oliver rendering failed"* ]]; then
+              clean_err="✗ $clean_err"
+            fi
+            log "MARKER" "  $clean_err"
+            # Also try to surface the raw oliver stderr first line if available (prefer render log)
+            oliver_hint=""
+            if [[ -f "${LOG_FILE:-}" ]]; then
+              oliver_hint=$(grep -m1 "oliver:" "$LOG_FILE" 2>/dev/null | head -n1 || true)
+            fi
+            if [[ -z "$oliver_hint" && -n "$latest_adapter_log" && -f "$latest_adapter_log" ]]; then
+              oliver_hint=$(grep -m1 "oliver:" "$latest_adapter_log" 2>/dev/null | head -n1 || true)
+            fi
+            if [[ -n "$oliver_hint" && "$oliver_hint" != "$first_err" ]]; then
+              clean_hint=$(echo "$oliver_hint" | sed -E 's/^\[[^]]+\] \[[^]]+\] //')
+              # Avoid duplicating the same oliver line already in clean_err
+              if [[ "$clean_hint" != "$clean_err" && "$clean_hint" != *"$clean_err"* ]]; then
+                log "MARKER" "  $clean_hint"
+              fi
+            fi
+            # Also surface hint for XHTML if present
+            hint_line=""
+            if [[ -f "${LOG_FILE:-}" ]]; then
+              hint_line=$(grep -m1 "hint: raw HTML" "$LOG_FILE" 2>/dev/null | head -n1 || true)
+            fi
+            if [[ -z "$hint_line" && -n "$latest_adapter_log" && -f "$latest_adapter_log" ]]; then
+              hint_line=$(grep -m1 "hint: raw HTML" "$latest_adapter_log" 2>/dev/null | head -n1 || true)
+            fi
+            if [[ -n "$hint_line" ]]; then
+              clean_hint2=$(echo "$hint_line" | sed -E 's/^\[[^]]+\] \[[^]]+\] //')
+              log "MARKER" "  $clean_hint2"
+            fi
+          fi
+          if [[ -n "$latest_adapter_log" && -f "$latest_adapter_log" ]]; then
+            log "ERROR" "Render failed: Oliver adapter error — see $latest_adapter_log"
+            echo "ERROR: Render failed — Oliver adapter error — see $latest_adapter_log" >&2
+          else
+            log "ERROR" "Render failed: Oliver adapter error (no log found)"
+            echo "ERROR: Render failed: Oliver adapter error" >&2
+          fi
+          exit 1
+        fi
       fi
 
       for mdfile in ${md_corpses[@]+"${md_corpses[@]}"}; do
@@ -324,18 +407,55 @@ main() {
         outfile="$outdir/${base}.html"
         pages_rendered=$((pages_rendered + 1))
         log_manifest "$outfile"
+        if [[ "$VERBOSE" == true ]]; then
+          rel_out="${outfile#"$OUTPUT_DIR"/}"
+          log "MARKER" "  reanimated $relpath → $rel_out"
+        fi
       done
 
       rm -f "$batch_tsv"
     fi
 
-    mark_output_generated
-
-    log "MARKER" "✓ Exorcism complete."
-
     end_ts=$(date +%s)
     duration=$((end_ts - start_ts))
-    log "INFO" "Rendered $pages_rendered pages in ${duration}s ($RENDERER)"
+
+    # Gather Oliver warning total from adapter batch (if any)
+    warning_total=0
+    warnings_file="$TMP_DIR/oliver-warnings-batch.log"
+    if [[ -f "$warnings_file" ]]; then
+      warning_total=$(awk '{ s+=$1 } END { print s+0 }' "$warnings_file" 2>/dev/null || echo 0)
+      rm -f "$warnings_file"
+    fi
+
+    # Surface first 2 Oliver warnings inline (adapter wrote them to shared list; its fd3 is not the user's tty)
+    warnings_list="$TMP_DIR/oliver-warnings-list.log"
+    if [[ -f "$warnings_list" ]]; then
+      head -n 2 "$warnings_list" | while IFS= read -r wline || [[ -n "$wline" ]]; do
+        log "MARKER" "⚠️  $wline"
+      done
+      rm -f "$warnings_list"
+    fi
+
+    mark_output_generated
+
+    if [[ "${DRY_RUN:-false}" == true ]]; then
+      log "MARKER" "DRY-RUN: would reanimate $pages_rendered tombs in ${duration}s"
+    else
+      if [[ "$warning_total" -gt 0 ]]; then
+        # shellcheck disable=SC2012
+        latest_adapter_log=$(ls -t "$LOG_DIR"/rc-oliver-adapter-*.log 2>/dev/null | head -n1 || true)
+        hint=""
+        if [[ -n "$latest_adapter_log" ]]; then
+          rel_hint="${latest_adapter_log#"$ROOT_DIR"/}"
+          hint=" — see $rel_hint"
+        fi
+        log "MARKER" "✓ Exorcism complete — $pages_rendered tombs in ${duration}s — $warning_total warnings$hint"
+      else
+        log "MARKER" "✓ Exorcism complete — $pages_rendered tombs in ${duration}s — output current"
+      fi
+    fi
+
+    log "INFO" "Rendered $pages_rendered pages in ${duration}s ($RENDERER) warnings=$warning_total"
 
     log "INFO" "rc-render.sh completed successfully."
 }
