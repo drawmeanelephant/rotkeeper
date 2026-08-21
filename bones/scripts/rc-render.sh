@@ -13,9 +13,8 @@ IFS=$'\n\t'
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-render.sh
 #  Purpose : Render markdown tombs into HTML using Oliver
-#  Version : 0.6.5-S5-draft
-#  Updated : 2026-08-20
-#  Phase 6 S5: manifest via `oliver manifest --manifest <file> --add <entry>` with Bash fallback.
+#  Version : 0.7.0
+#  Updated : 2026-08-21
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
