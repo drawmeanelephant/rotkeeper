@@ -18,7 +18,9 @@ Options:
   --root DIR       Rendered directory to scan; defaults to output/
   --report FILE    Report destination; defaults to bones/reports/link-report-*.md
   --dry-run        Scan without writing a report
-  --verbose        Show detailed logs
+  --verbose        Show detailed logs (line numbers + excerpts)
+  --json           Emit machine-readable JSON to stdout (failures with line+excerpt)
+  --fix-hint       Show suggested fixes for each failure (no auto-fix)
   --help, -h       Show this help message
 EOF
   exit 0
@@ -31,6 +33,8 @@ require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR OUTPUT
 
 SCAN_ROOT="$OUTPUT_DIR"
 REPORT_FILE=""
+JSON_MODE=false
+FIX_HINT=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -41,6 +45,14 @@ while [[ $# -gt 0 ]]; do
     --report)
       REPORT_FILE="$2"
       shift 2
+      ;;
+    --json)
+      JSON_MODE=true
+      shift
+      ;;
+    --fix-hint)
+      FIX_HINT=true
+      shift
       ;;
     --dry-run|--verbose|--help|-h)
       shift
@@ -94,53 +106,86 @@ root = Path(sys.argv[1]).resolve()
 class Page(HTMLParser):
     def __init__(self):
         super().__init__()
-        self.links = []
+        self.links = []  # (tag, raw, lineno, excerpt)
         self.ids = set()
+        self._lines = []
+
+    def feed_with_lines(self, text):
+        self._lines = text.splitlines()
+        super().feed(text)
 
     def handle_starttag(self, tag, attrs):
-        attrs = dict(attrs)
-        self.ids.update(x for x in (attrs.get("id"), attrs.get("name")) if x)
-        attribute = "href" if tag == "a" else "src" if tag in {"script", "img", "source", "video", "audio"} else None
-        if attribute and attrs.get(attribute):
-            self.links.append((tag, attrs[attribute]))
+        d = dict(attrs)
+        # collect ids
+        for k in ("id", "name"):
+            v = d.get(k)
+            if v:
+                self.ids.add(v)
+        attr = "href" if tag == "a" else "src" if tag in {"script", "img", "source", "video", "audio"} else None
+        raw = d.get(attr) if attr else None
+        if raw:
+            lineno, _ = self.getpos()
+            excerpt = ""
+            if 1 <= lineno <= len(self._lines):
+                excerpt = self._lines[lineno-1].strip()[:120]
+                # sanitize tabs
+                excerpt = excerpt.replace("\t", " ").replace("\r", "")
+            # sanitize raw for TSV (tabs -> space)
+            raw_s = raw.replace("\t", " ").replace("\n", " ").strip()
+            excerpt_s = excerpt.replace("\t", " ")
+            self.links.append((tag, raw_s, lineno, excerpt_s))
 
 pages = sorted(root.rglob("*.html"))
 checked = 0
-failures = []
+failures = []  # (page, raw, reason, lineno, excerpt)
 
 for page in pages:
     parser = Page()
-    parser.feed(page.read_text(errors="replace"))
-    for tag, raw in parser.links:
+    try:
+        text = page.read_text(errors="replace")
+    except Exception:
+        continue
+    parser.feed_with_lines(text)
+    for tag, raw, lineno, excerpt in parser.links:
         value = unquote(raw.strip())
         parsed = urlsplit(value)
         if not value or value.startswith(("mailto:", "tel:", "javascript:")) or parsed.scheme or parsed.netloc:
             continue
-        if parsed.path == "":
+        # count checked for every local link (even anchor-only)
+        is_anchor_only = (parsed.path == "")
+        if is_anchor_only:
             if parsed.fragment and parsed.fragment not in parser.ids:
-                failures.append((page.relative_to(root), raw, "missing anchor"))
+                failures.append((page.relative_to(root), raw, "missing anchor", lineno, excerpt))
+            # anchor-only still counts as checked if it has a fragment
+            if parsed.fragment:
+                checked += 1
             continue
-
         candidate = (root / parsed.path.lstrip("/")) if parsed.path.startswith("/") else (page.parent / parsed.path)
-        candidate = candidate.resolve()
+        try:
+            candidate = candidate.resolve()
+        except Exception:
+            failures.append((page.relative_to(root), raw, "missing file", lineno, excerpt))
+            checked += 1
+            continue
         if candidate != root and root not in candidate.parents:
-            failures.append((page.relative_to(root), raw, "outside rendered root"))
+            failures.append((page.relative_to(root), raw, "outside rendered root", lineno, excerpt))
         else:
             if candidate.is_dir():
                 candidate /= "index.html"
             if not candidate.exists():
-                failures.append((page.relative_to(root), raw, "missing file"))
+                failures.append((page.relative_to(root), raw, "missing file", lineno, excerpt))
         checked += 1
 
 print(f"SUMMARY\t{len(pages)}\t{checked}\t{len(failures)}")
-for page, raw, reason in failures:
-    print(f"FAIL\t{page}\t{raw}\t{reason}")
+for page, raw, reason, lineno, excerpt in failures:
+    # Use unit separator for excerpt to avoid TSV issues; keep tabs as separators, sanitize already
+    print(f"FAIL\t{page}\t{raw}\t{reason}\t{lineno}\t{excerpt}")
 PY
 
   pages=0
   checked=0
   failures=0
-  while IFS=$'\t' read -r kind field_a field_b field_c; do
+  while IFS=$'\t' read -r kind field_a field_b field_c rest; do
     case "$kind" in
       SUMMARY)
         pages="$field_a"
@@ -149,6 +194,81 @@ PY
         ;;
     esac
   done < "$RESULT_FILE"
+
+  # JSON mode: emit machine-readable JSON and exit (still respects DRY_RUN for report)
+  if [[ "$JSON_MODE" == true ]]; then
+    json_tmp=$(mktemp "$TMP_DIR/links-json.XXXXXX")
+    # Build JSON array from RESULT_FILE FAIL lines
+    {
+      echo "{"
+      echo "  \"scan_root\": \"$(printf '%s' "$SCAN_ROOT" | sed 's/"/\\"/g')\","
+      echo "  \"pages\": $pages,"
+      echo "  \"checked\": $checked,"
+      echo "  \"failures\": $failures,"
+      echo "  \"failures_detail\": ["
+      first=true
+      while IFS=$'\t' read -r kind f_page f_raw f_reason f_line f_excerpt; do
+        [[ "$kind" == "FAIL" ]] || continue
+        # JSON escape via jq -R if available, else manual
+        if command -v jq >/dev/null 2>&1; then
+          j_page=$(printf '%s' "$f_page" | jq -R -s -c .)
+          j_raw=$(printf '%s' "$f_raw" | jq -R -s -c .)
+          j_reason=$(printf '%s' "$f_reason" | jq -R -s -c .)
+          j_excerpt=$(printf '%s' "$f_excerpt" | jq -R -s -c .)
+        else
+          # fallback manual escape (replace " and \)
+          j_page="\"$(printf '%s' "$f_page" | sed 's/\\/\\\\/g; s/"/\\"/g')\""
+          j_raw="\"$(printf '%s' "$f_raw" | sed 's/\\/\\\\/g; s/"/\\"/g')\""
+          j_reason="\"$(printf '%s' "$f_reason" | sed 's/\\/\\\\/g; s/"/\\"/g')\""
+          j_excerpt="\"$(printf '%s' "$f_excerpt" | sed 's/\\/\\\\/g; s/"/\\"/g')\""
+        fi
+        # line is numeric, default 0 if empty
+        f_line=${f_line:-0}
+        [[ "$f_line" =~ ^[0-9]+$ ]] || f_line=0
+        if [[ "$first" == true ]]; then
+          first=false
+        else
+          echo ","
+        fi
+        printf '    {"source": %s, "target": %s, "type": %s, "line": %s, "excerpt": %s}' "$j_page" "$j_raw" "$j_reason" "$f_line" "$j_excerpt"
+      done < "$RESULT_FILE"
+      echo ""
+      echo "  ]"
+      echo "}"
+    } > "$json_tmp"
+    # Validate JSON
+    if command -v jq >/dev/null 2>&1; then
+      if ! jq empty "$json_tmp" >/dev/null 2>&1; then
+        log "ERROR" "Generated JSON is invalid"
+        cat "$json_tmp" >&2
+        rm -f "$json_tmp"
+        exit 1
+      fi
+    fi
+    # Emit to fd 3 (visible even in QUIET) and to LOG_FILE
+    if [[ -n "${LOG_FILE:-}" ]]; then
+      cat "$json_tmp" >> "$LOG_FILE"
+    fi
+    cat "$json_tmp" >&3 2>/dev/null || cat "$json_tmp"
+    rm -f "$json_tmp"
+    # In JSON mode, still write markdown report unless DRY_RUN, for consistency
+    if [[ "$DRY_RUN" == false ]]; then
+      mkdir -p "$(dirname -- "$REPORT_FILE")"
+      {
+        echo "# Rendered Link Audit (JSON mode)"
+        echo
+        echo "- Scan root: \`$SCAN_ROOT\`"
+        echo "- Pages: $pages"
+        echo "- Local links/assets checked: $checked"
+        echo "- Failures: $failures"
+      } > "$REPORT_FILE"
+      log "INFO" "Link audit report written to $REPORT_FILE"
+    else
+      log "DRY-RUN" "Would write link audit report to $REPORT_FILE"
+    fi
+    [[ "$failures" -eq 0 ]]
+    exit $?
+  fi
 
   if [[ "$DRY_RUN" == false ]]; then
     mkdir -p "$(dirname -- "$REPORT_FILE")"
@@ -165,9 +285,22 @@ PY
       else
         echo "## Failures"
         echo
-        while IFS=$'\t' read -r kind field_a field_b field_c; do
+        # Grouped view is for MARKER output; report keeps flat list with line+excerpt
+        while IFS=$'\t' read -r kind f_page f_raw f_reason f_line f_excerpt; do
           [[ "$kind" == "FAIL" ]] || continue
-          echo "- **$field_c**: \`$field_a\` → \`$field_b\`"
+          echo "- **$f_reason** (line $f_line): \`$f_page\` → \`$f_raw\`"
+          if [[ -n "$f_excerpt" ]]; then
+            echo "  - excerpt: \`$(printf '%s' "$f_excerpt" | cut -c1-80)\`"
+          fi
+          if [[ "$FIX_HINT" == true ]]; then
+            if [[ "$f_reason" == "missing anchor" ]]; then
+              echo "  - hint: anchor not found — check that id exists in \`$f_page\` (case-sensitive) and that the link uses correct \`\`#fragment\`\`"
+            elif [[ "$f_reason" == "missing file" ]]; then
+              echo "  - hint: file not found under \`$SCAN_ROOT\` — verify source exists in \`home/content\` and that \`.md\` was rewritten to \`.html\`"
+            elif [[ "$f_reason" == "outside rendered root" ]]; then
+              echo "  - hint: link escapes rendered root — use relative links within \`$SCAN_ROOT\`"
+            fi
+          fi
         done < "$RESULT_FILE"
       fi
     } > "$REPORT_FILE"
@@ -176,11 +309,74 @@ PY
     log "DRY-RUN" "Would write link audit report to $REPORT_FILE"
   fi
 
-  log "MARKER" "Rendered link audit: pages=$pages links_checked=$checked failures=$failures"
-  while IFS=$'\t' read -r kind field_a field_b field_c; do
-    [[ "$kind" == "FAIL" ]] || continue
-    log "MARKER" "Link failure [$field_c]: $field_a -> $field_b"
-  done < "$RESULT_FILE"
+  # Human summary: grouped by source, with line+excerpt when verbose
+  ok_count=$((checked - failures))
+  [[ $ok_count -lt 0 ]] && ok_count=0
+  # Count unique pages with failures
+  fail_pages=$(awk -F'\t' '$1=="FAIL" {print $2}' "$RESULT_FILE" 2>/dev/null | sort -u | wc -l | tr -d ' ' || echo 0)
+  if [[ "$failures" -eq 0 ]]; then
+    log "MARKER" "✓ $ok_count/$checked links OK — 0 broken — output clean"
+  else
+    # Color is handled by rc-utils log MARKER (✗ red, ⚠️ yellow)
+    log "MARKER" "✗ $ok_count/$checked links OK — $failures broken in $fail_pages pages — run with --verbose for excerpts, --json for machine"
+  fi
+
+  # Grouped MARKER output
+  if [[ "$failures" -gt 0 ]]; then
+    # Use associative array to group (bash 4+)
+    declare -A page_counts=()
+    declare -A page_lines=()
+    while IFS=$'\t' read -r kind f_page f_raw f_reason f_line f_excerpt; do
+      [[ "$kind" == "FAIL" ]] || continue
+      # Count per page
+      page_counts["$f_page"]=$((${page_counts["$f_page"]:-0} + 1))
+      # Build line for verbose or default
+      if [[ "$VERBOSE" == true ]]; then
+        line_out="  $f_page:$f_line [$f_reason] $f_raw"
+        if [[ -n "$f_excerpt" ]]; then
+          line_out+=" — excerpt: $(printf '%s' "$f_excerpt" | cut -c1-80)"
+        fi
+        if [[ "$FIX_HINT" == true ]]; then
+          if [[ "$f_reason" == "missing anchor" ]]; then
+            line_out+=" — hint: anchor not found (check id in $f_page)"
+          elif [[ "$f_reason" == "missing file" ]]; then
+            line_out+=" — hint: file not found under $SCAN_ROOT"
+          fi
+        fi
+        log "MARKER" "$line_out"
+      else
+        # Non-verbose: accumulate for grouped summary per page
+        # Store first raw per page for hint
+        if [[ -z "${page_lines["$f_page"]:-}" ]]; then
+          page_lines["$f_page"]="$f_raw ($f_reason line $f_line)"
+        fi
+      fi
+    done < "$RESULT_FILE"
+    if [[ "$VERBOSE" == false ]]; then
+      for p in "${!page_counts[@]}"; do
+        cnt=${page_counts["$p"]}
+        example=${page_lines["$p"]}
+        if [[ "$FIX_HINT" == true ]]; then
+          # Add hint suffix for grouped view
+          hint_suffix=""
+          # Find first reason for this page to tailor hint
+          first_reason=$(awk -F'\t' -v pg="$p" '$1=="FAIL" && $2==pg {print $4; exit}' "$RESULT_FILE" 2>/dev/null || true)
+          if [[ "$first_reason" == "missing anchor" ]]; then
+            hint_suffix=" — hint: anchor not found"
+          elif [[ "$first_reason" == "missing file" ]]; then
+            hint_suffix=" — hint: file not found"
+          fi
+          log "MARKER" "$p: $cnt broken — e.g. $example$hint_suffix"
+        else
+          log "MARKER" "$p: $cnt broken — e.g. $example"
+        fi
+      done
+    fi
+    # Also show fix-hint footer when not verbose and fix-hint not already shown
+    if [[ "$FIX_HINT" == false && "$VERBOSE" == false ]]; then
+      log "MARKER" "  run with --fix-hint for per-failure hints, --json for machine"
+    fi
+  fi
 
   [[ "$failures" -eq 0 ]]
 }
