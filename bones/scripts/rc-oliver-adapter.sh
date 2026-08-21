@@ -9,11 +9,9 @@ IFS=$'\n\t'
 #            enforces path boundaries, applies sidecar metadata precedence,
 #            evaluates template conditionals, and rewrites internal
 #            .md/.textile links to .html.
-#  Version : 0.6.3-S3-draft
-#  Updated : 2026-08-20
-#  Phase 6 S1: frontmatter via `oliver meta --from <fmt> --format json` with yq fallback;
-#  Phase 6 S2: template via `oliver wrap --template <file> --meta-json <json> --assets-root <prefix> --body <file>` with GAWK fallback;
-#  Phase 6 S3: link rewriting via Oliver render (AST) with GAWK fallback.
+#  Version : 0.7.0
+#  Updated : 2026-08-21
+#  Phase 6 complete: frontmatter `oliver meta`, template `oliver wrap`, link rewriting `oliver render`, output planning `oliver plan`, manifest `oliver manifest` — all with yq/gawk/gfind fallback on pin 6edb520c.
 # ============================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
