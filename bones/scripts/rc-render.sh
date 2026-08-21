@@ -13,9 +13,9 @@ IFS=$'\n\t'
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-render.sh
 #  Purpose : Render markdown tombs into HTML using Oliver
-#  Version : 0.6.4-S4-draft
+#  Version : 0.6.5-S5-draft
 #  Updated : 2026-08-20
-#  Phase 6 S4: output planning via `oliver plan` with Bash fallback.
+#  Phase 6 S5: manifest via `oliver manifest --manifest <file> --add <entry>` with Bash fallback.
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
@@ -140,6 +140,13 @@ main() {
       if [[ -n "$MANIFEST" ]]; then
         mkdir -p "$(dirname "$MANIFEST")"
         touch "$MANIFEST"
+        # Phase 6 S5: try Oliver manifest --add, fallback to Bash grep
+        if [[ -n "${OLIVER_BIN:-}" && -x "${OLIVER_BIN:-}" ]] && "$OLIVER_BIN" manifest --help >/dev/null 2>&1; then
+          if "$OLIVER_BIN" manifest --manifest "$MANIFEST" --add "$rel_entry" >/dev/null 2>&1; then
+            return 0
+          fi
+          log "INFO" "Oliver manifest --add failed for '$rel_entry' — falling back to Bash"
+        fi
         if ! grep -Fxq "$rel_entry" "$MANIFEST"; then
           echo "$rel_entry" >> "$MANIFEST"
         fi
