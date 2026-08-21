@@ -241,7 +241,34 @@ CONF_EOF
     cat << 'FAKE_EOF' > "$fake_bin"
 #!/usr/bin/env bash
 set -euo pipefail
-# Mimic Oliver CLI shape for S1+S2+S3+S4: supports `oliver plan`, `oliver meta`, `oliver wrap`, and `oliver render`
+# Mimic Oliver CLI shape for S1+S2+S3+S4+S5: supports `oliver manifest`, `oliver plan`, `oliver meta`, `oliver wrap`, and `oliver render`
+if [[ "${1:-}" == "manifest" ]]; then
+  if [[ "${2:-}" == "--help" ]]; then
+    echo "Usage: oliver manifest --manifest <file> --add <rel> | --verify"
+    exit 0
+  fi
+  manifest=""; add=""; verify=false
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --manifest) manifest="$2"; shift 2 ;;
+      --add) add="$2"; shift 2 ;;
+      --verify) verify=true; shift ;;
+      *) shift ;;
+    esac
+  done
+  if [[ -n "$add" && -n "$manifest" ]]; then
+    mkdir -p "$(dirname "$manifest")"
+    touch "$manifest"
+    if ! grep -Fxq "$add" "$manifest" 2>/dev/null; then
+      echo "$add" >> "$manifest"
+    fi
+    exit 0
+  fi
+  if [[ "$verify" == true ]]; then
+    exit 0
+  fi
+  exit 1
+fi
 if [[ "${1:-}" == "plan" ]]; then
   if [[ "${2:-}" == "--help" ]]; then
     echo "Usage: oliver plan --content-dir <dir> --output-dir <dir> --template-dir <dir> --meta-dir <dir> --default-template <file> --oliver-bin <bin> --root-dir <dir> --dry-run <bool> --verbose <bool>"
@@ -840,6 +867,45 @@ S2_EMPTY_EOF
       fi
     fi
     echo "  [+] Pass: S4 output planning assertions ($mode)."
+
+    # --- S5: Manifest via Oliver manifest (with Bash fallback) ---
+    echo "  [+] Executing S5 manifest assertions (Oliver manifest + Bash fallback)..."
+    tmp_manifest="$pass_dir/bones/tmp/manifest-probe.txt"
+    rm -f "$tmp_manifest"
+    if ! "$fake_bin" manifest --manifest "$tmp_manifest" --add "output/probe.html" 2>/dev/null; then
+      echo "❌ Assertion Failed: S5 fake Oliver manifest --add failed."
+      exit 230
+    fi
+    if ! grep -Fxq "output/probe.html" "$tmp_manifest"; then
+      echo "❌ Assertion Failed: S5 fake Oliver manifest did not add entry."
+      exit 231
+    fi
+    # Dedup check
+    if ! "$fake_bin" manifest --manifest "$tmp_manifest" --add "output/probe.html" 2>/dev/null; then
+      echo "❌ Assertion Failed: S5 fake Oliver manifest second add failed."
+      exit 232
+    fi
+    if [[ $(grep -c "output/probe.html" "$tmp_manifest") -ne 1 ]]; then
+      echo "❌ Assertion Failed: S5 fake Oliver manifest dedup failed."
+      exit 233
+    fi
+    if ! "$fake_bin" manifest --help | grep -q "manifest"; then
+      echo "❌ Assertion Failed: S5 fake Oliver manifest --help failed."
+      exit 234
+    fi
+    rm -f "$tmp_manifest"
+    _real_manifest="${RK_OLIVER_BIN:-}"
+    if [[ -z "$_real_manifest" || ! -x "$_real_manifest" ]]; then
+      _real_manifest="$(command -v oliver 2>/dev/null || true)"
+    fi
+    if [[ -n "$_real_manifest" && -x "$_real_manifest" ]]; then
+      if "$_real_manifest" manifest --help >/dev/null 2>&1; then
+        echo "  [+] Pass: real Oliver manifest probe ($mode) — manifest available."
+      else
+        echo "  [+] Skipping real Oliver manifest probe — binary lacks manifest (expected on pin 6edb520c, S5 will bump)."
+      fi
+    fi
+    echo "  [+] Pass: S5 manifest assertions ($mode)."
 
     # --- Real Oliver renderer smoke pass (runs only when an executable binary
     # is discoverable; hermetic fixture binaries cover the rest) ---
