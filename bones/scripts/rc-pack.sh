@@ -248,6 +248,11 @@ main() {
         echo "[" > "$TMP_EXPORT"
         FIRST=true
 
+        local _tmp_pack_find
+        local _find_pack="find"
+        if command -v gfind >/dev/null 2>&1; then _find_pack="gfind"; elif [[ -x "/opt/homebrew/opt/findutils/libexec/gnubin/find" ]]; then _find_pack="/opt/homebrew/opt/findutils/libexec/gnubin/find"; fi
+        _tmp_pack_find=$(mktemp)
+        "$_find_pack" "$SOURCE_DIR" -name '*.md' -print0 > "$_tmp_pack_find" 2>/dev/null || true
         while IFS= read -r -d '' mdfile; do
           ABS_PATH=$(rk_canonical_path "$mdfile")
           REL_PATH="${mdfile#"$ROOT_DIR"/}"
@@ -262,7 +267,8 @@ main() {
             echo "," >> "$TMP_EXPORT"
           fi
           echo "$JSON_ENTRY" >> "$TMP_EXPORT"
-        done < <(find "$SOURCE_DIR" -name '*.md' -print0)
+        done < "$_tmp_pack_find"
+        rm -f "$_tmp_pack_find"
         echo "]" >> "$TMP_EXPORT"
 
         if jq empty "$TMP_EXPORT" >/dev/null 2>&1; then

@@ -2,7 +2,7 @@
 title: "Oliver Renderer Contract"
 slug: oliver-contract
 template: rotkeeper-doc.html
-version: "1.8-S3-draft"
+version: "1.9-S4-draft"
 updated: "2026-08-20"
 description: "The supported contract between Rotkeeper and the native Oliver HTML renderer: executable discovery, input format and output profile, output streams, exit codes, the adapter boundary, and the stable template/input contract."
 tags:
@@ -159,7 +159,9 @@ A `.soul.md` sidecar next to a source file (under `bones/meta`) may override fro
 5. Internal `.md`/`.textile`/`.cook` → `.html` link rewriting — **S3: Oliver `render` is authoritative (AST-level `*.md|*.textile|*.cook` → `*.html`, fragment/query preserved, angle-bracket stripped, external/`mailto:` skipped); adapter probes `printf '[x](foo.md)' | oliver render --from markdown | grep foo.html` and skips GAWK when true, else GAWK fallback on pin `6edb520c`**.
 6. Template interpolation — **S2: Oliver `wrap` is authoritative; adapter tries `oliver wrap --template <file> --meta-json <json> --assets-root <prefix> --body <file>` then falls back to GAWK on pin `6edb520c`**.
 
-Per the stabilization roadmap, these responsibilities are candidates for incremental movement into Oliver only after the contract above is stable. Bash keeps dispatch, environment setup, filesystem boundaries, orchestration, and packaging. **S1+S2+S3 are the first moves; step 4 remains in Bash (output planning + manifest next).**
+`rc-render.sh` owns output planning. **S4: Oliver `plan` is authoritative for `content → output` mapping (`*.md|*.textile|*.cook` discovery, `foo.md/textile/cook → foo.html`, basename collision abort, `ASSETS_ROOT` `rk_up_dirs`, `soul` derivation); `rc-render.sh` tries `oliver plan --content-dir <dir> --output-dir <dir> --template-dir <dir> --meta-dir <dir> --default-template <file> --oliver-bin <bin> --root-dir <dir> --dry-run <bool> --verbose <bool>` then falls back to Bash `find`/`strip_source_ext` on pin `6edb520c`**.
+
+Per the stabilization roadmap, these responsibilities are candidates for incremental movement into Oliver only after the contract above is stable. Bash keeps dispatch, environment setup, filesystem boundaries (`rk_canonical_path`, `is_within_boundary`, `validate_layout_alignment`, `output_is_generated`), orchestration, and packaging. **S1+S2+S3+S4 are the first moves; manifest (S5) remains in Bash.**
 
 ## Install paths
 
