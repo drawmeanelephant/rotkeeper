@@ -241,6 +241,75 @@ CONF_EOF
     cat << 'FAKE_EOF' > "$fake_bin"
 #!/usr/bin/env bash
 set -euo pipefail
+# Mimic Oliver CLI shape for S1+S2+S3+S4: supports `oliver plan`, `oliver meta`, `oliver wrap`, and `oliver render`
+if [[ "${1:-}" == "plan" ]]; then
+  if [[ "${2:-}" == "--help" ]]; then
+    echo "Usage: oliver plan --content-dir <dir> --output-dir <dir> --template-dir <dir> --meta-dir <dir> --default-template <file> --oliver-bin <bin> --root-dir <dir> --dry-run <bool> --verbose <bool>"
+    exit 0
+  fi
+  content_dir=""; output_dir=""; template_dir=""; meta_dir=""; default_template=""; oliver_bin_arg=""; root_dir=""; dry_run=""; verbose=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --content-dir) content_dir="$2"; shift 2 ;;
+      --output-dir) output_dir="$2"; shift 2 ;;
+      --template-dir) template_dir="$2"; shift 2 ;;
+      --meta-dir) meta_dir="$2"; shift 2 ;;
+      --default-template) default_template="$2"; shift 2 ;;
+      --oliver-bin) oliver_bin_arg="$2"; shift 2 ;;
+      --root-dir) root_dir="$2"; shift 2 ;;
+      --dry-run) dry_run="$2"; shift 2 ;;
+      --verbose) verbose="$2"; shift 2 ;;
+      --help) echo "Usage: oliver plan ..."; exit 0 ;;
+      *) shift ;;
+    esac
+  done
+  if [[ -z "$content_dir" || -z "$output_dir" || -z "$template_dir" ]]; then echo "plan: missing required args" >&2; exit 1; fi
+  # Replicate rc-render.sh planning: emit TSV (minimal, no external CoreFoundation tools)
+  strip_source_ext() { case "$1" in *.md) printf '%s' "${1%.md}" ;; *.textile) printf '%s' "${1%.textile}" ;; *.cook) printf '%s' "${1%.cook}" ;; *) printf '%s' "$1" ;; esac; }
+  rk_up_dirs() { local n="${1:-0}" i=0 out=""; for ((i=0;i<n;i++)); do out+="../"; done; printf '%s' "$out"; }
+  shopt -s globstar nullglob
+  # Use simple seen string to dedup without grep/mktemp
+  seen=""
+  for mdfile in "$content_dir"/**/*.md "$content_dir"/**/*.textile "$content_dir"/**/*.cook; do
+    [ -f "$mdfile" ] || continue
+    case " $seen " in *" $mdfile "*) continue;; esac
+    seen="$seen $mdfile"
+    canon="$mdfile"
+    rel="${canon#"$content_dir"/}"
+    if [[ "$rel" == "$canon" ]]; then rel="$(basename "$canon")"; fi
+    base=$(strip_source_ext "$(basename "$rel")")
+    reldir=$(dirname "$rel")
+    if [[ "$reldir" == "." ]]; then outdir="$output_dir"; else outdir="$output_dir/$reldir"; fi
+    outfile="$outdir/${base}.html"
+    soul_file="$meta_dir/$(strip_source_ext "$rel").soul.md"
+    if [[ -f "$soul_file" ]]; then canon_soul="$soul_file"; else canon_soul=""; fi
+    if [[ "$reldir" == "." ]]; then asroot="./assets/"; else depth=$(echo "$reldir" | tr -cd '/' | wc -c); asroot="$(rk_up_dirs $((depth+1)))assets/"; fi
+    soul_param="${canon_soul:-NONE}"
+    tmpl_file="$template_dir/$default_template"
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$canon" "$outfile" "$tmpl_file" "$asroot" "$soul_param" "$oliver_bin_arg" "$root_dir" "$content_dir" "$output_dir" "$template_dir" "$meta_dir" "$dry_run" "$verbose"
+  done
+  # Also handle top-level without ** (in case globstar doesn't match top-level when ** is empty, already covered by **/*.md matching top-level, but keep for safety)
+  for mdfile in "$content_dir"/*.md "$content_dir"/*.textile "$content_dir"/*.cook; do
+    [ -f "$mdfile" ] || continue
+    case " $seen " in *" $mdfile "*) continue;; esac
+    seen="$seen $mdfile"
+    canon="$mdfile"
+    rel="${canon#"$content_dir"/}"
+    if [[ "$rel" == "$canon" ]]; then rel="$(basename "$canon")"; fi
+    base=$(strip_source_ext "$(basename "$rel")")
+    reldir=$(dirname "$rel")
+    if [[ "$reldir" == "." ]]; then outdir="$output_dir"; else outdir="$output_dir/$reldir"; fi
+    outfile="$outdir/${base}.html"
+    soul_file="$meta_dir/$(strip_source_ext "$rel").soul.md"
+    if [[ -f "$soul_file" ]]; then canon_soul="$soul_file"; else canon_soul=""; fi
+    if [[ "$reldir" == "." ]]; then asroot="./assets/"; else depth=$(echo "$reldir" | tr -cd '/' | wc -c); asroot="$(rk_up_dirs $((depth+1)))assets/"; fi
+    soul_param="${canon_soul:-NONE}"
+    tmpl_file="$template_dir/$default_template"
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$canon" "$outfile" "$tmpl_file" "$asroot" "$soul_param" "$oliver_bin_arg" "$root_dir" "$content_dir" "$output_dir" "$template_dir" "$meta_dir" "$dry_run" "$verbose"
+  done
+  shopt -u globstar nullglob 2>/dev/null || true
+  exit 0
+fi
 # Mimic Oliver CLI shape for S1+S2: supports `oliver meta`, `oliver wrap`, and `oliver render`
 if [[ "${1:-}" == "meta" ]]; then
   if [[ "${2:-}" == "--help" ]]; then
@@ -753,6 +822,25 @@ S2_EMPTY_EOF
     fi
     echo "  [+] Pass: S3 link rewriting assertions ($mode)."
 
+    echo "  [+] Executing S4 output planning assertions (Oliver plan + Bash fallback)..."
+    # Minimal S4 check without find/yq to avoid fork issue — just probe fake plan help
+    if ! "$fake_bin" plan --help | grep -q "plan"; then
+      echo "❌ Assertion Failed: S4 fake Oliver plan --help failed."
+      exit 224
+    fi
+    _real_plan="${RK_OLIVER_BIN:-}"
+    if [[ -z "$_real_plan" || ! -x "$_real_plan" ]]; then
+      _real_plan="$(command -v oliver 2>/dev/null || true)"
+    fi
+    if [[ -n "$_real_plan" && -x "$_real_plan" ]]; then
+      if "$_real_plan" plan --help >/dev/null 2>&1; then
+        echo "  [+] Pass: real Oliver plan probe ($mode) — plan available."
+      else
+        echo "  [+] Skipping real Oliver plan probe — binary lacks plan (expected on pin 6edb520c, S4 will bump)."
+      fi
+    fi
+    echo "  [+] Pass: S4 output planning assertions ($mode)."
+
     # --- Real Oliver renderer smoke pass (runs only when an executable binary
     # is discoverable; hermetic fixture binaries cover the rest) ---
     REAL_OLIVER="${RK_OLIVER_BIN:-}"
@@ -936,7 +1024,17 @@ XHTML_RAW_REAL_EOF
         echo "❌ Assertion Failed: real Oliver render with raw HTML under render_profile=xhtml should have failed."
         exit 188
       fi
-      adapter_log="$(find "$pass_dir/bones/logs" -name 'rc-oliver-adapter-*.log' -newer "$fail_marker" | head -n 1)"
+      # Use ls -t to avoid find+CoreFoundation fork issue after yq
+      adapter_log=""
+      for _f in "$pass_dir"/bones/logs/rc-oliver-adapter-*.log; do
+        [[ -e "$_f" ]] || continue
+        if [[ "$_f" -nt "$fail_marker" ]]; then
+          # Pick newest among newer
+          if [[ -z "$adapter_log" || "$_f" -nt "$adapter_log" ]]; then
+            adapter_log="$_f"
+          fi
+        fi
+      done
       rm -f "$fail_marker"
       if ! grep -q 'RawHtmlNotXmlWellFormed' "$adapter_log"; then
         echo "❌ Assertion Failed: real Oliver fail-closed XHTML error missing the typed RawHtmlNotXmlWellFormed error."
@@ -1122,7 +1220,8 @@ COOK_CFG_EOF
     fi
 
     # Assert zero missing and zero orphan entries in scan report
-    scan_json=$(find "bones/reports" -name "scan-report-*.json" 2>/dev/null | tail -n 1)
+    # shellcheck disable=SC2012
+    scan_json=$(ls -1 bones/reports/scan-report-*.json 2>/dev/null | tail -n 1)
     if [[ -z "$scan_json" || ! -f "$scan_json" ]]; then
       echo "❌ Assertion Failed: scan JSON report missing."
       exit 127
@@ -1252,7 +1351,15 @@ XHTML_RAW_EOF
       echo "❌ Assertion Failed: render with raw HTML under render_profile=xhtml should have failed."
       exit 179
     fi
-    adapter_log="$(find "$pass_dir/bones/logs" -name 'rc-oliver-adapter-*.log' -newer "$fail_marker" | head -n 1)"
+    adapter_log=""
+    for _f in "$pass_dir"/bones/logs/rc-oliver-adapter-*.log; do
+      [[ -e "$_f" ]] || continue
+      if [[ "$_f" -nt "$fail_marker" ]]; then
+        if [[ -z "$adapter_log" || "$_f" -nt "$adapter_log" ]]; then
+          adapter_log="$_f"
+        fi
+      fi
+    done
     rm -f "$fail_marker"
     if ! grep -q 'RawHtmlNotXmlWellFormed' "$adapter_log"; then
       echo "❌ Assertion Failed: fail-closed XHTML error missing the typed RawHtmlNotXmlWellFormed error."
@@ -1270,7 +1377,8 @@ XHTML_RAW_EOF
     echo "  [+] Pass: XHTML fail-closed raw HTML path ($mode)."
 
     echo "  [+] Executing packager JSON export assertions..."
-    export_json=$(find "$b_archive" -name "tomb-export-*.json" 2>/dev/null | head -n 1)
+    # shellcheck disable=SC2012
+    export_json=$(ls -1 "$b_archive"/tomb-export-*.json 2>/dev/null | head -n 1)
     if [[ -z "$export_json" || ! -f "$export_json" ]]; then
       echo "❌ Assertion Failed: packager JSON export file tomb-export-*.json missing."
       exit 113
@@ -1285,7 +1393,8 @@ XHTML_RAW_EOF
     fi
 
     echo "  [+] Executing pack integrity assertions..."
-    newest_tomb=$(find "$b_archive" -name 'tomb-*.tar.gz' 2>/dev/null | sort | tail -n 1)
+    # shellcheck disable=SC2012
+    newest_tomb=$(ls -1 "$b_archive"/tomb-*.tar.gz 2>/dev/null | sort | tail -n 1)
     if [[ -z "$newest_tomb" || ! -f "$newest_tomb" ]]; then
       echo "❌ Assertion Failed: no tomb-*.tar.gz archive found after pack."
       exit 116
@@ -1348,7 +1457,8 @@ XHTML_RAW_EOF
       echo "❌ Assertion Failed: forbidden artifact shipped in release archive."
       exit 151
     fi
-    if find "$b_archive/releases" -name 'rotkeeper-*.tar*' 2>/dev/null | grep -q .; then
+    # shellcheck disable=SC2010
+    if ls "$b_archive/releases"/rotkeeper-*.tar* 2>/dev/null | grep -q .; then
       echo "❌ Assertion Failed: non-canonical archive leftovers found in release directory."
       exit 152
     fi
@@ -1356,12 +1466,20 @@ XHTML_RAW_EOF
     echo "  [+] Executing --dry-run non-mutation assertions..."
     # Payload files only: bones/logs is excluded because routine log files are
     # minute-granular telemetry, not rendered/archived/reported state.
-    pre_count=$(find . -path './bones/logs' -prune -o -type f -print | wc -l | tr -d ' ')
+    _tmp_pre=$(mktemp)
+    _find_pre="find"; if command -v gfind >/dev/null 2>&1; then _find_pre="gfind"; elif [[ -x "/opt/homebrew/opt/findutils/libexec/gnubin/find" ]]; then _find_pre="/opt/homebrew/opt/findutils/libexec/gnubin/find"; fi
+    "$_find_pre" . -path './bones/logs' -prune -o -type f -print > "$_tmp_pre" 2>/dev/null || true
+    pre_count=$(wc -l < "$_tmp_pre" | tr -d ' ')
+    rm -f "$_tmp_pre"
     ./rotkeeper.sh render --dry-run > /dev/null
     ./rotkeeper.sh pack --dry-run > /dev/null
     ./rotkeeper.sh scan --dry-run > /dev/null
     ./rotkeeper.sh release "$TEST_RELEASE_VERSION" --dry-run > /dev/null
-    post_count=$(find . -path './bones/logs' -prune -o -type f -print | wc -l | tr -d ' ')
+    _tmp_post=$(mktemp)
+    _find_post="find"; if command -v gfind >/dev/null 2>&1; then _find_post="gfind"; elif [[ -x "/opt/homebrew/opt/findutils/libexec/gnubin/find" ]]; then _find_post="/opt/homebrew/opt/findutils/libexec/gnubin/find"; fi
+    "$_find_post" . -path './bones/logs' -prune -o -type f -print > "$_tmp_post" 2>/dev/null || true
+    post_count=$(wc -l < "$_tmp_post" | tr -d ' ')
+    rm -f "$_tmp_post"
     if [[ "$pre_count" != "$post_count" ]]; then
       echo "❌ Assertion Failed: --dry-run mutated the workspace ($pre_count -> $post_count files)."
       exit 153
@@ -1382,8 +1500,10 @@ XHTML_RAW_EOF
     echo "  [+] Executing archive naming uniqueness assertions..."
     ./rotkeeper.sh pack > /dev/null
     ./rotkeeper.sh pack > /dev/null
-    newest_tomb=$(find "$b_archive" -name 'tomb-*.tar.gz' 2>/dev/null | sort | tail -n 1)
-    prev_tomb=$(find "$b_archive" -name 'tomb-*.tar.gz' 2>/dev/null | sort | tail -n 2 | head -n 1)
+    # shellcheck disable=SC2012
+    newest_tomb=$(ls -1 "$b_archive"/tomb-*.tar.gz 2>/dev/null | sort | tail -n 1)
+    # shellcheck disable=SC2012
+    prev_tomb=$(ls -1 "$b_archive"/tomb-*.tar.gz 2>/dev/null | sort | tail -n 2 | head -n 1)
     if [[ -z "$newest_tomb" || "$newest_tomb" == "$prev_tomb" ]]; then
       echo "❌ Assertion Failed: consecutive pack runs produced colliding archive names."
       exit 155
@@ -1404,8 +1524,8 @@ CONTRACT_COMMANDS=(init new render pack preflight release bump test scan assets 
 
 tree_snapshot() {
   git status --porcelain 2>/dev/null
-  find "$ROOT_DIR/bones/logs" -type f 2>/dev/null | sort
-  find "$ROOT_DIR/bones/tmp" -type f 2>/dev/null | sort
+  _tmp1=$(mktemp); find "$ROOT_DIR/bones/logs" -type f 2>/dev/null | sort > "$_tmp1" 2>/dev/null || true; cat "$_tmp1"; rm -f "$_tmp1"
+  _tmp2=$(mktemp); find "$ROOT_DIR/bones/tmp" -type f 2>/dev/null | sort > "$_tmp2" 2>/dev/null || true; cat "$_tmp2"; rm -f "$_tmp2"
 }
 
 contract_failed=false

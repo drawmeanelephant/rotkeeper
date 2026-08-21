@@ -13,8 +13,9 @@ IFS=$'\n\t'
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-render.sh
 #  Purpose : Render markdown tombs into HTML using Oliver
-#  Version : 0.5.1
-#  Updated : 2026-03-23
+#  Version : 0.6.4-S4-draft
+#  Updated : 2026-08-20
+#  Phase 6 S4: output planning via `oliver plan` with Bash fallback.
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
@@ -183,16 +184,21 @@ main() {
 
     local md_corpses=()
 
+    # Use gfind to avoid macOS CoreFoundation fork-without-exec after yq (BSD find + yq = segfault)
+    local _tmp_find
+    local _find_cmd="find"
+    if command -v gfind >/dev/null 2>&1; then _find_cmd="gfind"; elif [[ -x "/opt/homebrew/opt/findutils/libexec/gnubin/find" ]]; then _find_cmd="/opt/homebrew/opt/findutils/libexec/gnubin/find"; fi
+    _tmp_find=$(mktemp)
     if [[ "$render_sys_docs" == "false" ]]; then
         log "INFO" "Surgically pruning internal system docs and platform messages from user space."
-        while IFS= read -r -d '' corpse; do
-            md_corpses+=("$corpse")
-        done < <(find "$CONTENT_DIR" \( -type d -a \( -name "docs" -o -name "messages" -o -name "help" \) -prune \) -o \( -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) -print0 \))
+        "$_find_cmd" "$CONTENT_DIR" \( -type d -a \( -name "docs" -o -name "messages" -o -name "help" \) -prune \) -o \( -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) -print0 \) > "$_tmp_find" 2>/dev/null || true
     else
-        while IFS= read -r -d '' corpse; do
-            md_corpses+=("$corpse")
-        done < <(find "$CONTENT_DIR" -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) -print0)
+        "$_find_cmd" "$CONTENT_DIR" -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) -print0 > "$_tmp_find" 2>/dev/null || true
     fi
+    while IFS= read -r -d '' corpse; do
+        md_corpses+=("$corpse")
+    done < "$_tmp_find"
+    rm -f "$_tmp_find"
 
     log "INFO" "Discovered ${#md_corpses[@]} source files for compilation."
 
@@ -242,6 +248,11 @@ main() {
     done
 
     if output_is_generated; then
+        local _tmp_stale
+        local _find_stale="find"
+        if command -v gfind >/dev/null 2>&1; then _find_stale="gfind"; elif [[ -x "/opt/homebrew/opt/findutils/libexec/gnubin/find" ]]; then _find_stale="/opt/homebrew/opt/findutils/libexec/gnubin/find"; fi
+        _tmp_stale=$(mktemp)
+        "$_find_stale" "$OUTPUT_DIR" -type f -name "*.html" -print0 > "$_tmp_stale" 2>/dev/null || true
         while IFS= read -r -d '' stale_html; do
           if [[ -z "${EXPECTED_OUTPUTS[$stale_html]:-}" ]]; then
             if [[ "$DRY_RUN" == true ]]; then
@@ -251,7 +262,8 @@ main() {
               log "INFO" "Pruned stale rendered page: $stale_html"
             fi
           fi
-        done < <(find "$OUTPUT_DIR" -type f -name "*.html" -print0 2>/dev/null || true)
+        done < "$_tmp_stale"
+        rm -f "$_tmp_stale"
     else
         log "WARN" "Output tree is not marked generated; refusing to prune stale pages. A real render pass first writes the ownership marker."
     fi
@@ -269,44 +281,75 @@ main() {
     fi
 
     if [[ "${RENDERER,,}" == "oliver" ]]; then
-      # --- OLIVER RENDERER PASS (PURE BASH / GAWK / YQ) ---
+      # --- OLIVER RENDERER PASS — Phase 6 S4: Oliver plan with Bash fallback ---
       mkdir -p "$TMP_DIR"
       local batch_tsv="$TMP_DIR/oliver-batch-$$.tsv"
       rm -f "$batch_tsv"
 
-      for mdfile in ${md_corpses[@]+"${md_corpses[@]}"}; do
-        [ -f "$mdfile" ] || continue
-        canonical_mdpath=$(get_canonical_path "$mdfile")
-        [[ -n "$canonical_mdpath" && "$canonical_mdpath" == "$CANONICAL_CONTENT_DIR"* ]] || continue
-        relpath="${canonical_mdpath#"$CANONICAL_CONTENT_DIR"/}"
-        base=$(strip_source_ext "$(basename "$relpath")")
-        reldir=$(dirname "$relpath")
-        if [[ "$reldir" == "." ]]; then
-          outdir="$OUTPUT_DIR"
+      oliver_plan_ok=false
+      if "$OLIVER_BIN" plan --help >/dev/null 2>&1; then
+        # Oliver owns src→dst mapping, collision, ASSETS_ROOT, soul derivation.
+        # TSV columns: src dst template assets_root soul oliver_bin root content output template_dir meta_dir dry_run verbose
+        if "$OLIVER_BIN" plan \
+          --content-dir "$CANONICAL_CONTENT_DIR" \
+          --output-dir "$OUTPUT_DIR" \
+          --template-dir "$CANONICAL_TEMPLATE_DIR" \
+          --meta-dir "$CANONICAL_META_DIR" \
+          --default-template "$DEFAULT_TEMPLATE" \
+          --oliver-bin "$OLIVER_BIN" \
+          --root-dir "$ROOT_DIR" \
+          --dry-run "$DRY_RUN" \
+          --verbose "$VERBOSE" > "$batch_tsv" 2>/dev/null; then
+          if [[ -s "$batch_tsv" ]]; then
+            oliver_plan_ok=true
+            log "INFO" "Oliver plan succeeded — using batch TSV from Oliver (${#md_corpses[@]} sources)"
+          else
+            log "INFO" "Oliver plan returned empty TSV — falling back to Bash"
+            rm -f "$batch_tsv"
+          fi
         else
-          outdir="$OUTPUT_DIR/$reldir"
+          log "INFO" "Oliver plan failed — falling back to Bash"
+          rm -f "$batch_tsv"
         fi
-        outfile="$outdir/${base}.html"
-        soul_file="$META_DIR/$(strip_source_ext "$relpath").soul.md"
-        canonical_soul=$(get_canonical_path "$soul_file")
-        if [[ "$canonical_soul" != "$CANONICAL_META_DIR"* ]]; then
-          canonical_soul=""
-        fi
+      else
+        log "INFO" "Oliver plan not available (pin 6edb520c) — using Bash planning"
+      fi
 
-        if [[ "$reldir" == "." ]]; then
-          ASSETS_ROOT="./assets/"
-        else
-          depth=$(echo "$reldir" | tr -cd '/' | wc -c)
-          ASSETS_ROOT="$(rk_up_dirs $((depth + 1)))assets/"
-        fi
+      if [[ "$oliver_plan_ok" == false ]]; then
+        for mdfile in ${md_corpses[@]+"${md_corpses[@]}"}; do
+          [ -f "$mdfile" ] || continue
+          canonical_mdpath=$(get_canonical_path "$mdfile")
+          [[ -n "$canonical_mdpath" && "$canonical_mdpath" == "$CANONICAL_CONTENT_DIR"* ]] || continue
+          relpath="${canonical_mdpath#"$CANONICAL_CONTENT_DIR"/}"
+          base=$(strip_source_ext "$(basename "$relpath")")
+          reldir=$(dirname "$relpath")
+          if [[ "$reldir" == "." ]]; then
+            outdir="$OUTPUT_DIR"
+          else
+            outdir="$OUTPUT_DIR/$reldir"
+          fi
+          outfile="$outdir/${base}.html"
+          soul_file="$META_DIR/$(strip_source_ext "$relpath").soul.md"
+          canonical_soul=$(get_canonical_path "$soul_file")
+          if [[ "$canonical_soul" != "$CANONICAL_META_DIR"* ]]; then
+            canonical_soul=""
+          fi
 
-        local soul_param="${canonical_soul:-NONE}"
-        template_file="$TEMPLATE_DIR/$DEFAULT_TEMPLATE"
-        printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-          "$canonical_mdpath" "$outfile" "$template_file" "$ASSETS_ROOT" "$soul_param" \
-          "$OLIVER_BIN" "$ROOT_DIR" "$CANONICAL_CONTENT_DIR" "$OUTPUT_DIR" "$CANONICAL_TEMPLATE_DIR" \
-          "$CANONICAL_META_DIR" "$DRY_RUN" "$VERBOSE" >> "$batch_tsv"
-      done
+          if [[ "$reldir" == "." ]]; then
+            ASSETS_ROOT="./assets/"
+          else
+            depth=$(echo "$reldir" | tr -cd '/' | wc -c)
+            ASSETS_ROOT="$(rk_up_dirs $((depth + 1)))assets/"
+          fi
+
+          local soul_param="${canonical_soul:-NONE}"
+          template_file="$TEMPLATE_DIR/$DEFAULT_TEMPLATE"
+          printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+            "$canonical_mdpath" "$outfile" "$template_file" "$ASSETS_ROOT" "$soul_param" \
+            "$OLIVER_BIN" "$ROOT_DIR" "$CANONICAL_CONTENT_DIR" "$OUTPUT_DIR" "$CANONICAL_TEMPLATE_DIR" \
+            "$CANONICAL_META_DIR" "$DRY_RUN" "$VERBOSE" >> "$batch_tsv"
+        done
+      fi
 
       log "INFO" "Executing Oliver batch adapter pass..."
       if [[ "$DRY_RUN" == true ]]; then
