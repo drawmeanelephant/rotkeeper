@@ -2,7 +2,7 @@
 title: "Oliver Renderer Contract"
 slug: oliver-contract
 template: rotkeeper-doc.html
-version: "1.7-S2-draft"
+version: "1.8-S3-draft"
 updated: "2026-08-20"
 description: "The supported contract between Rotkeeper and the native Oliver HTML renderer: executable discovery, input format and output profile, output streams, exit codes, the adapter boundary, and the stable template/input contract."
 tags:
@@ -156,10 +156,10 @@ A `.soul.md` sidecar next to a source file (under `bones/meta`) may override fro
 2. Frontmatter extraction and sidecar merge — **S1: Oliver `meta` is authoritative; adapter tries `oliver meta --from <fmt> --format json` then falls back to `yq --front-matter extract` on pin `6edb520c`; stripping via `awk` remains until `oliver render` auto-strips**.
 3. Template resolution — **Bash retains `TEMPLATE_DIR` boundary; Oliver `wrap` receives canonical path**.
 4. Oliver invocation and stderr forwarding (including the `--to xhtml` flag when the effective `render_profile` is `xhtml`).
-5. Internal `.md`/`.textile`/`.cook` → `.html` link rewriting (fragment/query preserved, external and `mailto:` left alone).
+5. Internal `.md`/`.textile`/`.cook` → `.html` link rewriting — **S3: Oliver `render` is authoritative (AST-level `*.md|*.textile|*.cook` → `*.html`, fragment/query preserved, angle-bracket stripped, external/`mailto:` skipped); adapter probes `printf '[x](foo.md)' | oliver render --from markdown | grep foo.html` and skips GAWK when true, else GAWK fallback on pin `6edb520c`**.
 6. Template interpolation — **S2: Oliver `wrap` is authoritative; adapter tries `oliver wrap --template <file> --meta-json <json> --assets-root <prefix> --body <file>` then falls back to GAWK on pin `6edb520c`**.
 
-Per the stabilization roadmap, these responsibilities are candidates for incremental movement into Oliver only after the contract above is stable. Bash keeps dispatch, environment setup, filesystem boundaries, orchestration, and packaging. **S1+S2 are the first moves; steps 4–5 remain in Bash.**
+Per the stabilization roadmap, these responsibilities are candidates for incremental movement into Oliver only after the contract above is stable. Bash keeps dispatch, environment setup, filesystem boundaries, orchestration, and packaging. **S1+S2+S3 are the first moves; step 4 remains in Bash (output planning + manifest next).**
 
 ## Install paths
 

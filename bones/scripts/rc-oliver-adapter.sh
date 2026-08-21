@@ -9,10 +9,11 @@ IFS=$'\n\t'
 #            enforces path boundaries, applies sidecar metadata precedence,
 #            evaluates template conditionals, and rewrites internal
 #            .md/.textile links to .html.
-#  Version : 0.6.2-S2-draft
+#  Version : 0.6.3-S3-draft
 #  Updated : 2026-08-20
 #  Phase 6 S1: frontmatter via `oliver meta --from <fmt> --format json` with yq fallback;
-#  Phase 6 S2: template via `oliver wrap --template <file> --meta-json <json> --assets-root <prefix> --body <file>` with GAWK fallback.
+#  Phase 6 S2: template via `oliver wrap --template <file> --meta-json <json> --assets-root <prefix> --body <file>` with GAWK fallback;
+#  Phase 6 S3: link rewriting via Oliver render (AST) with GAWK fallback.
 # ============================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -74,6 +75,20 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
     echo "ERROR: Oliver binary is missing or not executable: '$oliver_bin'" >&2
     exit 1
   fi
+
+# Probe once per batch whether Oliver natively rewrites internal links (S3)
+# Used to decide GAWK fallback; cached in OLIVER_REWRITES (unknown→true/false)
+if [[ "${OLIVER_REWRITES:-unknown}" == unknown ]]; then
+  _probe_out=$(mktemp)
+  if printf '[x](foo.md)\n' | "$oliver_bin" render --from markdown > "$_probe_out" 2>/dev/null && grep -q 'foo.html' "$_probe_out" 2>/dev/null; then
+    OLIVER_REWRITES=true
+    log "INFO" "Oliver natively rewrites links (.md/.textile/.cook → .html) — GAWK link pass will be skipped"
+  else
+    OLIVER_REWRITES=false
+    log "INFO" "Oliver does not natively rewrite links — using GAWK link pass"
+  fi
+  rm -f "$_probe_out"
+fi
 
   # 1. Extract metadata — Phase 6 S1: Oliver meta with yq fallback
   #    Input format is derived from extension (overrides config) so --from matches render.
@@ -272,10 +287,15 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
   fi
   rm -f "$oliver_err"
 
-  # 5. Link Rewriting Pass via GAWK (Linear scan, string slicing for robust replacement)
+  # 5. Link Rewriting Pass — Phase 6 S3: Oliver-owned with GAWK fallback
   # NOTE: inner match() calls must not clobber the outer RSTART/RLENGTH used to
   # advance `line`. Save outer_rstart and outer_rlen before any inner match() call.
-  gawk '
+  # Probe result OLIVER_REWRITES decides: true → Oliver already rewrote (AST), skip GAWK.
+  if [[ "${OLIVER_REWRITES:-false}" == true ]]; then
+    cp "$body_tmp" "$body_rewritten"
+    log "INFO" "Skipped GAWK link rewriting for '$src_path' (Oliver native)"
+  else
+    gawk '
   {
     line = $0
     out_line = ""
@@ -332,6 +352,7 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
     out_line = out_line line
     print out_line
   }' "$body_tmp" > "$body_rewritten"
+  fi
 
 
   # 6. Template Interpolation Pass — Phase 6 S2: Oliver wrap with GAWK fallback
