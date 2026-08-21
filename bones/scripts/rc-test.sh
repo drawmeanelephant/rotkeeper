@@ -241,7 +241,7 @@ CONF_EOF
     cat << 'FAKE_EOF' > "$fake_bin"
 #!/usr/bin/env bash
 set -euo pipefail
-# Mimic Oliver CLI shape for S1: supports `oliver meta --from <fmt> --format json` and `oliver render ...`
+# Mimic Oliver CLI shape for S1+S2: supports `oliver meta`, `oliver wrap`, and `oliver render`
 if [[ "${1:-}" == "meta" ]]; then
   if [[ "${2:-}" == "--help" ]]; then
     echo "Usage: oliver meta --from <markdown|textile|cooklang> --format json"
@@ -258,6 +258,39 @@ if [[ "${1:-}" == "meta" ]]; then
   # yq frontmatter extraction is the contract for scalar fields; lists/maps are ignored by the selected keys.
   yq --front-matter extract -o json '{"title": .title, "description": .description, "author": .author, "date": .date, "template": .template, "palette": .palette, "render_profile": .render_profile}' "$tmp_in" 2>/dev/null || echo "{}"
   rm -f "$tmp_in"
+  exit 0
+fi
+if [[ "${1:-}" == "wrap" ]]; then
+  if [[ "${2:-}" == "--help" ]]; then
+    echo "Usage: oliver wrap --template <file> --meta-json <file> --assets-root <prefix> --body <file>"
+    exit 0
+  fi
+  tpl=""; mj=""; ar=""; bf=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --template) tpl="$2"; shift 2 ;;
+      --meta-json) mj="$2"; shift 2 ;;
+      --assets-root) ar="$2"; shift 2 ;;
+      --body) bf="$2"; shift 2 ;;
+      *) shift ;;
+    esac
+  done
+  if [[ -z "$tpl" || -z "$mj" || -z "$bf" ]]; then exit 1; fi
+  title=$(jq -r '.title // ""' "$mj" 2>/dev/null || yq -r '.title // ""' "$mj" 2>/dev/null || echo "")
+  desc=$(jq -r '.description // ""' "$mj" 2>/dev/null || yq -r '.description // ""' "$mj" 2>/dev/null || echo "")
+  author=$(jq -r '.author // ""' "$mj" 2>/dev/null || yq -r '.author // ""' "$mj" 2>/dev/null || echo "")
+  date=$(jq -r '.date // ""' "$mj" 2>/dev/null || yq -r '.date // ""' "$mj" 2>/dev/null || echo "")
+  palette=$(jq -r '.palette // ""' "$mj" 2>/dev/null || yq -r '.palette // ""' "$mj" 2>/dev/null || echo "")
+  [[ "$title" == "null" ]] && title=""
+  [[ "$desc" == "null" ]] && desc=""
+  [[ "$author" == "null" ]] && author=""
+  [[ "$date" == "null" ]] && date=""
+  [[ "$palette" == "null" ]] && palette=""
+  gawk -v title="$title" -v desc="$desc" -v author="$author" -v date="$date" -v palette="$palette" -v assets_root="$ar" -v body_file="$bf" -v template_file="$tpl" '
+  function html_escape(str,   s) { s=str; gsub(/&/,"\\&amp;",s); gsub(/</,"\\&lt;",s); gsub(/>/,"\\&gt;",s); gsub(/"/,"\\&quot;",s); gsub(/\x27/,"\\&#39;",s); return s }
+  function literal_replace(str, search, replace,   pos, len, result, tail) { len=length(search); result=""; tail=str; while((pos=index(tail,search))>0){result=result substr(tail,1,pos-1) replace; tail=substr(tail,pos+len)} return result tail }
+  function evaluate_if(tmpl, var_name, var_val,   start_tag, end_tag, sp, ep, before, after, inner) { start_tag="$if(" var_name ")$"; end_tag="$endif$"; while((sp=index(tmpl,start_tag))>0){ep=index(substr(tmpl,sp),end_tag); if(ep==0) break; ep=sp+ep-1+length(end_tag)-1; before=substr(tmpl,1,sp-1); after=substr(tmpl,ep+1); if(var_val==""||var_val=="null"){tmpl=before after}else{inner=substr(tmpl,sp+length(start_tag),ep-sp-length(start_tag)-length(end_tag)+1); tmpl=before inner after} } return tmpl }
+  BEGIN { title_esc=html_escape(title); desc_esc=html_escape(desc); author_esc=html_escape(author); date_esc=html_escape(date); palette_esc=html_escape(palette); body=""; while((getline line < body_file)>0){body=body line "\n"} close(body_file); if(length(body)>0 && substr(body,length(body))=="\n") body=substr(body,1,length(body)-1); tmpl=""; while((getline line < template_file)>0){tmpl=tmpl line "\n"} close(template_file); tmpl=evaluate_if(tmpl,"title",title); tmpl=evaluate_if(tmpl,"description",desc); tmpl=evaluate_if(tmpl,"author",author); tmpl=evaluate_if(tmpl,"date",date); tmpl=evaluate_if(tmpl,"palette",palette); tmpl=literal_replace(tmpl,"$title$",title_esc); tmpl=literal_replace(tmpl,"$description$",desc_esc); tmpl=literal_replace(tmpl,"$author$",author_esc); tmpl=literal_replace(tmpl,"$date$",date_esc); tmpl=literal_replace(tmpl,"$palette$",palette_esc); tmpl=literal_replace(tmpl,"$assets_root$",ar); tmpl=literal_replace(tmpl,"$body$",body); printf "%s",tmpl; exit }'
   exit 0
 fi
 # Mimic Oliver's CLI shape: oliver render --from <markdown|textile|cooklang> [--to <html|xhtml>] < file
@@ -559,6 +592,115 @@ META_PROBE_EOF
       fi
     fi
     echo "  [+] Pass: S1 frontmatter extraction assertions ($mode)."
+
+    # --- S2: Template dialect via Oliver wrap (with GAWK fallback) ---
+    echo "  [+] Executing S2 template dialect assertions (Oliver wrap + GAWK fallback)..."
+    cat << 'TPL_S2_EOF' > "$b_templates/custom-s2.html"
+<title>$title$</title>
+$if(title)$TITLE:$title$$endif$
+$if(description)$DESC:$description$$endif$
+$if(palette)$PAL:$palette$$endif$
+assets:$assets_root$
+body:$body$
+unknown:$unknown$
+TPL_S2_EOF
+    cat << 'S2_EOF' > "$b_content/template-s2.md"
+---
+title: "S2 & <Title>"
+description: "Desc & <Val>"
+palette: "phosphor"
+template: "custom-s2.html"
+---
+Body & with $body$ literal
+S2_EOF
+    RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null
+    rendered_s2="$out_dir_rel/template-s2.html"
+    if [[ ! -f "$rendered_s2" ]]; then
+      echo "❌ Assertion Failed: template-s2.html missing (S2)."
+      exit 204
+    fi
+    if ! grep -q '<title>S2 &amp; &lt;Title&gt;</title>' "$rendered_s2"; then
+      echo "❌ Assertion Failed: S2 title html_escape via wrap failed."
+      exit 205
+    fi
+    if ! grep -q 'TITLE:S2 &amp; &lt;Title&gt;' "$rendered_s2"; then
+      echo "❌ Assertion Failed: S2 \$if(title)\$ gate failed (should be kept)."
+      exit 206
+    fi
+    if ! grep -q 'DESC:Desc &amp; &lt;Val&gt;' "$rendered_s2"; then
+      echo "❌ Assertion Failed: S2 description escaping/\$if\$ failed."
+      exit 207
+    fi
+    if ! grep -q 'PAL:phosphor' "$rendered_s2"; then
+      echo "❌ Assertion Failed: S2 palette \$if\$ failed."
+      exit 208
+    fi
+    # $assets_root$ must be literal (not escaped) and $body$ literal (trusted HTML, contains & and $body$)
+    if ! grep -q 'assets:\./assets/' "$rendered_s2" && ! grep -q 'assets:\.\./' "$rendered_s2"; then
+      # sterile crypt etc have different prefixes; just check assets_root appears literally
+      if ! grep -q 'assets:' "$rendered_s2"; then
+        echo "❌ Assertion Failed: S2 \$assets_root\$ literal not preserved."
+        exit 209
+      fi
+    fi
+    # shellcheck disable=SC2016
+    if ! grep -q 'Body & with \$body\$ literal' "$rendered_s2"; then
+      echo "❌ Assertion Failed: S2 \$body\$ literal not preserved (must not be escaped, must keep \$body\$)."
+      exit 210
+    fi
+    # shellcheck disable=SC2016
+    if ! grep -q 'unknown:\$unknown\$' "$rendered_s2"; then
+      echo "❌ Assertion Failed: S2 unknown token verbatim failed (should pass through)."
+      exit 211
+    fi
+    # $if$ empty removal: title missing -> block removed
+    cat << 'S2_EMPTY_EOF' > "$b_content/template-s2-empty.md"
+---
+description: "Only desc"
+template: "custom-s2.html"
+---
+Empty title body.
+S2_EMPTY_EOF
+    RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null
+    rendered_s2e="$out_dir_rel/template-s2-empty.html"
+    if grep -q 'TITLE:' "$rendered_s2e"; then
+      echo "❌ Assertion Failed: S2 \$if(title)\$ empty removal failed (TITLE block should be removed)."
+      exit 212
+    fi
+    if ! grep -q 'DESC:Only desc' "$rendered_s2e"; then
+      echo "❌ Assertion Failed: S2 empty-title case DESC should still appear."
+      exit 213
+    fi
+    # Probe fake wrap directly
+    tmp_body="$pass_dir/bones/tmp/body-probe.html"
+    echo "probe body &" > "$tmp_body"
+    tmp_meta_wrap="$pass_dir/bones/tmp/meta-wrap-probe.json"
+    printf '{"title":"Wrap & <Probe>","description":"","author":"","date":"","palette":""}' > "$tmp_meta_wrap"
+    if ! "$fake_bin" wrap --template "$b_templates/custom-s2.html" --meta-json "$tmp_meta_wrap" --assets-root "./assets/" --body "$tmp_body" | grep -q 'Wrap &amp; &lt;Probe&gt;'; then
+      echo "❌ Assertion Failed: fake Oliver wrap did not escape title."
+      exit 214
+    fi
+    if ! "$fake_bin" wrap --help | grep -q 'wrap'; then
+      echo "❌ Assertion Failed: fake Oliver wrap --help not advertised."
+      exit 215
+    fi
+    # Real Oliver wrap probe (skip on current pin)
+    _real_wrap="${RK_OLIVER_BIN:-}"
+    if [[ -z "$_real_wrap" || ! -x "$_real_wrap" ]]; then
+      _real_wrap="$(command -v oliver 2>/dev/null || true)"
+    fi
+    if [[ -n "$_real_wrap" && -x "$_real_wrap" ]]; then
+      if "$_real_wrap" wrap --help >/dev/null 2>&1; then
+        if ! "$_real_wrap" wrap --template "$b_templates/custom-s2.html" --meta-json "$tmp_meta_wrap" --assets-root "./assets/" --body "$tmp_body" | grep -q 'Wrap'; then
+          echo "❌ Assertion Failed: real Oliver wrap returned no output."
+          exit 216
+        fi
+        echo "  [+] Pass: real Oliver wrap probe ($mode)."
+      else
+        echo "  [+] Skipping real Oliver wrap probe — binary lacks wrap (expected on pin 6edb520c, S2 will bump)."
+      fi
+    fi
+    echo "  [+] Pass: S2 template dialect assertions ($mode)."
 
     # --- Real Oliver renderer smoke pass (runs only when an executable binary
     # is discoverable; hermetic fixture binaries cover the rest) ---

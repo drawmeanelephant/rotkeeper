@@ -9,10 +9,10 @@ IFS=$'\n\t'
 #            enforces path boundaries, applies sidecar metadata precedence,
 #            evaluates template conditionals, and rewrites internal
 #            .md/.textile links to .html.
-#  Version : 0.6.1-S1-draft
+#  Version : 0.6.2-S2-draft
 #  Updated : 2026-08-20
 #  Phase 6 S1: frontmatter via `oliver meta --from <fmt> --format json` with yq fallback;
-#          `oliver render` still receives awk-stripped body until Oliver auto-strips (pin bump).
+#  Phase 6 S2: template via `oliver wrap --template <file> --meta-json <json> --assets-root <prefix> --body <file>` with GAWK fallback.
 # ============================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -334,102 +334,133 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
   }' "$body_tmp" > "$body_rewritten"
 
 
-  # 6. Template Interpolation Pass via GAWK (Linear string searching for multiline $if$)
+  # 6. Template Interpolation Pass — Phase 6 S2: Oliver wrap with GAWK fallback
+  #    Seven tokens, html_escape for 5 fields, $assets_root$/$body$ literal,
+  #    $if$/$endif$ gating. Bash keeps TEMPLATE_DIR boundary; Oliver handles interpolation when available.
   if [[ "$dry_run" == "true" ]]; then
     if [[ "$verbose" == "true" ]]; then
       log "DRY-RUN" "Would write rendered HTML for '$src_path' -> '$dst_path'"
     fi
   else
     mkdir -p "$(dirname "$dst_path")"
-    gawk \
-      -v title="$title" \
-      -v desc="$desc" \
-      -v author="$author" \
-      -v date="$date" \
-      -v palette="$palette" \
-      -v assets_root="$assets_root" \
-      -v body_file="$body_rewritten" \
-      -v template_file="$template_path" \
-    '
-    function html_escape(str,   s) {
-      s = str
-      gsub(/&/, "\\&amp;", s)
-      gsub(/</, "\\&lt;", s)
-      gsub(/>/, "\\&gt;", s)
-      gsub(/"/, "\\&quot;", s)
-      gsub(/\x27/, "\\&#39;", s)
-      return s
-    }
-    function literal_replace(str, search, replace,   pos, len, result, tail) {
-      len = length(search)
-      result = ""
-      tail = str
-      while ((pos = index(tail, search)) > 0) {
-        result = result substr(tail, 1, pos - 1) replace
-        tail = substr(tail, pos + len)
+    # Build meta JSON for Oliver wrap (jq handles escaping). Fallback to manual if jq missing.
+    wrap_meta="$TMP_DIR/wrap-meta-$$.json"
+    if command -v jq >/dev/null 2>&1; then
+      jq -n --arg title "$title" --arg desc "$desc" --arg author "$author" --arg date "$date" --arg palette "$palette" \
+        '{title:$title, description:$desc, author:$author, date:$date, palette:$palette}' > "$wrap_meta" 2>/dev/null || echo "{\"title\":\"\",\"description\":\"\",\"author\":\"\",\"date\":\"\",\"palette\":\"\"}" > "$wrap_meta"
+    else
+      # Minimal fallback: use yq to build JSON (yq can emit json from env)
+      printf '{"title":%s,"description":%s,"author":%s,"date":%s,"palette":%s}' \
+        "$(printf '%s' "$title" | jq -Rs . 2>/dev/null || printf '"%s"' "$title")" \
+        "$(printf '%s' "$desc" | jq -Rs . 2>/dev/null || printf '"%s"' "$desc")" \
+        "$(printf '%s' "$author" | jq -Rs . 2>/dev/null || printf '"%s"' "$author")" \
+        "$(printf '%s' "$date" | jq -Rs . 2>/dev/null || printf '"%s"' "$date")" \
+        "$(printf '%s' "$palette" | jq -Rs . 2>/dev/null || printf '"%s"' "$palette")" > "$wrap_meta" 2>/dev/null || echo '{"title":"","description":"","author":"","date":"","palette":""}' > "$wrap_meta"
+    fi
+
+    oliver_wrap_ok=false
+    if "$oliver_bin" wrap --help >/dev/null 2>&1; then
+      if "$oliver_bin" wrap --template "$template_path" --meta-json "$wrap_meta" --assets-root "$assets_root" --body "$body_rewritten" > "$dst_path" 2>/dev/null; then
+        oliver_wrap_ok=true
+        log "INFO" "Oliver wrap succeeded for '$src_path'"
+      else
+        log "INFO" "Oliver wrap failed for '$src_path' — falling back to GAWK"
+        rm -f "$dst_path"
+      fi
+    fi
+    rm -f "$wrap_meta"
+
+    if [[ "$oliver_wrap_ok" == false ]]; then
+      gawk \
+        -v title="$title" \
+        -v desc="$desc" \
+        -v author="$author" \
+        -v date="$date" \
+        -v palette="$palette" \
+        -v assets_root="$assets_root" \
+        -v body_file="$body_rewritten" \
+        -v template_file="$template_path" \
+      '
+      function html_escape(str,   s) {
+        s = str
+        gsub(/&/, "\\&amp;", s)
+        gsub(/</, "\\&lt;", s)
+        gsub(/>/, "\\&gt;", s)
+        gsub(/"/, "\\&quot;", s)
+        gsub(/\x27/, "\\&#39;", s)
+        return s
       }
-      return result tail
-    }
-    function evaluate_if(tmpl, var_name, var_val,   start_tag, end_tag, sp, ep, before, after, inner) {
-      start_tag = "$if(" var_name ")$"
-      end_tag = "$endif$"
-      
-      while ((sp = index(tmpl, start_tag)) > 0) {
-        ep = index(substr(tmpl, sp), end_tag)
-        if (ep == 0) break
-        ep = sp + ep - 1 + length(end_tag) - 1
-        
-        before = substr(tmpl, 1, sp - 1)
-        after = substr(tmpl, ep + 1)
-        
-        if (var_val == "" || var_val == "null") {
-          tmpl = before after
-        } else {
-          inner = substr(tmpl, sp + length(start_tag), ep - sp - length(start_tag) - length(end_tag) + 1)
-          tmpl = before inner after
+      function literal_replace(str, search, replace,   pos, len, result, tail) {
+        len = length(search)
+        result = ""
+        tail = str
+        while ((pos = index(tail, search)) > 0) {
+          result = result substr(tail, 1, pos - 1) replace
+          tail = substr(tail, pos + len)
         }
+        return result tail
       }
-      return tmpl
-    }
-    BEGIN {
-      title_esc = html_escape(title)
-      desc_esc  = html_escape(desc)
-      author_esc = html_escape(author)
-      date_esc  = html_escape(date)
-      palette_esc = html_escape(palette)
-
-      body = ""
-      while ((getline line < body_file) > 0) {
-        body = body line "\n"
+      function evaluate_if(tmpl, var_name, var_val,   start_tag, end_tag, sp, ep, before, after, inner) {
+        start_tag = "$if(" var_name ")$"
+        end_tag = "$endif$"
+        
+        while ((sp = index(tmpl, start_tag)) > 0) {
+          ep = index(substr(tmpl, sp), end_tag)
+          if (ep == 0) break
+          ep = sp + ep - 1 + length(end_tag) - 1
+          
+          before = substr(tmpl, 1, sp - 1)
+          after = substr(tmpl, ep + 1)
+          
+          if (var_val == "" || var_val == "null") {
+            tmpl = before after
+          } else {
+            inner = substr(tmpl, sp + length(start_tag), ep - sp - length(start_tag) - length(end_tag) + 1)
+            tmpl = before inner after
+          }
+        }
+        return tmpl
       }
-      close(body_file)
-      if (length(body) > 0 && substr(body, length(body)) == "\n") {
-        body = substr(body, 1, length(body)-1)
-      }
+      BEGIN {
+        title_esc = html_escape(title)
+        desc_esc  = html_escape(desc)
+        author_esc = html_escape(author)
+        date_esc  = html_escape(date)
+        palette_esc = html_escape(palette)
 
-      tmpl = ""
-      while ((getline line < template_file) > 0) {
-        tmpl = tmpl line "\n"
-      }
-      close(template_file)
+        body = ""
+        while ((getline line < body_file) > 0) {
+          body = body line "\n"
+        }
+        close(body_file)
+        if (length(body) > 0 && substr(body, length(body)) == "\n") {
+          body = substr(body, 1, length(body)-1)
+        }
 
-      tmpl = evaluate_if(tmpl, "title", title)
-      tmpl = evaluate_if(tmpl, "description", desc)
-      tmpl = evaluate_if(tmpl, "author", author)
-      tmpl = evaluate_if(tmpl, "date", date)
-      tmpl = evaluate_if(tmpl, "palette", palette)
+        tmpl = ""
+        while ((getline line < template_file) > 0) {
+          tmpl = tmpl line "\n"
+        }
+        close(template_file)
 
-      tmpl = literal_replace(tmpl, "$title$", title_esc)
-      tmpl = literal_replace(tmpl, "$description$", desc_esc)
-      tmpl = literal_replace(tmpl, "$author$", author_esc)
-      tmpl = literal_replace(tmpl, "$date$", date_esc)
-      tmpl = literal_replace(tmpl, "$palette$", palette_esc)
-      tmpl = literal_replace(tmpl, "$assets_root$", assets_root)
-      tmpl = literal_replace(tmpl, "$body$", body)
+        tmpl = evaluate_if(tmpl, "title", title)
+        tmpl = evaluate_if(tmpl, "description", desc)
+        tmpl = evaluate_if(tmpl, "author", author)
+        tmpl = evaluate_if(tmpl, "date", date)
+        tmpl = evaluate_if(tmpl, "palette", palette)
 
-      printf "%s", tmpl
-      exit
-    }' > "$dst_path"
+        tmpl = literal_replace(tmpl, "$title$", title_esc)
+        tmpl = literal_replace(tmpl, "$description$", desc_esc)
+        tmpl = literal_replace(tmpl, "$author$", author_esc)
+        tmpl = literal_replace(tmpl, "$date$", date_esc)
+        tmpl = literal_replace(tmpl, "$palette$", palette_esc)
+        tmpl = literal_replace(tmpl, "$assets_root$", assets_root)
+        tmpl = literal_replace(tmpl, "$body$", body)
+
+        printf "%s", tmpl
+        exit
+      }' > "$dst_path"
+    fi
     if [[ "$verbose" == "true" ]]; then
       # shellcheck disable=SC2295
       rel_src="${src_path#$content_dir/}"
