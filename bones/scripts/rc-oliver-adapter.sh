@@ -9,8 +9,10 @@ IFS=$'\n\t'
 #            enforces path boundaries, applies sidecar metadata precedence,
 #            evaluates template conditionals, and rewrites internal
 #            .md/.textile links to .html.
-#  Version : 0.6.0
-#  Updated : 2026-08-14
+#  Version : 0.6.1-S1-draft
+#  Updated : 2026-08-20
+#  Phase 6 S1: frontmatter via `oliver meta --from <fmt> --format json` with yq fallback;
+#          `oliver render` still receives awk-stripped body until Oliver auto-strips (pin bump).
 # ============================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -73,9 +75,27 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
     exit 1
   fi
 
-  # 1. Extract metadata from source in 1 single yq call
+  # 1. Extract metadata — Phase 6 S1: Oliver meta with yq fallback
+  #    Input format is derived from extension (overrides config) so --from matches render.
+  meta_input_format="${INPUT_FORMAT:-markdown}"
+  if [[ "$src_path" == *.textile ]]; then
+    meta_input_format="textile"
+  elif [[ "$src_path" == *.cook ]]; then
+    meta_input_format="cooklang"
+  fi
   meta_json="$TMP_DIR/doc-meta-$$.json"
-  yq --front-matter extract -o json '{"title": .title, "description": .description, "author": .author, "date": .date, "template": .template, "palette": .palette, "render_profile": .render_profile}' "$src_path" > "$meta_json" 2>/dev/null || echo "{}" > "$meta_json"
+  oliver_meta_ok=false
+  if "$oliver_bin" meta --help >/dev/null 2>&1; then
+    if "$oliver_bin" meta --from "$meta_input_format" --format json < "$src_path" > "$meta_json" 2>/dev/null; then
+      if yq eval '.' "$meta_json" >/dev/null 2>&1; then
+        oliver_meta_ok=true
+        log "INFO" "Oliver meta extraction succeeded for '$src_path' (from=$meta_input_format)"
+      fi
+    fi
+  fi
+  if [[ "$oliver_meta_ok" == false ]]; then
+    yq --front-matter extract -o json '{"title": .title, "description": .description, "author": .author, "date": .date, "template": .template, "palette": .palette, "render_profile": .render_profile}' "$src_path" > "$meta_json" 2>/dev/null || echo "{}" > "$meta_json"
+  fi
 
   doc_title=$(yq -r '.title // ""' "$meta_json" 2>/dev/null || echo "")
   doc_desc=$(yq -r '.description // ""' "$meta_json" 2>/dev/null || echo "")
@@ -113,7 +133,18 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
     fi
 
     soul_json="$TMP_DIR/soul-meta-$$.json"
-    yq --front-matter extract -o json '{"title": .title, "description": .description, "author": .author, "date": .date, "template": .template, "palette": .palette}' "$soul_path" > "$soul_json" 2>/dev/null || echo "{}" > "$soul_json"
+    soul_meta_ok=false
+    if "$oliver_bin" meta --help >/dev/null 2>&1; then
+      if "$oliver_bin" meta --from "$meta_input_format" --format json < "$soul_path" > "$soul_json" 2>/dev/null; then
+        if yq eval '.' "$soul_json" >/dev/null 2>&1; then
+          soul_meta_ok=true
+          log "INFO" "Oliver meta extraction succeeded for sidecar '$soul_path'"
+        fi
+      fi
+    fi
+    if [[ "$soul_meta_ok" == false ]]; then
+      yq --front-matter extract -o json '{"title": .title, "description": .description, "author": .author, "date": .date, "template": .template, "palette": .palette}' "$soul_path" > "$soul_json" 2>/dev/null || echo "{}" > "$soul_json"
+    fi
 
     s_title=$(yq -r '.title // ""' "$soul_json" 2>/dev/null || echo "")
     s_desc=$(yq -r '.description // ""' "$soul_json" 2>/dev/null || echo "")
@@ -149,8 +180,10 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
   #    input_format in rotkeeper.yaml, default markdown; a source with a
   #    .textile extension always renders as textile and one with a .cook
   #    extension always renders as cooklang, overriding the config default
-  #    for that file) to body HTML snippet. The adapter strips a
-  #    leading YAML frontmatter block before piping the body into the CLI.
+  #    for that file) to body HTML snippet. S1: frontmatter stripping still
+  #    via awk here; when `oliver meta` succeeds the file is known to be
+  #    handled, and a future bump will make `oliver render` auto-strip
+  #    (then awk becomes no-op/redundant and can be removed).
   #    The output profile mirrors the input-format pattern: render_profile in
   #    rotkeeper.yaml (html default, xhtml opt-in) arrives via RENDER_PROFILE,
   #    and a per-page render_profile in the source frontmatter overrides it
@@ -162,11 +195,16 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
   oliver_err="$TMP_DIR/oliver-err-$$.log"
   rm -f "$body_tmp" "$body_rewritten" "$oliver_err"
 
-  input_format="${INPUT_FORMAT:-markdown}"
-  if [[ "$src_path" == *.textile ]]; then
-    input_format="textile"
-  elif [[ "$src_path" == *.cook ]]; then
-    input_format="cooklang"
+  # Reuse meta_input_format if already computed for extraction; otherwise derive.
+  if [[ -n "${meta_input_format:-}" ]]; then
+    input_format="$meta_input_format"
+  else
+    input_format="${INPUT_FORMAT:-markdown}"
+    if [[ "$src_path" == *.textile ]]; then
+      input_format="textile"
+    elif [[ "$src_path" == *.cook ]]; then
+      input_format="cooklang"
+    fi
   fi
 
   profile="${render_profile:-${RENDER_PROFILE:-html}}"
