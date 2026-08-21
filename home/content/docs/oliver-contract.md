@@ -2,8 +2,8 @@
 title: "Oliver Renderer Contract"
 slug: oliver-contract
 template: rotkeeper-doc.html
-version: "1.10"
-updated: "2026-08-20"
+version: "1.11"
+updated: "2026-08-21"
 description: "The supported contract between Rotkeeper and the native Oliver HTML renderer: executable discovery, input format and output profile, output streams, exit codes, the adapter boundary, and the stable template/input contract."
 tags:
   - rotkeeper
@@ -41,14 +41,14 @@ oliver render --from markdown --to xhtml < file.md > body.xhtml 2> warnings.log
 | Aspect | Contract |
 | --- | --- |
 | Invocation | `oliver render --from <markdown\|textile\|cooklang> [--to <html\|xhtml>]` — one file per invocation, stdin → stdout; format comes from `input_format` in `bones/config/rotkeeper.yaml` (default `markdown`, validated to `markdown`/`textile`/`cooklang` at environment load; anything else warns and falls back to `markdown`). A source with a `.textile` extension always invokes `--from textile` and one with a `.cook` extension always invokes `--from cooklang`, overriding the config default for that file. The output profile comes from `render_profile` in `bones/config/rotkeeper.yaml` (default `html`, validated to `html`/`xhtml` at environment load; anything else warns and falls back to `html`), overridden per page by a `render_profile` frontmatter key; `--to xhtml` is appended only when the effective profile is `xhtml`, so the default invocation carries no `--to` flag and is byte-identical to the pre-XHTML contract. `--to` is rejected by Oliver on `serialize`/`scale`/`menu` |
-| Input | Markdown, **Textile, or Cooklang** on **stdin** — a leading YAML frontmatter block is stripped by **Oliver** (`oliver meta --from <fmt> --format json` extracts it; `oliver render` auto-strips when meta-capable, adapter `awk` remains as fallback until pin bump) |
+| Input | Markdown, **Textile, or Cooklang** on **stdin** — a leading YAML frontmatter block is stripped by **Oliver** (`oliver meta --from <fmt> --format json` extracts it; `oliver render` auto-strips) |
 | stdout | Rendered **body HTML fragment** (no full page wrapping) — an **XHTML fragment** under `--to xhtml` (no DOCTYPE, no document wrappers; see [XHTML output profile](#xhtml-output-profile-opt-in)) |
 | stderr | Non-fatal renderer warnings; forwarded through the adapter as warnings, never into the page body. Under `--to xhtml`, raw HTML fails closed on stderr with `error.RawHtmlNotXmlWellFormed` and an actionable hint, and the page aborts with exit 1 |
 | Exit 0 | Success |
 | Exit 1 | Render failure (e.g. missing input, or raw HTML under `--to xhtml`); page is aborted |
-| Version | Oliver's CLI is provisional and has no stable release yet, so Rotkeeper pins an exact source revision: CI and `scripts/setup.sh` install the binary published by the upstream rolling `builds` release and verify it reports exactly `commit <OLIVER_PIN>`; the Zig source build remains the fallback (the `OLIVER_PIN` variable in `setup.sh`). Moving the pin is a deliberate act — upgrade it, re-run the harness, and update this table. The pin moved 2026-08-15 from `c8a8e06` to `6edb520c` to adopt the upstream `builds` release (prebuilt binaries + published `sha256sums.txt`, download-first with checksum and `--version` commit verification), plus the `--version` stdout fix, GFM footnote reference/backref fixes, and the XHTML footnote-attribute serialization fix — Markdown/Textile/Cooklang parsing untouched, footnote/task-list literals remain out of scope. The prior move (2026-08-14) from `e314dbbe` to `c8a8e06` had picked up the XHTML output profile (`--to html\|xhtml`, oliver PR #54, `docs/XHTML.md`) — same semantics, different serialization bytes; Markdown/Textile/Cooklang parsing untouched, CommonMark 652/652 and Cooklang 60/60 gates unchanged — plus the audit fixes #55–#58 (NUL → U+FFFD under the XHTML profile, CLI subcommand grammar with `--to` render-only). The move before that (2026-08-13) from `22b3c779` to `e314dbbe` had added the Cooklang frontend (CK1) plus CK2–CK5. `preflight`'s live smoke render (in the configured format and profile) remains the behavioral safety net on top of the pin |
+| Version | Oliver's CLI is provisional and has no stable release yet, so Rotkeeper pins an exact source revision: CI and `scripts/setup.sh` install the binary published by the upstream rolling `builds` release and verify it reports exactly `commit <OLIVER_PIN>`; the Zig source build remains the fallback (the `OLIVER_PIN` variable in `setup.sh`). Moving the pin is a deliberate act — upgrade it, re-run the harness, and update this table. The pin moved 2026-08-21 from `9ad86a3` (`9ad86a3763b8bd2f227fd5da94be9fc8ea5fa5fc`) via `06dd640` (`06dd6403c505b4863a54c548c978e494b55eb759`) to land wrap fix #115 (PR #116, `wrap` parseArgs); the same-day move from `6edb520c` to `9ad86a3` landed Phase 6 S1+S2+S3+S4+S5 (`oliver meta` #107 `9ad86a3`, `wrap` #108, `render` links #109, `plan`+`manifest` #110) — frontmatter, template, link rewriting, output planning, manifest now Oliver-owned with Bash dispatch/env/packaging retained. The prior move (2026-08-15) from `c8a8e06` to `6edb520c` adopted the upstream `builds` release (prebuilt binaries + published `sha256sums.txt`, download-first with checksum and `--version` commit verification), plus the `--version` stdout fix, GFM footnote reference/backref fixes, and the XHTML footnote-attribute serialization fix — Markdown/Textile/Cooklang parsing untouched, footnote/task-list literals remain out of scope. The move before that (2026-08-14) from `e314dbbe` to `c8a8e06` had picked up the XHTML output profile (`--to html\|xhtml`, oliver PR #54, `docs/XHTML.md`) — same semantics, different serialization bytes; Markdown/Textile/Cooklang parsing untouched, CommonMark 652/652 and Cooklang 60/60 gates unchanged — plus the audit fixes #55–#58 (NUL → U+FFFD under the XHTML profile, CLI subcommand grammar with `--to` render-only). The move before that (2026-08-13) from `22b3c779` to `e314dbbe` had added the Cooklang frontend (CK1) plus CK2–CK5. `preflight`'s live smoke render (in the configured format and profile) remains the behavioral safety net on top of the pin |
 
-The binary is deliberately narrow: it converts Markdown, Textile, or Cooklang to a body fragment. **Phase 6 S1 (draft):** frontmatter extraction moves to Oliver (`oliver meta`); sidecars, templates, link rewriting, output planning remain in Bash until later slices.
+The binary is deliberately narrow: it converts Markdown, Textile, or Cooklang to a body fragment. **Phase 6 complete (S1 meta, S2 wrap, S3 links, S4 plan, S5 manifest):** frontmatter, template, link rewriting, output planning, manifest are Oliver-owned; Bash retains dispatch, environment, filesystem boundaries, orchestration, packaging.
 
 ## Rendered Markdown surface
 
@@ -76,7 +76,7 @@ Oliver ships an explicit, deterministic, XML-compatible XHTML serialization of t
 - **Fail-closed on raw HTML:** Markdown raw HTML (`.raw_html` and `.html_block` leaves, and Textile `pre.`) passes through verbatim under `html` but fails under `xhtml` with Oliver's typed `error.RawHtmlNotXmlWellFormed` and an actionable hint on stderr. Oliver never repairs, rewrites, or escapes raw HTML into fake XHTML, and the adapter surfaces the failure as ERROR + exit 1 for that page. A site flipping pages to XHTML must sweep its raw HTML first (the site's own docs historically contain raw HTML). The harness asserts both the fail-closed error path and XHTML well-formedness through an independent XML parser (`xmllint`) when a real Oliver binary is present.
 - **Cooklang:** the forced line break is the one byte delta (`<br>` → `<br />`); recipes render through the same profile mechanism.
 
-## Frontmatter — Phase 6 S1 (Oliver-owned with Bash fallback)
+## Frontmatter — Phase 6 S1 (Oliver-owned)
 
 Frontmatter is parsed by **Oliver** via `oliver meta --from <markdown|textile|cooklang> --format json < file.md` (stdin → stdout JSON). Example:
 
@@ -84,11 +84,11 @@ Frontmatter is parsed by **Oliver** via `oliver meta --from <markdown|textile|co
 oliver meta --from markdown --format json < file.md > meta.json  # {"title":"…","description":"…",…}
 oliver meta --from textile --format json < file.textile > meta.json
 oliver meta --from cooklang --format json < file.cook > meta.json
-# Render auto-strips the same block (no awk) when meta-capable:
+# Render auto-strips the same block:
 oliver render --from markdown < file.md > body.html
 ```
 
-The adapter (`rc-oliver-adapter.sh:76`) tries `oliver meta` first, validates JSON with `yq`, falls back to `yq --front-matter extract` on current pin `6edb520c` (which lacks `meta`). This keeps the slice green before the upstream bump. The fields Rotkeeper reads are:
+The fields Rotkeeper reads are:
 
 - `title`
 - `description`
@@ -134,7 +134,7 @@ Conditionals: `$if(name)$ … $endif$` for `title`, `description`, `author`, `da
 - Order of operations: all `$if$` blocks are resolved first, then the literal token substitution runs.
 - Any unrecognized `$word$` token passes through to the output verbatim; it is not an error.
 
-This dialect — seven tokens, five conditional gates, escape/raw split — is **Phase 6 S2**: **Oliver `wrap` is authoritative; adapter tries `oliver wrap --template <file> --meta-json <json> --assets-root <prefix> --body <file>` then falls back to GAWK on pin `6edb520c`**. Example:
+This dialect — seven tokens, five conditional gates, escape/raw split — is **Phase 6 S2**: **Oliver `wrap --template <file> --meta-json <json> --assets-root <prefix> --body <file>` is authoritative (direct on pin `06dd640`, wrap fix #115)**. Example:
 
 ```bash
 oliver wrap --template bones/templates/theme-spooky-dark.html \
@@ -150,18 +150,18 @@ A `.soul.md` sidecar next to a source file (under `bones/meta`) may override fro
 
 ## The adapter boundary (temporary, recorded)
 
-`rc-oliver-adapter.sh` is a pure Bash + GAWK + YQ batch adapter (zero Python). It currently owns:
+`rc-oliver-adapter.sh` is a pure Bash batch adapter (zero Python). It currently owns:
 
 1. Batch manifest (`TSV`) iteration with boundary assertions (source under content, destination under output).
-2. Frontmatter extraction and sidecar merge — **S1: Oliver `meta` is authoritative; adapter tries `oliver meta --from <fmt> --format json` then falls back to `yq --front-matter extract` on pin `6edb520c`; stripping via `awk` remains until `oliver render` auto-strips**.
-3. Template resolution — **Bash retains `TEMPLATE_DIR` boundary; Oliver `wrap` receives canonical path**.
+2. Frontmatter extraction and sidecar merge — **S1: Oliver `meta --from <fmt> --format json` extracts 7 scalar fields; `oliver render` auto-strips**.
+3. Template resolution — **Bash retains `TEMPLATE_DIR` boundary; Oliver `wrap --template <file> --meta-json <json> --assets-root <prefix> --body <file>` interpolates**.
 4. Oliver invocation and stderr forwarding (including the `--to xhtml` flag when the effective `render_profile` is `xhtml`).
-5. Internal `.md`/`.textile`/`.cook` → `.html` link rewriting — **S3: Oliver `render` is authoritative (AST-level `*.md|*.textile|*.cook` → `*.html`, fragment/query preserved, angle-bracket stripped, external/`mailto:` skipped); adapter probes `printf '[x](foo.md)' | oliver render --from markdown | grep foo.html` and skips GAWK when true, else GAWK fallback on pin `6edb520c`**.
-6. Template interpolation — **S2: Oliver `wrap` is authoritative; adapter tries `oliver wrap --template <file> --meta-json <json> --assets-root <prefix> --body <file>` then falls back to GAWK on pin `6edb520c`**.
+5. Internal `.md`/`.textile`/`.cook` → `.html` link rewriting — **S3: Oliver `render` AST rewrites `*.md|*.textile|*.cook` → `*.html`**.
+6. Template interpolation — **S2: Oliver `wrap` handles 7 tokens + `html_escape` + `$if$`/`$endif$`**.
 
-`rc-render.sh` owns output planning. **S4: Oliver `plan` is authoritative for `content → output` mapping (`*.md|*.textile|*.cook` discovery, `foo.md/textile/cook → foo.html`, basename collision abort, `ASSETS_ROOT` `rk_up_dirs`, `soul` derivation); `rc-render.sh` tries `oliver plan --content-dir <dir> --output-dir <dir> --template-dir <dir> --meta-dir <dir> --default-template <file> --oliver-bin <bin> --root-dir <dir> --dry-run <bool> --verbose <bool>` then falls back to Bash `find`/`strip_source_ext` on pin `6edb520c`**.
+`rc-render.sh` owns output planning. **S4: Oliver `plan --content-dir <dir> --output-dir <dir> --template-dir <dir> --meta-dir <dir> --default-template <file> --oliver-bin <bin> --root-dir <dir> --dry-run <bool> --verbose <bool>` maps `content → output`**.
 
-`rc-render.sh` `log_manifest` owns manifest. **S5: Oliver `manifest` is authoritative for `bones/manifest.txt` (`--manifest <file> --add <rel>` with dedup, `--verify`); `rc-render.sh` tries `oliver manifest --manifest <file> --add <rel>` then falls back to `grep -Fxq`/`echo` on pin `6edb520c`**.
+`rc-render.sh` `log_manifest` owns manifest. **S5: Oliver `manifest --manifest <file> --add <rel>` (dedup) + `--verify` for `bones/manifest.txt`**.
 
 Per the stabilization roadmap, these responsibilities are candidates for incremental movement into Oliver only after the contract above is stable. Bash keeps dispatch, environment setup, filesystem boundaries (`rk_canonical_path`, `is_within_boundary`, `validate_layout_alignment`, `output_is_generated`), orchestration, and packaging. **S1+S2+S3+S4+S5 complete Phase 6; Bash retains dispatch/env/packaging.**
 

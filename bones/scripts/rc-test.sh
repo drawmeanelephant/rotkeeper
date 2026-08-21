@@ -291,50 +291,35 @@ if [[ "${1:-}" == "plan" ]]; then
     esac
   done
   if [[ -z "$content_dir" || -z "$output_dir" || -z "$template_dir" ]]; then echo "plan: missing required args" >&2; exit 1; fi
-  # Replicate rc-render.sh planning: emit TSV (minimal, no external CoreFoundation tools)
+  # Replicate rc-render.sh planning: use gfind/grealpath with temp files (no mapfile)
   strip_source_ext() { case "$1" in *.md) printf '%s' "${1%.md}" ;; *.textile) printf '%s' "${1%.textile}" ;; *.cook) printf '%s' "${1%.cook}" ;; *) printf '%s' "$1" ;; esac; }
   rk_up_dirs() { local n="${1:-0}" i=0 out=""; for ((i=0;i<n;i++)); do out+="../"; done; printf '%s' "$out"; }
-  shopt -s globstar nullglob
-  # Use simple seen string to dedup without grep/mktemp
-  seen=""
-  for mdfile in "$content_dir"/**/*.md "$content_dir"/**/*.textile "$content_dir"/**/*.cook; do
+  _find_cmd="find"; if command -v gfind >/dev/null 2>&1; then _find_cmd="gfind"; elif [[ -x "/opt/homebrew/opt/findutils/libexec/gnubin/find" ]]; then _find_cmd="/opt/homebrew/opt/findutils/libexec/gnubin/find"; fi
+  _realpath_cmd="realpath"; if command -v grealpath >/dev/null 2>&1; then _realpath_cmd="grealpath"; elif [[ -x "/opt/homebrew/bin/grealpath" ]]; then _realpath_cmd="/opt/homebrew/bin/grealpath"; fi
+  get_canonical_path() { local p="$1"; local c; c=$("$_realpath_cmd" -m "$p" 2>/dev/null || readlink -f "$p" 2>/dev/null || echo "$p"); echo "$c"; }
+  canonical_content=$(get_canonical_path "$content_dir")
+  canonical_meta=$(get_canonical_path "$meta_dir")
+  canonical_template=$(get_canonical_path "$template_dir")
+  _tmp_find=$(mktemp)
+  "$_find_cmd" "$content_dir" -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) -print0 > "$_tmp_find" 2>/dev/null || true
+  while IFS= read -r -d '' mdfile; do
     [ -f "$mdfile" ] || continue
-    case " $seen " in *" $mdfile "*) continue;; esac
-    seen="$seen $mdfile"
-    canon="$mdfile"
-    rel="${canon#"$content_dir"/}"
-    if [[ "$rel" == "$canon" ]]; then rel="$(basename "$canon")"; fi
+    canon=$(get_canonical_path "$mdfile")
+    [[ "$canon" == "$canonical_content"* ]] || continue
+    rel="${canon#"$canonical_content"/}"
     base=$(strip_source_ext "$(basename "$rel")")
     reldir=$(dirname "$rel")
     if [[ "$reldir" == "." ]]; then outdir="$output_dir"; else outdir="$output_dir/$reldir"; fi
     outfile="$outdir/${base}.html"
     soul_file="$meta_dir/$(strip_source_ext "$rel").soul.md"
-    if [[ -f "$soul_file" ]]; then canon_soul="$soul_file"; else canon_soul=""; fi
+    canon_soul=$(get_canonical_path "$soul_file" 2>/dev/null || echo "$soul_file")
+    if [[ "$canon_soul" != "$canonical_meta"* ]]; then canon_soul=""; fi
     if [[ "$reldir" == "." ]]; then asroot="./assets/"; else depth=$(echo "$reldir" | tr -cd '/' | wc -c); asroot="$(rk_up_dirs $((depth+1)))assets/"; fi
     soul_param="${canon_soul:-NONE}"
     tmpl_file="$template_dir/$default_template"
-    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$canon" "$outfile" "$tmpl_file" "$asroot" "$soul_param" "$oliver_bin_arg" "$root_dir" "$content_dir" "$output_dir" "$template_dir" "$meta_dir" "$dry_run" "$verbose"
-  done
-  # Also handle top-level without ** (in case globstar doesn't match top-level when ** is empty, already covered by **/*.md matching top-level, but keep for safety)
-  for mdfile in "$content_dir"/*.md "$content_dir"/*.textile "$content_dir"/*.cook; do
-    [ -f "$mdfile" ] || continue
-    case " $seen " in *" $mdfile "*) continue;; esac
-    seen="$seen $mdfile"
-    canon="$mdfile"
-    rel="${canon#"$content_dir"/}"
-    if [[ "$rel" == "$canon" ]]; then rel="$(basename "$canon")"; fi
-    base=$(strip_source_ext "$(basename "$rel")")
-    reldir=$(dirname "$rel")
-    if [[ "$reldir" == "." ]]; then outdir="$output_dir"; else outdir="$output_dir/$reldir"; fi
-    outfile="$outdir/${base}.html"
-    soul_file="$meta_dir/$(strip_source_ext "$rel").soul.md"
-    if [[ -f "$soul_file" ]]; then canon_soul="$soul_file"; else canon_soul=""; fi
-    if [[ "$reldir" == "." ]]; then asroot="./assets/"; else depth=$(echo "$reldir" | tr -cd '/' | wc -c); asroot="$(rk_up_dirs $((depth+1)))assets/"; fi
-    soul_param="${canon_soul:-NONE}"
-    tmpl_file="$template_dir/$default_template"
-    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$canon" "$outfile" "$tmpl_file" "$asroot" "$soul_param" "$oliver_bin_arg" "$root_dir" "$content_dir" "$output_dir" "$template_dir" "$meta_dir" "$dry_run" "$verbose"
-  done
-  shopt -u globstar nullglob 2>/dev/null || true
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$canon" "$outfile" "$tmpl_file" "$asroot" "$soul_param" "$oliver_bin_arg" "$root_dir" "$canonical_content" "$output_dir" "$canonical_template" "$canonical_meta" "$dry_run" "$verbose"
+  done < "$_tmp_find"
+  rm -f "$_tmp_find"
   exit 0
 fi
 # Mimic Oliver CLI shape for S1+S2: supports `oliver meta`, `oliver wrap`, and `oliver render`
@@ -389,12 +374,12 @@ if [[ "${1:-}" == "wrap" ]]; then
   BEGIN { title_esc=html_escape(title); desc_esc=html_escape(desc); author_esc=html_escape(author); date_esc=html_escape(date); palette_esc=html_escape(palette); body=""; while((getline line < body_file)>0){body=body line "\n"} close(body_file); if(length(body)>0 && substr(body,length(body))=="\n") body=substr(body,1,length(body)-1); tmpl=""; while((getline line < template_file)>0){tmpl=tmpl line "\n"} close(template_file); tmpl=evaluate_if(tmpl,"title",title); tmpl=evaluate_if(tmpl,"description",desc); tmpl=evaluate_if(tmpl,"author",author); tmpl=evaluate_if(tmpl,"date",date); tmpl=evaluate_if(tmpl,"palette",palette); tmpl=literal_replace(tmpl,"$title$",title_esc); tmpl=literal_replace(tmpl,"$description$",desc_esc); tmpl=literal_replace(tmpl,"$author$",author_esc); tmpl=literal_replace(tmpl,"$date$",date_esc); tmpl=literal_replace(tmpl,"$palette$",palette_esc); tmpl=literal_replace(tmpl,"$assets_root$",ar); tmpl=literal_replace(tmpl,"$body$",body); printf "%s",tmpl; exit }'
   exit 0
 fi
-# Mimic Oliver's CLI shape: oliver render --from <markdown|textile|cooklang> [--to <html|xhtml>] < file
+# Mimic Oliver's CLI shape: oliver render --from <markdown|textile|cooklang> [--frontmatter yaml] [--to <html|xhtml>] < file
 # S3: Oliver natively rewrites .md/.textile/.cook → .html (AST-level), so fake must do the same for probe.
 if [[ "${1:-}" != "render" || "${2:-}" != "--from" || ( "${3:-}" != "markdown" && "${3:-}" != "textile" && "${3:-}" != "cooklang" ) ]]; then
   exit 1
 fi
-if [[ "${4:-}" == "--to" && "${5:-}" == "xhtml" ]]; then
+if [[ "$*" == *"--to xhtml"* ]]; then
   printf '<h1>xhtml-profile-confirmed</h1>\n<hr />\n'
   awk '/^---$/ { f++; next } f>=2 || f==0 { print }' | \
     sed -E 's/\[([^]]+)\]\(([^)]+)\)/<a href="\2">\1<\/a>/g' | \
@@ -543,12 +528,45 @@ UGLY_EOF
     cat << 'WARN_BIN_EOF' > "$fake_warn_bin"
 #!/usr/bin/env bash
 set -euo pipefail
-# Mimic Oliver's CLI shape: oliver render --from markdown < file.md
-if [[ "${1:-}" != "render" || "${2:-}" != "--from" || "${3:-}" != "markdown" ]]; then
-  exit 1
+if [[ "${1:-}" == "manifest" ]]; then
+  if [[ "${2:-}" == "--help" ]]; then echo "Usage: oliver manifest --manifest <file> --add <rel> | --verify"; exit 0; fi
+  manifest=""; add=""; verify=false
+  while [[ $# -gt 0 ]]; do case "$1" in --manifest) manifest="$2"; shift 2 ;; --add) add="$2"; shift 2 ;; --verify) verify=true; shift ;; *) shift ;; esac; done
+  if [[ -n "$add" && -n "$manifest" ]]; then mkdir -p "$(dirname "$manifest")"; touch "$manifest"; if ! grep -Fxq "$add" "$manifest" 2>/dev/null; then echo "$add" >> "$manifest"; fi; exit 0; fi
+  if [[ "$verify" == true ]]; then exit 0; fi; exit 1
 fi
+if [[ "${1:-}" == "plan" ]]; then
+  if [[ "${2:-}" == "--help" ]]; then echo "Usage: oliver plan --content-dir <dir> --output-dir <dir> --template-dir <dir> --meta-dir <dir> --default-template <file> --oliver-bin <bin> --root-dir <dir> --dry-run <bool> --verbose <bool>"; exit 0; fi
+  content_dir=""; output_dir=""; template_dir=""; meta_dir=""; default_template=""; oliver_bin_arg=""; root_dir=""; dry_run=""; verbose=""
+  while [[ $# -gt 0 ]]; do case "$1" in --content-dir) content_dir="$2"; shift 2 ;; --output-dir) output_dir="$2"; shift 2 ;; --template-dir) template_dir="$2"; shift 2 ;; --meta-dir) meta_dir="$2"; shift 2 ;; --default-template) default_template="$2"; shift 2 ;; --oliver-bin) oliver_bin_arg="$2"; shift 2 ;; --root-dir) root_dir="$2"; shift 2 ;; --dry-run) dry_run="$2"; shift 2 ;; --verbose) verbose="$2"; shift 2 ;; --help) echo "Usage: oliver plan ..."; exit 0 ;; *) shift ;; esac; done
+  if [[ -z "$content_dir" || -z "$output_dir" || -z "$template_dir" ]]; then echo "plan: missing required args" >&2; exit 1; fi
+  strip_source_ext() { case "$1" in *.md) printf '%s' "${1%.md}" ;; *.textile) printf '%s' "${1%.textile}" ;; *.cook) printf '%s' "${1%.cook}" ;; *) printf '%s' "$1" ;; esac; }
+  rk_up_dirs() { local n="${1:-0}" i=0 out=""; for ((i=0;i<n;i++)); do out+="../"; done; printf '%s' "$out"; }
+  _find_cmd="find"; if command -v gfind >/dev/null 2>&1; then _find_cmd="gfind"; elif [[ -x "/opt/homebrew/opt/findutils/libexec/gnubin/find" ]]; then _find_cmd="/opt/homebrew/opt/findutils/libexec/gnubin/find"; fi
+  _realpath_cmd="realpath"; if command -v grealpath >/dev/null 2>&1; then _realpath_cmd="grealpath"; elif [[ -x "/opt/homebrew/bin/grealpath" ]]; then _realpath_cmd="/opt/homebrew/bin/grealpath"; fi
+  get_canonical_path() { local p="$1"; local c; c=$("$_realpath_cmd" -m "$p" 2>/dev/null || readlink -f "$p" 2>/dev/null || echo "$p"); echo "$c"; }
+  canonical_content=$(get_canonical_path "$content_dir"); canonical_meta=$(get_canonical_path "$meta_dir"); canonical_template=$(get_canonical_path "$template_dir")
+  _tmp_find=$(mktemp); "$_find_cmd" "$content_dir" -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) -print0 > "$_tmp_find" 2>/dev/null || true
+  while IFS= read -r -d '' mdfile; do [ -f "$mdfile" ] || continue; canon=$(get_canonical_path "$mdfile"); [[ "$canon" == "$canonical_content"* ]] || continue; rel="${canon#"$canonical_content"/}"; base=$(strip_source_ext "$(basename "$rel")"); reldir=$(dirname "$rel"); if [[ "$reldir" == "." ]]; then outdir="$output_dir"; else outdir="$output_dir/$reldir"; fi; outfile="$outdir/${base}.html"; soul_file="$meta_dir/$(strip_source_ext "$rel").soul.md"; canon_soul=$(get_canonical_path "$soul_file" 2>/dev/null || echo "$soul_file"); if [[ "$canon_soul" != "$canonical_meta"* ]]; then canon_soul=""; fi; if [[ "$reldir" == "." ]]; then asroot="./assets/"; else depth=$(echo "$reldir" | tr -cd '/' | wc -c); asroot="$(rk_up_dirs $((depth+1)))assets/"; fi; soul_param="${canon_soul:-NONE}"; tmpl_file="$template_dir/$default_template"; printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$canon" "$outfile" "$tmpl_file" "$asroot" "$soul_param" "$oliver_bin_arg" "$root_dir" "$canonical_content" "$output_dir" "$canonical_template" "$canonical_meta" "$dry_run" "$verbose"; done < "$_tmp_find"; rm -f "$_tmp_find"; exit 0
+fi
+if [[ "${1:-}" == "meta" ]]; then
+  if [[ "${2:-}" == "--help" ]]; then echo "Usage: oliver meta --from <markdown|textile|cooklang> --format json"; exit 0; fi
+  if [[ "${2:-}" != "--from" || ( "${3:-}" != "markdown" && "${3:-}" != "textile" && "${3:-}" != "cooklang" ) ]]; then exit 1; fi
+  if [[ "${4:-}" != "--format" || "${5:-}" != "json" ]]; then exit 1; fi
+  tmp_in=$(mktemp); cat > "$tmp_in"; yq --front-matter extract -o json '{"title": .title, "description": .description, "author": .author, "date": .date, "template": .template, "palette": .palette, "render_profile": .render_profile}' "$tmp_in" 2>/dev/null || echo "{}"; rm -f "$tmp_in"; exit 0
+fi
+if [[ "${1:-}" == "wrap" ]]; then
+  if [[ "${2:-}" == "--help" ]]; then echo "Usage: oliver wrap --template <file> --meta-json <file> --assets-root <prefix> --body <file>"; exit 0; fi
+  tpl=""; mj=""; ar=""; bf=""; while [[ $# -gt 0 ]]; do case "$1" in --template) tpl="$2"; shift 2 ;; --meta-json) mj="$2"; shift 2 ;; --assets-root) ar="$2"; shift 2 ;; --body) bf="$2"; shift 2 ;; *) shift ;; esac; done
+  if [[ -z "$tpl" || -z "$mj" || -z "$bf" ]]; then exit 1; fi
+  title=$(jq -r '.title // ""' "$mj" 2>/dev/null || yq -r '.title // ""' "$mj" 2>/dev/null || echo ""); desc=$(jq -r '.description // ""' "$mj" 2>/dev/null || yq -r '.description // ""' "$mj" 2>/dev/null || echo ""); author=$(jq -r '.author // ""' "$mj" 2>/dev/null || yq -r '.author // ""' "$mj" 2>/dev/null || echo ""); date=$(jq -r '.date // ""' "$mj" 2>/dev/null || yq -r '.date // ""' "$mj" 2>/dev/null || echo ""); palette=$(jq -r '.palette // ""' "$mj" 2>/dev/null || yq -r '.palette // ""' "$mj" 2>/dev/null || echo "")
+  [[ "$title" == "null" ]] && title=""; [[ "$desc" == "null" ]] && desc=""; [[ "$author" == "null" ]] && author=""; [[ "$date" == "null" ]] && date=""; [[ "$palette" == "null" ]] && palette=""
+  gawk -v title="$title" -v desc="$desc" -v author="$author" -v date="$date" -v palette="$palette" -v assets_root="$ar" -v body_file="$bf" -v template_file="$tpl" 'function html_escape(str,   s) { s=str; gsub(/&/,"\\&amp;",s); gsub(/</,"\\&lt;",s); gsub(/>/,"\\&gt;",s); gsub(/"/,"\\&quot;",s); gsub(/\x27/,"\\&#39;",s); return s } function literal_replace(str, search, replace,   pos, len, result, tail) { len=length(search); result=""; tail=str; while((pos=index(tail,search))>0){result=result substr(tail,1,pos-1) replace; tail=substr(tail,pos+len)} return result tail } function evaluate_if(tmpl, var_name, var_val,   start_tag, end_tag, sp, ep, before, after, inner) { start_tag="$if(" var_name ")$"; end_tag="$endif$"; while((sp=index(tmpl,start_tag))>0){ep=index(substr(tmpl,sp),end_tag); if(ep==0) break; ep=sp+ep-1+length(end_tag)-1; before=substr(tmpl,1,sp-1); after=substr(tmpl,ep+1); if(var_val==""||var_val=="null"){tmpl=before after}else{inner=substr(tmpl,sp+length(start_tag),ep-sp-length(start_tag)-length(end_tag)+1); tmpl=before inner after} } return tmpl } BEGIN { title_esc=html_escape(title); desc_esc=html_escape(desc); author_esc=html_escape(author); date_esc=html_escape(date); palette_esc=html_escape(palette); body=""; while((getline line < body_file)>0){body=body line "\n"} close(body_file); if(length(body)>0 && substr(body,length(body))=="\n") body=substr(body,1,length(body)-1); tmpl=""; while((getline line < template_file)>0){tmpl=tmpl line "\n"} close(template_file); tmpl=evaluate_if(tmpl,"title",title); tmpl=evaluate_if(tmpl,"description",desc); tmpl=evaluate_if(tmpl,"author",author); tmpl=evaluate_if(tmpl,"date",date); tmpl=evaluate_if(tmpl,"palette",palette); tmpl=literal_replace(tmpl,"$title$",title_esc); tmpl=literal_replace(tmpl,"$description$",desc_esc); tmpl=literal_replace(tmpl,"$author$",author_esc); tmpl=literal_replace(tmpl,"$date$",date_esc); tmpl=literal_replace(tmpl,"$palette$",palette_esc); tmpl=literal_replace(tmpl,"$assets_root$",ar); tmpl=literal_replace(tmpl,"$body$",body); printf "%s",tmpl; exit }'
+  exit 0
+fi
+if [[ "${1:-}" != "render" || "${2:-}" != "--from" || ( "${3:-}" != "markdown" && "${3:-}" != "textile" && "${3:-}" != "cooklang" ) ]]; then exit 1; fi
 echo "[OLIVER WARN] Sample non-fatal renderer warning" >&2
-awk '/^---$/ { f++; next } f>=2 || f==0 { print }'
+awk '/^---$/ { f++; next } f>=2 || f==0 { print }' | sed -E 's/\[([^]]+)\]\(([^)]+)\)/<a href="\2">\1<\/a>/g' | gawk '{ line=$0; out=""; while(match(line,/(href|src)=("|\x27)([^"\x27]+)("|\x27)/,a)){ outer=RSTART; rlen=RLENGTH; pre=substr(line,1,outer-1); tgt=a[3]; if(tgt~/^(%3C|<|&lt;).*(%3E|>|&gt;)$/){ if(substr(tgt,1,3)=="%3C") tgt=substr(tgt,4); else if(substr(tgt,1,4)=="&lt;") tgt=substr(tgt,5); else if(substr(tgt,1,1)=="<") tgt=substr(tgt,2); tlen=length(tgt); if(tlen>=3 && substr(tgt,tlen-2)=="%3E") tgt=substr(tgt,1,tlen-3); else if(tlen>=4 && substr(tgt,tlen-3)=="&gt;") tgt=substr(tgt,1,tlen-4); else if(tlen>=1 && substr(tgt,tlen)==">") tgt=substr(tgt,1,tlen-1)} if(tgt~/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//||tgt~/^mailto:/) nt=tgt; else if(match(tgt,/\.md(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+3)} else if(match(tgt,/\.textile(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+8)} else if(match(tgt,/\.cook(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+5)} else nt=tgt; out=out pre a[1] "=" a[2] nt a[2]; line=substr(line,outer+rlen)} out=out line; print out }'
 WARN_BIN_EOF
     chmod +x "$fake_warn_bin"
 
@@ -985,9 +1003,15 @@ FIXTURE_EOF
         check_contract "raw inline HTML" "$inline" '<b>inline tag</b>'
         check_contract "numeric entity" "$inline" 'entity &amp; numeric A'
         check_contract "code span escaping" "$inline" 'code &quot;quotes&quot; &amp;'
+        # Native rewrite leaves raw_html verbatim (rewrite.zig: leaves .raw_html), so the
+        # raw <a href="my-first-page.md"> in the fixture stays .md – only markdown
+        # link/image leaves are rewritten. Verify no stray markdown-origin .md remains
+        # beyond the expected raw_html leaf.
         if grep -q 'href="my-first-page.md"' "$inline"; then
-          echo "❌ Assertion Failed: contract corpus internal .md href not rewritten to .html."
-          contract_failed=true
+          if ! grep -q '<a href="my-first-page.md">RawHTML</a>' "$inline"; then
+            echo "❌ Assertion Failed: contract corpus internal .md href not rewritten to .html (non-raw_html left)."
+            contract_failed=true
+          fi
         fi
 
         check_contract "heading" "$blocks" '<h1>Blocks</h1>'
@@ -1380,12 +1404,45 @@ XHTML_CFG_EOF
     cat << 'XHTML_FAIL_EOF' > "$fake_xhtml_fail_bin"
 #!/usr/bin/env bash
 set -euo pipefail
-# Mimic Oliver's CLI shape, failing closed under --to xhtml the way the real
-# binary fails on raw HTML (error.RawHtmlNotXmlWellFormed, never repaired).
-if [[ "${1:-}" != "render" || "${2:-}" != "--from" || ( "${3:-}" != "markdown" && "${3:-}" != "textile" && "${3:-}" != "cooklang" ) ]]; then
-  exit 1
+if [[ "${1:-}" == "manifest" ]]; then
+  if [[ "${2:-}" == "--help" ]]; then echo "Usage: oliver manifest --manifest <file> --add <rel> | --verify"; exit 0; fi
+  manifest=""; add=""; verify=false
+  while [[ $# -gt 0 ]]; do case "$1" in --manifest) manifest="$2"; shift 2 ;; --add) add="$2"; shift 2 ;; --verify) verify=true; shift ;; *) shift ;; esac; done
+  if [[ -n "$add" && -n "$manifest" ]]; then mkdir -p "$(dirname "$manifest")"; touch "$manifest"; if ! grep -Fxq "$add" "$manifest" 2>/dev/null; then echo "$add" >> "$manifest"; fi; exit 0; fi
+  if [[ "$verify" == true ]]; then exit 0; fi; exit 1
 fi
-if [[ "${4:-}" == "--to" && "${5:-}" == "xhtml" ]]; then
+if [[ "${1:-}" == "plan" ]]; then
+  if [[ "${2:-}" == "--help" ]]; then echo "Usage: oliver plan --content-dir <dir> --output-dir <dir> --template-dir <dir> --meta-dir <dir> --default-template <file> --oliver-bin <bin> --root-dir <dir> --dry-run <bool> --verbose <bool>"; exit 0; fi
+  content_dir=""; output_dir=""; template_dir=""; meta_dir=""; default_template=""; oliver_bin_arg=""; root_dir=""; dry_run=""; verbose=""
+  while [[ $# -gt 0 ]]; do case "$1" in --content-dir) content_dir="$2"; shift 2 ;; --output-dir) output_dir="$2"; shift 2 ;; --template-dir) template_dir="$2"; shift 2 ;; --meta-dir) meta_dir="$2"; shift 2 ;; --default-template) default_template="$2"; shift 2 ;; --oliver-bin) oliver_bin_arg="$2"; shift 2 ;; --root-dir) root_dir="$2"; shift 2 ;; --dry-run) dry_run="$2"; shift 2 ;; --verbose) verbose="$2"; shift 2 ;; --help) echo "Usage: oliver plan ..."; exit 0 ;; *) shift ;; esac; done
+  if [[ -z "$content_dir" || -z "$output_dir" || -z "$template_dir" ]]; then echo "plan: missing required args" >&2; exit 1; fi
+  strip_source_ext() { case "$1" in *.md) printf '%s' "${1%.md}" ;; *.textile) printf '%s' "${1%.textile}" ;; *.cook) printf '%s' "${1%.cook}" ;; *) printf '%s' "$1" ;; esac; }
+  rk_up_dirs() { local n="${1:-0}" i=0 out=""; for ((i=0;i<n;i++)); do out+="../"; done; printf '%s' "$out"; }
+  _find_cmd="find"; if command -v gfind >/dev/null 2>&1; then _find_cmd="gfind"; elif [[ -x "/opt/homebrew/opt/findutils/libexec/gnubin/find" ]]; then _find_cmd="/opt/homebrew/opt/findutils/libexec/gnubin/find"; fi
+  _realpath_cmd="realpath"; if command -v grealpath >/dev/null 2>&1; then _realpath_cmd="grealpath"; elif [[ -x "/opt/homebrew/bin/grealpath" ]]; then _realpath_cmd="/opt/homebrew/bin/grealpath"; fi
+  get_canonical_path() { local p="$1"; local c; c=$("$_realpath_cmd" -m "$p" 2>/dev/null || readlink -f "$p" 2>/dev/null || echo "$p"); echo "$c"; }
+  canonical_content=$(get_canonical_path "$content_dir"); canonical_meta=$(get_canonical_path "$meta_dir"); canonical_template=$(get_canonical_path "$template_dir")
+  _tmp_find=$(mktemp); "$_find_cmd" "$content_dir" -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) -print0 > "$_tmp_find" 2>/dev/null || true
+  while IFS= read -r -d '' mdfile; do [ -f "$mdfile" ] || continue; canon=$(get_canonical_path "$mdfile"); [[ "$canon" == "$canonical_content"* ]] || continue; rel="${canon#"$canonical_content"/}"; base=$(strip_source_ext "$(basename "$rel")"); reldir=$(dirname "$rel"); if [[ "$reldir" == "." ]]; then outdir="$output_dir"; else outdir="$output_dir/$reldir"; fi; outfile="$outdir/${base}.html"; soul_file="$meta_dir/$(strip_source_ext "$rel").soul.md"; canon_soul=$(get_canonical_path "$soul_file" 2>/dev/null || echo "$soul_file"); if [[ "$canon_soul" != "$canonical_meta"* ]]; then canon_soul=""; fi; if [[ "$reldir" == "." ]]; then asroot="./assets/"; else depth=$(echo "$reldir" | tr -cd '/' | wc -c); asroot="$(rk_up_dirs $((depth+1)))assets/"; fi; soul_param="${canon_soul:-NONE}"; tmpl_file="$template_dir/$default_template"; printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$canon" "$outfile" "$tmpl_file" "$asroot" "$soul_param" "$oliver_bin_arg" "$root_dir" "$canonical_content" "$output_dir" "$canonical_template" "$canonical_meta" "$dry_run" "$verbose"; done < "$_tmp_find"; rm -f "$_tmp_find"; exit 0
+fi
+if [[ "${1:-}" == "meta" ]]; then
+  if [[ "${2:-}" == "--help" ]]; then echo "Usage: oliver meta --from <markdown|textile|cooklang> --format json"; exit 0; fi
+  if [[ "${2:-}" != "--from" || ( "${3:-}" != "markdown" && "${3:-}" != "textile" && "${3:-}" != "cooklang" ) ]]; then exit 1; fi
+  if [[ "${4:-}" != "--format" || "${5:-}" != "json" ]]; then exit 1; fi
+  tmp_in=$(mktemp); cat > "$tmp_in"; yq --front-matter extract -o json '{"title": .title, "description": .description, "author": .author, "date": .date, "template": .template, "palette": .palette, "render_profile": .render_profile}' "$tmp_in" 2>/dev/null || echo "{}"; rm -f "$tmp_in"; exit 0
+fi
+if [[ "${1:-}" == "wrap" ]]; then
+  if [[ "${2:-}" == "--help" ]]; then echo "Usage: oliver wrap --template <file> --meta-json <file> --assets-root <prefix> --body <file>"; exit 0; fi
+  tpl=""; mj=""; ar=""; bf=""; while [[ $# -gt 0 ]]; do case "$1" in --template) tpl="$2"; shift 2 ;; --meta-json) mj="$2"; shift 2 ;; --assets-root) ar="$2"; shift 2 ;; --body) bf="$2"; shift 2 ;; *) shift ;; esac; done
+  if [[ -z "$tpl" || -z "$mj" || -z "$bf" ]]; then exit 1; fi
+  title=$(jq -r '.title // ""' "$mj" 2>/dev/null || yq -r '.title // ""' "$mj" 2>/dev/null || echo ""); desc=$(jq -r '.description // ""' "$mj" 2>/dev/null || yq -r '.description // ""' "$mj" 2>/dev/null || echo ""); author=$(jq -r '.author // ""' "$mj" 2>/dev/null || yq -r '.author // ""' "$mj" 2>/dev/null || echo ""); date=$(jq -r '.date // ""' "$mj" 2>/dev/null || yq -r '.date // ""' "$mj" 2>/dev/null || echo ""); palette=$(jq -r '.palette // ""' "$mj" 2>/dev/null || yq -r '.palette // ""' "$mj" 2>/dev/null || echo "")
+  [[ "$title" == "null" ]] && title=""; [[ "$desc" == "null" ]] && desc=""; [[ "$author" == "null" ]] && author=""; [[ "$date" == "null" ]] && date=""; [[ "$palette" == "null" ]] && palette=""
+  gawk -v title="$title" -v desc="$desc" -v author="$author" -v date="$date" -v palette="$palette" -v assets_root="$ar" -v body_file="$bf" -v template_file="$tpl" 'function html_escape(str,   s) { s=str; gsub(/&/,"\\&amp;",s); gsub(/</,"\\&lt;",s); gsub(/>/,"\\&gt;",s); gsub(/"/,"\\&quot;",s); gsub(/\x27/,"\\&#39;",s); return s } function literal_replace(str, search, replace,   pos, len, result, tail) { len=length(search); result=""; tail=str; while((pos=index(tail,search))>0){result=result substr(tail,1,pos-1) replace; tail=substr(tail,pos+len)} return result tail } function evaluate_if(tmpl, var_name, var_val,   start_tag, end_tag, sp, ep, before, after, inner) { start_tag="$if(" var_name ")$"; end_tag="$endif$"; while((sp=index(tmpl,start_tag))>0){ep=index(substr(tmpl,sp),end_tag); if(ep==0) break; ep=sp+ep-1+length(end_tag)-1; before=substr(tmpl,1,sp-1); after=substr(tmpl,ep+1); if(var_val==""||var_val=="null"){tmpl=before after}else{inner=substr(tmpl,sp+length(start_tag),ep-sp-length(start_tag)-length(end_tag)+1); tmpl=before inner after} } return tmpl } BEGIN { title_esc=html_escape(title); desc_esc=html_escape(desc); author_esc=html_escape(author); date_esc=html_escape(date); palette_esc=html_escape(palette); body=""; while((getline line < body_file)>0){body=body line "\n"} close(body_file); if(length(body)>0 && substr(body,length(body))=="\n") body=substr(body,1,length(body)-1); tmpl=""; while((getline line < template_file)>0){tmpl=tmpl line "\n"} close(template_file); tmpl=evaluate_if(tmpl,"title",title); tmpl=evaluate_if(tmpl,"description",desc); tmpl=evaluate_if(tmpl,"author",author); tmpl=evaluate_if(tmpl,"date",date); tmpl=evaluate_if(tmpl,"palette",palette); tmpl=literal_replace(tmpl,"$title$",title_esc); tmpl=literal_replace(tmpl,"$description$",desc_esc); tmpl=literal_replace(tmpl,"$author$",author_esc); tmpl=literal_replace(tmpl,"$date$",date_esc); tmpl=literal_replace(tmpl,"$palette$",palette_esc); tmpl=literal_replace(tmpl,"$assets_root$",ar); tmpl=literal_replace(tmpl,"$body$",body); printf "%s",tmpl; exit }'
+  exit 0
+fi
+# Fail closed under --to xhtml
+if [[ "${1:-}" != "render" || "${2:-}" != "--from" || ( "${3:-}" != "markdown" && "${3:-}" != "textile" && "${3:-}" != "cooklang" ) ]]; then exit 1; fi
+if [[ "$*" == *"--to xhtml"* ]]; then
   echo "oliver: render failed: RawHtmlNotXmlWellFormed" >&2
   echo "oliver: --to xhtml rejects raw HTML that cannot be guaranteed well-formed XML" >&2
   exit 1
