@@ -98,6 +98,15 @@ if ! declare -f show_help > /dev/null; then
   }
 fi
 
+# Terminal color helper: true when stdout is a TTY and NO_COLOR is unset.
+# Respects NO_COLOR (https://no-color.org) and TERM=dumb; checks fd 3 (saved stdout) and fd 1.
+rk_has_color() {
+  if [[ -n "${NO_COLOR:-}" ]]; then return 1; fi
+  if [[ "${TERM:-}" == "dumb" ]]; then return 1; fi
+  if [[ -t 3 ]] || [[ -t 1 ]]; then return 0; fi
+  return 1
+}
+
 # Logging function: prints timestamped messages and writes to $LOG_FILE if set
 # ---
 # log: Writes timestamped missives to the console and to the sacred $LOG_FILE
@@ -111,7 +120,19 @@ log() {
 
   # Three-tier verbosity filter for standard stdout
   if [[ "$level" == "MARKER" ]]; then
-    echo "$*" >&3
+    local marker_out="$*"
+    if rk_has_color; then
+      if [[ "$marker_out" == "✓"* ]]; then
+        marker_out=$'\033[32m'"$marker_out"$'\033[0m'
+      elif [[ "$marker_out" == "⚠️"* || "$marker_out" == *"warning"* || "$marker_out" == *"WARN"* ]]; then
+        marker_out=$'\033[33m'"$marker_out"$'\033[0m'
+      elif [[ "$marker_out" == "📄"* ]]; then
+        marker_out=$'\033[36m'"$marker_out"$'\033[0m'
+      elif [[ "$marker_out" == "✗"* || "$marker_out" == "❌"* ]]; then
+        marker_out=$'\033[31m'"$marker_out"$'\033[0m'
+      fi
+    fi
+    echo "$marker_out" >&3
   elif [[ "$QUIET" == true && ( "$level" == "INFO" || "$level" == "DEBUG" || "$level" == "WARN" || "$level" == "DRY-RUN" ) ]]; then
     : # Skip stdout
   elif [[ "$level" == "DEBUG" && "$DEBUG" != true ]]; then
@@ -120,7 +141,7 @@ log() {
     echo "$msg" >&3
   fi
 
-  # Always write standard logs to file if present
+  # Always write standard logs to file if present (plain, no ANSI)
   if [[ -n "${LOG_FILE:-}" ]]; then
     if [[ "$level" == "MARKER" ]]; then
       echo "[$ts] [MARKER] $*" >> "$LOG_FILE"
@@ -150,7 +171,27 @@ run() {
 require_bins() {
   for cmd in "$@"; do
     if ! command -v "$cmd" >/dev/null 2>&1; then
-      log "ERROR" "Missing required dependency: $cmd"
+      local hint=""
+      case "$(uname -s 2>/dev/null || echo Unknown)" in
+        Darwin*) hint=" (try: brew install $cmd)" ;;
+        Linux*)  hint=" (try: sudo apt-get install $cmd)" ;;
+      esac
+      # Tailor known names
+      if [[ "$cmd" == "yq" ]]; then
+        case "$(uname -s 2>/dev/null || echo Unknown)" in
+          Darwin*) hint=" (try: brew install yq — mikefarah/yq v4+)" ;;
+          Linux*)  hint=" (try: sudo snap install yq or brew install yq — https://github.com/mikefarah/yq)" ;;
+        esac
+      elif [[ "$cmd" == "gawk" ]]; then
+        case "$(uname -s 2>/dev/null || echo Unknown)" in
+          Darwin*) hint=" (try: brew install gawk)" ;;
+          Linux*)  hint=" (try: sudo apt-get install gawk)" ;;
+        esac
+      fi
+      log "ERROR" "Missing required dependency: $cmd$hint"
+      {
+        echo "ERROR: Missing required dependency: $cmd$hint" >&3
+      } 2>/dev/null || echo "ERROR: Missing required dependency: $cmd$hint" >&2
       exit 2
     fi
   done
@@ -196,7 +237,15 @@ rk_up_dirs() {
 # Require yq version 4.x or higher (Go-based CLI)
 require_yq_version() {
   if ! yq eval '.foo' <<< 'foo: bar' >/dev/null 2>&1; then
-    log "ERROR" "yq version 4.x required. Install from https://github.com/mikefarah/yq"
+    local hint="Install from https://github.com/mikefarah/yq"
+    case "$(uname -s 2>/dev/null || echo Unknown)" in
+      Darwin*) hint="try: brew install yq — $hint" ;;
+      Linux*)  hint="try: sudo snap install yq or brew install yq — $hint" ;;
+    esac
+    log "ERROR" "yq version 4.x required. $hint"
+    {
+      echo "ERROR: yq version 4.x required. $hint" >&3
+    } 2>/dev/null || echo "ERROR: yq version 4.x required. $hint" >&2
     exit 2
   fi
 }
@@ -206,7 +255,15 @@ require_yq_version() {
 # reports BSD awk on macOS even when gawk is installed.
 require_gawk_version() {
   if ! command -v gawk >/dev/null 2>&1 || ! gawk --version 2>&1 | grep -qi 'GNU Awk'; then
-    log "ERROR" "GNU Awk required. Install it via: brew install gawk"
+    local hint="Install it via: brew install gawk"
+    case "$(uname -s 2>/dev/null || echo Unknown)" in
+      Darwin*) hint="Install it via: brew install gawk" ;;
+      Linux*)  hint="Install it via: sudo apt-get install gawk" ;;
+    esac
+    log "ERROR" "GNU Awk required. $hint"
+    {
+      echo "ERROR: GNU Awk required. $hint" >&3
+    } 2>/dev/null || echo "ERROR: GNU Awk required. $hint" >&2
     exit 2
   fi
 }
@@ -230,6 +287,7 @@ rk_oliver_preflight() {
   local smoke_out="$TMP_DIR/oliver-preflight-smoke.html"
   local smoke_err="$TMP_DIR/oliver-preflight-smoke.log"
   local profile="${RENDER_PROFILE:-html}"
+  local path_oliver=""
   OLIVER_BIN=""
 
   candidate="${RK_OLIVER_BIN:-}"
@@ -274,6 +332,9 @@ rk_oliver_preflight() {
   log "ERROR" "Oliver preflight failed: $reason"
   {
     echo "ERROR: Oliver preflight failed: $reason"
+    # One-line tried candidates for copy-paste diagnosis
+    path_oliver="$(command -v oliver 2>/dev/null || echo none)"
+    echo "Tried: RK_OLIVER_BIN=${RK_OLIVER_BIN:-unset}, PATH oliver=$path_oliver"
     cat <<'OLIVER_GUIDE_EOF'
 Fix: install the Oliver renderer, then either:
   export RK_OLIVER_BIN=/path/to/oliver

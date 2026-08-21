@@ -21,10 +21,13 @@ IFS=$'\n\t'
 
 
 JSON_MODE=false
+SHORT_MODE=false
 ARGS=()
 for arg in "$@"; do
     if [[ "$arg" == "--json" ]]; then
         JSON_MODE=true
+    elif [[ "$arg" == "--short" ]]; then
+        SHORT_MODE=true
     else
         ARGS+=("$arg")
     fi
@@ -40,6 +43,7 @@ rc-status.sh — Display environment health status reports
 
 Options:
   --json         Emit a machine-readable JSON report
+  --short        One-line summary (version | pages | freshness | branch)
   --dry-run      No-op flag accepted for contract consistency
   --verbose      Detailed output
   --help, -h     Show help
@@ -61,6 +65,43 @@ mkdir -p "$LOG_DIR"
 log() {
   local level="$1"; shift
   printf '[%s] [%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$level" "$*" | tee -a "$LOG_FILE" >/dev/null
+}
+
+# Status headings with optional TTY color (respects NO_COLOR via rk_has_color from rc-utils.sh)
+status_heading() {
+  local text="$1"
+  if command -v rk_has_color >/dev/null 2>&1 && rk_has_color; then
+    printf '\033[1m%s\033[0m\n' "$text"
+  else
+    echo "$text"
+  fi
+}
+
+status_ok() {
+  local text="$1"
+  if command -v rk_has_color >/dev/null 2>&1 && rk_has_color; then
+    printf '\033[32m%s\033[0m\n' "$text"
+  else
+    echo "$text"
+  fi
+}
+
+status_warn() {
+  local text="$1"
+  if command -v rk_has_color >/dev/null 2>&1 && rk_has_color; then
+    printf '\033[33m%s\033[0m\n' "$text"
+  else
+    echo "$text"
+  fi
+}
+
+status_dim() {
+  local text="$1"
+  if command -v rk_has_color >/dev/null 2>&1 && rk_has_color; then
+    printf '\033[2m%s\033[0m\n' "$text"
+  else
+    echo "$text"
+  fi
 }
 
 log "INFO" "Running rc-status.sh"
@@ -106,6 +147,29 @@ else
     GIT_COMMIT="[no git]"
 fi
 
+if [[ "$SHORT_MODE" == true && "$JSON_MODE" == false ]]; then
+    # Early short-circuit: compute minimal summary without full report
+    s_total_md=$(find "$CONTENT_DIR" -type f -name '*.md' 2>/dev/null | wc -l | tr -d ' ' || echo 0)
+    s_total_textile=$(find "$CONTENT_DIR" -type f -name '*.textile' 2>/dev/null | wc -l | tr -d ' ' || echo 0)
+    s_total_cook=$(find "$CONTENT_DIR" -type f -name '*.cook' 2>/dev/null | wc -l | tr -d ' ' || echo 0)
+    s_html_count=$(find "$OUTPUT_DIR" -type f -name '*.html' 2>/dev/null | wc -l | tr -d ' ' || echo 0)
+    s_newest_html=""
+    while IFS= read -r -d '' hf; do m=$(rk_mtime "$hf"); [[ -n "$m" && ( -z "$s_newest_html" || "$m" -gt "$s_newest_html" ) ]] && s_newest_html="$m"; done < <(find "$OUTPUT_DIR" -type f -name '*.html' -print0 2>/dev/null)
+    s_newest_src=""
+    while IFS= read -r -d '' sf; do m=$(rk_mtime "$sf"); [[ -n "$m" && ( -z "$s_newest_src" || "$m" -gt "$s_newest_src" ) ]] && s_newest_src="$m"; done < <(find "$CONTENT_DIR" -type f \( -name '*.md' -o -name '*.textile' -o -name '*.cook' \) -print0 2>/dev/null)
+    s_fresh="output is current ($s_html_count HTML)"
+    s_status="ok"
+    if [[ -z "$s_newest_html" ]]; then s_fresh="no rendered output — run bash rotkeeper.sh render"; s_status="empty"
+    elif [[ -n "$s_newest_src" && "$s_newest_src" -gt "$s_newest_html" ]]; then s_fresh="content has changed since last render ($s_html_count HTML)"; s_status="stale"
+    fi
+    s_pages="$s_total_md md"
+    if [[ "$s_total_textile" -gt 0 ]]; then s_pages+="/$s_total_textile textile"; fi
+    if [[ "$s_total_cook" -gt 0 ]]; then s_pages+="/$s_total_cook cook"; fi
+    echo "rotkeeper $CANONICAL_VERSION | $s_pages | $s_fresh | $GIT_BRANCH"
+    log "INFO" "rc-status.sh completed (short)"
+    exit 0
+fi
+
 if [[ "$JSON_MODE" == true ]]; then
     GIT_B_JSON="\"$GIT_BRANCH\""
     [[ "$GIT_BRANCH" == "[no git]" ]] && GIT_B_JSON="null"
@@ -120,7 +184,7 @@ if [[ "$JSON_MODE" == true ]]; then
     \"commit\": $GIT_C_JSON
   }"
 else
-    echo "=== Environment ==="
+    status_heading "=== Environment ==="
     echo "Version  : $CANONICAL_VERSION"
     echo "Source   : $VERSION_SOURCE"
     echo "CWD      : $CWD"
@@ -136,7 +200,7 @@ total_scripts=0
 if [[ "$JSON_MODE" == true ]]; then
     json_scripts="["
 else
-    echo "=== Script Health ==="
+    status_heading "=== Script Health ==="
     printf "%-30s | %-10s | %s\n" "Script Name" "Version" "Matches Canonical"
     echo "----------------------------------------------------------------------"
 fi
@@ -218,7 +282,7 @@ if [[ "$JSON_MODE" == true ]]; then
         fi
     fi
 else
-    echo "=== RAG Exports (book-reports) ==="
+    status_heading "=== RAG Exports (book-reports) ==="
     if [[ ! -d "$BOOK_REPORT_DIR" ]]; then
         echo "[SKIP] ${BOOK_REPORT_DIR#"$ROOT_DIR"/}/ does not exist"
     else
@@ -289,7 +353,7 @@ if [[ "$JSON_MODE" == true ]]; then
         fi
     fi
 else
-    echo "=== Releases ==="
+    status_heading "=== Releases ==="
     if [[ ! -d "$RELEASES_DIR" ]]; then
         echo "[SKIP] ${ARCHIVE_DIR#"$ROOT_DIR"/}/releases/ does not exist"
     else
@@ -307,8 +371,17 @@ else
                     printf "%-30s | %-10s | %s\n" "$fn" "$sz" "$mod"
                 done
                 echo "----------------------------------------------------------------------"
+                echo "Total Releases: ${#rel_files[@]}"
+            else
+                fn=$(basename "${rel_files[0]}")
+                sz=$(du -h "${rel_files[0]}" | cut -f1)
+                mod=$(date -r "${rel_files[0]}" '+%Y-%m-%d %H:%M:%S')
+                printf "%-30s | %-10s | %s\n" "$fn" "$sz" "$mod"
+                if [[ ${#rel_files[@]} -gt 1 ]]; then
+                    echo "... and $(( ${#rel_files[@]} - 1 )) more — run with --verbose for full list"
+                fi
+                echo "Total Releases: ${#rel_files[@]}"
             fi
-            echo "Total Releases: ${#rel_files[@]}"
         fi
     fi
     echo ""
@@ -346,7 +419,7 @@ if [[ "$JSON_MODE" == true ]]; then
         fi
     fi
 else
-    echo "=== Recent Tombs ==="
+    status_heading "=== Recent Tombs ==="
     if [[ ! -d "$ARCHIVE_DIR" ]]; then
         echo "[SKIP] ${ARCHIVE_DIR#"$ROOT_DIR"/}/ does not exist"
     else
@@ -354,16 +427,27 @@ else
         if [[ ${#tomb_files[@]} -eq 0 ]]; then
             echo "[EMPTY] no archives found — run: ./rotkeeper.sh render"
         else
-            printf "%-30s | %-10s | %s\n" "Filename" "Size" "Date"
-            echo "----------------------------------------------------------------------"
-            for f in ${tomb_files[@]+"${tomb_files[@]}"}; do
-                fn=$(basename "$f")
-                sz=$(du -h "$f" | cut -f1)
-                mod=$(date -r "$f" '+%Y-%m-%d %H:%M:%S')
+            if [[ "$VERBOSE" == true ]]; then
+                printf "%-30s | %-10s | %s\n" "Filename" "Size" "Date"
+                echo "----------------------------------------------------------------------"
+                for f in ${tomb_files[@]+"${tomb_files[@]}"}; do
+                    fn=$(basename "$f")
+                    sz=$(du -h "$f" | cut -f1)
+                    mod=$(date -r "$f" '+%Y-%m-%d %H:%M:%S')
+                    printf "%-30s | %-10s | %s\n" "$fn" "$sz" "$mod"
+                done
+                echo "----------------------------------------------------------------------"
+                echo "Total Recent Tombs Shown: ${#tomb_files[@]}"
+            else
+                fn=$(basename "${tomb_files[0]}")
+                sz=$(du -h "${tomb_files[0]}" | cut -f1)
+                mod=$(date -r "${tomb_files[0]}" '+%Y-%m-%d %H:%M:%S')
                 printf "%-30s | %-10s | %s\n" "$fn" "$sz" "$mod"
-            done
-            echo "----------------------------------------------------------------------"
-            echo "Total Recent Tombs Shown: ${#tomb_files[@]}"
+                if [[ ${#tomb_files[@]} -gt 1 ]]; then
+                    echo "... and $(( ${#tomb_files[@]} - 1 )) more — run with --verbose for full list"
+                fi
+                echo "Total Recent Tombs Shown: ${#tomb_files[@]}"
+            fi
         fi
     fi
     echo ""
@@ -372,6 +456,12 @@ fi
 
 # --- Section 5: Content Pulse ---
 if [[ ! -d "$CONTENT_DIR" ]] || [[ -z "$(find "$CONTENT_DIR" -type f \( -name '*.md' -o -name '*.textile' -o -name '*.cook' \) -print -quit 2>/dev/null)" ]]; then
+    total_md=0
+    total_textile=0
+    total_cook=0
+    stubs=0
+    drafts=0
+    docs_stubs=0
     if [[ "$JSON_MODE" == true ]]; then
         JSON_PULSE="  \"content_pulse\": {
     \"status\": \"empty\",
@@ -384,7 +474,7 @@ if [[ ! -d "$CONTENT_DIR" ]] || [[ -z "$(find "$CONTENT_DIR" -type f \( -name '*
     \"docs_stubs\": 0
   }"
     else
-        echo "=== Content Pulse ==="
+        status_heading "=== Content Pulse ==="
         echo "[EMPTY] no content files found in home/content/"
         echo "Total .md files : 0"
         echo "Total .textile files : 0"
@@ -424,7 +514,7 @@ else
     \"docs_stubs\": $docs_stubs
   }"
     else
-        echo "=== Content Pulse ==="
+        status_heading "=== Content Pulse ==="
         echo "Total .md files : $total_md"
         echo "Total .textile files : $total_textile"
         echo "Total .cook files : $total_cook"
@@ -451,14 +541,20 @@ while IFS= read -r -d '' freshness_src; do
   [[ -n "$mtime" && ( -z "$NEWEST_SRC" || "$mtime" -gt "$NEWEST_SRC" ) ]] && NEWEST_SRC="$mtime"
 done < <(find "$CONTENT_DIR" -type f \( -name '*.md' -o -name '*.textile' -o -name '*.cook' \) -print0 2>/dev/null)
 
-status_render="[EMPTY] no rendered output found"
+# Count HTML for richer status line
+html_count=0
+if [[ -d "$OUTPUT_DIR" ]]; then
+  html_count=$(find "$OUTPUT_DIR" -type f -name '*.html' 2>/dev/null | wc -l | tr -d ' ' || echo 0)
+fi
+
+status_render="[EMPTY] no rendered output found — run bash rotkeeper.sh render"
 status_json="empty"
 if [[ -n "$NEWEST_HTML" ]]; then
     if [[ -n "$NEWEST_SRC" ]] && [[ "$NEWEST_SRC" -gt "$NEWEST_HTML" ]]; then
-        status_render="[STALE] content has changed since last render"
+        status_render="✗ [STALE] content has changed since last render ($html_count HTML)"
         status_json="stale"
     else
-        status_render="[OK] output is current"
+        status_render="✓ [OK] output is current ($html_count HTML)"
         status_json="ok"
     fi
 fi
@@ -469,8 +565,14 @@ if [[ "$JSON_MODE" == true ]]; then
     \"message\": \"$status_render\"
   }"
 else
-    echo "=== Render Freshness ==="
-    echo "$status_render"
+    status_heading "=== Render Freshness ==="
+    if [[ "$status_json" == "ok" ]]; then
+      status_ok "$status_render"
+    elif [[ "$status_json" == "stale" ]]; then
+      status_warn "$status_render"
+    else
+      status_dim "$status_render"
+    fi
     echo ""
 fi
 
@@ -482,7 +584,7 @@ if [[ ! -f "$CONFIG_FILE" ]]; then
     if [[ "$JSON_MODE" == true ]]; then
         JSON_CONFIG='"config_summary": {"status": "skipped", "reason": "'"${CONFIG_DIR#"$ROOT_DIR"/}"'/rotkeeper.yaml does not exist"}'
     else
-        echo "=== Config Summary ==="
+        status_heading "=== Config Summary ==="
         echo "[SKIP] ${CONFIG_DIR#"$ROOT_DIR"/}/rotkeeper.yaml does not exist"
         echo ""
     fi
@@ -512,7 +614,7 @@ else
     \"license\": \"$conf_license_j\"
   }"
     else
-        echo "=== Config Summary ==="
+        status_heading "=== Config Summary ==="
         echo "Project          : $conf_project"
         echo "Author           : $conf_author"
         echo "Version          : $conf_version"

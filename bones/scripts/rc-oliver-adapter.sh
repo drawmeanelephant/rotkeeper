@@ -194,19 +194,43 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
       skip == 1 && $0 == "---" { skip = 0; next }
       skip == 0 { print }
     ' "$src_path" | "${oliver_cmd[@]}" > "$body_tmp" 2> "$oliver_err"; then
-    log "ERROR" "Oliver rendering failed for page '$src_path' using template '$template_path'"
-    echo "ERROR: Oliver rendering failed for page '$src_path' using template '$template_path'" >&2
+    # ERR trap is suppressed inside `if !` (bash manual), so we can safely
+    # read PIPESTATUS for the pipeline's exit codes.
+    oliver_status=${PIPESTATUS[1]:-1}
+    if [[ $oliver_status -eq 0 ]]; then
+      oliver_status=${PIPESTATUS[0]:-1}
+      [[ $oliver_status -eq 0 ]] && oliver_status=1
+    fi
+    first_err_line="$(head -n1 "$oliver_err" 2>/dev/null || echo "no details")"
+    log "ERROR" "Oliver rendering failed for page '$src_path' using template '$template_path' (exit $oliver_status): $first_err_line"
+    log "MARKER" "✗ Oliver failed for '$(basename "$src_path")' (exit $oliver_status): $first_err_line"
+    echo "ERROR: Oliver rendering failed for page '$src_path' using template '$template_path' (exit $oliver_status): $first_err_line" >&2
     if [[ -f "$oliver_err" && -s "$oliver_err" ]]; then
       cat "$oliver_err" >&2
+    fi
+    # Surface hint for XHTML fail-closed specifically
+    if grep -q "RawHtmlNotXmlWellFormed" "$oliver_err" 2>/dev/null; then
+      log "MARKER" "  hint: raw HTML is not allowed under --to xhtml — remove <b>/<i> etc. or switch page to render_profile: html"
     fi
     rm -f "$body_tmp" "$body_rewritten" "$oliver_err"
     exit 1
   fi
 
   if [[ -f "$oliver_err" && -s "$oliver_err" ]]; then
+    warn_count=0
     while IFS= read -r line || [[ -n "$line" ]]; do
       log "WARN" "Oliver warning for '$src_path': $line"
+      # Keep MARKER for log file even though it won't reach terminal via fd 3 (adapter's fd3 is not the user's tty); render will re-surface the first 2 from the shared list
+      if [[ $warn_count -lt 2 ]]; then
+        log "MARKER" "⚠️  Oliver warning for '$(basename "$src_path")': $line"
+      fi
+      echo "Oliver warning for '$(basename "$src_path")': $line" >> "$TMP_DIR/oliver-warnings-list.log"
+      warn_count=$((warn_count + 1))
     done < "$oliver_err"
+    # Accumulate total warnings for render summary (shared across batch)
+    if [[ $warn_count -gt 0 ]]; then
+      echo "$warn_count" >> "$TMP_DIR/oliver-warnings-batch.log"
+    fi
   fi
   rm -f "$oliver_err"
 
@@ -368,6 +392,14 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
       printf "%s", tmpl
       exit
     }' > "$dst_path"
+    if [[ "$verbose" == "true" ]]; then
+      # shellcheck disable=SC2295
+      rel_src="${src_path#$content_dir/}"
+      [[ "$rel_src" == "$src_path" ]] && rel_src="$(basename "$src_path")"
+      # shellcheck disable=SC2295
+      rel_dst="${dst_path#$output_dir/}"
+      log "MARKER" "  reanimated $rel_src → $rel_dst ($input_format${profile:+/$profile})"
+    fi
   fi
 
   rm -f "$body_tmp" "$body_rewritten"
