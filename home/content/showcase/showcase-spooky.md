@@ -2,7 +2,7 @@
 title: "Showcase: spooky"
 slug: "showcase-spooky"
 template: "theme-spooky.html"
-description: "Programmatic description for spooky"
+author: "Dummy value for author"
 ---
 
 # Heading 1
@@ -91,3 +91,4 @@ echo "With benchmark archival channels implementing viral bash-rituals."
 |---|---|---|---|---|---|
 | A very long string that might cause overflow | Data | Data | Data | Data | Data |
 | Data | A very long string that might cause overflow | Data | Data | Data | Data |
+

@@ -3,6 +3,7 @@ title: "Showcase: textpattern"
 slug: "showcase-textpattern"
 template: "theme-textpattern.html"
 author: "Dummy value for author"
+description: "Programmatic description for textpattern"
 ---
 
 # Heading 1

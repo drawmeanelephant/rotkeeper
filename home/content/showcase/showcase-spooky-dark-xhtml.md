@@ -1,9 +1,9 @@
 ---
-title: "Showcase: brutal"
-slug: "showcase-brutal"
-template: "theme-brutal.html"
+title: "Showcase: spooky-dark-xhtml"
+slug: "showcase-spooky-dark-xhtml"
+template: "theme-spooky-dark-xhtml.html"
 author: "Dummy value for author"
-description: "Programmatic description for brutal"
+description: "Programmatic description for spooky-dark-xhtml"
 ---
 
 # Heading 1
