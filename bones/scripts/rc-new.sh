@@ -20,26 +20,92 @@ IFS=$'\n\t'
 # ============================================================
 
 show_help() {
+  # List available templates for completion hint (safe for unbound vars before env load)
+  local tmpl_list=""
+  local palette_hint=""
+  local td=""
+  if [[ -n "${TEMPLATE_DIR:-}" && -d "$TEMPLATE_DIR" ]]; then
+    td="$TEMPLATE_DIR"
+    # shellcheck disable=SC2011
+    tmpl_list=$(ls -1 "$td"/*.html 2>/dev/null | xargs -n1 basename 2>/dev/null | tr '\n' ' ' || true)
+  elif [[ -n "${BONES_DIR:-}" && -d "$BONES_DIR/templates" ]]; then
+    td="$BONES_DIR/templates"
+    # shellcheck disable=SC2011
+    tmpl_list=$(ls -1 "$td"/*.html 2>/dev/null | xargs -n1 basename 2>/dev/null | tr '\n' ' ' || true)
+  elif [[ -d "bones/templates" ]]; then
+    td="bones/templates"
+    # shellcheck disable=SC2011
+    tmpl_list=$(ls -1 "$td"/*.html 2>/dev/null | xargs -n1 basename 2>/dev/null | tr '\n' ' ' || true)
+  fi
+  # Check if any template uses $palette$ for hint
+  # shellcheck disable=SC2016
+  if [[ -n "${TEMPLATE_DIR:-}" && -d "${TEMPLATE_DIR:-}" ]] && grep -q '\$palette\$' "$TEMPLATE_DIR"/*.html 2>/dev/null; then
+    palette_hint=" (templates with \$palette\$ support palette flag)"
+  elif [[ -n "${BONES_DIR:-}" ]] && grep -q '\$palette\$' "$BONES_DIR/templates"/*.html 2>/dev/null; then
+    palette_hint=" (templates with \$palette\$ support palette flag)"
+  elif grep -q '\$palette\$' "bones/templates"/*.html 2>/dev/null; then
+    palette_hint=" (templates with \$palette\$ support palette flag)"
+  fi
+
   cat << EOF
 rc-new.sh — Scaffold a new markdown file with required YAML frontmatter
 
-Usage: rotkeeper.sh new <file>
+Usage: rotkeeper.sh new <file> [options]
+       rotkeeper.sh new --list
 
 Options:
   --title "Title"        Override auto-derived title; skip slug-from-filename
   --author "Name"        Override config-derived author
   --tags "tag1,tag2"     Comma-separated tags; rendered as YAML list
-  --template "file.html" Override the configured default template
+  --template "file.html" Override the configured default template ($tmpl_list)
   --description "text"   Frontmatter description field
   --body "text"          Starting body content
   --url "https://..."    A URL to embed in the document (creates source skeleton)
   --subdir "path"        Directory under home/content/ to place the file
+  --soul                 Also scaffold sidecar bones/meta/<path>.soul.md
+  --list                 List available templates and exit
   --version, -v          Show script version and quit
   --help, -h             Show this help message and exit
   --dry-run              Preview actions without writing files
   --verbose              Enable detailed debug logging
 EOF
+  if [[ -n "$tmpl_list" ]]; then
+    echo
+    echo "Available templates: $tmpl_list$palette_hint"
+  fi
   exit 0
+}
+
+list_templates() {
+  local td="${TEMPLATE_DIR:-$BONES_DIR/templates}"
+  [[ -d "$td" ]] || td="$BONES_DIR/templates"
+  local default_tmpl
+  default_tmpl=$(yq e '.default_template // "theme-spooky-dark.html"' "$CONFIG_DIR/rotkeeper.yaml" 2>/dev/null || echo "theme-spooky-dark.html")
+  local found=false
+  for tmpl in "$td"/*.html; do
+    [[ -f "$tmpl" ]] || continue
+    found=true
+    local base
+    base=$(basename "$tmpl")
+    local marker=""
+    [[ "$base" == "$default_tmpl" ]] && marker=" (default)"
+    local desc=""
+    # One-line description from first HTML comment if present
+    desc=$(head -n 5 "$tmpl" 2>/dev/null | grep -m1 -E "<!--.*-->" | sed -E 's/.*<!-- *//; s/ *-->.*//' | cut -c1-60 || true)
+    if [[ -n "$desc" ]]; then
+      log "MARKER" "$base$marker — $desc"
+    else
+      log "MARKER" "$base$marker"
+    fi
+    # Palette hint
+    # shellcheck disable=SC2016
+    if grep -q '\$palette\$' "$tmpl" 2>/dev/null; then
+      log "MARKER" "  supports \$palette\$"
+    fi
+  done
+  if [[ "$found" == false ]]; then
+    log "MARKER" "No templates found in $td"
+  fi
 }
 
 
@@ -64,6 +130,8 @@ DESCRIPTION=""
 BODY_TEXT=""
 SOURCE_URL=""
 SUBDIR=""
+WITH_SOUL=false
+LIST_MODE=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -78,6 +146,14 @@ while [[ $# -gt 0 ]]; do
       ;;
     --help|-h)
       show_help
+      ;;
+    --list)
+      LIST_MODE=true
+      shift
+      ;;
+    --soul)
+      WITH_SOUL=true
+      shift
       ;;
     --title)
       TITLE_OVERRIDE="$2"
@@ -126,6 +202,18 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+# Handle --list and no-args (UX win: list templates instead of error)
+if [[ "$LIST_MODE" == true ]]; then
+  list_templates
+  exit 0
+fi
+if [[ -z "$FILE" ]]; then
+  list_templates
+  log "MARKER" "Usage: rotkeeper.sh new <file> [--template file.html] [--soul]"
+  log "MARKER" "  e.g. rotkeeper.sh new my-page.md --template theme-spooky-dark.html"
+  exit 0
+fi
 
 main() {
     if [[ -z "$FILE" ]]; then
@@ -284,9 +372,69 @@ EOF
             fi
         } >> "$FILE"
 
-        log "INFO" "📄 Scaffolded new file at $FILE"
+        # Handle --soul sidecar
+        soul_msg=""
+        if [[ "$WITH_SOUL" == true ]]; then
+            # shellcheck disable=SC2295
+            rel_path="${FILE#$CONTENT_ROOT/}"
+            # Use get_sidecar_path for canonical sidecar location (handles traversal)
+            soul_file=$(get_sidecar_path "$rel_path" 2>/dev/null || echo "")
+            if [[ -z "$soul_file" || "$soul_file" == *"null.soul.md"* ]]; then
+                # Fallback: META_DIR/rel_no_ext.soul.md
+                rel_no_ext="${rel_path%.*}"
+                # Handle .textile and .cook extensions which are longer than .md
+                case "$rel_path" in
+                    *.textile) rel_no_ext="${rel_path%.textile}" ;;
+                    *.cook) rel_no_ext="${rel_path%.cook}" ;;
+                    *) rel_no_ext="${rel_path%.*}" ;;
+                esac
+                soul_file="$META_DIR/${rel_no_ext}.soul.md"
+            fi
+            if [[ -f "$soul_file" ]]; then
+                log "WARN" "Sidecar already exists: $soul_file"
+            else
+                mkdir -p "$(dirname "$soul_file")"
+                soul_author="${AUTHOR:-$(yq e '.author // ""' "$CONFIG_DIR/rotkeeper.yaml" 2>/dev/null || echo "")}"
+                soul_date=$(date +%Y-%m-%d)
+                cat << SOUL_EOF > "$soul_file"
+---
+title: "${SAFE_TITLE}"
+author: "${soul_author}"
+date: "$soul_date"
+---
+
+Notes for \`$rel_path\` — add context, warnings, or DIP notes here.
+
+SOUL_EOF
+                # shellcheck disable=SC2295
+                rel_soul="${soul_file#$ROOT_DIR/}"
+                soul_msg=" + soul $rel_soul"
+                log "INFO" "Scaffolded sidecar at $soul_file"
+            fi
+        fi
+
+        # shellcheck disable=SC2295
+        rel_file="${FILE#$ROOT_DIR/}"
+        log "MARKER" "✓ scaffolded $rel_file — template $TEMPLATE_OVERRIDE$soul_msg — next: edit frontmatter, then bash rotkeeper.sh render"
     else
-        log "MARKER" "Would scaffold $FILE with title '$TITLE' and template '$TEMPLATE_OVERRIDE'"
+        # shellcheck disable=SC2295
+        rel_file="${FILE#$ROOT_DIR/}"
+        if [[ "$WITH_SOUL" == true ]]; then
+            # shellcheck disable=SC2295
+            rel_path="${FILE#$CONTENT_ROOT/}"
+            rel_no_ext="${rel_path%.*}"
+            case "$rel_path" in
+                *.textile) rel_no_ext="${rel_path%.textile}" ;;
+                *.cook) rel_no_ext="${rel_path%.cook}" ;;
+                *) rel_no_ext="${rel_path%.*}" ;;
+            esac
+            soul_file="$META_DIR/${rel_no_ext}.soul.md"
+            # shellcheck disable=SC2295
+            rel_soul="${soul_file#$ROOT_DIR/}"
+            log "MARKER" "Would scaffold $rel_file with title '$TITLE' and template '$TEMPLATE_OVERRIDE' + soul $rel_soul"
+        else
+            log "MARKER" "Would scaffold $rel_file with title '$TITLE' and template '$TEMPLATE_OVERRIDE'"
+        fi
     fi
 }
 
