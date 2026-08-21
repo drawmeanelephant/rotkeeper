@@ -2,7 +2,7 @@
 title: "Oliver Renderer Contract"
 slug: oliver-contract
 template: rotkeeper-doc.html
-version: "1.6-S1-draft"
+version: "1.7-S2-draft"
 updated: "2026-08-20"
 description: "The supported contract between Rotkeeper and the native Oliver HTML renderer: executable discovery, input format and output profile, output streams, exit codes, the adapter boundary, and the stable template/input contract."
 tags:
@@ -134,7 +134,15 @@ Conditionals: `$if(name)$ … $endif$` for `title`, `description`, `author`, `da
 - Order of operations: all `$if$` blocks are resolved first, then the literal token substitution runs.
 - Any unrecognized `$word$` token passes through to the output verbatim; it is not an error.
 
-This dialect — seven tokens, five conditional gates, escape/raw split — is the candidate for incremental movement into Oliver. Until then, `rc-oliver-adapter.sh` is its canonical implementation.
+This dialect — seven tokens, five conditional gates, escape/raw split — is **Phase 6 S2**: **Oliver `wrap` is authoritative; adapter tries `oliver wrap --template <file> --meta-json <json> --assets-root <prefix> --body <file>` then falls back to GAWK on pin `6edb520c`**. Example:
+
+```bash
+oliver wrap --template bones/templates/theme-spooky-dark.html \
+  --meta-json meta.json --assets-root ./assets/ --body body.html > page.html
+# or: oliver render --template <file> --meta-json <json> (alternative, feature-detected)
+```
+
+Seven tokens remain, same escape/raw split and `$if$` evaluation order. Bash keeps `TEMPLATE_DIR` boundary checks; Oliver handles interpolation when `wrap` is present.
 
 ## Sidecar precedence
 
@@ -146,12 +154,12 @@ A `.soul.md` sidecar next to a source file (under `bones/meta`) may override fro
 
 1. Batch manifest (`TSV`) iteration with boundary assertions (source under content, destination under output).
 2. Frontmatter extraction and sidecar merge — **S1: Oliver `meta` is authoritative; adapter tries `oliver meta --from <fmt> --format json` then falls back to `yq --front-matter extract` on pin `6edb520c`; stripping via `awk` remains until `oliver render` auto-strips**.
-3. Template resolution.
+3. Template resolution — **Bash retains `TEMPLATE_DIR` boundary; Oliver `wrap` receives canonical path**.
 4. Oliver invocation and stderr forwarding (including the `--to xhtml` flag when the effective `render_profile` is `xhtml`).
 5. Internal `.md`/`.textile`/`.cook` → `.html` link rewriting (fragment/query preserved, external and `mailto:` left alone).
-6. Template interpolation: `$if(name)$/$endif$` conditionals, then literal replacement of `$title$`, `$description$`, `$author$`, `$date$`, `$assets_root$`, `$body$` with HTML escaping.
+6. Template interpolation — **S2: Oliver `wrap` is authoritative; adapter tries `oliver wrap --template <file> --meta-json <json> --assets-root <prefix> --body <file>` then falls back to GAWK on pin `6edb520c`**.
 
-Per the stabilization roadmap, these responsibilities are candidates for incremental movement into Oliver only after the contract above is stable. Bash keeps dispatch, environment setup, filesystem boundaries, orchestration, and packaging. **S1 is the first move; steps 3–6 remain in Bash.**
+Per the stabilization roadmap, these responsibilities are candidates for incremental movement into Oliver only after the contract above is stable. Bash keeps dispatch, environment setup, filesystem boundaries, orchestration, and packaging. **S1+S2 are the first moves; steps 4–5 remain in Bash.**
 
 ## Install paths
 
