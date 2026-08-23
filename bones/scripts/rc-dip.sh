@@ -504,7 +504,7 @@ fi
 # --- 3. Obsolete-document handling -----------------------------------------
 
 log "INFO" "Checking for obsolete docs..."
-mapfile -d '' EXISTING_DOCS < <(find "$DOCS_DIR" -type f \( -name "*.md" -o -name "*.textile" \) -print0 2>/dev/null || true)
+mapfile -d '' EXISTING_DOCS < <(rk_find_content "$DOCS_DIR" md textile cook)
 
 declare -A WHITELIST=()
 WHITELIST_FILE="$CONFIG_DIR/dip-whitelist.txt"

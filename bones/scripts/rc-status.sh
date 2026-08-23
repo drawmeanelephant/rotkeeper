@@ -156,7 +156,7 @@ if [[ "$SHORT_MODE" == true && "$JSON_MODE" == false ]]; then
     s_newest_html=""
     while IFS= read -r -d '' hf; do m=$(rk_mtime "$hf"); [[ -n "$m" && ( -z "$s_newest_html" || "$m" -gt "$s_newest_html" ) ]] && s_newest_html="$m"; done < <(find "$OUTPUT_DIR" -type f -name '*.html' -print0 2>/dev/null)
     s_newest_src=""
-    while IFS= read -r -d '' sf; do m=$(rk_mtime "$sf"); [[ -n "$m" && ( -z "$s_newest_src" || "$m" -gt "$s_newest_src" ) ]] && s_newest_src="$m"; done < <(find "$CONTENT_DIR" -type f \( -name '*.md' -o -name '*.textile' -o -name '*.cook' \) -print0 2>/dev/null)
+    while IFS= read -r -d '' sf; do m=$(rk_mtime "$sf"); [[ -n "$m" && ( -z "$s_newest_src" || "$m" -gt "$s_newest_src" ) ]] && s_newest_src="$m"; done < <(rk_find_content "$CONTENT_DIR" md textile cook)
     s_fresh="output is current ($s_html_count HTML)"
     s_status="ok"
     if [[ -z "$s_newest_html" ]]; then s_fresh="no rendered output — run bash rotkeeper.sh render"; s_status="empty"

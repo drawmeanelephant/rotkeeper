@@ -290,7 +290,7 @@ runcontentmeta() {
   validate_boundary "$OUT"
   log "INFO" "Extracting frontmatter YAML from content files..."
   echo "" > "$OUT"
-  while read -r file; do
+  while IFS= read -r -d '' file; do
     if [[ -f "$file" ]]; then
       rel="${file#"$ROOT_DIR"/}"
       awk -v path="$rel" '
@@ -301,7 +301,7 @@ runcontentmeta() {
       ' "$file" >> "$OUT"
       echo "" >> "$OUT"
     fi
-  done < <(find "$CONTENT_DIR" -name "*.md" -type f | sort)
+  done < <(rk_find_content "$CONTENT_DIR" md textile cook | sort -z)
   log "INFO" "Content metadata written to $OUT"
 }
 
