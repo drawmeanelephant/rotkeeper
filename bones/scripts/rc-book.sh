@@ -328,7 +328,13 @@ runfsbook() {
       echo "- $f"
     done < <(
       cd "$ROOT_DIR" || exit 1
-      find . -type d \( -path ./.git -o -path ./.freebuff -o -path ./.vscode -o -path ./.idea -o -path ./output -o -path ./bones/tmp -o -path ./bones/logs -o -path ./bones/reports -o -path ./bones/book-reports -o -path ./bones/archive \) -prune -o \
+      local_rel_output="${OUTPUT_DIR#"$ROOT_DIR"/}"
+      local_rel_tmp="${TMP_DIR#"$ROOT_DIR"/}"
+      local_rel_logs="${LOG_DIR#"$ROOT_DIR"/}"
+      local_rel_reports="${REPORT_DIR#"$ROOT_DIR"/}"
+      local_rel_books="${BOOK_REPORT_DIR#"$ROOT_DIR"/}"
+      local_rel_archive="${ARCHIVE_DIR#"$ROOT_DIR"/}"
+      find . -type d \( -path ./.git -o -path ./.freebuff -o -path ./.vscode -o -path ./.idea -o -path "./$local_rel_output" -o -path "./$local_rel_tmp" -o -path "./$local_rel_logs" -o -path "./$local_rel_reports" -o -path "./$local_rel_books" -o -path "./$local_rel_archive" \) -prune -o \
         -type f \
         ! -name '*.log' \
         ! -name '.DS_Store' \

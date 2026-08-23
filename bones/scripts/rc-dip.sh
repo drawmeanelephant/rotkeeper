@@ -57,7 +57,7 @@ if [[ "${DRY_RUN:-false}" == true ]]; then
   QUIET=false
 fi
 
-OBSOLETE_DIR="${ROOT_DIR}/home/obsolete/docs"
+OBSOLETE_DIR="$(dirname "${CONTENT_DIR:-${ROOT_DIR}/home/content}")/obsolete/docs"
 MATRIX_FILE="${DOCS_DIR}/dip-matrix.md"
 DATE_STR=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 DEGRADED_AUTOPSY=false
@@ -392,10 +392,15 @@ AUTOPSY_EXCLUDES[".git"]=1
 AUTOPSY_EXCLUDES[".github"]=1
 AUTOPSY_EXCLUDES[".vscode"]=1
 AUTOPSY_EXCLUDES[".idea"]=1
-AUTOPSY_EXCLUDES["home/content"]=1
-AUTOPSY_EXCLUDES["home/assets"]=1
-AUTOPSY_EXCLUDES["tmp"]=1
-AUTOPSY_EXCLUDES["output"]=1
+if [[ -n "${CONTENT_DIR:-}" ]]; then
+  AUTOPSY_EXCLUDES["${CONTENT_DIR#"$ROOT_DIR"/}"]=1
+fi
+if [[ -n "${ASSETS_DIR:-}" ]]; then
+  AUTOPSY_EXCLUDES["${ASSETS_DIR#"$ROOT_DIR"/}"]=1
+fi
+if [[ -n "${OUTPUT_DIR:-}" ]]; then
+  AUTOPSY_EXCLUDES["${OUTPUT_DIR#"$ROOT_DIR"/}"]=1
+fi
 if [[ -n "${ARCHIVE_DIR:-}" ]]; then
   AUTOPSY_EXCLUDES["${ARCHIVE_DIR#"$ROOT_DIR"/}"]=1
   AUTOPSY_EXCLUDES["${ARCHIVE_DIR#"$ROOT_DIR"/}/releases"]=1
@@ -475,8 +480,8 @@ if [[ -f "$FSBOOK_CATALOG" ]]; then
       if [[ "$file_path" =~ \.(png|css|jpg|jpeg|gif|svg|ico|woff2?|ttf|map|DS_Store|db)$ ]]; then
         continue
       fi
-      # Skip markdown/textile tombs themselves (docs are outputs of DIP, not cores)
-      if [[ "$file_path" =~ \.(md|textile)$ ]]; then
+      # Skip markdown/textile/cooklang tombs themselves (docs are outputs of DIP, not cores)
+      if [[ "$file_path" =~ \.(md|textile|cook)$ ]]; then
         continue
       fi
 

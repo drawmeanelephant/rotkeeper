@@ -257,7 +257,6 @@ fi
 # Output findings in Markdown format.
 # 6. Write Markdown report
 if [[ "$JSON_ONLY" == false ]]; then
-  mkdir -p "home/content/rotkeeper"
   md_report="$REPORT_DIR/scan-report-$(date +%Y%m%d_%H%M%S).md"
   if [[ "$DRY_RUN" != true ]]; then
     cat > "$md_report" <<EOF

@@ -296,7 +296,7 @@ PY
             if [[ "$f_reason" == "missing anchor" ]]; then
               echo "  - hint: anchor not found — check that id exists in \`$f_page\` (case-sensitive) and that the link uses correct \`\`#fragment\`\`"
             elif [[ "$f_reason" == "missing file" ]]; then
-              echo "  - hint: file not found under \`$SCAN_ROOT\` — verify source exists in \`home/content\` and that \`.md\` was rewritten to \`.html\`"
+              echo "  - hint: file not found under \`$SCAN_ROOT\` — verify source exists in \`${CONTENT_DIR#"$ROOT_DIR"/}\` and that \`.md\` was rewritten to \`.html\`"
             elif [[ "$f_reason" == "outside rendered root" ]]; then
               echo "  - hint: link escapes rendered root — use relative links within \`$SCAN_ROOT\`"
             fi
