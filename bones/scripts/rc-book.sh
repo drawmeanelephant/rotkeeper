@@ -179,12 +179,11 @@ rundocbook() {
       {
         echo "<!-- START $rel::$BOOK_SUFFIX -->"
         echo ""
-        awk -v dostrip="$STRIPMODE" '
-          BEGIN { inyaml=0 }
-          /^---$/ { inyaml++; if (dostrip=="true") next; print; next }
-          inyaml==1 { if (dostrip=="true") next; print; next }
-          { print }
-        ' "$file"
+        if [[ "$STRIPMODE" == "true" ]]; then
+          rk_strip_frontmatter "$file"
+        else
+          awk '{ print }' "$file"
+        fi
         echo "<!-- END $rel::$BOOK_SUFFIX -->"
         echo ""
       } >> "$OUT"
@@ -211,12 +210,12 @@ rundocbookclean() {
   while read -r file; do
     if [[ -f "$file" ]]; then
       local TITLE
-      TITLE=$(awk 'BEGIN{found=0} /^---$/{found++; next} found==1 && /^title:/{print substr($0, index($0,$2)); exit}' "$file" | head -n1 | sed 's/^ //;s/ $//')
+      TITLE=$(rk_frontmatter_field "title" "$file")
       [[ -z "$TITLE" ]] && TITLE=$(basename -- "$file" .md) && TITLE="${TITLE%.textile}" && TITLE="${TITLE%.cook}"
       {
         echo "$TITLE"
         echo ""
-        awk 'BEGIN{inyaml=0} /^---$/{inyaml++; next} inyaml>=2{print}' "$file"
+        rk_strip_frontmatter "$file"
         echo ""
       } >> "$OUT"
     fi
@@ -272,14 +271,11 @@ runcontentbook() {
       {
         echo "<!-- START $rel::$BOOK_SUFFIX -->"
         echo ""
-        awk -v dostrip="$STRIPMODE" '
-          BEGIN { inyaml=0; linenumber=0 }
-          { linenumber++ }
-          linenumber==1 && /^---$/ { inyaml=1; if (dostrip=="true") next; print; next }
-          inyaml==1 && /^---$/ { inyaml=2; if (dostrip=="true") next; print; next }
-          inyaml==1 { if (dostrip=="true") next; print; next }
-          { print }
-        ' "$file"
+        if [[ "$STRIPMODE" == "true" ]]; then
+          rk_strip_frontmatter "$file"
+        else
+          awk '{ print }' "$file"
+        fi
         echo "<!-- END $rel::$BOOK_SUFFIX -->"
         echo ""
       } >> "$OUT"
@@ -356,22 +352,15 @@ collapse() {
     [[ -f "$file" ]] || continue
     local filename title subtitle
     filename=$(basename "$file")
-    title=$(awk 'BEGIN{found=0} /^---$/{found++; next} found==1 && /^title:/{print substr($0, index($0,$2)); exit}' "$file" | head -n1 | sed 's/^ //;s/ $//')
-    subtitle=$(awk 'BEGIN{found=0} /^---$/{found++; next} found==1 && /^subtitle:/{print substr($0, index($0,$2)); exit}' "$file" | head -n1 | sed 's/^ //;s/ $//')
+    title=$(rk_frontmatter_field "title" "$file")
+    subtitle=$(rk_frontmatter_field "subtitle" "$file")
     [[ -z "$title" ]] && title=$(basename "$file" .md)
     {
       echo "- filename: $filename"
       echo "  title: $title"
       echo "  subtitle: $subtitle"
       echo "  body: |"
-      # Strip YAML frontmatter (opening --- ... closing ---), keep the body.
-      awk '
-        BEGIN { in_fm=0; past_fm=0 }
-        NR==1 && /^---[[:space:]]*$/ { in_fm=1; next }
-        in_fm && /^---[[:space:]]*$/ { in_fm=0; past_fm=1; next }
-        in_fm { next }
-        { print "    " $0 }
-      ' "$file"
+      rk_strip_frontmatter "$file" | awk '{ print "    " $0 }'
     } >> "$OUTPUT"
   done
   log "INFO" "Wrote $OUTPUT"
