@@ -191,8 +191,8 @@ main() {
 
     # Use gfind to avoid macOS CoreFoundation fork-without-exec after yq (BSD find + yq = segfault)
     local _tmp_find
-    local _find_cmd="find"
-    if command -v gfind >/dev/null 2>&1; then _find_cmd="gfind"; elif [[ -x "/opt/homebrew/opt/findutils/libexec/gnubin/find" ]]; then _find_cmd="/opt/homebrew/opt/findutils/libexec/gnubin/find"; fi
+    local _find_cmd
+    _find_cmd="$(rk_find_command)"
     _tmp_find=$(mktemp)
     if [[ "$render_sys_docs" == "false" ]]; then
         log "INFO" "Surgically pruning internal system docs and platform messages from user space."
@@ -251,8 +251,8 @@ main() {
 
     if output_is_generated; then
         local _tmp_stale
-        local _find_stale="find"
-        if command -v gfind >/dev/null 2>&1; then _find_stale="gfind"; elif [[ -x "/opt/homebrew/opt/findutils/libexec/gnubin/find" ]]; then _find_stale="/opt/homebrew/opt/findutils/libexec/gnubin/find"; fi
+        local _find_stale
+        _find_stale="$(rk_find_command)"
         _tmp_stale=$(mktemp)
         "$_find_stale" "$OUTPUT_DIR" -type f -name "*.html" -print0 > "$_tmp_stale" 2>/dev/null || true
         while IFS= read -r -d '' stale_html; do

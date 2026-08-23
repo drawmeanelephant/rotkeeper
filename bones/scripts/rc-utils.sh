@@ -866,6 +866,33 @@ list_md_files() {
   find "$1" -type f -name '*.md'
 }
 
+# Print the best available find binary. GNU find is preferred when present:
+# on macOS, BSD find can segfault when forked after yq (CoreFoundation
+# fork-without-exec), so scripts that mix the two must use gfind.
+rk_find_command() {
+  if command -v gfind >/dev/null 2>&1; then
+    command -v gfind
+  elif [[ -x /opt/homebrew/opt/findutils/libexec/gnubin/find ]]; then
+    printf '%s' /opt/homebrew/opt/findutils/libexec/gnubin/find
+  else
+    command -v find
+  fi
+}
+
+# NUL-delimited discovery of content sources under DIR, safe for arbitrary
+# filenames. Pass extensions as bare words: rk_find_content "$dir" md textile cook
+rk_find_content() {
+  local dir="$1"; shift
+  local name_args=() ext
+  for ext in "$@"; do
+    name_args+=(-name "*.$ext" -o)
+  done
+  unset "name_args[${#name_args[@]}-1]"
+  local find_bin
+  find_bin="$(rk_find_command)"
+  "$find_bin" "$dir" -type f \( "${name_args[@]}" \) -print0 2>/dev/null || true
+}
+
 # Require env vars to be set
 require_env_vars() {
   for var in "$@"; do
