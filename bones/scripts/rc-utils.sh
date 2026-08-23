@@ -644,7 +644,7 @@ set_traps() {
 # Initialize log file with script name
 init_log() {
   local name="${1:-$(basename "$0" .sh)}"
-  LOG_FILE="$LOG_DIR/${name}-$(date +%Y-%m-%d_%H%M).log"
+  LOG_FILE="$LOG_DIR/${name}-$(date +%Y-%m-%d_%H%M%S)-$$.log"
   mkdir -p "$(dirname "$LOG_FILE")"
 }
 

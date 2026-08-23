@@ -45,18 +45,20 @@ if [[ "$OS_TYPE" == "linux" ]]; then
   if command -v apt-get >/dev/null 2>&1; then
     $SUDO apt-get update && $SUDO apt-get install -y jq rsync zip gawk wget curl git libxml2-utils
   fi
-  wget -q "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${BINARY}" -O /tmp/yq
+  YQ_TMP="$(mktemp /tmp/yq.XXXXXX)"
+  wget -q "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${BINARY}" -O "$YQ_TMP"
 elif [[ "$OS_TYPE" == "darwin" ]]; then
   # macOS environment compatibility fallback
   if command -v brew >/dev/null 2>&1; then
     brew install jq rsync zip gawk yq
   else
-    curl -sL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${BINARY}" -o /tmp/yq
+    YQ_TMP="$(mktemp /tmp/yq.XXXXXX)"
+    curl -sL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${BINARY}" -o "$YQ_TMP"
   fi
 fi
 
-if [ -f /tmp/yq ]; then
-  $SUDO mv /tmp/yq /usr/local/bin/yq
+if [ -n "${YQ_TMP:-}" ] && [ -f "$YQ_TMP" ]; then
+  $SUDO mv "$YQ_TMP" /usr/local/bin/yq
   $SUDO chmod +x /usr/local/bin/yq
 fi
 
@@ -146,16 +148,17 @@ if [[ "$NEED_OLIVER_INSTALL" == true ]]; then
   elif command -v zig >/dev/null 2>&1; then
   # Requires Zig 0.16.0 (https://ziglang.org/download/) and git. A full clone
   # is required: a shallow clone lacks the pinned object once upstream advances.
-  rm -rf /tmp/oliver-build
-  git clone https://github.com/drawmeanelephant/oliver.git /tmp/oliver-build
-  git -C /tmp/oliver-build checkout --quiet "$OLIVER_PIN"
-  if [[ "$(git -C /tmp/oliver-build rev-parse HEAD)" != "$OLIVER_PIN" ]]; then
+  OLIVER_BUILD_DIR="$(mktemp -d /tmp/oliver-build.XXXXXX)"
+  git clone https://github.com/drawmeanelephant/oliver.git "$OLIVER_BUILD_DIR"
+  git -C "$OLIVER_BUILD_DIR" checkout --quiet "$OLIVER_PIN"
+  if [[ "$(git -C "$OLIVER_BUILD_DIR" rev-parse HEAD)" != "$OLIVER_PIN" ]]; then
     echo "FATAL: could not check out pinned Oliver commit $OLIVER_PIN" >&2
     exit 1
   fi
   echo "Building Oliver from pinned commit $OLIVER_PIN"
-  (cd /tmp/oliver-build && zig build)
-  $SUDO install -m 0755 "/tmp/oliver-build/zig-out/bin/oliver" /usr/local/bin/oliver
+  (cd "$OLIVER_BUILD_DIR" && zig build)
+  $SUDO install -m 0755 "$OLIVER_BUILD_DIR/zig-out/bin/oliver" /usr/local/bin/oliver
+  rm -rf "$OLIVER_BUILD_DIR"
   else
     echo "WARN: No Oliver reporting commit $OLIVER_PIN could be installed: the builds release was unavailable and Zig 0.16.0 is not installed."
     echo "      Install Zig 0.16.0 (https://ziglang.org/download/), then re-run this script"

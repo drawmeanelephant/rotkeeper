@@ -80,7 +80,7 @@ fi
 require_bins bash rsync zip zipinfo
 
 PROJECT_ROOT="$ROOT_DIR"
-STAGING_DIR="$TMP_DIR/release-staging"
+STAGING_DIR="$TMP_DIR/release-staging-$$"
 ZIP_TMP=""
 
 canonicalize_release_path() {
