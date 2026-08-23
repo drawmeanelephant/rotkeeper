@@ -104,8 +104,12 @@ if [[ "$FULL" == true ]]; then
 fi
 
 # Make all rc-*.sh and rc-utils.bats scripts executable
-log "INFO" "🔐 Blessing scripts with +x permissions..."
-find "$SCRIPT_DIR" -type f \( -name "rc-*.sh" -o -name "rc-*.bats" \) -exec chmod +x {} \;
+if [[ "$DRY_RUN" == true ]]; then
+    log "DRY-RUN" "Would bless scripts with +x permissions in $SCRIPT_DIR"
+else
+    log "INFO" "🔐 Blessing scripts with +x permissions..."
+    find "$SCRIPT_DIR" -type f \( -name "rc-*.sh" -o -name "rc-*.bats" \) -exec chmod +x {} \;
+fi
 
 main() {
     # Verify required tools (config serialization is yq-driven)
@@ -164,7 +168,12 @@ main() {
     fi
 
     if [[ "$WITH_SAMPLE" == true ]]; then
-        cat << 'EOF_HELLO' > "$CONTENT_DIR/test-file.md"
+        if [[ "$DRY_RUN" == true ]]; then
+            log "DRY-RUN" "Would generate starter content at $CONTENT_DIR/test-file.md"
+        elif [[ -f "$CONTENT_DIR/test-file.md" ]]; then
+            log "WARN" "Starter content already exists, leaving untouched: $CONTENT_DIR/test-file.md"
+        else
+            cat << 'EOF_HELLO' > "$CONTENT_DIR/test-file.md"
 ---
 title: "Test File"
 slug: test-file
@@ -176,7 +185,8 @@ description: "A simple starter page to demonstrate YAML frontmatter in Rotkeeper
 
 This is a demonstration page created during initialization.
 EOF_HELLO
-        log "INFO" "📄 Generated starter content at $CONTENT_DIR/test-file.md"
+            log "INFO" "📄 Generated starter content at $CONTENT_DIR/test-file.md"
+        fi
     fi
 
     if [[ "$WITH_ASSETS" == true ]]; then

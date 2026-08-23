@@ -220,8 +220,9 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
     oliver_cmd+=(--to xhtml)
   fi
 
-  if ! "${oliver_cmd[@]}" < "$src_path" > "$body_tmp" 2> "$oliver_err"; then
-    oliver_status=$?
+  oliver_status=0
+  "${oliver_cmd[@]}" < "$src_path" > "$body_tmp" 2> "$oliver_err" || oliver_status=$?
+  if [[ "$oliver_status" -ne 0 ]]; then
     first_err_line="$(head -n1 "$oliver_err" 2>/dev/null || echo "no details")"
     log "ERROR" "Oliver rendering failed for page '$src_path' using template '$template_path' (exit $oliver_status): $first_err_line"
     log "MARKER" "✗ Oliver failed for '$(basename "$src_path")' (exit $oliver_status): $first_err_line"

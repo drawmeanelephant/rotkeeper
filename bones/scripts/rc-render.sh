@@ -136,6 +136,10 @@ main() {
     log_manifest() {
       local raw_entry="$1"
       local rel_entry="${raw_entry#"$ROOT_DIR"/}"
+      if [[ "$DRY_RUN" == true ]]; then
+        log "DRY-RUN" "Would add '$rel_entry' to manifest"
+        return 0
+      fi
       if [[ -n "$MANIFEST" ]]; then
         mkdir -p "$(dirname "$MANIFEST")"
         touch "$MANIFEST"

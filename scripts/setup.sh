@@ -127,11 +127,23 @@ install_oliver_binary() {
   rm -rf "$tmpdir"
 }
 
-if command -v oliver >/dev/null 2>&1; then
-  echo "Oliver already present at $(command -v oliver), skipping install."
-elif install_oliver_binary; then
-  :
-elif command -v zig >/dev/null 2>&1; then
+NEED_OLIVER_INSTALL=true
+OLIVER_FOUND="$(command -v oliver 2>/dev/null || true)"
+if [[ -n "$OLIVER_FOUND" ]]; then
+  OLIVER_REPORTED="$(command "$OLIVER_FOUND" --version 2>/dev/null || true)"
+  if [[ "$OLIVER_REPORTED" == *"commit $OLIVER_PIN"* ]]; then
+    echo "Oliver already present at $OLIVER_FOUND ($OLIVER_REPORTED), skipping install."
+    NEED_OLIVER_INSTALL=false
+  else
+    echo "WARN: Oliver at $OLIVER_FOUND reports '${OLIVER_REPORTED:-nothing}', expected commit $OLIVER_PIN."
+    echo "      Reinstalling the pinned build so the renderer contract holds."
+  fi
+fi
+
+if [[ "$NEED_OLIVER_INSTALL" == true ]]; then
+  if install_oliver_binary; then
+    :
+  elif command -v zig >/dev/null 2>&1; then
   # Requires Zig 0.16.0 (https://ziglang.org/download/) and git. A full clone
   # is required: a shallow clone lacks the pinned object once upstream advances.
   rm -rf /tmp/oliver-build
@@ -144,10 +156,11 @@ elif command -v zig >/dev/null 2>&1; then
   echo "Building Oliver from pinned commit $OLIVER_PIN"
   (cd /tmp/oliver-build && zig build)
   $SUDO install -m 0755 "/tmp/oliver-build/zig-out/bin/oliver" /usr/local/bin/oliver
-else
-  echo "WARN: Oliver not found on PATH, the builds release was unavailable, and Zig 0.16.0 is not installed."
-  echo "      Install Zig 0.16.0 (https://ziglang.org/download/), then re-run this script"
-  echo "      to build Oliver from https://github.com/drawmeanelephant/oliver."
+  else
+    echo "WARN: No Oliver reporting commit $OLIVER_PIN could be installed: the builds release was unavailable and Zig 0.16.0 is not installed."
+    echo "      Install Zig 0.16.0 (https://ziglang.org/download/), then re-run this script"
+    echo "      to build Oliver from https://github.com/drawmeanelephant/oliver."
+  fi
 fi
 
 
