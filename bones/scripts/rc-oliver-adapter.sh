@@ -246,12 +246,12 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
       if [[ $warn_count -lt 2 ]]; then
         log "MARKER" "⚠️  Oliver warning for '$(basename "$src_path")': $line"
       fi
-      echo "Oliver warning for '$(basename "$src_path")': $line" >> "$TMP_DIR/oliver-warnings-list.log"
+      echo "Oliver warning for '$(basename "$src_path")': $line" >> "$TMP_DIR/oliver-warnings-list-${RK_RENDER_ID:-$$}.log"
       warn_count=$((warn_count + 1))
     done < "$oliver_err"
     # Accumulate total warnings for render summary (shared across batch)
     if [[ $warn_count -gt 0 ]]; then
-      echo "$warn_count" >> "$TMP_DIR/oliver-warnings-batch.log"
+      echo "$warn_count" >> "$TMP_DIR/oliver-warnings-batch-${RK_RENDER_ID:-$$}.log"
     fi
   fi
   rm -f "$oliver_err"

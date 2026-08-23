@@ -319,7 +319,7 @@ main() {
         log "DRY-RUN" "Would invoke bash $SCRIPT_DIR/rc-oliver-adapter.sh $batch_tsv"
       else
         set +e
-        bash "$SCRIPT_DIR/rc-oliver-adapter.sh" "$batch_tsv"
+        RK_RENDER_ID="$$" bash "$SCRIPT_DIR/rc-oliver-adapter.sh" "$batch_tsv"
         adapter_status=$?
         set -e
         if [[ $adapter_status -ne 0 ]]; then
@@ -427,14 +427,14 @@ main() {
 
     # Gather Oliver warning total from adapter batch (if any)
     warning_total=0
-    warnings_file="$TMP_DIR/oliver-warnings-batch.log"
+    warnings_file="$TMP_DIR/oliver-warnings-batch-$$.log"
     if [[ -f "$warnings_file" ]]; then
       warning_total=$(awk '{ s+=$1 } END { print s+0 }' "$warnings_file" 2>/dev/null || echo 0)
       rm -f "$warnings_file"
     fi
 
     # Surface first 2 Oliver warnings inline (adapter wrote them to shared list; its fd3 is not the user's tty)
-    warnings_list="$TMP_DIR/oliver-warnings-list.log"
+    warnings_list="$TMP_DIR/oliver-warnings-list-$$.log"
     if [[ -f "$warnings_list" ]]; then
       head -n 2 "$warnings_list" | while IFS= read -r wline || [[ -n "$wline" ]]; do
         log "MARKER" "⚠️  $wline"

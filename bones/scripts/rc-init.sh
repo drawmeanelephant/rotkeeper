@@ -142,25 +142,10 @@ main() {
            yq eval ".layout_style = \"$PROFILE\"" -i "$CONFIG_TARGET"
         fi
 
-        # Explicitly map the active folder locations straight into the target yaml config
-        yq eval ".paths.ROOT_DIR = \"$ROOT_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.BONES_DIR = \"$BONES_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.SCRIPT_DIR = \"$SCRIPT_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.CONFIG_DIR = \"$CONFIG_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.LOG_DIR = \"$LOG_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.TMP_DIR = \"$TMP_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.ARCHIVE_DIR = \"$ARCHIVE_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.RELEASE_DIR = \"$RELEASE_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.REPORT_DIR = \"$REPORT_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.BOOK_REPORT_DIR = \"$BOOK_REPORT_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.META_DIR = \"$META_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.TEMPLATE_DIR = \"$TEMPLATE_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.ASSETS_DIR = \"$ASSETS_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.CONTENT_DIR = \"$CONTENT_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.OUTPUT_DIR = \"$OUTPUT_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.DOCS_DIR = \"$DOCS_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.HELP_DIR = \"$HELP_DIR\"" -i "$CONFIG_TARGET"
-        yq eval ".paths.WEB_DIR = \"$WEB_DIR\"" -i "$CONFIG_TARGET"
+        # Explicitly map the active folder locations straight into the target yaml config.
+        # Single yq transaction: a crash mid-write can no longer leave a partially
+        # populated paths block (which strict validation treats as fatal corruption).
+        yq eval ".paths.ROOT_DIR = \"$ROOT_DIR\" | .paths.BONES_DIR = \"$BONES_DIR\" | .paths.SCRIPT_DIR = \"$SCRIPT_DIR\" | .paths.CONFIG_DIR = \"$CONFIG_DIR\" | .paths.LOG_DIR = \"$LOG_DIR\" | .paths.TMP_DIR = \"$TMP_DIR\" | .paths.ARCHIVE_DIR = \"$ARCHIVE_DIR\" | .paths.RELEASE_DIR = \"$RELEASE_DIR\" | .paths.REPORT_DIR = \"$REPORT_DIR\" | .paths.BOOK_REPORT_DIR = \"$BOOK_REPORT_DIR\" | .paths.META_DIR = \"$META_DIR\" | .paths.TEMPLATE_DIR = \"$TEMPLATE_DIR\" | .paths.ASSETS_DIR = \"$ASSETS_DIR\" | .paths.CONTENT_DIR = \"$CONTENT_DIR\" | .paths.OUTPUT_DIR = \"$OUTPUT_DIR\" | .paths.DOCS_DIR = \"$DOCS_DIR\" | .paths.HELP_DIR = \"$HELP_DIR\" | .paths.WEB_DIR = \"$WEB_DIR\"" -i "$CONFIG_TARGET"
 
         FORCE_ENV_RELOAD=true rk_load_env strict
 

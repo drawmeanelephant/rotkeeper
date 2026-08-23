@@ -59,7 +59,7 @@ exec 1>&3 2>&3
 set -euo pipefail
 IFS=$'\n\t'
 
-LOG_FILE="$LOG_DIR/rc-status-$(date +%Y-%m-%d_%H%M).log"
+LOG_FILE="$LOG_DIR/rc-status-$(date +%Y-%m-%d_%H%M%S)-$$.log"
 mkdir -p "$LOG_DIR"
 
 log() {
