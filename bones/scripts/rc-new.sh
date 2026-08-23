@@ -280,11 +280,24 @@ main() {
 
     TAGS_YAML=""
     if [[ -n "$TAGS" ]]; then
-        TAGS_YAML="[${TAGS//,/, }]"
+        IFS=',' read -ra TAG_ITEMS <<< "$TAGS"
+        for tag in ${TAG_ITEMS[@]+"${TAG_ITEMS[@]}"}; do
+            tag="${tag#"${tag%%[![:space:]]*}"}"
+            tag="${tag%"${tag##*[![:space:]]}"}"
+            safe_tag="${tag//\\/\\\\}"
+            safe_tag="${safe_tag//\"/\\\"}"
+            if [[ -z "$TAGS_YAML" ]]; then
+                TAGS_YAML="\"$safe_tag\""
+            else
+                TAGS_YAML="$TAGS_YAML, \"$safe_tag\""
+            fi
+        done
+        TAGS_YAML="[$TAGS_YAML]"
     fi
 
     # Sanitize and escape double quotes for frontmatter strings
-    SAFE_TITLE="${TITLE//\"/\\\"}"
+    SAFE_TITLE="${TITLE//\\/\\\\}"
+    SAFE_TITLE="${SAFE_TITLE//\"/\\\"}"
 
     # Format-aware default heading: textile pages get h1., markdown pages get #,
     # cooklang recipes get none (Cooklang has no heading syntax — the recipe
@@ -311,7 +324,8 @@ main() {
         FORMATTED_DESC="${DESCRIPTION//\\n/$'\n'}"
         DESC_BLOCK="description: |"$'\n'"$(printf '%s\n' "$FORMATTED_DESC" | sed 's/^/  /')"
     else
-        SAFE_DESC="${DESCRIPTION//\"/\\\"}"
+        SAFE_DESC="${DESCRIPTION//\\/\\\\}"
+        SAFE_DESC="${SAFE_DESC//\"/\\\"}"
         DESC_BLOCK="description: \"${SAFE_DESC}\""
     fi
 
@@ -328,7 +342,9 @@ EOF
         fi
 
         if [[ -n "$AUTHOR" ]]; then
-            echo "author: \"$AUTHOR\"" >> "$FILE"
+            SAFE_AUTHOR="${AUTHOR//\\/\\\\}"
+            SAFE_AUTHOR="${SAFE_AUTHOR//\"/\\\"}"
+            echo "author: \"$SAFE_AUTHOR\"" >> "$FILE"
         fi
 
         if [[ -n "$TAGS_YAML" ]]; then
@@ -336,7 +352,9 @@ EOF
         fi
 
         if [[ -n "$SOURCE_URL" ]]; then
-            echo "source_url: \"$SOURCE_URL\"" >> "$FILE"
+            SAFE_SOURCE_URL="${SOURCE_URL//\\/\\\\}"
+            SAFE_SOURCE_URL="${SAFE_SOURCE_URL//\"/\\\"}"
+            echo "source_url: \"$SAFE_SOURCE_URL\"" >> "$FILE"
         fi
 
         {

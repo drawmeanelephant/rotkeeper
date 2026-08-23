@@ -45,7 +45,7 @@ Flags:
   --md-only         Output only Markdown report.
   -h, --help        Show this help message and exit.
 EOF
-  exit 0
+  exit "${1:-0}"
 }
 
 
@@ -111,7 +111,7 @@ while [[ $# -gt 0 ]]; do
     --json-only) JSON_ONLY=true; shift ;;
     --md-only) MD_ONLY=true; shift ;;
     -h|--help) show_help ;;
-    *) echo "[ERROR] Unknown flag: $1"; show_help ;;
+    *) echo "[ERROR] Unknown flag: $1"; show_help 2 ;;
   esac
 done
 

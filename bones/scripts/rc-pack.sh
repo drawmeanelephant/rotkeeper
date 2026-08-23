@@ -212,7 +212,7 @@ main() {
       if [[ "$DRY_RUN" == false ]]; then
         echo "📦 Packing full rotkeeper system into \"$SELF_ARCHIVE\""
         pack_archive "$ARCHIVE_DIR/$SELF_ARCHIVE" \
-          tar --exclude="$ARCHIVE_DIR" -C "$ROOT_DIR" -cf "$ARCHIVE_DIR/$SELF_ARCHIVE" rotkeeper.sh "${BONES_DIR#"$ROOT_DIR"/}/" "${CONTENT_DIR#"$ROOT_DIR"/}/" "${OUTPUT_DIR#"$ROOT_DIR"/}/"
+          tar --exclude="${ARCHIVE_DIR#"$ROOT_DIR"/}" --exclude="${ARCHIVE_DIR#"$ROOT_DIR"/}/*" -C "$ROOT_DIR" -cf "$ARCHIVE_DIR/$SELF_ARCHIVE" rotkeeper.sh "${BONES_DIR#"$ROOT_DIR"/}/" "${CONTENT_DIR#"$ROOT_DIR"/}/" "${OUTPUT_DIR#"$ROOT_DIR"/}/"
         SHA=$(rk_sha256 "$ARCHIVE_DIR/$SELF_ARCHIVE" | cut -d' ' -f1)
         echo "$SELF_ARCHIVE  $SHA" >> "$MANIFEST_FILE"
 
