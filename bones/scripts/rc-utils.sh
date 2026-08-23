@@ -790,8 +790,57 @@ read_meta_sidecar_body() {
     local sidecar
     sidecar=$(get_sidecar_path "$target_file")
     if [[ -f "$sidecar" ]]; then
-        sed "1{/^---$/!q;}; 1,/^---$/d" "$sidecar"
+        rk_strip_frontmatter "$sidecar"
     fi
+}
+
+# Canonicalize a path, falling back to the raw input when it cannot be
+# resolved (missing realpath/readlink and unresolvable parents). This is the
+# lenient variant used for boundary checks on not-yet-existing targets.
+rk_canonical_or_raw() {
+    local path="$1"
+    local canonical
+    if canonical=$(realpath -m "$path" 2>/dev/null); then
+        printf '%s\n' "$canonical"
+        return 0
+    fi
+    if command -v readlink >/dev/null 2>&1 && canonical=$(readlink -f "$path" 2>/dev/null); then
+        printf '%s\n' "$canonical"
+        return 0
+    fi
+    rk_canonical_path "$path" 2>/dev/null || printf '%s\n' "$path"
+}
+
+# Print the file with a leading YAML frontmatter block removed. Only a "---"
+# on line 1 opens a frontmatter block; files without one pass through intact,
+# and horizontal rules later in the body are never mistaken for delimiters.
+rk_strip_frontmatter() {
+    awk '
+        BEGIN { in_fm = 0; past_fm = 0 }
+        NR == 1 && /^---[[:space:]]*$/ { in_fm = 1; next }
+        in_fm == 1 && /^---[[:space:]]*$/ { in_fm = 0; past_fm = 1; next }
+        in_fm == 1 { next }
+        { print }
+    ' "$1"
+}
+
+# Print the value of KEY from a leading YAML frontmatter block, with surrounding
+# quotes and trailing whitespace stripped. Prints nothing when absent. Keys are
+# matched at line start inside the block only.
+rk_frontmatter_field() {
+    local key="$1" file="$2"
+    awk -v key="$key" '
+        BEGIN { in_fm = 0 }
+        NR == 1 && /^---[[:space:]]*$/ { in_fm = 1; next }
+        in_fm == 1 && /^---[[:space:]]*$/ { exit }
+        in_fm == 1 && $0 ~ "^"key":[[:space:]]*" {
+            sub("^"key":[[:space:]]*", "")
+            gsub(/^["\x27]|["\x27]$/, "")
+            gsub(/[[:space:]]+$/, "")
+            print
+            exit
+        }
+    ' "$file"
 }
 
 # Return script directory

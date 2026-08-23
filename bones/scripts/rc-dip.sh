@@ -132,36 +132,12 @@ atomic_write() {
 
 # Extract target_file frontmatter value (quoted or bare).
 read_target_file() {
-  local doc="$1"
-  awk '
-    BEGIN { in_fm=0 }
-    NR==1 && /^---[[:space:]]*$/ { in_fm=1; next }
-    in_fm && /^---[[:space:]]*$/ { exit }
-    in_fm && /^target_file:[[:space:]]*/ {
-      sub(/^target_file:[[:space:]]*/, "")
-      gsub(/^["'\'']|["'\'']$/, "")
-      gsub(/[[:space:]]+$/, "")
-      print
-      exit
-    }
-  ' "$doc"
+  rk_frontmatter_field "target_file" "$1"
 }
 
 # Extract status frontmatter value.
 read_status_field() {
-  local doc="$1"
-  awk '
-    BEGIN { in_fm=0 }
-    NR==1 && /^---[[:space:]]*$/ { in_fm=1; next }
-    in_fm && /^---[[:space:]]*$/ { exit }
-    in_fm && /^status:[[:space:]]*/ {
-      sub(/^status:[[:space:]]*/, "")
-      gsub(/^["'\'']|["'\'']$/, "")
-      gsub(/[[:space:]]+$/, "")
-      print
-      exit
-    }
-  ' "$doc"
+  rk_frontmatter_field "status" "$1"
 }
 
 # Count TODO: lines outside fenced code blocks.

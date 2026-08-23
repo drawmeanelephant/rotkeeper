@@ -31,10 +31,7 @@ if [[ ! -f "$MANIFEST_TSV" ]]; then
 fi
 
 get_canonical_path() {
-  local path="$1"
-  local canonical
-  canonical=$(rk_canonical_path "$path" 2>/dev/null || echo "$path")
-  echo "$canonical"
+  rk_canonical_or_raw "$1"
 }
 
 is_within_boundary() {

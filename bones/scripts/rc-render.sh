@@ -208,10 +208,7 @@ main() {
     log "INFO" "Discovered ${#md_corpses[@]} source files for compilation."
 
     get_canonical_path() {
-      local path="$1"
-      local canonical_path
-      canonical_path=$(realpath -m "$path" 2>/dev/null || readlink -f "$path" 2>/dev/null || echo "$path")
-      echo "$canonical_path"
+      rk_canonical_or_raw "$1"
     }
 
     strip_source_ext() {
