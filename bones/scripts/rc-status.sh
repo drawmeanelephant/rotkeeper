@@ -465,7 +465,7 @@ if [[ ! -d "$CONTENT_DIR" ]] || [[ -z "$(find "$CONTENT_DIR" -type f \( -name '*
     if [[ "$JSON_MODE" == true ]]; then
         JSON_PULSE="  \"content_pulse\": {
     \"status\": \"empty\",
-    \"reason\": \"no content files found in home/content/\",
+    \"reason\": \"no content files found in ${CONTENT_DIR#"$ROOT_DIR"/}/\",
     \"total_md\": 0,
     \"total_textile\": 0,
     \"total_cook\": 0,
@@ -475,7 +475,7 @@ if [[ ! -d "$CONTENT_DIR" ]] || [[ -z "$(find "$CONTENT_DIR" -type f \( -name '*
   }"
     else
         status_heading "=== Content Pulse ==="
-        echo "[EMPTY] no content files found in home/content/"
+        echo "[EMPTY] no content files found in ${CONTENT_DIR#"$ROOT_DIR"/}/"
         echo "Total .md files : 0"
         echo "Total .textile files : 0"
         echo "Total .cook files : 0"
