@@ -2,6 +2,13 @@
 
 This ledger tracks the backlog of work for Rotkeeper, explicitly structured for async agent handoffs and general improvements.
 
+> **Tracking moved to GitHub (2026-08-24).** Open backlog lives in
+> [GitHub issues](https://github.com/drawmeanelephant/rotkeeper/issues),
+> milestone [`0.8.0`](https://github.com/drawmeanelephant/rotkeeper/milestone/1).
+> Lines below ticked with *(tracked in #N)* are ledger pointers, not completed
+> work — the referenced issue stays authoritative until it closes. Current
+> release candidate: #270.
+
 ---
 
 ## 🧭 Post-PR177 Stabilization Roadmap
@@ -108,26 +115,26 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 ### 1. Documentation Sync
 - [x] Rewrite `README.md`: add Quickstart, "common workflows", troubleshooting matrix, architecture overview, and file tree reference. *(2026-08-12: rewritten with Quickstart, BHO + layout style table, common workflows, full command reference incl. `preflight`, troubleshooting matrix, contributor notes; stale `init --full` and `rm -rf output/*` guidance corrected)*
 - [x] Create `workflow.md` detailing the full `init → reseed → render → pack → scan` cycle. *(created at `home/content/docs/workflow.md` (published as workflow.html) covering preflight → init → author → render → verify → archive → release; reseed no longer exists, so the documented cycle reflects the current dispatcher)*
-- [ ] Generate script-by-script reference pages for `rc-*.sh` including flags, inputs, outputs, and "dangerous operations" warnings. *(2026-08-13: scaffolding complete — all 20 rituals have DIP pages under `docs/bones/scripts/`, the autopsy whitelist now help-extracts every script including `rc-preflight`/`rc-links`/`rc-oliver-adapter`, and the flag/help pillars are stitched and current (stubs were regenerated, Missing 4→0). Overview, env, dangerous-operations prose per page still pending — natural agent work once dust settles)*
+- [x] Generate script-by-script reference pages for `rc-*.sh` including flags, inputs, outputs, and "dangerous operations" warnings. *(2026-08-13: scaffolding complete — all 20 rituals have DIP pages under `docs/bones/scripts/`, the autopsy whitelist now help-extracts every script including `rc-preflight`/`rc-links`/`rc-oliver-adapter`, and the flag/help pillars are stitched and current (stubs were regenerated, Missing 4→0). Overview, env, dangerous-operations prose per page still pending — natural agent work once dust settles)* *(2026-08-24: tracked in #226)*
 - [x] Add schema docs for: `rotkeeper-bom.yaml`, `asset-manifest.yaml`. *(2026-08-13: `rotkeeper-schemas.md` documents `bones/asset-manifest.yaml`, `bones/config/rotkeeper.yaml`, and `release-manifest.txt` (which replaced the never-shipped `rotkeeper-bom.yaml` during Phase 5; the stale bom reference in `rotkeeper-reference.md` was corrected)*
 - [x] Define and document expectations for creating new `rc-*.sh` rituals. *(2026-08-13: `new-ritual.md` — required header/bootstrap/flags, dispatcher wiring, autopsy whitelist registration, DIP discovery, boundary/destructive-op discipline, and validation list)*
 - [x] Ensure all index and navigation pages include backlinks to the root or documentation overview. *(2026-08-13: backlinks added to `bones/`, `bones/scripts/`, `bones/config/`, `bones/templates/`, `scripts/` indexes plus the root index; glue refreshed; two new authored pages cross-link)*
 
 ### 2. Commenting Pass
-- [ ] Add concise docstrings to every Bash function and explain non-trivial `awk`, `sed`, `find`, and `tar` pipelines.
-- [ ] Mark assumptions about env vars and CWD, and document input/output contracts.
-- [ ] Note side effects like file writes, deletes, archiving, and Git operations.
+- [x] Add concise docstrings to every Bash function and explain non-trivial `awk`, `sed`, `find`, and `tar` pipelines. *(2026-08-24: tracked in #227)*
+- [x] Mark assumptions about env vars and CWD, and document input/output contracts. *(2026-08-24: tracked in #228)*
+- [x] Note side effects like file writes, deletes, archiving, and Git operations. *(2026-08-24: tracked in #229)*
 
 ### 3. Security Audit Pass
-- [ ] Review manifest parsing and add preflight checks before delete (`rm -rf`) operations.
-- [ ] Harden temporary directory handling (e.g., consistent `mktemp` usage).
+- [x] Review manifest parsing and add preflight checks before delete (`rm -rf`) operations. *(2026-08-24: tracked in #230)*
+- [x] Harden temporary directory handling (e.g., consistent `mktemp` usage). *(2026-08-24: done via #231 — post-`0d21146` audit found three fixed-name temp sites left (rc-bump ×2, rc-glue ×1); all converted to per-process `.tmp.$$` with failure cleanup; no fixed-name surfaces remain)*
 - [x] Ensure all destructive commands strictly honor `--dry-run`. *(2026-08-13: the harness now asserts `--dry-run` non-mutation for render/pack/scan/release per layout. This caught a real bug — `rc-scan.sh` opened a second-granularity log file on every run, dry or not; the log is now opened only for real runs)*
 
 ### 4. Shell Safety Cleanup
-- [ ] Quote variables consistently and replace brittle loops/unsafe globbing.
-- [ ] Normalize `set -euo pipefail` usage and tighten trap/cleanup logic across all scripts.
-- [ ] Ensure all scripts fail clearly on missing dependencies (`jq`, `yq`).
-- [ ] Make path handling root-relative everywhere and reduce CWD assumptions.
+- [x] Quote variables consistently and replace brittle loops/unsafe globbing. *(2026-08-24: tracked in #232)*
+- [x] Normalize `set -euo pipefail` usage and tighten trap/cleanup logic across all scripts. *(2026-08-24: tracked in #233)*
+- [x] Ensure all scripts fail clearly on missing dependencies (`jq`, `yq`). *(2026-08-24: tracked in #234)*
+- [x] Make path handling root-relative everywhere and reduce CWD assumptions. *(2026-08-24: tracked in #235)*
 - [x] Extract `safe_tar_gz()` into `rc-utils.sh` and standardize archive logic. *(2026-08-13: audited — no tar/gzip call sites exist outside `rc-pack.sh`; `pack_archive`/`validate_gz` (partial-archive cleanup trap + gzip integrity gate) are already the single standard and were left untouched to avoid churn. The harness now independently asserts tomb gzip integrity and root-relative entries)*
 
 ### 5. Smoke-Test Scaffolding
@@ -147,12 +154,12 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 *Broader architectural changes, UX polish, and experimental features.*
 
 ### UX & Logging
-- [ ] Standardize `--help` output across rituals and add examples.
-- [ ] Improve error messages, warnings, and add explicit success/failure summaries.
-- [ ] Add `--json` for machine-readable reports where useful.
+- [x] Standardize `--help` output across rituals and add examples. *(2026-08-24: tracked in #236)*
+- [x] Improve error messages, warnings, and add explicit success/failure summaries. *(2026-08-24: tracked in #237)*
+- [x] Add `--json` for machine-readable reports where useful. *(2026-08-24: tracked in #238)*
 - [x] Unify log format, add timestamps, and log tomb version in `yougood.brah` on every invocation. *(timestamps are standard in `log()` (rc-utils.sh); the `yougood.brah` tomb-version line was legacy lore and is dropped)*
 - [x] Add post-pack tomb summary to logs and generate Markdown summaries after `pack`. *(scope: `pack` now prints a tomb summary line — archive name, sha256 prefix, file count, size; standalone Markdown summary generation is backlogged under "dashboard/report" work)*
-- [ ] Add helper for generating `--help` from a `.help.txt` or frontmatter-driven block per script.
+- [x] Add helper for generating `--help` from a `.help.txt` or frontmatter-driven block per script. *(2026-08-24: tracked in #239)*
 
 ### Archive + Pack Hardening
 - [x] Validate `.tar.gz` contents before finalizing. *(validate_gz gates every pack; the harness independently re-verifies tomb gzip integrity and entry prefixes)*
@@ -162,40 +169,40 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 
 ### Repo Hygiene & Maintenance
 - [x] Update `AGENTS.md` to describe script layout, safety rules, naming patterns, and destructive commands. *(current AGENTS.md manual already covers the BHO model, dispatcher usage, hard rules, validation requirements, and per-directory reading list — verified 2026-08-13)*
-- [ ] Add `.editorconfig`, shellcheck config, markdownlint config, PR templates, and issue templates.
-- [ ] Archive `peer-reviews.md` into `bones/meta/peer-review-sarcophagus.md`.
-- [ ] Clean up template footers (add credits, version stamp) and ensure `asset-meta` exists everywhere.
-- [ ] Only generate stub scripts if file is empty or has `# TODO`.
+- [x] Add `.editorconfig`, shellcheck config, markdownlint config, PR templates, and issue templates. *(2026-08-24: entry stale — reconciliation tracked in #242)*
+- [x] Archive `peer-reviews.md` into `bones/meta/peer-review-sarcophagus.md`. *(2026-08-24: entry stale — reconciliation tracked in #242)*
+- [x] Clean up template footers (add credits, version stamp) and ensure `asset-meta` exists everywhere. *(2026-08-24: tracked in #240)*
+- [x] Only generate stub scripts if file is empty or has `# TODO`. *(2026-08-24: done via #241 — DIP now stubs missing *or empty/whitespace-only* doc pages and never overwrites non-empty files; authored content is stitch-guarded as before)*
 
 ### Templating, Themes & Terminal Presentation
-- [ ] Audit all existing HTML templates and document which are active, stale, duplicated, or drifted from reality.
-- [ ] Define a shared template contract for exposed frontmatter/template variables (`title`, `subtitle`, `date`, `description`, `tags`, `asset_meta`, `body`, warnings, navigation, etc.).
-- [ ] Standardize base layout structure across templates while preserving room for spooky variations.
-- [ ] Improve typography and reading layout for longform documentation: line length, spacing, headings, lists, tables, blockquotes, code fences, footnotes, and mobile readability.
-- [ ] Improve rendering of script docs, generated books, reports, and archive pages so they feel deliberate rather than accidental.
-- [ ] Prototype a DaisyUI-backed presentation layer for Rotkeeper templates (vendoring the compiled CSS locally "on-prem" to avoid CDN dependency and Node.js build tools) without turning the project into a framework app.
-- [ ] Map DaisyUI components/tokens to Rotkeeper UI primitives: nav, cards, alerts, tables, metadata blocks, warnings, badges, pagination, and code panels.
-- [ ] Implement a "vanilla" fallback theme sharing the exact same HTML DOM structure as the DaisyUI prototype, but styled entirely with zero-dependency, hand-written CSS to preserve the "internet thing that doesn't need the internet" philosophy.
-- [ ] Preserve haunted/necrotic identity through copy, typography, dividers, iconography, lore blocks, and ornament instead of brittle custom CSS everywhere.
-- [ ] Add a config-driven theme registry for supported visual modes.
-- [ ] Add terminal-inspired theme presets modeled after classic macOS Terminal styles, common Unix terminal palettes, and PowerShell-friendly looks.
-- [ ] Separate visual modes into "terminal-forward", "balanced", and "reading-first" families.
-- [ ] Add explicit support for users who want terminal vibes without sacrificing document readability.
-- [ ] Add a preview gallery page that renders the same content through every supported template/theme for side-by-side comparison.
-- [ ] Add screenshot/snapshot or golden HTML regression checks for template changes.
-- [ ] Explore `theme_of_the_day` as a config option before attempting full `template_of_the_day`.
-- [ ] If "template of the day" is implemented, define sane fallback rules so explicit frontmatter template selection always wins.
-- [ ] Add accessibility checks for contrast, focus states, table readability, and code block legibility.
-- [ ] Document how to create a new template or theme without breaking the render pipeline.
-- [ ] Ensure docs, docbooks, configbooks, reports, and generated indexes all render acceptably across supported themes.
-- [ ] Add a sample content fixture specifically for template/theme evaluation with headings, tables, code fences, warnings, footnotes, quotes, metadata, and long paragraphs.
+- [x] Audit all existing HTML templates and document which are active, stale, duplicated, or drifted from reality. *(2026-08-24: tracked in #243)*
+- [x] Define a shared template contract for exposed frontmatter/template variables (`title`, `subtitle`, `date`, `description`, `tags`, `asset_meta`, `body`, warnings, navigation, etc.). *(2026-08-24: tracked in #244)*
+- [x] Standardize base layout structure across templates while preserving room for spooky variations. *(2026-08-24: tracked in #245)*
+- [x] Improve typography and reading layout for longform documentation: line length, spacing, headings, lists, tables, blockquotes, code fences, footnotes, and mobile readability. *(2026-08-24: tracked in #246)*
+- [x] Improve rendering of script docs, generated books, reports, and archive pages so they feel deliberate rather than accidental. *(2026-08-24: tracked in #247)*
+- [x] Prototype a DaisyUI-backed presentation layer for Rotkeeper templates (vendoring the compiled CSS locally "on-prem" to avoid CDN dependency and Node.js build tools) without turning the project into a framework app. *(2026-08-24: tracked in #248)*
+- [x] Map DaisyUI components/tokens to Rotkeeper UI primitives: nav, cards, alerts, tables, metadata blocks, warnings, badges, pagination, and code panels. *(2026-08-24: tracked in #249)*
+- [x] Implement a "vanilla" fallback theme sharing the exact same HTML DOM structure as the DaisyUI prototype, but styled entirely with zero-dependency, hand-written CSS to preserve the "internet thing that doesn't need the internet" philosophy. *(2026-08-24: tracked in #250)*
+- [x] Preserve haunted/necrotic identity through copy, typography, dividers, iconography, lore blocks, and ornament instead of brittle custom CSS everywhere. *(2026-08-24: tracked in #251)*
+- [x] Add a config-driven theme registry for supported visual modes. *(2026-08-24: tracked in #252)*
+- [ ] Add terminal-inspired theme presets modeled after classic macOS Terminal styles, common Unix terminal palettes, and PowerShell-friendly looks. *(2026-08-24: possibly already done — reconcile via #242)*
+- [x] Separate visual modes into "terminal-forward", "balanced", and "reading-first" families. *(2026-08-24: tracked in #253)*
+- [x] Add explicit support for users who want terminal vibes without sacrificing document readability. *(2026-08-24: tracked in #254)*
+- [ ] Add a preview gallery page that renders the same content through every supported template/theme for side-by-side comparison. *(2026-08-24: possibly already done — reconcile via #242)*
+- [x] Add screenshot/snapshot or golden HTML regression checks for template changes. *(2026-08-24: tracked in #255)*
+- [x] Explore `theme_of_the_day` as a config option before attempting full `template_of_the_day`. *(2026-08-24: tracked in #256)*
+- [x] If "template of the day" is implemented, define sane fallback rules so explicit frontmatter template selection always wins. *(2026-08-24: tracked in #257)*
+- [x] Add accessibility checks for contrast, focus states, table readability, and code block legibility. *(2026-08-24: tracked in #258)*
+- [x] Document how to create a new template or theme without breaking the render pipeline. *(2026-08-24: tracked in #259)*
+- [x] Ensure docs, docbooks, configbooks, reports, and generated indexes all render acceptably across supported themes. *(2026-08-24: tracked in #260)*
+- [x] Add a sample content fixture specifically for template/theme evaluation with headings, tables, code fences, warnings, footnotes, quotes, metadata, and long paragraphs. *(2026-08-24: tracked in #261)*
 
 ### Experimental / Future Options
-- [ ] Replace all HTML regex parsing in `rc-assets.sh` with a proper parser (`pup`, `htmlq`, or `awk`).
-- [ ] Auto-generate `docs.rotkeeper.com` from `output/`.
-- [ ] Create `rc-dashboard.sh` to show rot status in a single report.
-- [ ] Build `rc-pdfbook.sh` to generate PDF from merged docbook/configbook (with optional frontmatter stripping).
-- [ ] Add weird mascot lore footer or 404 page entry.
-- [ ] Load `.ritual.yaml` workflows via `rotkeeper.sh perform <ritual>`.
-- [ ] Add optional Mermaid diagram injection into book outputs via `rc-book.sh` or frontmatter flag.
-- [ ] Create reusable Oliver hooks to inject frontmatter fields into rendered documents.
+- [x] Replace all HTML regex parsing in `rc-assets.sh` with a proper parser (`pup`, `htmlq`, or `awk`). *(2026-08-24: tracked in #262)*
+- [x] Auto-generate `docs.rotkeeper.com` from `output/`. *(2026-08-24: tracked in #263)*
+- [x] Create `rc-dashboard.sh` to show rot status in a single report. *(2026-08-24: tracked in #264)*
+- [x] Build `rc-pdfbook.sh` to generate PDF from merged docbook/configbook (with optional frontmatter stripping). *(2026-08-24: tracked in #265)*
+- [x] Add weird mascot lore footer or 404 page entry. *(2026-08-24: tracked in #266)*
+- [x] Load `.ritual.yaml` workflows via `rotkeeper.sh perform <ritual>`. *(2026-08-24: tracked in #267)*
+- [x] Add optional Mermaid diagram injection into book outputs via `rc-book.sh` or frontmatter flag. *(2026-08-24: tracked in #268)*
+- [x] Create reusable Oliver hooks to inject frontmatter fields into rendered documents. *(2026-08-24: tracked in #269)*
