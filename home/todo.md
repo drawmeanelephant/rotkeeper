@@ -189,7 +189,7 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [x] Separate visual modes into "terminal-forward", "balanced", and "reading-first" families. *(2026-08-24: tracked in #253)*
 - [x] Add explicit support for users who want terminal vibes without sacrificing document readability. *(2026-08-24: tracked in #254)*
 - [ ] Add a preview gallery page that renders the same content through every supported template/theme for side-by-side comparison. *(2026-08-24: possibly already done — reconcile via #242)*
-- [x] Add screenshot/snapshot or golden HTML regression checks for template changes. *(2026-08-24: tracked in #255)*
+- [x] Add screenshot/snapshot or golden HTML regression checks for template changes. *(2026-08-24: done via #255 — byte-exact golden HTML diffs in the harness, no browser dependency: deterministic probe page rendered through spooky-dark/brutal/xhtml-profile and compared against checked-in goldens on the crypt pass; regenerate intentional changes via RK_REGEN_TEMPLATE_GOLDENS=1 bash rotkeeper.sh test)*
 - [x] Explore `theme_of_the_day` as a config option before attempting full `template_of_the_day`. *(2026-08-24: tracked in #256)*
 - [x] If "template of the day" is implemented, define sane fallback rules so explicit frontmatter template selection always wins. *(2026-08-24: tracked in #257)*
 - [x] Add accessibility checks for contrast, focus states, table readability, and code block legibility. *(2026-08-24: tracked in #258)*

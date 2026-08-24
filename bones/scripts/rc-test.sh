@@ -1136,6 +1136,87 @@ XHTML_RAW_REAL_EOF
         exit 190
       fi
       echo "  [+] Pass: real Oliver XHTML output profile (well-formed + fail-closed) ($mode)."
+
+      # --- Template golden regression (crypt) ---
+      # One deterministic CommonMark probe page rendered through three
+      # representative templates (default spooky-dark, brutal alternate,
+      # XHTML profile) and diffed byte-for-byte against checked-in goldens.
+      # Catches template drift that structure greps cannot see. Templates are
+      # layout-independent, so the comparison runs on the crypt pass only.
+      # After an INTENTIONAL template change, regenerate via:
+      #   RK_REGEN_TEMPLATE_GOLDENS=1 bash rotkeeper.sh test
+      # then review the goldens diff before committing.
+      TEMPLATE_GOLDEN_DIR="$ROOT_DIR/bones/scripts/tests/fixtures/template-golden"
+      if [[ "$mode" == "crypt" && -d "$TEMPLATE_GOLDEN_DIR" ]]; then
+        echo "  [+] Executing template golden regression ($mode)..."
+        cp "$TEMPLATE_GOLDEN_DIR/golden-fixture.md" "$b_content/golden-fixture.md"
+        {
+          cat <<TG_BRUTAL_FM_EOF
+---
+title: "Template Golden Fixture"
+description: "Deterministic CommonMark probe page for template golden regression checks"
+template: theme-brutal.html
+---
+
+TG_BRUTAL_FM_EOF
+          rk_strip_frontmatter "$TEMPLATE_GOLDEN_DIR/golden-fixture.md"
+        } > "$b_content/golden-fixture-brutal.md"
+        {
+          cat <<TG_XHTML_FM_EOF
+---
+title: "Template Golden Fixture"
+description: "Deterministic CommonMark probe page for template golden regression checks"
+render_profile: xhtml
+template: theme-spooky-dark-xhtml.html
+---
+
+TG_XHTML_FM_EOF
+          rk_strip_frontmatter "$TEMPLATE_GOLDEN_DIR/golden-fixture.md"
+        } > "$b_content/golden-fixture-xhtml.md"
+
+        if ! RK_OLIVER_BIN="$REAL_OLIVER" ./rotkeeper.sh render >/dev/null 2>&1; then
+          echo "❌ Assertion Failed: template golden render failed with $REAL_OLIVER."
+          exit 193
+        fi
+
+        if [[ "${RK_REGEN_TEMPLATE_GOLDENS:-0}" == "1" ]]; then
+          cp "$out_dir_rel/golden-fixture.html" "$TEMPLATE_GOLDEN_DIR/theme-spooky-dark.golden.html"
+          cp "$out_dir_rel/golden-fixture-brutal.html" "$TEMPLATE_GOLDEN_DIR/theme-brutal.golden.html"
+          cp "$out_dir_rel/golden-fixture-xhtml.html" "$TEMPLATE_GOLDEN_DIR/theme-spooky-dark-xhtml.golden.html"
+          echo "  [!] Template goldens REGENERATED under bones/scripts/tests/fixtures/template-golden/ — review the git diff before committing."
+        else
+          tg_failed=false
+          tg_check() {
+            local rendered="$1" golden="$2" label="$3"
+            if [[ ! -f "$golden" ]]; then
+              echo "❌ Assertion Failed: template golden missing: $golden"
+              tg_failed=true
+              return
+            fi
+            if ! cmp -s "$rendered" "$golden"; then
+              echo "❌ Assertion Failed: rendered output for '$label' diverges from golden ($golden)."
+              echo "    Intentional template change? Regenerate via RK_REGEN_TEMPLATE_GOLDENS=1 bash rotkeeper.sh test and review the diff."
+              tg_failed=true
+            fi
+          }
+          tg_check "$out_dir_rel/golden-fixture.html" "$TEMPLATE_GOLDEN_DIR/theme-spooky-dark.golden.html" "default spooky-dark template"
+          tg_check "$out_dir_rel/golden-fixture-brutal.html" "$TEMPLATE_GOLDEN_DIR/theme-brutal.golden.html" "brutal alternate template"
+          tg_check "$out_dir_rel/golden-fixture-xhtml.html" "$TEMPLATE_GOLDEN_DIR/theme-spooky-dark-xhtml.golden.html" "XHTML profile template"
+          if [[ "$tg_failed" == true ]]; then
+            exit 191
+          fi
+          echo "  [+] Pass: template goldens match for spooky-dark / brutal / xhtml ($mode)."
+        fi
+        # Fixture sources stay in $b_content alongside their rendered outputs
+        # (xhtml-real-check precedent): removing sources post-render would
+        # orphan the outputs and break downstream scan-consistency counts.
+      elif [[ "$mode" == "crypt" ]]; then
+        if [[ "${RK_STRICT:-0}" == "1" ]]; then
+          echo "❌ Assertion Failed: template golden fixtures missing ($TEMPLATE_GOLDEN_DIR) but RK_STRICT=1 requires them."
+          exit 192
+        fi
+        echo "  ⚠️  Skipping template golden regression: fixtures missing."
+      fi
     else
       if [[ "${RK_STRICT:-0}" == "1" ]]; then
         echo "❌ Assertion Failed: real Oliver renderer smoke pass skipped (no executable oliver binary found) but RK_STRICT=1 requires it."
