@@ -234,8 +234,8 @@ CONF_EOF
       exit 133
     fi
 
-    # 5. Pure Bash/GAWK/YQ Oliver adapter contract test (Zero Python)
-    echo "  [+] Executing default pure Bash/GAWK/YQ Oliver adapter contract tests..."
+    # 5. Pure Bash Oliver adapter contract test (direct, pin 06dd640 — no yq/gawk fallbacks)
+    echo "  [+] Executing default pure Bash Oliver adapter contract tests (direct, pin 06dd640)..."
     mkdir -p bones/tmp
     fake_bin="$pass_dir/bones/tmp/fake_oliver"
     cat << 'FAKE_EOF' > "$fake_bin"
@@ -621,8 +621,8 @@ SOUL_V051_EOF
       exit 123
     fi
 
-    # --- S1: Frontmatter extraction via Oliver meta (with yq fallback) ---
-    echo "  [+] Executing S1 frontmatter extraction assertions (Oliver meta + yq fallback)..."
+    # --- S1: Frontmatter extraction via Oliver meta (direct, pin 06dd640) ---
+    echo "  [+] Executing S1 frontmatter extraction assertions (Oliver meta direct)..."
     # 1. Multiline description + scalar-only: lists/maps ignored, null handling
     cat << 'FRONT_S1_EOF' > "$b_content/frontmatter-s1.md"
 ---
@@ -710,8 +710,8 @@ META_PROBE_EOF
     fi
     echo "  [+] Pass: S1 frontmatter extraction assertions ($mode)."
 
-    # --- S2: Template dialect via Oliver wrap (with GAWK fallback) ---
-    echo "  [+] Executing S2 template dialect assertions (Oliver wrap + GAWK fallback)..."
+    # --- S2: Template dialect via Oliver wrap (direct, pin 06dd640) ---
+    echo "  [+] Executing S2 template dialect assertions (Oliver wrap direct)..."
     cat << 'TPL_S2_EOF' > "$b_templates/custom-s2.html"
 <title>$title$</title>
 $if(title)$TITLE:$title$$endif$
@@ -819,8 +819,8 @@ S2_EMPTY_EOF
     fi
     echo "  [+] Pass: S2 template dialect assertions ($mode)."
 
-    # --- S3: Link rewriting via Oliver (with GAWK fallback) ---
-    echo "  [+] Executing S3 link rewriting assertions (Oliver native + GAWK fallback)..."
+    # --- S3: Link rewriting via Oliver (direct, pin 06dd640) ---
+    echo "  [+] Executing S3 link rewriting assertions (Oliver native direct)..."
     if ! printf '[x](foo.md)\n' | "$fake_bin" render --from markdown | grep -q 'foo.html'; then
       echo "❌ Assertion Failed: S3 fake Oliver did not rewrite .md → .html (native)."
       exit 217
@@ -867,7 +867,7 @@ S2_EMPTY_EOF
     fi
     echo "  [+] Pass: S3 link rewriting assertions ($mode)."
 
-    echo "  [+] Executing S4 output planning assertions (Oliver plan + Bash fallback)..."
+    echo "  [+] Executing S4 output planning assertions (Oliver plan direct)..."
     # Minimal S4 check without find/yq to avoid fork issue — just probe fake plan help
     if ! "$fake_bin" plan --help | grep -q "plan"; then
       echo "❌ Assertion Failed: S4 fake Oliver plan --help failed."
@@ -886,8 +886,8 @@ S2_EMPTY_EOF
     fi
     echo "  [+] Pass: S4 output planning assertions ($mode)."
 
-    # --- S5: Manifest via Oliver manifest (with Bash fallback) ---
-    echo "  [+] Executing S5 manifest assertions (Oliver manifest + Bash fallback)..."
+    # --- S5: Manifest via Oliver manifest (direct, pin 06dd640) ---
+    echo "  [+] Executing S5 manifest assertions (Oliver manifest direct)..."
     tmp_manifest="$pass_dir/bones/tmp/manifest-probe.txt"
     rm -f "$tmp_manifest"
     if ! "$fake_bin" manifest --manifest "$tmp_manifest" --add "output/probe.html" 2>/dev/null; then
