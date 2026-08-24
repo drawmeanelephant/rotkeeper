@@ -169,8 +169,8 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 
 ### Repo Hygiene & Maintenance
 - [x] Update `AGENTS.md` to describe script layout, safety rules, naming patterns, and destructive commands. *(current AGENTS.md manual already covers the BHO model, dispatcher usage, hard rules, validation requirements, and per-directory reading list — verified 2026-08-13)*
-- [x] Add `.editorconfig`, shellcheck config, markdownlint config, PR templates, and issue templates. *(2026-08-24: entry stale — reconciliation tracked in #242)*
-- [x] Archive `peer-reviews.md` into `bones/meta/peer-review-sarcophagus.md`. *(2026-08-24: entry stale — reconciliation tracked in #242)*
+- [x] Add `.editorconfig`, shellcheck config, PR templates, and issue templates. *(verified 2026-08-24: `.editorconfig`, `.shellcheckrc`, `.github/PULL_REQUEST_TEMPLATE.md`, `.github/ISSUE_TEMPLATE.md` exist — see #242)*
+- [ ] Add markdownlint config. *(missing as of 2026-08-24 — only item absent from previous entry, tracked in #242)*
 - [x] Clean up template footers (add credits, version stamp) and ensure `asset-meta` exists everywhere. *(2026-08-24: tracked in #240)*
 - [x] Only generate stub scripts if file is empty or has `# TODO`. *(2026-08-24: done via #241 — DIP now stubs missing *or empty/whitespace-only* doc pages and never overwrites non-empty files; authored content is stitch-guarded as before)*
 
@@ -185,10 +185,10 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [x] Implement a "vanilla" fallback theme sharing the exact same HTML DOM structure as the DaisyUI prototype, but styled entirely with zero-dependency, hand-written CSS to preserve the "internet thing that doesn't need the internet" philosophy. *(2026-08-24: tracked in #250)*
 - [x] Preserve haunted/necrotic identity through copy, typography, dividers, iconography, lore blocks, and ornament instead of brittle custom CSS everywhere. *(2026-08-24: tracked in #251)*
 - [x] Add a config-driven theme registry for supported visual modes. *(2026-08-24: tracked in #252)*
-- [ ] Add terminal-inspired theme presets modeled after classic macOS Terminal styles, common Unix terminal palettes, and PowerShell-friendly looks. *(2026-08-24: possibly already done — reconcile via #242)*
+- [x] Add terminal-inspired theme presets modeled after classic macOS Terminal styles, common Unix terminal palettes, and PowerShell-friendly looks. *(done 2026-08-11 via #184 — `theme-brutal` palettes `mac`/`unix`/`pwsh` + `showcase-brutal-{mac,unix,pwsh}.md`, reconciled 2026-08-24 per #242)*
 - [x] Separate visual modes into "terminal-forward", "balanced", and "reading-first" families. *(2026-08-24: tracked in #253)*
 - [x] Add explicit support for users who want terminal vibes without sacrificing document readability. *(2026-08-24: tracked in #254)*
-- [ ] Add a preview gallery page that renders the same content through every supported template/theme for side-by-side comparison. *(2026-08-24: possibly already done — reconcile via #242)*
+- [x] Add a preview gallery page that renders the same content through every supported template/theme for side-by-side comparison. *(done 2026-08-11 via #184 — `showcase-preview.md` iframe wall + `showcase` scaffolder, reconciled 2026-08-24 per #242)*
 - [x] Add screenshot/snapshot or golden HTML regression checks for template changes. *(2026-08-24: done via #255 — byte-exact golden HTML diffs in the harness, no browser dependency: deterministic probe page rendered through spooky-dark/brutal/xhtml-profile and compared against checked-in goldens on the crypt pass; regenerate intentional changes via RK_REGEN_TEMPLATE_GOLDENS=1 bash rotkeeper.sh test)*
 - [x] Explore `theme_of_the_day` as a config option before attempting full `template_of_the_day`. *(2026-08-24: tracked in #256)*
 - [x] If "template of the day" is implemented, define sane fallback rules so explicit frontmatter template selection always wins. *(2026-08-24: tracked in #257)*
