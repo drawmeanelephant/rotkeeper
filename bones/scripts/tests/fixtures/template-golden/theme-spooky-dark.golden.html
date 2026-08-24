@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Template Golden Fixture</title>
+  <link rel="stylesheet" href="./assets/css/theme-spooky-dark.css">
+</head>
+<body>
+  <div class="journal-container">
+    <header class="journal-header">
+      <h1>Template Golden Fixture</h1>
+      
+      <p>Deterministic CommonMark probe page for template golden regression checks</p>
+      
+    </header>
+    <div class="layout-wrapper">
+      <main>
+        <article class="entry-box">
+          <header class="entry-header">
+            <div>
+              <h2 class="entry-title">Template Golden Fixture</h2>
+              
+            </div>
+            <div class="userpic" aria-hidden="true">ROTKEEPER</div>
+          </header>
+          <div class="entry-content"><h1>Template Golden Fixture</h1>
+<p>This page exercises the template-rendering surface with CommonMark-safe
+structures only: no task lists, no footnotes, no raw HTML. Template edits that
+change the wrapped DOM will diverge from the checked-in goldens.</p>
+<h2>Inline Surface</h2>
+<p>Regular paragraph with <strong>bold</strong>, <em>italic</em>, <em><strong>both</strong></em>, <code>inline code</code>, a
+<a href="my-first-page.html">link</a>, and an external <a href="https://example.com/autolink">https://example.com/autolink</a>.</p>
+<h2>GFM Table</h2>
+<table>
+<thead>
+<tr>
+<th align="left">Left</th>
+<th align="center">Center</th>
+<th align="right">Right</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left">a | b</td>
+<td align="center"><em>mid</em></td>
+<td align="right">3</td>
+</tr>
+</tbody>
+</table>
+<h2>Code Fence</h2>
+<pre><code class="language-zig">pub fn main() void {
+    std.debug.print(&quot;rotkeeper\n&quot;, .{});
+}
+</code></pre>
+<h2>Blocks</h2>
+<blockquote>
+<p>First quoted line.</p>
+<blockquote>
+<p>Nested quote survives.</p>
+</blockquote>
+</blockquote>
+<ul>
+<li>alpha</li>
+<li>beta
+<ul>
+<li>gamma</li>
+</ul>
+</li>
+</ul>
+<ol>
+<li>first</li>
+<li>second</li>
+</ol>
+<hr />
+<p>Closing paragraph after a thematic break.</p>
+</div>
+          
+        </article>
+      </main>
+    </div>
+    <footer class="journal-footer"><p>Rendered by Rotkeeper</p></footer>
+  </div>
+</body>
+</html>
