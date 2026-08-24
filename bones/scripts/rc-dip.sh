@@ -788,7 +788,11 @@ ensure_dip_markers() {
   } | atomic_write "$doc_path"
 }
 
-# --- 4. Stub missing docs --------------------------------------------------
+# --- 4. Stub missing or empty docs ------------------------------------------
+#  Stub policy (#241): a doc page is stub-eligible only when it does not exist
+#  or carries no content at all (whitespace-only counts as empty). Any
+#  non-empty file is treated as authored/generated content and is never
+#  overwritten here; stub-marked docs are updated by pillar stitching instead.
 
 log "INFO" "Checking for missing docs..."
 for doc_path in "${!EXPECTED_DOCS[@]}"; do
@@ -799,7 +803,10 @@ for doc_path in "${!EXPECTED_DOCS[@]}"; do
     continue
   fi
   if [[ -f "$doc_path" ]]; then
-    continue
+    if [[ -n "$(tr -d '[:space:]' <"$doc_path")" ]]; then
+      continue
+    fi
+    log "INFO" "Doc exists but is empty — restubbing: $doc_path"
   fi
 
   if [[ "${DRY_RUN:-false}" == true ]]; then

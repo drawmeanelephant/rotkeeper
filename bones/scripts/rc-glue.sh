@@ -183,8 +183,13 @@ ${DEFAULT_YAML}
     fi
     if [[ "$IS_EXISTING_CUSTOM" == true ]]; then
         if gawk 'BEGIN { start=0; end=0; ok=0 } /<!-- ROTKEEPER-GLUE-START -->/ { start++ } /<!-- ROTKEEPER-GLUE-END -->/ { end++; if(start == 1) ok=1 } END { if (start == 1 && end == 1 && ok == 1) exit 0; else exit 1 }' "$INDEX_FILE"; then
-            GLUE_CONTENT="$GLUE_CONTENT" gawk 'BEGIN { p=1 } /<!-- ROTKEEPER-GLUE-START -->/ { print ENVIRON["GLUE_CONTENT"]; p=0 } /<!-- ROTKEEPER-GLUE-END -->/ { p=1; next } p { print }' "$INDEX_FILE" > "${INDEX_FILE}.tmp"
-            mv "${INDEX_FILE}.tmp" "$INDEX_FILE"
+            glue_tmp="${INDEX_FILE}.tmp.$$"
+            if GLUE_CONTENT="$GLUE_CONTENT" gawk 'BEGIN { p=1 } /<!-- ROTKEEPER-GLUE-START -->/ { print ENVIRON["GLUE_CONTENT"]; p=0 } /<!-- ROTKEEPER-GLUE-END -->/ { p=1; next } p { print }' "$INDEX_FILE" > "$glue_tmp"; then
+                mv "$glue_tmp" "$INDEX_FILE"
+            else
+                rm -f "$glue_tmp"
+                log "WARN" "Glue rewrite failed for $INDEX_FILE — leaving existing content untouched."
+            fi
         else
             printf '\n%s\n' "$GLUE_CONTENT" >> "$INDEX_FILE"
         fi

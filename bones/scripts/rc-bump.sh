@@ -162,15 +162,21 @@ if [[ -f "$ROADMAP_FILE" ]]; then
   if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would inject into roadmap: $ENTRY"
   else
-    # Inject after the anchor
-    awk -v entry="$ENTRY" '
+    # Inject after the anchor through a per-process temp surface (#231)
+    roadmap_tmp="${ROADMAP_FILE}.tmp.$$"
+    if ! awk -v entry="$ENTRY" '
       /<!-- LIVING_BUILDLOG_START -->/ {
         print $0
         print entry
         next
       }
       {print}
-    ' "$ROADMAP_FILE" > "$ROADMAP_FILE.tmp" && mv "$ROADMAP_FILE.tmp" "$ROADMAP_FILE"
+    ' "$ROADMAP_FILE" > "$roadmap_tmp"; then
+      rm -f "$roadmap_tmp"
+      log "ERROR" "Failed to inject update into Living Buildlog."
+      exit 1
+    fi
+    mv "$roadmap_tmp" "$ROADMAP_FILE"
     log "INFO" "Injected update into Living Buildlog."
   fi
 else
@@ -183,13 +189,20 @@ if [[ -f "$CHANGELOG_FILE" ]]; then
   if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would prepend to CHANGELOG.md"
   else
-    awk -v new_version="$NEW_VERSION" -v date_str="$(date +%Y-%m-%d)" -v msg="$MESSAGE" '
+    # Prepend through a per-process temp surface (#231)
+    changelog_tmp="${CHANGELOG_FILE}.tmp.$$"
+    if ! awk -v new_version="$NEW_VERSION" -v date_str="$(date +%Y-%m-%d)" -v msg="$MESSAGE" '
       !inserted && /^## \[/ {
         printf "## [%s] - %s\n\n- %s\n\n", new_version, date_str, msg
         inserted = 1
       }
       { print }
-    ' "$CHANGELOG_FILE" > "$CHANGELOG_FILE.tmp" && mv "$CHANGELOG_FILE.tmp" "$CHANGELOG_FILE"
+    ' "$CHANGELOG_FILE" > "$changelog_tmp"; then
+      rm -f "$changelog_tmp"
+      log "ERROR" "Failed to prepend to CHANGELOG.md."
+      exit 1
+    fi
+    mv "$changelog_tmp" "$CHANGELOG_FILE"
     log "INFO" "Prepended to CHANGELOG.md."
   fi
 else
