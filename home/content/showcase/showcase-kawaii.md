@@ -1,5 +1,5 @@
 ---
-title: "Showcase: kawaii"
+title: "Showcase — kawaii"
 slug: "showcase-kawaii"
 template: "theme-kawaii.html"
 ---

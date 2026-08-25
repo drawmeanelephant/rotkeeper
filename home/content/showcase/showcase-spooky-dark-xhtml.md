@@ -1,5 +1,5 @@
 ---
-title: "Showcase: spooky-dark-xhtml"
+title: "Showcase — spooky-dark-xhtml"
 slug: "showcase-spooky-dark-xhtml"
 template: "theme-spooky-dark-xhtml.html"
 author: "Dummy value for author"

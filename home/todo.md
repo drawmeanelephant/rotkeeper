@@ -186,15 +186,15 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [x] Preserve haunted/necrotic identity through copy, typography, dividers, iconography, lore blocks, and ornament instead of brittle custom CSS everywhere. *(2026-08-24: tracked in #251)*
 - [x] Add a config-driven theme registry for supported visual modes. *(2026-08-24: tracked in #252)*
 - [x] Add terminal-inspired theme presets modeled after classic macOS Terminal styles, common Unix terminal palettes, and PowerShell-friendly looks. *(done 2026-08-11 via #184 — `theme-brutal` palettes `mac`/`unix`/`pwsh` + `showcase-brutal-{mac,unix,pwsh}.md`, reconciled 2026-08-24 per #242)*
-- [x] Separate visual modes into "terminal-forward", "balanced", and "reading-first" families. *(2026-08-24: tracked in #253)*
+- [x] Separate visual modes into "terminal-forward", "balanced", and "reading-first" families. *(2026-08-25: families classified and documented in `home/content/docs/themes.md` with per-family readability guarantees — see #253)*
 - [x] Add explicit support for users who want terminal vibes without sacrificing document readability. *(2026-08-24: tracked in #254)*
 - [x] Add a preview gallery page that renders the same content through every supported template/theme for side-by-side comparison. *(done 2026-08-11 via #184 — `showcase-preview.md` iframe wall + `showcase` scaffolder, reconciled 2026-08-24 per #242)*
 - [x] Add screenshot/snapshot or golden HTML regression checks for template changes. *(2026-08-24: done via #255 — byte-exact golden HTML diffs in the harness, no browser dependency: deterministic probe page rendered through spooky-dark/brutal/xhtml-profile and compared against checked-in goldens on the crypt pass; regenerate intentional changes via RK_REGEN_TEMPLATE_GOLDENS=1 bash rotkeeper.sh test)*
 - [x] Explore `theme_of_the_day` as a config option before attempting full `template_of_the_day`. *(2026-08-24: tracked in #256)*
 - [x] If "template of the day" is implemented, define sane fallback rules so explicit frontmatter template selection always wins. *(2026-08-24: tracked in #257)*
-- [x] Add accessibility checks for contrast, focus states, table readability, and code block legibility. *(2026-08-24: tracked in #258)*
+- [x] Add accessibility checks for contrast, focus states, table readability, and code block legibility. *(2026-08-25: done via `rc-a11y.sh` / `./rotkeeper.sh a11y` — static WCAG AA contrast over all palette scopes, focus-state audit, narrow-viewport table/code checks; per-theme reports under `bones/reports/`; CI gate added — see #258)*
 - [x] Document how to create a new template or theme without breaking the render pipeline. *(2026-08-24: tracked in #259)*
-- [x] Ensure docs, docbooks, configbooks, reports, and generated indexes all render acceptably across supported themes. *(2026-08-24: tracked in #260)*
+- [x] Ensure docs, docbooks, configbooks, reports, and generated indexes all render acceptably across supported themes. *(2026-08-25: cross-template pass over the #261 fixture plus docbook/configbook/dip-matrix/glue artifacts; fixed grid blowout in spooky layout, table alignment overrides, inline-code wrap, unconstrained images, missing messages index, dead anchors — see #260)*
 - [x] Add a sample content fixture specifically for template/theme evaluation with headings, tables, code fences, warnings, footnotes, quotes, metadata, and long paragraphs. *(2026-08-24: tracked in #261)*
 
 ### Experimental / Future Options

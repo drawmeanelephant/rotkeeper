@@ -1,5 +1,5 @@
 ---
-title: "Showcase: brutal"
+title: "Showcase — brutal"
 slug: "showcase-brutal"
 template: "theme-brutal.html"
 author: "Dummy value for author"

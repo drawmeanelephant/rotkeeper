@@ -295,6 +295,12 @@ hr {
   align-items: start;
 }
 
+/* Grid items refuse to shrink below content size by default; long code
+   fences and wide tables would blow the 1fr track out of the viewport. */
+.layout-wrapper > * {
+  min-width: 0;
+}
+
 @media (max-width: 800px) {
   .layout-wrapper {
     grid-template-columns: 1fr;
@@ -430,3 +436,28 @@ hr {
 }
 .entry-content .task-list { list-style: none; padding-left: 0; }
 .entry-content .task-list-item input[type="checkbox"] { accent-color: var(--accent-color); margin-right: .5em; }
+
+/* Narrow viewports: let wide tables scroll instead of blowing out layout. */
+table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Long inline code wraps instead of blowing out narrow viewports.
+   Scoped away from pre > code so code fences keep horizontal scrolling. */
+:not(pre) > code {
+  overflow-wrap: anywhere;
+}
+
+/* Honor GFM column alignment from the renderer (align attributes);
+   blanket cell text-align would otherwise flatten centered/right columns. */
+th[align="center"],
+td[align="center"] {
+  text-align: center;
+}
+
+th[align="right"],
+td[align="right"] {
+  text-align: right;
+}

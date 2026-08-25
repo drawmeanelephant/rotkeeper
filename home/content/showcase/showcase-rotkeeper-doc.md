@@ -1,5 +1,5 @@
 ---
-title: "Showcase: rotkeeper-doc"
+title: "Showcase — rotkeeper-doc"
 slug: "showcase-rotkeeper-doc"
 template: "rotkeeper-doc.html"
 ---

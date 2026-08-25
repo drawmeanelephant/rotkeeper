@@ -1,5 +1,5 @@
 ---
-title: "Showcase: overgrown"
+title: "Showcase — overgrown"
 slug: "showcase-overgrown"
 template: "theme-overgrown.html"
 ---

@@ -1,5 +1,5 @@
 ---
-title: "Showcase: light"
+title: "Showcase — light"
 slug: "showcase-light"
 template: "theme-light.html"
 ---

@@ -58,7 +58,7 @@ main() {
     mapfile -t found_vars < <(grep -oE '\$[a-zA-Z_]+\$' "$template_file" | tr -d '$' | sort -u)
 
     local frontmatter="---
-title: \"Showcase: $theme_name\"
+title: \"Showcase — $theme_name\"
 slug: \"showcase-${theme_name}\"
 template: \"$template_name\""
 

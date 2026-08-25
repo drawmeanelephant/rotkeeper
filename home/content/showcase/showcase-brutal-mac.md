@@ -1,5 +1,5 @@
 ---
-title: "Showcase: brutal — macOS Terminal"
+title: "Showcase — brutal, macOS Terminal"
 slug: "showcase-brutal-mac"
 template: "theme-brutal.html"
 palette: "mac"

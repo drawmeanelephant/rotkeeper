@@ -1,5 +1,5 @@
 ---
-title: "Showcase: phosphor"
+title: "Showcase — phosphor"
 slug: "showcase-phosphor"
 template: "theme-phosphor.html"
 ---
