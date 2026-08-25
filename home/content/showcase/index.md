@@ -98,14 +98,6 @@ Preview every theme through the same content. Each card links to its full showca
     </div>
   </div>
   <div style="border: 1px solid #333; border-radius: 8px; overflow: hidden; background: #fff;">
-    <div style="height: 80px; background: #1a0f0f; border-bottom: 1px solid #333;"></div>
-    <div style="padding: 0.8rem;">
-      <div style="font-weight: 600; font-family: monospace;">spooky</div>
-      <div style="font-size: 0.85em; color: #666;">theme-spooky.html</div>
-      <a href="showcase-spooky.html" style="display: inline-block; margin-top: 0.5rem; font-size: 0.9em;">View →</a>
-    </div>
-  </div>
-  <div style="border: 1px solid #333; border-radius: 8px; overflow: hidden; background: #fff;">
     <div style="height: 80px; background: #ffffcc; border-bottom: 1px solid #333;"></div>
     <div style="padding: 0.8rem;">
       <div style="font-weight: 600; font-family: monospace;">textpattern</div>
