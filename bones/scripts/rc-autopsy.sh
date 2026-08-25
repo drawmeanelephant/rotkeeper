@@ -105,7 +105,7 @@ run_help_report() {
 
   # Static white-list tracking to enforce zero execution drift constraints
   declare -A PERMITTED_RITUALS
-  for r in rc-assets rc-autopsy rc-book rc-bump rc-dip rc-env rc-glue rc-init rc-links rc-new rc-oliver-adapter rc-pack rc-preflight rc-release rc-render rc-scan rc-showcase rc-status rc-test rc-utils; do
+  for r in rc-a11y rc-assets rc-autopsy rc-book rc-bump rc-dip rc-env rc-glue rc-init rc-links rc-new rc-oliver-adapter rc-pack rc-preflight rc-release rc-render rc-scan rc-showcase rc-status rc-test rc-utils; do
     PERMITTED_RITUALS["$r.sh"]=1
   done
   PERMITTED_RITUALS["rotkeeper.sh"]=1

@@ -63,6 +63,7 @@ Commands:
   autopsy     Catalog script help and output behavior
   glue        Auto-generate navigation glue for unindexed content directories
   links       Audit links and local assets in rendered HTML
+  a11y        Audit theme accessibility: contrast, focus states, legibility
   showcase    Generate showcase content for every HTML template
   dip         Audit documentation coverage via DIP
   book        Generate aggregated documentation book targets
@@ -126,6 +127,9 @@ case "$command" in
     ;;
   links)
     bash "$BONES/rc-links.sh" "$@"
+    ;;
+  a11y)
+    bash "$BONES/rc-a11y.sh" "$@"
     ;;
   showcase)
     bash "$BONES/rc-showcase.sh" "$@"

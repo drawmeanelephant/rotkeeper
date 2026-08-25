@@ -116,6 +116,13 @@ jobs:
           bash --version | head -1
           bash rotkeeper.sh test
 
+      - name: Theme Accessibility Gate
+        # Static WCAG AA contrast / focus-state / narrow-viewport audit over
+        # every theme stylesheet. Fails the build when a theme regresses or a
+        # new theme lands without passing (issue #258).
+        run: |
+          bash rotkeeper.sh a11y
+
   test:
     name: test
     needs: test-matrix
