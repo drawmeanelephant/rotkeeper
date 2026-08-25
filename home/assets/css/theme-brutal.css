@@ -376,3 +376,29 @@ button:focus-visible,
     color: #000;
   }
 }
+
+/* Narrow viewports: let wide tables scroll instead of blowing out the
+   ink-on-paper column. Tables keep their slab borders while scrolling. */
+table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Long inline code wraps instead of blowing out narrow viewports.
+   Scoped away from pre > code so code fences keep horizontal scrolling. */
+:not(pre) > code {
+  overflow-wrap: anywhere;
+}
+
+/* Honor GFM column alignment from the renderer (align attributes);
+   blanket cell text-align would otherwise flatten centered/right columns. */
+th[align="center"],
+td[align="center"] {
+  text-align: center;
+}
+
+th[align="right"],
+td[align="right"] {
+  text-align: right;
+}

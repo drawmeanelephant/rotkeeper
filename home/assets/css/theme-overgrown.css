@@ -72,6 +72,7 @@ a:hover {
 }
 
 code {
+  overflow-wrap: anywhere;
   font-family: var(--font-mono);
   background-color: var(--code-bg);
   padding: 0.2em 0.4em;
@@ -113,4 +114,47 @@ th {
   background-color: rgba(0,0,0,0.1);
   font-family: var(--font-heading);
   font-size: 1.1em;
+}
+
+/* Accessibility: visible keyboard focus indicator for interactive elements. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* Narrow viewports: let wide tables scroll instead of blowing out layout. */
+table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Images never exceed the text column. */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Long inline code wraps instead of blowing out narrow viewports.
+   Scoped away from pre > code so code fences keep horizontal scrolling. */
+:not(pre) > code {
+  overflow-wrap: anywhere;
+}
+
+/* Honor GFM column alignment from the renderer (align attributes);
+   blanket cell text-align would otherwise flatten centered/right columns. */
+th[align="center"],
+td[align="center"] {
+  text-align: center;
+}
+
+th[align="right"],
+td[align="right"] {
+  text-align: right;
 }
