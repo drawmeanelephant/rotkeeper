@@ -1,5 +1,5 @@
 ---
-title: "Showcase: brutal — Unix Green"
+title: "Showcase — brutal, Unix Green"
 slug: "showcase-brutal-unix"
 template: "theme-brutal.html"
 palette: "unix"

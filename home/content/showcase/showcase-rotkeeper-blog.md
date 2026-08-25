@@ -1,5 +1,5 @@
 ---
-title: "Showcase: rotkeeper-blog"
+title: "Showcase — rotkeeper-blog"
 slug: "showcase-rotkeeper-blog"
 template: "rotkeeper-blog.html"
 description: "Programmatic description for rotkeeper-blog"

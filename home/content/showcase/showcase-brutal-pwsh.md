@@ -1,5 +1,5 @@
 ---
-title: "Showcase: brutal — PowerShell"
+title: "Showcase — brutal, PowerShell"
 slug: "showcase-brutal-pwsh"
 template: "theme-brutal.html"
 palette: "pwsh"

@@ -1,5 +1,5 @@
 ---
-title: "Station Log: Night Watch"
+title: "Station Log — Night Watch"
 slug: station-log
 template: theme-spooky-dark.html
 date: "2026-07-22"

@@ -1,5 +1,5 @@
 ---
-title: "Showcase: dark"
+title: "Showcase — dark"
 slug: "showcase-dark"
 template: "theme-dark.html"
 ---

@@ -1,5 +1,5 @@
 ---
-title: "Showcase: spooky-dark"
+title: "Showcase — spooky-dark"
 slug: "showcase-spooky-dark"
 template: "theme-spooky-dark.html"
 author: "Dummy value for author"
