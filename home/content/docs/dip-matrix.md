@@ -52,7 +52,6 @@ This page tracks the documentation status of core project files.
 | `bones/templates/theme-spooky-dark-xhtml.html` | [bones/templates/theme-spooky-dark-xhtml.md](bones/templates/theme-spooky-dark-xhtml.md) | 2026-08-15 | 2026-08-15 | Stub |
 | `bones/templates/theme-spooky-dark.html` | [bones/templates/theme-spooky-dark.md](bones/templates/theme-spooky-dark.md) | 2026-08-15 | 2026-08-15 | Stub |
 | `bones/templates/theme-spooky-light.html` | [bones/templates/theme-spooky-light.md](bones/templates/theme-spooky-light.md) | 2026-08-15 | 2026-08-15 | Stub |
-| `bones/templates/theme-spooky.html` | [bones/templates/theme-spooky.md](bones/templates/theme-spooky.md) | 2026-08-15 | 2026-08-15 | Stub |
 | `bones/templates/theme-textpattern.html` | [bones/templates/theme-textpattern.md](bones/templates/theme-textpattern.md) | 2026-08-15 | 2026-08-15 | Stub |
 | `rotkeeper.sh` | [rotkeeper.md](rotkeeper.md) | 2026-08-15 | 2026-08-15 | OK |
 | `scripts/setup.sh` | [scripts/setup.md](scripts/setup.md) | 2026-08-15 | 2026-08-15 | OK |

@@ -54,11 +54,6 @@ rendered showcase page in a tile — scroll, compare, pick, and then set
 </figure>
 
 <figure class="preview-tile">
-<iframe src="showcase-spooky.html" loading="lazy" title="Spooky"></iframe>
-<figcaption>Spooky</figcaption>
-</figure>
-
-<figure class="preview-tile">
 <iframe src="showcase-spooky-dark.html" loading="lazy" title="Spooky Dark"></iframe>
 <figcaption>Spooky Dark</figcaption>
 </figure>

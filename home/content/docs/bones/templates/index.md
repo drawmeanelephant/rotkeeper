@@ -16,7 +16,7 @@ HTML and CSS layouts that structure the static site output.
 
 ## Layout Templates
 
-- **[rotkeeper-doc.html](rotkeeper-doc.html)**: Default documentation layout with sidebar links.
+- **[rotkeeper-doc.html](rotkeeper-doc.md)**: Default documentation layout — a single-shell article wrapper sharing the Spooky stylesheet.
 - **[rotkeeper-blog.html](rotkeeper-blog.html)**: Layout template optimized for logs, blogs, and updates.
 - **[theme-dark.html](theme-dark.html)**: Dark-mode theme configuration.
 - **[theme-light.html](theme-light.html)**: Light-mode theme configuration.
@@ -34,7 +34,8 @@ HTML and CSS layouts that structure the static site output.
 - [theme-light](<theme-light.html>)
 - [theme-overgrown](<theme-overgrown.html>)
 - [theme-phosphor](<theme-phosphor.html>)
+- [theme-spooky-dark-xhtml](<theme-spooky-dark-xhtml.html>)
 - [theme-spooky-dark](<theme-spooky-dark.html>)
 - [theme-spooky-light](<theme-spooky-light.html>)
-- [theme-spooky](<theme-spooky.html>)
+- [theme-textpattern](<theme-textpattern.html>)
 <!-- ROTKEEPER-GLUE-END -->
