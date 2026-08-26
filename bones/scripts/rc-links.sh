@@ -83,6 +83,7 @@ done
 # ---
 cleanup() {
   if [[ -n "${RESULT_FILE:-}" ]]; then
+    # SIDE EFFECT (delete): removes the bones/tmp scan-result scratch file on exit
     rm -f "$RESULT_FILE"
   fi
 }
@@ -118,6 +119,7 @@ main() {
     REPORT_FILE="$ROOT_DIR/$REPORT_FILE"
   fi
 
+  # SIDE EFFECT (write): mktemp creates a bones/tmp scratch file that captures the Python scan TSV (cleaned up on exit)
   RESULT_FILE=$(mktemp "$TMP_DIR/links.XXXXXX")
   python3 - "$SCAN_ROOT" >"$RESULT_FILE" <<'PY'
 from html.parser import HTMLParser
@@ -221,6 +223,7 @@ PY
 
   # JSON mode: emit machine-readable JSON and exit (still respects DRY_RUN for report)
   if [[ "$JSON_MODE" == true ]]; then
+    # SIDE EFFECT (write): creates a bones/tmp scratch file for JSON assembly (deleted below)
     json_tmp=$(mktemp "$TMP_DIR/links-json.XXXXXX")
     # Build JSON array from RESULT_FILE FAIL lines
     {
@@ -259,25 +262,30 @@ PY
       echo ""
       echo "  ]"
       echo "}"
+    # SIDE EFFECT (write): serializes the assembled JSON into the scratch file
     } > "$json_tmp"
     # Validate JSON
     if command -v jq >/dev/null 2>&1; then
       if ! jq empty "$json_tmp" >/dev/null 2>&1; then
         log "ERROR" "Generated JSON is invalid"
         cat "$json_tmp" >&2
+        # SIDE EFFECT (delete): removes the JSON scratch file before failing
         rm -f "$json_tmp"
         exit 1
       fi
     fi
     # Emit to fd 3 (visible even in QUIET) and to LOG_FILE
+    # SIDE EFFECT (write): appends the JSON report to the per-run log under bones/logs
     if [[ -n "${LOG_FILE:-}" ]]; then
       cat "$json_tmp" >> "$LOG_FILE"
     fi
     cat "$json_tmp" >&3 2>/dev/null || cat "$json_tmp"
+    # SIDE EFFECT (delete): removes the JSON scratch file after emit
     rm -f "$json_tmp"
     # In JSON mode, still write markdown report unless DRY_RUN, for consistency
     if [[ "$DRY_RUN" == false ]]; then
       mkdir -p "$(dirname -- "$REPORT_FILE")"
+      # SIDE EFFECT (write): overwrites the link-audit markdown report
       {
         echo "# Rendered Link Audit (JSON mode)"
         echo
@@ -296,6 +304,7 @@ PY
 
   if [[ "$DRY_RUN" == false ]]; then
     mkdir -p "$(dirname -- "$REPORT_FILE")"
+    # SIDE EFFECT (write): overwrites the link-audit markdown report
     {
       echo "# Rendered Link Audit"
       echo

@@ -120,6 +120,7 @@ main() {
               log "DRY-RUN" "Would overwrite auto-glued index: $INDEX_FILE"
               continue
             fi
+            # SIDE EFFECT (delete): removes the auto-glued index before regenerating it
             rm "$INDEX_FILE"
         else
             log "WARN" "Auto-glued index exists at $INDEX_FILE. Skipping."
@@ -201,18 +202,22 @@ ${DEFAULT_YAML}
     if [[ "$IS_EXISTING_CUSTOM" == true ]]; then
         # gawk: count glue markers — exactly one START and one END in order means replaceable block
         if gawk 'BEGIN { start=0; end=0; ok=0 } /<!-- ROTKEEPER-GLUE-START -->/ { start++ } /<!-- ROTKEEPER-GLUE-END -->/ { end++; if(start == 1) ok=1 } END { if (start == 1 && end == 1 && ok == 1) exit 0; else exit 1 }' "$INDEX_FILE"; then
+            # SIDE EFFECT (write): rewrites the glue block through <index>.tmp.$$ scratch, promoted by mv below
             glue_tmp="${INDEX_FILE}.tmp.$$"
             # gawk: replace existing glue block — print new glue at START, suppress old block until END, pass through rest
             if GLUE_CONTENT="$GLUE_CONTENT" gawk 'BEGIN { p=1 } /<!-- ROTKEEPER-GLUE-START -->/ { print ENVIRON["GLUE_CONTENT"]; p=0 } /<!-- ROTKEEPER-GLUE-END -->/ { p=1; next } p { print }' "$INDEX_FILE" > "$glue_tmp"; then
                 mv "$glue_tmp" "$INDEX_FILE"
             else
+                # SIDE EFFECT (delete): removes the scratch file on rewrite failure
                 rm -f "$glue_tmp"
                 log "WARN" "Glue rewrite failed for $INDEX_FILE — leaving existing content untouched."
             fi
         else
+            # SIDE EFFECT (write): appends a fresh glue block to the custom index
             printf '\n%s\n' "$GLUE_CONTENT" >> "$INDEX_FILE"
         fi
     else
+        # SIDE EFFECT (write): creates a new index.md with frontmatter and navigation glue
         printf '%s\n\n# %s\n\n%s\n' "$FRONTMATTER" "$SOUL_TITLE" "$GLUE_CONTENT" > "$INDEX_FILE"
     fi
   done < <(find "$TARGET_DIR" -type d -print0)

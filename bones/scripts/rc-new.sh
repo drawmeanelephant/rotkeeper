@@ -285,6 +285,7 @@ main() {
     fi
 
     if [[ "$DRY_RUN" == false ]]; then
+        # SIDE EFFECT (write): creates the target directory under content/ if missing
         mkdir -p "$(dirname "$FILE")"
     fi
 
@@ -363,6 +364,8 @@ main() {
     fi
 
     if [[ "$DRY_RUN" == false ]]; then
+        # SIDE EFFECT (write): creates the new content page (frontmatter + body appended below);
+        # earlier existence check guarantees this never overwrites an existing file
         cat << EOF > "$FILE"
 ---
 title: "${SAFE_TITLE}"
@@ -444,6 +447,7 @@ EOF
             if [[ -f "$soul_file" ]]; then
                 log "WARN" "Sidecar already exists: $soul_file"
             else
+                # SIDE EFFECT (write): creates bones/meta/<rel>.soul.md sidecar scaffold
                 mkdir -p "$(dirname "$soul_file")"
                 soul_author="${AUTHOR:-$(yq e '.author // ""' "$CONFIG_DIR/rotkeeper.yaml" 2>/dev/null || echo "")}"
                 soul_date=$(date +%Y-%m-%d)

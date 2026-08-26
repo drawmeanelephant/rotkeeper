@@ -163,8 +163,10 @@ main() {
         return 0
       fi
       if [[ -n "$MANIFEST" ]]; then
+        # SIDE EFFECT: creates bones/manifest.txt if missing (mkdir + touch)
         mkdir -p "$(dirname "$MANIFEST")"
         touch "$MANIFEST"
+        # SIDE EFFECT: appends $rel_entry entry to bones/manifest.txt via oliver manifest --add
         if ! "$OLIVER_BIN" manifest --manifest "$MANIFEST" --add "$rel_entry" >/dev/null 2>&1; then
           log "ERROR" "Oliver manifest --add failed for '$rel_entry'"
           echo "ERROR: Oliver manifest --add failed for '$rel_entry'" >&2
@@ -215,17 +217,21 @@ main() {
     local _tmp_find
     local _find_cmd
     _find_cmd="$(rk_find_command)"
+    # SIDE EFFECT: mktemp creates a scratch file in the system temp dir (cleaned up below)
     _tmp_find=$(mktemp)
     if [[ "$render_sys_docs" == "false" ]]; then
         log "INFO" "Surgically pruning internal system docs and platform messages from user space."
         # Find prune: skip internal docs/messages/help subtrees (prune) and emit only source files NUL-terminated.
+        # SIDE EFFECT: writes the NUL-separated source list into $_tmp_find (scratch file)
         "$_find_cmd" "$CONTENT_DIR" \( -type d -a \( -name "docs" -o -name "messages" -o -name "help" \) -prune \) -o \( -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) -print0 \) > "$_tmp_find" 2>/dev/null || true
     else
+        # SIDE EFFECT: writes the NUL-separated source list into $_tmp_find (scratch file)
         "$_find_cmd" "$CONTENT_DIR" -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) -print0 > "$_tmp_find" 2>/dev/null || true
     fi
     while IFS= read -r -d '' corpse; do
         md_corpses+=("$corpse")
     done < "$_tmp_find"
+    # SIDE EFFECT: deletes the scratch source list $_tmp_find
     rm -f "$_tmp_find"
 
     log "INFO" "Discovered ${#md_corpses[@]} source files for compilation."
@@ -286,18 +292,22 @@ main() {
         local _tmp_stale
         local _find_stale
         _find_stale="$(rk_find_command)"
+        # SIDE EFFECT: mktemp creates a scratch file in the system temp dir (cleaned up below)
         _tmp_stale=$(mktemp)
+        # SIDE EFFECT: writes the NUL-separated stale-page candidate list into $_tmp_stale (scratch file)
         "$_find_stale" "$OUTPUT_DIR" -type f -name "*.html" -print0 > "$_tmp_stale" 2>/dev/null || true
         while IFS= read -r -d '' stale_html; do
           if [[ -z "${EXPECTED_OUTPUTS[$stale_html]:-}" ]]; then
             if [[ "$DRY_RUN" == true ]]; then
               log "DRY-RUN" "Would prune stale rendered page: $stale_html"
             else
+              # SIDE EFFECT: deletes stale rendered HTML not backed by a current source file
               rm -f "$stale_html"
               log "INFO" "Pruned stale rendered page: $stale_html"
             fi
           fi
         done < "$_tmp_stale"
+        # SIDE EFFECT: deletes the scratch stale list $_tmp_stale
         rm -f "$_tmp_stale"
     else
         log "WARN" "Output tree is not marked generated; refusing to prune stale pages. A real render pass first writes the ownership marker."
@@ -317,10 +327,14 @@ main() {
 
     if [[ "${RENDERER,,}" == "oliver" ]]; then
       # --- OLIVER RENDERER PASS — Phase 6 S5: Oliver plan (no fallback, pin 9ad86a3) ---
+      # SIDE EFFECT: creates bones/tmp if missing
       mkdir -p "$TMP_DIR"
       local batch_tsv="$TMP_DIR/oliver-batch-$$.tsv"
+      # SIDE EFFECT: deletes any pre-existing bones/tmp/oliver-batch-<pid>.tsv
       rm -f "$batch_tsv"
 
+      # SIDE EFFECT: writes bones/tmp/oliver-batch-<pid>.tsv (render plan) and
+      # bones/tmp/oliver-plan-<pid>.log (stderr capture)
       if ! "$OLIVER_BIN" plan \
         --content-dir "$CANONICAL_CONTENT_DIR" \
         --output-dir "$OUTPUT_DIR" \
@@ -333,21 +347,26 @@ main() {
         --verbose "$VERBOSE" > "$batch_tsv" 2> "$TMP_DIR/oliver-plan-$$.log"; then
         log "ERROR" "Oliver plan failed"
         cat "$TMP_DIR/oliver-plan-$$.log" >&2
+        # SIDE EFFECT: deletes the plan stderr scratch log
         rm -f "$TMP_DIR/oliver-plan-$$.log"
         exit 1
       fi
       if [[ ! -s "$batch_tsv" ]]; then
         log "ERROR" "Oliver plan returned empty TSV"
+        # SIDE EFFECT: deletes the plan stderr scratch log
         rm -f "$TMP_DIR/oliver-plan-$$.log"
         exit 1
       fi
       log "INFO" "Oliver plan succeeded (${#md_corpses[@]} sources)"
+      # SIDE EFFECT: deletes the plan stderr scratch log on success
       rm -f "$TMP_DIR/oliver-plan-$$.log"
 
       log "INFO" "Executing Oliver batch adapter pass..."
       if [[ "$DRY_RUN" == true ]]; then
         log "DRY-RUN" "Would invoke bash $SCRIPT_DIR/rc-oliver-adapter.sh $batch_tsv"
       else
+        # SIDE EFFECT (delegated): rc-oliver-adapter.sh renders HTML into output/ and
+        # writes per-run logs under bones/logs plus warning files under bones/tmp
         set +e
         RK_RENDER_ID="$$" bash "$SCRIPT_DIR/rc-oliver-adapter.sh" "$batch_tsv"
         adapter_status=$?
@@ -460,6 +479,7 @@ main() {
         fi
       done
 
+      # SIDE EFFECT: deletes bones/tmp/oliver-batch-<pid>.tsv after the batch pass
       rm -f "$batch_tsv"
     fi
 
@@ -471,6 +491,7 @@ main() {
     warnings_file="$TMP_DIR/oliver-warnings-batch-$$.log"
     if [[ -f "$warnings_file" ]]; then
       warning_total=$(awk '{ s+=$1 } END { print s+0 }' "$warnings_file" 2>/dev/null || echo 0)
+      # SIDE EFFECT: deletes bones/tmp/oliver-warnings-batch-<pid>.log
       rm -f "$warnings_file"
     fi
 
@@ -480,9 +501,11 @@ main() {
       head -n 2 "$warnings_list" | while IFS= read -r wline || [[ -n "$wline" ]]; do
         log "MARKER" "⚠️  $wline"
       done
+      # SIDE EFFECT: deletes bones/tmp/oliver-warnings-list-<pid>.log
       rm -f "$warnings_list"
     fi
 
+    # SIDE EFFECT: writes the output-ownership marker file into output/ (real runs only)
     mark_output_generated
 
     if [[ "${DRY_RUN:-false}" == true ]]; then

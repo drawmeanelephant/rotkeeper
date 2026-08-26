@@ -135,11 +135,13 @@ done
 #
 # Create necessary report and log directories.
 #
+  # SIDE EFFECT (write): creates bones/reports and bones/logs if missing
 mkdir -p "$REPORT_DIR" "$LOG_DIR"
 
 # --dry-run must stay non-mutating: the per-run scan log is only opened for
 # real runs.
 if [[ "${DRY_RUN:-false}" != true ]]; then
+  # SIDE EFFECT (write): opens a fresh per-run scan log under bones/logs (real runs only)
   LOG_FILE="$LOG_DIR/rc-scan-$(date +%Y%m%d_%H%M%S).log"
 
   echo "[INFO] rc-scan started at $(date)"
@@ -253,6 +255,7 @@ if [[ "$MD_ONLY" == false ]]; then
       orphans_json=$(printf '%s\n' "${orphans[@]}" | jq -R . | jq -s .)
     fi
 
+    # SIDE EFFECT (write): writes bones/reports/scan-report-<ts>.json (real runs only)
     cat > "$json_report" <<EOF
 {
   "missing": $missing_json,
@@ -277,6 +280,7 @@ fi
 if [[ "$JSON_ONLY" == false ]]; then
   md_report="$REPORT_DIR/scan-report-$(date +%Y%m%d_%H%M%S).md"
   if [[ "$DRY_RUN" != true ]]; then
+    # SIDE EFFECT (write): writes bones/reports/scan-report-<ts>.md (real runs only)
     cat > "$md_report" <<EOF
 # Scan Report - $(date)
 ## Missing Files

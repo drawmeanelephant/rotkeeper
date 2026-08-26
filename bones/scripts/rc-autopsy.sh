@@ -103,6 +103,7 @@ run_help_report() {
     return 0
   fi
 
+  # SIDE EFFECT (write): overwrites bones/reports/autopsy-help.md
   mkdir -p "$REPORT_DIR"
   {
     echo "---"
@@ -174,6 +175,7 @@ render_output_report_md() {
     return 0
   fi
 
+  # SIDE EFFECT (write): overwrites bones/reports/autopsy-outputs.md
   mkdir -p "$REPORT_DIR"
   {
     echo "---"

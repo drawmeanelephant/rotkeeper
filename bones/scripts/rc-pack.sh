@@ -84,6 +84,7 @@ cleanup() {
   if [[ "${cleanup_ran:-false}" == true ]]; then return 0; fi
   cleanup_ran=true
   if [[ -n "$PARTIAL_ARCHIVE" ]]; then
+    # SIDE EFFECT (delete): removes half-written .tar and .gz from bones/archives after failure
     rm -f "$PARTIAL_ARCHIVE" "$PARTIAL_ARCHIVE.gz"
     log "WARN" "Removed partial archive after failure: ${PARTIAL_ARCHIVE##*/}"
   fi
@@ -156,6 +157,7 @@ main() {
     TOMB="tomb-$TIMESTAMP_VERSION.tar"
     EXPORT_JSON="$ARCHIVE_DIR/tomb-export-$TIMESTAMP_VERSION.json"
 
+    # SIDE EFFECT (write): creates bones/archives and bones/logs if missing
     run mkdir -p "$ARCHIVE_DIR"
     run mkdir -p "$LOG_DIR"
 
@@ -175,15 +177,18 @@ main() {
       CONTENT_ARCHIVE="tomb-content-$TIMESTAMP_VERSION.tar"
       if [[ "$DRY_RUN" == false ]]; then
         echo "📦 Packing \"$SOURCE_DIR\" into \"$CONTENT_ARCHIVE\""
+        # SIDE EFFECT (archive): writes tomb-content-<ts>.tar (then .gz) under bones/archives
         pack_archive "$ARCHIVE_DIR/$CONTENT_ARCHIVE" \
           tar --exclude="${CONTENT_DIR#"$ROOT_DIR"/}/help" \
               --exclude="*_temp.md" \
               -cf "$ARCHIVE_DIR/$CONTENT_ARCHIVE" "${CONTENT_DIR#"$ROOT_DIR"/}"
+        # SIDE EFFECT (write): gzips the content archive in place, replacing the bare .tar
         run gzip -f "$ARCHIVE_DIR/$CONTENT_ARCHIVE"
         validate_gz "$ARCHIVE_DIR/$CONTENT_ARCHIVE.gz" || exit 1
         CONTENT_ARCHIVE="$CONTENT_ARCHIVE.gz"
         SHA=$(rk_sha256 "$ARCHIVE_DIR/$CONTENT_ARCHIVE" | cut -d' ' -f1)
         rel_archive="${ARCHIVE_DIR#"$ROOT_DIR"/}/$CONTENT_ARCHIVE"
+        # SIDE EFFECT (write): appends "<path>  <sha256>" line to bones/manifest.txt
         echo "$rel_archive  $SHA" >> "$MANIFEST_FILE"
         log "INFO" "Archived content to $CONTENT_ARCHIVE"
         echo "🧾 Archived source content to \"$ARCHIVE_DIR/$CONTENT_ARCHIVE\""
@@ -195,12 +200,15 @@ main() {
     if [[ "$SELF_MODE" == false && "$CONTENT_MODE" == false ]]; then
       if [[ "$DRY_RUN" == false ]]; then
         echo "📦 Packing \"$OUTPUT_DIR\" into \"$TOMB\""
+        # SIDE EFFECT (archive): writes tomb-<ts>.tar under bones/archives
         pack_archive "$ARCHIVE_DIR/$TOMB" \
           tar -C "$ROOT_DIR" -cf "$ARCHIVE_DIR/$TOMB" "${OUTPUT_DIR#"$ROOT_DIR"/}"
         SHA_UNCOMPRESSED=$(rk_sha256 "$ARCHIVE_DIR/$TOMB" | cut -d' ' -f1)
 
         # Embed metadata into archive as metadata.json
+        # SIDE EFFECT (write): mktemp creates a scratch dir under bones/tmp (or system tmp)
         PACK_META_DIR=$(mktemp -d "$TMP_DIR/packmeta.XXXXXX" 2>/dev/null || mktemp -d)
+        # SIDE EFFECT (write): serializes metadata.json into the scratch dir
         jq -n \
           --arg name "$TOMB" \
           --arg sha "$SHA_UNCOMPRESSED" \
@@ -208,17 +216,21 @@ main() {
           --arg mode "default" \
           --arg count "$count" \
           '{name: $name, sha256: $sha, timestamp: $timestamp, mode: $mode, file_count: $count|tonumber}' > "$PACK_META_DIR/metadata.json"
+        # SIDE EFFECT (archive): appends metadata.json member to tomb-<ts>.tar
         run tar --append --file="$ARCHIVE_DIR/$TOMB" -C "$PACK_META_DIR" metadata.json
         if ! CANONICAL_PACK_META=$(rk_guard_delete "$PACK_META_DIR" "$(dirname -- "$PACK_META_DIR")"); then
           echo "ERROR: Aborting pack; refusing unsafe deletion of '$PACK_META_DIR'." >&2
           exit 1
         fi
+        # SIDE EFFECT (delete): removes the metadata.json scratch dir
         rm -rf "$CANONICAL_PACK_META"
+        # SIDE EFFECT (write): gzips the tomb in place, replacing the bare .tar
         run gzip -f "$ARCHIVE_DIR/$TOMB"
         validate_gz "$ARCHIVE_DIR/$TOMB.gz" || exit 1
         TOMB="$TOMB.gz"
         SHA_COMPRESSED=$(rk_sha256 "$ARCHIVE_DIR/$TOMB" | cut -d' ' -f1)
         rel_tomb="${ARCHIVE_DIR#"$ROOT_DIR"/}/$TOMB"
+        # SIDE EFFECT (write): appends "<path>  <sha256>" line to bones/manifest.txt
         echo "$rel_tomb  $SHA_COMPRESSED" >> "$MANIFEST_FILE"
         log "INFO" "Embedded metadata.json into $TOMB"
 
@@ -233,13 +245,17 @@ main() {
       SELF_ARCHIVE="tombkit-$TIMESTAMP_VERSION.tar"
       if [[ "$DRY_RUN" == false ]]; then
         echo "📦 Packing full rotkeeper system into \"$SELF_ARCHIVE\""
+        # SIDE EFFECT (archive): writes tombkit-<ts>.tar (full system bundle) under bones/archives
         pack_archive "$ARCHIVE_DIR/$SELF_ARCHIVE" \
           tar --exclude="${ARCHIVE_DIR#"$ROOT_DIR"/}" --exclude="${ARCHIVE_DIR#"$ROOT_DIR"/}/*" -C "$ROOT_DIR" -cf "$ARCHIVE_DIR/$SELF_ARCHIVE" rotkeeper.sh "${BONES_DIR#"$ROOT_DIR"/}/" "${CONTENT_DIR#"$ROOT_DIR"/}/" "${OUTPUT_DIR#"$ROOT_DIR"/}/"
         SHA=$(rk_sha256 "$ARCHIVE_DIR/$SELF_ARCHIVE" | cut -d' ' -f1)
+        # SIDE EFFECT (write): appends "<archive>  <sha256>" line to bones/manifest.txt
         echo "$SELF_ARCHIVE  $SHA" >> "$MANIFEST_FILE"
 
         # Embed metadata into archive as metadata.json
+        # SIDE EFFECT (write): mktemp creates a scratch dir under bones/tmp (or system tmp)
         PACK_META_DIR=$(mktemp -d "$TMP_DIR/packmeta.XXXXXX" 2>/dev/null || mktemp -d)
+        # SIDE EFFECT (write): serializes metadata.json into the scratch dir
         jq -n \
           --arg name "$SELF_ARCHIVE" \
           --arg sha "$SHA" \
@@ -247,12 +263,15 @@ main() {
           --arg mode "self" \
           --arg count "$count" \
           '{name: $name, sha256: $sha, timestamp: $timestamp, mode: $mode, file_count: $count|tonumber}' > "$PACK_META_DIR/metadata.json"
+        # SIDE EFFECT (archive): appends metadata.json member to tombkit-<ts>.tar
         run tar --append --file="$ARCHIVE_DIR/$SELF_ARCHIVE" -C "$PACK_META_DIR" metadata.json
         if ! CANONICAL_PACK_META=$(rk_guard_delete "$PACK_META_DIR" "$(dirname -- "$PACK_META_DIR")"); then
           echo "ERROR: Aborting pack; refusing unsafe deletion of '$PACK_META_DIR'." >&2
           exit 1
         fi
+        # SIDE EFFECT (delete): removes the metadata.json scratch dir
         rm -rf "$CANONICAL_PACK_META"
+        # SIDE EFFECT (write): gzips the tombkit in place, replacing the bare .tar
         run gzip -f "$ARCHIVE_DIR/$SELF_ARCHIVE"
         validate_gz "$ARCHIVE_DIR/$SELF_ARCHIVE.gz" || exit 1
         SELF_ARCHIVE="$SELF_ARCHIVE.gz"
@@ -270,6 +289,7 @@ main() {
 
       if [[ "$DRY_RUN" == false ]]; then
         echo "🧬 Exporting .md from \"$SOURCE_DIR\" to JSON: \"$EXPORT_JSON\""
+        # SIDE EFFECT (write): mktemp creates scratch files under bones/tmp (or system tmp)
         TMP_EXPORT=$(mktemp "$TMP_DIR/packexport.XXXXXX" 2>/dev/null || mktemp)
         echo "[" > "$TMP_EXPORT"
         FIRST=true
@@ -294,19 +314,23 @@ main() {
           fi
           echo "$JSON_ENTRY" >> "$TMP_EXPORT"
         done < "$_tmp_pack_find"
+        # SIDE EFFECT (delete): removes the find scratch file
         rm -f "$_tmp_pack_find"
         echo "]" >> "$TMP_EXPORT"
 
         if jq empty "$TMP_EXPORT" >/dev/null 2>&1; then
+            # SIDE EFFECT (write): atomically promotes the export into bones/archives/tomb-export-<ts>.json via mv
             cp "$TMP_EXPORT" "$TMP_EXPORT.final"
             run mv "$TMP_EXPORT.final" "$EXPORT_JSON"
             rel_export="${EXPORT_JSON#"$ROOT_DIR"/}"
+            # SIDE EFFECT (write): appends the export path line to bones/manifest.txt
             echo "$rel_export" >> "$MANIFEST_FILE"
             echo "✅ Export complete: \"$EXPORT_JSON\""
         else
             log "ERROR" "Generated JSON is invalid, aborting export."
             exit 1
         fi
+        # SIDE EFFECT (delete): removes the JSON scratch files
         rm -f "$TMP_EXPORT" "$TMP_EXPORT.final" || true
       else
         log "DRYRUN" "Would export markdown from \"$SOURCE_DIR\" to JSON: \"$EXPORT_JSON\""

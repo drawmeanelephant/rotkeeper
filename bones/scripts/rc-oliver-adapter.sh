@@ -96,6 +96,7 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
     meta_input_format="cooklang"
   fi
   meta_json="$TMP_DIR/doc-meta-$$.json"
+  # SIDE EFFECT (write): captures oliver meta JSON into a bones/tmp scratch file
   if ! "$oliver_bin" meta --from "$meta_input_format" --format json < "$src_path" > "$meta_json" 2>/dev/null; then
     log "ERROR" "Oliver meta failed for '$src_path' (from=$meta_input_format)"
     echo "ERROR: Oliver meta failed for '$src_path'" >&2
@@ -114,6 +115,7 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
   doc_tmpl=$(yq -r '.template // ""' "$meta_json" 2>/dev/null || echo "")
   doc_palette=$(yq -r '.palette // ""' "$meta_json" 2>/dev/null || echo "")
   doc_render_profile=$(yq -r '.render_profile // ""' "$meta_json" 2>/dev/null || echo "")
+  # SIDE EFFECT (delete): removes the doc-meta scratch file
   rm -f "$meta_json"
 
   [[ "$doc_title" == "null" ]] && doc_title=""
@@ -143,6 +145,7 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
     fi
 
     soul_json="$TMP_DIR/soul-meta-$$.json"
+    # SIDE EFFECT (write): captures sidecar oliver meta JSON into a bones/tmp scratch file
     if ! "$oliver_bin" meta --from "$meta_input_format" --format json < "$soul_path" > "$soul_json" 2>/dev/null; then
       log "ERROR" "Oliver meta failed for sidecar '$soul_path'"
       echo "ERROR: Oliver meta failed for sidecar '$soul_path'" >&2
@@ -160,6 +163,7 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
     s_date=$(yq -r '.date // ""' "$soul_json" 2>/dev/null || echo "")
     s_tmpl=$(yq -r '.template // ""' "$soul_json" 2>/dev/null || echo "")
     s_palette=$(yq -r '.palette // ""' "$soul_json" 2>/dev/null || echo "")
+    # SIDE EFFECT (delete): removes the soul-meta scratch file
     rm -f "$soul_json"
 
     [[ -n "$s_title" && "$s_title" != "null" ]] && title="$s_title"
@@ -197,10 +201,12 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
   #    and a per-page render_profile in the source frontmatter overrides it
   #    for that file. Only an xhtml profile appends `--to xhtml`, so the
   #    default invocation is byte-identical to the html-only contract.
+  # SIDE EFFECT (write): creates bones/tmp and pre-cleans per-page body/err scratch files
   mkdir -p "$TMP_DIR"
   body_tmp="$TMP_DIR/oliver-body-$$.html"
   body_rewritten="$TMP_DIR/oliver-body-rewritten-$$.html"
   oliver_err="$TMP_DIR/oliver-err-$$.log"
+  # SIDE EFFECT (delete): removes stale per-page body/err scratch files before rendering
   rm -f "$body_tmp" "$body_rewritten" "$oliver_err"
 
   # Reuse meta_input_format if already computed for extraction; otherwise derive.
@@ -235,6 +241,7 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
   fi
 
   oliver_status=0
+  # SIDE EFFECT (write): renders the body HTML snippet into a bones/tmp scratch file; stderr captured alongside
   "${oliver_cmd[@]}" < "$src_path" > "$body_tmp" 2> "$oliver_err" || oliver_status=$?
   if [[ "$oliver_status" -ne 0 ]]; then
     first_err_line="$(head -n1 "$oliver_err" 2>/dev/null || echo "no details")"
@@ -248,6 +255,7 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
     if grep -q "RawHtmlNotXmlWellFormed" "$oliver_err" 2>/dev/null; then
       log "MARKER" "  hint: raw HTML is not allowed under --to xhtml — remove <b>/<i> etc. or switch page to render_profile: html"
     fi
+    # SIDE EFFECT (delete): removes per-page scratch files on render failure (no output page is written)
     rm -f "$body_tmp" "$body_rewritten" "$oliver_err"
     exit 1
   fi
@@ -260,17 +268,21 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
       if [[ $warn_count -lt 2 ]]; then
         log "MARKER" "⚠️  Oliver warning for '$(basename "$src_path")': $line"
       fi
+      # SIDE EFFECT (write): appends warnings to the shared bones/tmp warning list for the batch
       echo "Oliver warning for '$(basename "$src_path")': $line" >> "$TMP_DIR/oliver-warnings-list-${RK_RENDER_ID:-$$}.log"
       warn_count=$((warn_count + 1))
     done < "$oliver_err"
     # Accumulate total warnings for render summary (shared across batch)
     if [[ $warn_count -gt 0 ]]; then
+      # SIDE EFFECT (write): accumulates the per-page warning count into the shared batch tally under bones/tmp
       echo "$warn_count" >> "$TMP_DIR/oliver-warnings-batch-${RK_RENDER_ID:-$$}.log"
     fi
   fi
+  # SIDE EFFECT (delete): removes the stderr scratch file after warnings are harvested
   rm -f "$oliver_err"
 
   # 5. Link Rewriting — Phase 6 S3: Oliver render AST rewrites (no GAWK, pin 9ad86a3)
+  # SIDE EFFECT (write): duplicates the body HTML into the rewrite-stage scratch file
   cp "$body_tmp" "$body_rewritten"
 
 
@@ -282,6 +294,7 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
       log "DRY-RUN" "Would write rendered HTML for '$src_path' -> '$dst_path'"
     fi
   else
+    # SIDE EFFECT (write): creates the page's output directory and writes the final HTML into output/
     mkdir -p "$(dirname "$dst_path")"
     wrap_meta="$TMP_DIR/wrap-meta-$$.json"
     jq -n --arg title "$title" --arg desc "$desc" --arg author "$author" --arg date "$date" --arg palette "$palette" \
@@ -290,9 +303,11 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
     if ! "$oliver_bin" wrap --template "$template_path" --meta-json "$wrap_meta" --assets-root "$assets_root" --body "$body_rewritten" > "$dst_path" 2> "$TMP_DIR/oliver-wrap-$$.log"; then
       log "ERROR" "Oliver wrap failed for '$src_path'"
       cat "$TMP_DIR/oliver-wrap-$$.log" >&2
+        # SIDE EFFECT (delete): removes the partial output page and wrap scratch files on failure
       rm -f "$wrap_meta" "$TMP_DIR/oliver-wrap-$$.log" "$dst_path"
       exit 1
     fi
+    # SIDE EFFECT (delete): removes the wrap meta and stderr scratch files on success
     rm -f "$wrap_meta" "$TMP_DIR/oliver-wrap-$$.log"
     log "INFO" "Oliver wrap succeeded for '$src_path'"
     if [[ "$verbose" == "true" ]]; then
@@ -305,6 +320,7 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
     fi
   fi
 
+  # SIDE EFFECT (delete): removes the body/rewrite scratch files for this page
   rm -f "$body_tmp" "$body_rewritten"
 done < "$MANIFEST_TSV"
 

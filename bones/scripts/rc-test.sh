@@ -95,6 +95,7 @@ cleanup() {
   if [[ -n "${TEST_DIR:-}" && -d "${TEST_DIR}" && -n "${ROOT_DIR:-}" ]]; then
     if CANONICAL_TEST_DIR=$(rk_guard_delete "$TEST_DIR" "${ROOT_DIR}/bones/tmp"); then
       echo "Pruning testing footprints from the physical realm..."
+      # SIDE EFFECT (delete): recursively removes the entire bones/tmp/<test-root> fixture tree on any exit
       rm -rf "$CANONICAL_TEST_DIR" || true
     else
       echo "WARNING: Skipped test-env pruning; '$TEST_DIR' failed the deletion guard." >&2
@@ -121,11 +122,14 @@ trap 'exit 143' TERM
 
 if [[ -n "${TEST_DIR:-}" && -n "${ROOT_DIR:-}" ]]; then
     if CANONICAL_TEST_DIR=$(rk_guard_delete "$TEST_DIR" "${ROOT_DIR}/bones/tmp"); then
+        # SIDE EFFECT (delete): wipes any leftover test root under bones/tmp before the run starts
         rm -rf "$CANONICAL_TEST_DIR" || true
     else
         echo "WARNING: Skipped pre-run cleanup; '$TEST_DIR' failed the deletion guard." >&2
     fi
 fi
+# SIDE EFFECT (write): creates the test fixture root under bones/tmp; every layout
+# pass below builds and mutates its fixtures exclusively inside this boundary
 mkdir -p "$TEST_DIR"
 
 LAYOUT_MODES=("crypt" "busy" "sterile")

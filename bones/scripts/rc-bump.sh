@@ -159,6 +159,7 @@ log "INFO" "New version: $NEW_VERSION"
 if [[ "$DRY_RUN" == true ]]; then
   log "DRY-RUN" "Would write $NEW_VERSION to $VERSION_FILE"
 else
+  # SIDE EFFECT (write): overwrites bones/config/version with the new version
   printf '%s\n' "$NEW_VERSION" > "$VERSION_FILE"
   log "INFO" "Updated $VERSION_FILE to $NEW_VERSION."
 fi
@@ -174,6 +175,7 @@ if [[ -f "$ROADMAP_FILE" ]]; then
   else
     # Inject after the anchor through a per-process temp surface (#231)
     # awk: inject new entry immediately after LIVING_BUILDLOG_START marker, pass through rest
+    # SIDE EFFECT (write): creates <roadmap>.tmp.$$ scratch file, then replaces the roadmap via mv
     roadmap_tmp="${ROADMAP_FILE}.tmp.$$"
     if ! awk -v entry="$ENTRY" '
       /<!-- LIVING_BUILDLOG_START -->/ {
@@ -183,6 +185,7 @@ if [[ -f "$ROADMAP_FILE" ]]; then
       }
       {print}
     ' "$ROADMAP_FILE" > "$roadmap_tmp"; then
+      # SIDE EFFECT (delete): removes the scratch file on awk failure
       rm -f "$roadmap_tmp"
       log "ERROR" "Failed to inject update into Living Buildlog."
       exit 1
@@ -202,6 +205,7 @@ if [[ -f "$CHANGELOG_FILE" ]]; then
   else
     # Prepend through a per-process temp surface (#231)
     # awk: prepend new changelog section before first ## [ header, pass through rest
+    # SIDE EFFECT (write): creates CHANGELOG.md.tmp.$$ scratch file, then replaces the changelog via mv
     changelog_tmp="${CHANGELOG_FILE}.tmp.$$"
     if ! awk -v new_version="$NEW_VERSION" -v date_str="$(date +%Y-%m-%d)" -v msg="$MESSAGE" '
       !inserted && /^## \[/ {
@@ -210,6 +214,7 @@ if [[ -f "$CHANGELOG_FILE" ]]; then
       }
       { print }
     ' "$CHANGELOG_FILE" > "$changelog_tmp"; then
+      # SIDE EFFECT (delete): removes the scratch file on awk failure
       rm -f "$changelog_tmp"
       log "ERROR" "Failed to prepend to CHANGELOG.md."
       exit 1
@@ -241,6 +246,7 @@ if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
 fi
 
 log "INFO" "Staging touched files..."
+# SIDE EFFECT (git): stages the version file, CHANGELOG.md, and roadmap index
 git add "bones/config/version"
 if [[ -f "CHANGELOG.md" ]]; then
   git add "CHANGELOG.md"
@@ -252,6 +258,7 @@ fi
 if git diff --quiet --cached; then
   log "WARN" "No changes to commit. Staged diff is empty."
 else
+  # SIDE EFFECT (git): creates a commit "bump: <version> - <message>" (no push)
   git commit -m "bump: $NEW_VERSION - $MESSAGE"
   log "INFO" "Committed to git repository."
 fi
