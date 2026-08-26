@@ -19,6 +19,11 @@ IFS=$'\n\t'
 set -euo pipefail
 FORCE_GLUE=false
 
+# ---
+# show_help: Print glue usage and exit.
+# Inputs: none
+# Outputs: Prints help to stdout and exits 0
+# ---
 show_help() {
   cat <<'EOF'
 rc-glue.sh — Generate navigation glue for unindexed content directories
@@ -61,6 +66,11 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# ---
+# main: Generate or refresh navigation glue indexes under CONTENT_DIR.
+# Inputs: none (reads CONTENT_DIR, TARGET_DIR, FORCE_GLUE, DRY_RUN)
+# Outputs: Creates/updates index.md files with navigation blocks
+# ---
 main() {
   # DEFENSIVE ARCHITECTURE: If shipping without a home directory, breathe it into existence
   if [[ ! -d "$CONTENT_DIR" ]]; then
@@ -182,8 +192,10 @@ ${DEFAULT_YAML}
         continue
     fi
     if [[ "$IS_EXISTING_CUSTOM" == true ]]; then
+        # gawk: count glue markers — exactly one START and one END in order means replaceable block
         if gawk 'BEGIN { start=0; end=0; ok=0 } /<!-- ROTKEEPER-GLUE-START -->/ { start++ } /<!-- ROTKEEPER-GLUE-END -->/ { end++; if(start == 1) ok=1 } END { if (start == 1 && end == 1 && ok == 1) exit 0; else exit 1 }' "$INDEX_FILE"; then
             glue_tmp="${INDEX_FILE}.tmp.$$"
+            # gawk: replace existing glue block — print new glue at START, suppress old block until END, pass through rest
             if GLUE_CONTENT="$GLUE_CONTENT" gawk 'BEGIN { p=1 } /<!-- ROTKEEPER-GLUE-START -->/ { print ENVIRON["GLUE_CONTENT"]; p=0 } /<!-- ROTKEEPER-GLUE-END -->/ { p=1; next } p { print }' "$INDEX_FILE" > "$glue_tmp"; then
                 mv "$glue_tmp" "$INDEX_FILE"
             else

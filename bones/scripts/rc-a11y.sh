@@ -11,6 +11,11 @@ IFS=$'\n\t'
 #  Updated : 2026-08-25
 # ============================================================
 
+# ---
+# show_help: Print accessibility audit usage and exit.
+# Inputs: none (reads VERSION)
+# Outputs: Prints help and exits 0
+# ---
 show_help() {
   cat << EOF
 rc-a11y.sh — Theme accessibility audit (v$VERSION)
@@ -75,6 +80,11 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# ---
+# main: Audit theme CSS for contrast, focus, and narrow-viewport legibility.
+# Inputs: $@ (--css-dir, --report, --json, --dry-run, --verbose)
+# Outputs: Writes report under REPORT_DIR or emits JSON; exits 1 if any theme fails
+# ---
 main() {
   require_bins python3
   mkdir -p "$TMP_DIR"

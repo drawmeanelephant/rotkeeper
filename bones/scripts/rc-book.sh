@@ -19,6 +19,11 @@ IFS=$'\n\t'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
 
+# ---
+# show_help: Display primary help for binder modes.
+# Inputs: none
+# Outputs: Prints help to stdout
+# ---
 show_help() {
   cat <<'HELP_EOF'
 rc-book.sh — Aggregate documentation into bound book reports
@@ -55,6 +60,11 @@ CONFIG=""
 STRIPMODE=false
 FORCE_BIND=false
 
+# ---
+# showhelp: Display secondary help with --strip-frontmatter details.
+# Inputs: none
+# Outputs: Prints help to stdout
+# ---
 showhelp() {
   cat <<HELP_EOF
 rc-book.sh — Documentation binder ritual
@@ -82,6 +92,11 @@ Options:
 HELP_EOF
 }
 
+# ---
+# parseflags: Parse binder mode flags and options into globals.
+# Inputs: $@ (CLI args)
+# Outputs: Sets MODE, CONFIG, STRIPMODE, FORCE_BIND; exits on --help/unknown
+# ---
 parseflags() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -115,6 +130,11 @@ validate_boundary() {
   fi
 }
 
+# ---
+# runscriptbookfull: Bind active rc-*.sh plus rotkeeper.sh into scriptbook.
+# Inputs: none; reads SCRIPT_DIR, ROOT_DIR, BOOK_REPORT_DIR, BOOK_SUFFIX
+# Outputs: Writes rotkeeper-scriptbook-full.md
+# ---
 runscriptbookfull() {
   mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-scriptbook-full.md"
@@ -157,6 +177,11 @@ runscriptbookfull() {
   log "INFO" "Full Scriptbook written to $OUT"
 }
 
+# ---
+# rundocbook: Bind DOCS_DIR docs with path markers into docbook.
+# Inputs: none; reads DOCS_DIR, STRIPMODE
+# Outputs: Writes rotkeeper-docbook.md
+# ---
 rundocbook() {
   mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-docbook.md"
@@ -172,6 +197,7 @@ rundocbook() {
     echo "---"
     echo ""
   } > "$OUT"
+  # Find all 3 content formats (md/textile/cook) — sorted for deterministic book order
   mapfile -t docfiles < <(find "$DOCS_DIR" -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) | sort)
   for file in ${docfiles[@]+"${docfiles[@]}"}; do
     if [[ -f "$file" ]]; then
@@ -182,7 +208,7 @@ rundocbook() {
         if [[ "$STRIPMODE" == "true" ]]; then
           rk_strip_frontmatter "$file"
         else
-          awk '{ print }' "$file"
+          awk '{ print }' "$file"  # cat via awk keeps pipeline shape uniform
         fi
         echo "<!-- END $rel::$BOOK_SUFFIX -->"
         echo ""
@@ -192,6 +218,11 @@ rundocbook() {
   log "INFO" "Docbook written to $OUT"
 }
 
+# ---
+# rundocbookclean: Bind docs with frontmatter stripped and title headings.
+# Inputs: none; reads DOCS_DIR
+# Outputs: Writes rotkeeper-docbook-clean.md
+# ---
 rundocbookclean() {
   mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-docbook-clean.md"
@@ -207,6 +238,7 @@ rundocbookclean() {
     echo "---"
     echo ""
   } > "$OUT"
+  # Same 3-format find sorted deterministically; derivate title from basename stripped of any of the 3 extensions
   while read -r file; do
     if [[ -f "$file" ]]; then
       local TITLE
@@ -223,6 +255,11 @@ rundocbookclean() {
   log "INFO" "Cleaned Docbook written to $OUT"
 }
 
+# ---
+# runconfigbook: Bind YAML config and HTML templates into configbook.
+# Inputs: none; reads CONFIG_DIR, TEMPLATE_DIR
+# Outputs: Writes rotkeeper-configbook.md
+# ---
 runconfigbook() {
   mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-configbook.md"
@@ -234,6 +271,7 @@ runconfigbook() {
     echo "---"
     echo ""
   } > "$OUT"
+  # Config/template find covers yaml/yml/tpl/html across both dirs; sort for reproducibility
   while read -r file; do
     if [[ -f "$file" ]]; then
       rel="${file#"$ROOT_DIR"/}"
@@ -249,6 +287,11 @@ runconfigbook() {
   log "INFO" "Configbook written to $OUT"
 }
 
+# ---
+# runcontentbook: Bind CONTENT_DIR pages with path markers into contentbook.
+# Inputs: none; reads CONTENT_DIR, STRIPMODE
+# Outputs: Writes rotkeeper-contentbook.md
+# ---
 runcontentbook() {
   mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-contentbook.md"
@@ -264,6 +307,7 @@ runcontentbook() {
     echo "---"
     echo ""
   } > "$OUT"
+  # Same 3-format find sorted deterministically for content order
   mapfile -t contentfiles < <(find "$CONTENT_DIR" -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) | sort)
   for file in ${contentfiles[@]+"${contentfiles[@]}"}; do
     if [[ -f "$file" ]]; then
@@ -284,15 +328,22 @@ runcontentbook() {
   log "INFO" "Contentbook written to $OUT"
 }
 
+# ---
+# runcontentmeta: Extract frontmatter YAML from content sources to YAML index.
+# Inputs: none; reads CONTENT_DIR via rk_find_content (NUL-delimited)
+# Outputs: Writes rotkeeper-contentmeta.yaml
+# ---
 runcontentmeta() {
   mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-contentmeta.yaml"
   validate_boundary "$OUT"
   log "INFO" "Extracting frontmatter YAML from content files..."
   echo "" > "$OUT"
+  # Iterate NUL-delimited content files (safe for spaces/newlines); rk_find_content emits -print0
   while IFS= read -r -d '' file; do
     if [[ -f "$file" ]]; then
       rel="${file#"$ROOT_DIR"/}"
+      # awk extracts YAML frontmatter block (between first two --- lines) into indented mapping
       awk -v path="$rel" '
         BEGIN { inyaml=0 }
         /^---$/ { inyaml++; if (inyaml==1) { print "- path: " path }; next }
@@ -305,6 +356,11 @@ runcontentmeta() {
   log "INFO" "Content metadata written to $OUT"
 }
 
+# ---
+# runfsbook: Build filesystem catalog excluding generated/cache trees.
+# Inputs: none; reads ROOT_DIR, OUTPUT_DIR, TMP_DIR, LOG_DIR, REPORT_DIR, BOOK_REPORT_DIR, ARCHIVE_DIR
+# Outputs: Writes rotkeeper-files.md
+# ---
 runfsbook() {
   mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-files.md"
@@ -330,6 +386,7 @@ runfsbook() {
       local_rel_reports="${REPORT_DIR#"$ROOT_DIR"/}"
       local_rel_books="${BOOK_REPORT_DIR#"$ROOT_DIR"/}"
       local_rel_archive="${ARCHIVE_DIR#"$ROOT_DIR"/}"
+      # Prune generated/cache trees (git, ide, output, tmp, logs, reports, books, archive) then list remaining files; sed strips ./ prefix, sort for determinism
       find . -type d \( -path ./.git -o -path ./.freebuff -o -path ./.vscode -o -path ./.idea -o -path "./$local_rel_output" -o -path "./$local_rel_tmp" -o -path "./$local_rel_logs" -o -path "./$local_rel_reports" -o -path "./$local_rel_books" -o -path "./$local_rel_archive" \) -prune -o \
         -type f \
         ! -name '*.log' \
@@ -342,6 +399,11 @@ runfsbook() {
   log "INFO" "File system catalog written to $OUT"
 }
 
+# ---
+# collapse: Collapse rotkeeper-*.md books into a single YAML with bodies.
+# Inputs: none; reads BOOK_REPORT_DIR
+# Outputs: Writes collapsed-content.yaml
+# ---
 collapse() {
   mkdir -p "$BOOK_REPORT_DIR"
   local OUTPUT="$BOOK_REPORT_DIR/collapsed-content.yaml"
@@ -360,14 +422,20 @@ collapse() {
       echo "  title: $title"
       echo "  subtitle: $subtitle"
       echo "  body: |"
-      rk_strip_frontmatter "$file" | awk '{ print "    " $0 }'
+      rk_strip_frontmatter "$file" | awk '{ print "    " $0 }'  # indent body for YAML block literal
     } >> "$OUTPUT"
   done
   log "INFO" "Wrote $OUTPUT"
 }
 
+# ---
+# runmode: Enforce size guard and dispatch MODE to the matching binder.
+# Inputs: none; reads MODE, FORCE_BIND, DOCS_DIR, CONTENT_DIR
+# Outputs: Writes selected book(s); exits 1 if >5MB without --force-bind
+# ---
 runmode() {
   local total_size
+  # Estimate total bind size deterministically: find all 3 source extensions across docs+content, dedupe, NUL->wc
   total_size=$( { find "$DOCS_DIR" "$CONTENT_DIR" -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) 2>/dev/null || true; } | sort -u | tr "\n" "\0" | xargs -0 wc -c 2>/dev/null | awk 'END{print $1}' )
   [[ -z "$total_size" ]] && total_size=0
   if [[ "$total_size" -gt 5242880 ]]; then
@@ -409,6 +477,11 @@ runmode() {
   esac
 }
 
+# ---
+# main: Bootstrap binder, parse flags, and run selected mode.
+# Inputs: $@ (CLI args)
+# Outputs: Generates book artifacts; exits on error
+# ---
 main() {
   export BOOK_SUFFIX=$(printf "%04x%04x" "$RANDOM" "$RANDOM")
   require_bins bash

@@ -21,6 +21,11 @@ IFS=$'\n\t'
 
 
 
+# ---
+# show_help: Print autopsy usage and exit.
+# Inputs: none
+# Outputs: Prints help to stdout
+# ---
 show_help() { cat <<HELP_EOF
 rc-autopsy.sh — Script dissection ritual v$VERSION
 Usage: rc-autopsy.sh [mode] [options]
@@ -50,6 +55,11 @@ IFS=$'\n\t'
 HELP_REPORT=false
 OUTPUT_REPORT=false
 
+# ---
+# parse_args: Parse autopsy mode flags (--help-report, --output-report, --all).
+# Inputs: $@ (args)
+# Outputs: Sets HELP_REPORT/OUTPUT_REPORT; exits on --help/--version
+# ---
 parse_args() {
   local has_mode=false
   for arg in "$@"; do
@@ -72,6 +82,11 @@ parse_args() {
   return 0
 }
 
+# ---
+# run_help_report: Extract --help text from allowed scripts into autopsy-help.md.
+# Inputs: none (reads SCRIPT_DIR, ROOT_DIR, REPORT_DIR)
+# Outputs: Writes REPORT_DIR/autopsy-help.md
+# ---
 run_help_report() {
   local OUT="$REPORT_DIR/autopsy-help.md"
   if [[ "$DRY_RUN" == true ]]; then
@@ -136,6 +151,11 @@ run_help_report() {
   log "INFO" "Help report written to $OUT"
 }
 
+# ---
+# render_output_report_md: Catalog file-write ops (>, >>, tee, mv, cp, tar) into autopsy-outputs.md.
+# Inputs: none (reads SCRIPT_DIR, ROOT_DIR, REPORT_DIR)
+# Outputs: Writes REPORT_DIR/autopsy-outputs.md
+# ---
 render_output_report_md() {
   local OUT="$REPORT_DIR/autopsy-outputs.md"
   if [[ "$DRY_RUN" == true ]]; then
@@ -228,10 +248,20 @@ render_output_report_md() {
   log "INFO" "Output report written to $OUT"
 }
 
+# ---
+# run_output_report: Wrapper that renders the output catalog.
+# Inputs: none
+# Outputs: Delegates to render_output_report_md
+# ---
 run_output_report() {
   render_output_report_md
 }
 
+# ---
+# main: Dispatch help/output reports based on parsed flags.
+# Inputs: $@ (args)
+# Outputs: Generates selected reports
+# ---
 main() {
   if ! parse_args "$@"; then
     return 0

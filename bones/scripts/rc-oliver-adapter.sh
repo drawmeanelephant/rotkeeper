@@ -30,10 +30,20 @@ if [[ ! -f "$MANIFEST_TSV" ]]; then
   exit 1
 fi
 
+# ---
+# get_canonical_path: Resolve a path leniently for boundary checks.
+# Inputs: $1 (path; may not exist)
+# Outputs: Prints canonical or raw path via rk_canonical_or_raw
+# ---
 get_canonical_path() {
   rk_canonical_or_raw "$1"
 }
 
+# ---
+# is_within_boundary: Check that a target path stays inside a boundary.
+# Inputs: $1 (target), $2 (boundary directory)
+# Outputs: Returns 0 if target == boundary or is strictly under it, 1 otherwise
+# ---
 is_within_boundary() {
   local target="$1"
   local boundary="$2"

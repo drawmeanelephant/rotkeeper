@@ -8,6 +8,11 @@ IFS=$'\n\t'
 #  Version : 0.5.1
 # ============================================================
 
+# ---
+# show_help: Print links audit usage and exit.
+# Inputs: none
+# Outputs: Prints help to stdout and exits 0
+# ---
 show_help() {
   cat <<'EOF'
 rc-links.sh — Audit rendered HTML links and local asset references
@@ -64,12 +69,22 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# ---
+# cleanup: Remove temporary result file.
+# Inputs: none (reads RESULT_FILE)
+# Outputs: Deletes temp file if set
+# ---
 cleanup() {
   if [[ -n "${RESULT_FILE:-}" ]]; then
     rm -f "$RESULT_FILE"
   fi
 }
 
+# ---
+# main: Audit rendered HTML links/assets, emit reports in md/json.
+# Inputs: $@ (flags: --root, --report, --json, --fix-hint)
+# Outputs: Writes report file, prints MARKER summary; exits 1 on failures
+# ---
 main() {
   require_bins python3
   mkdir -p "$TMP_DIR"

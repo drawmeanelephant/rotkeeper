@@ -18,6 +18,11 @@ IFS=$'\n\t'
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
+# ---
+# show_help: Print asset manifest usage and exit.
+# Inputs: none (reads VERSION)
+# Outputs: Prints help and exits 0
+# ---
 show_help() {
   cat << EOF
 rc-assets.sh — Generate a selective YAML manifest of referenced assets
@@ -58,11 +63,20 @@ done
 
 
 
+# ---
+# cleanup: EXIT handler for asset sync (no temp files to remove).
+# Inputs: none
+# Outputs: Logs cleanup; respects cleanup_ran guard via base cleanup()
+# ---
 cleanup() {
     log "INFO" "Cleaning up after rc-assets.sh."
 }
 
-
+# ---
+# main: Synchronize assets, prune stale output, and generate manifests.
+# Inputs: none (reads ASSETS_DIR, OUTPUT_DIR, ARCHIVE_DIR, REPORT_DIR)
+# Outputs: Writes asset-manifest.yaml and report; syncs assets to output/assets
+# ---
 main() {
     TIMESTAMP=$(date +%Y-%m-%d_%H%M)
     require_bins bash rsync
@@ -80,6 +94,7 @@ main() {
         log "INFO" "Archived old manifest"
     fi
 
+    # Enumerate assets: find excludes .DS_Store, sed strips prefix for relpaths, sort for determinism.
     ASSET_PATHS=$(find "$ASSETS_DIR" -type f ! -name '.DS_Store' | sed "s|^$ASSETS_DIR/||" | sort)
 
     asset_count=$(echo "$ASSET_PATHS" | grep -c . || true)
@@ -120,6 +135,7 @@ main() {
                 fi
                 run mkdir -p "$(dirname "$dest")"
                 run rsync -a "$src" "$dest"
+                # Checksum: rk_sha256 prints "<hash>  <file>"; awk extracts hash.
                 checksum=$(rk_sha256 "$src" | awk '{print $1}')
                 log "INFO" "Copied asset: $relpath"
                 {
