@@ -124,6 +124,12 @@ if [[ "$SELECTORS" -ne 1 ]]; then
   exit 1
 fi
 
+# Gate git before any file is touched when --commit was requested, so a
+# missing dependency never leaves a half-applied bump behind.
+if [[ "$COMMIT" == true ]]; then
+  require_bins git
+fi
+
 IFS='.' read -r MAJ_VER MIN_VER PATCH_VER <<< "$CURRENT_VERSION"
 
 if [[ -n "$BUMP_TO" ]]; then
