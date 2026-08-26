@@ -55,9 +55,6 @@ HELP_EOF
 rk_init_script "rc-book" "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR TEMPLATE_DIR LOG_DIR TMP_DIR REPORT_DIR BOOK_REPORT_DIR DOCS_DIR CONTENT_DIR
 
-set -euo pipefail
-IFS=$'\n\t'
-
 require_gawk_version
 
 MODE=""

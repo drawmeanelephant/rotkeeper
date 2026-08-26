@@ -54,9 +54,6 @@ source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&
 rk_init_script rc-autopsy "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR REPORT_DIR
 
-set -euo pipefail
-IFS=$'\n\t'
-
 HELP_REPORT=false
 OUTPUT_REPORT=false
 

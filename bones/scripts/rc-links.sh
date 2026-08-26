@@ -84,7 +84,7 @@ done
 cleanup() {
   if [[ -n "${RESULT_FILE:-}" ]]; then
     # SIDE EFFECT (delete): removes the bones/tmp scan-result scratch file on exit
-    rm -f "$RESULT_FILE"
+    rm -f "$RESULT_FILE" || true
   fi
 }
 

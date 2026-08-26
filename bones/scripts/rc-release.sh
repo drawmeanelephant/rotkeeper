@@ -57,8 +57,6 @@ HELP_EOF
 
 rk_init_script "rc-release" "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR OUTPUT_DIR RELEASE_DIR
-set -euo pipefail
-IFS=$'\n\t'
 
 TARGET_VERSION=""
 PREV_ARG=""
@@ -106,7 +104,7 @@ cleanup() {
     # SIDE EFFECT (delete): removes bones/tmp/release-staging-<pid> on any exit path
     if [[ -d "$STAGING_DIR" ]]; then
         if CANONICAL_STAGING_DIR=$(rk_guard_delete "$STAGING_DIR" "$TMP_DIR"); then
-            rm -rf "$CANONICAL_STAGING_DIR"
+            rm -rf "$CANONICAL_STAGING_DIR" || true
         else
             log "ERROR" "Skipped staging cleanup; '$STAGING_DIR' failed the deletion guard."
         fi
@@ -115,9 +113,28 @@ cleanup() {
     if [[ -n "${ZIP_TMP:-}" && -f "$ZIP_TMP" ]]; then
         rm -f "$ZIP_TMP" || true
     fi
-    exit "$status"
+    return "$status"
 }
-trap cleanup EXIT INT TERM
+# ---
+# rk_release_teardown: EXIT trap body that removes staging artifacts without masking the real exit code.
+# Inputs: none; reads pending $? set by the EXIT trap
+# Outputs: Exits with the pre-trap status after staging/temp cleanup
+# Env: Reads STAGING_DIR, ZIP_TMP, TMP_DIR
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
+# ---
+rk_release_teardown() {
+    __rk_exit_status=$?
+    # Disarm the ERR relay and errexit so a failing command inside cleanup
+    # cannot abort the trap and replace the original status with its own.
+    trap - ERR EXIT INT TERM
+    set +e
+    cleanup
+    exit "$__rk_exit_status"
+}
+# INT/TERM relay into the same teardown path with conventional statuses.
+trap rk_release_teardown EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 # ---
 # validate_boundary: Ensure path is inside staging or release dir.

@@ -44,9 +44,6 @@ rk_load_env strict
 #  Version : 0.5.1
 # ============================================================
 
-set -euo pipefail
-IFS=$'\n\t'
-
 if [[ "${1:-}" == "--dry-run" ]]; then
 echo "======================================================================"
 echo "--- Regression tests for legacy rituals (ingest, sync-inbox, cleanup, reseed) ---"

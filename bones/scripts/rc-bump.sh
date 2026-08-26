@@ -19,9 +19,6 @@ IFS=$'\n\t'
 #  Version : 0.5.1
 # ------------------------------------------------------------
 
-set -euo pipefail
-IFS=$'\n\t'
-
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"

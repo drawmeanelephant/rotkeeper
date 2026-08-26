@@ -22,11 +22,9 @@ IFS=$'\n\t'
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
 
-set -euo pipefail
 # Initialize arrays for manifest and disk entries to avoid unbound variable under set -u
 manifest_list=()
 disk_list=()
-IFS=$'\n\t'
 
 
 # ---
