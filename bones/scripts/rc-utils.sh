@@ -424,19 +424,24 @@ output_is_generated() {
 # ---
 # validate_layout_alignment: Validates configured path cache against current runtime context.
 # Ensures the repository has not been broken, moved, or corrupted since initialization.
+# Inputs: $1 (mode: strict | bootstrap)
+# Outputs: Exits 1 on relocation/coherence/layout mismatch
+# Env: Reads ASSETS_DIR, BONES_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, META_DIR, OUTPUT_DIR, ROOT_DIR, TEMPLATE_DIR (via rc-env.sh / rk_load_env); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — config discovery and the boundary root anchor on the rc-env.sh cached ROOT_DIR only; never consults PWD
 # ---
 validate_layout_alignment() {
   local mode="${1:-strict}"
-  local target_config="${CONFIG_DIR:-${ROOT_DIR:-$PWD}/bones/config}/rotkeeper.yaml"
+
+  # Root-relative anchor: derivation must come from the rc-env.sh cached
+  # ROOT_DIR. A missing ROOT_DIR is a bootstrap ordering bug, so fail closed
+  # instead of silently validating the caller's CWD.
+  local root_fallback="${ROOT_DIR:?ROOT_DIR is unset; load rc-env.sh via rk_load_env before validating layout alignment}"
+  local target_config="${CONFIG_DIR:-${root_fallback}/bones/config}/rotkeeper.yaml"
   if [[ ! -f "$target_config" ]]; then
-    target_config="${ROOT_DIR:-$PWD}/config/rotkeeper.yaml"
-  fi
-  if [[ ! -f "$target_config" ]]; then
-    target_config="${PWD}/bones/config/rotkeeper.yaml"
+    target_config="${root_fallback}/config/rotkeeper.yaml"
   fi
 
   local style="crypt"
-  local root_fallback="${ROOT_DIR:-$PWD}"
   local config_source="layout default"
 
   local expected_content

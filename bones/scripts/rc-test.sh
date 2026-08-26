@@ -49,7 +49,7 @@ echo "======================================================================"
 echo "--- Regression tests for legacy rituals (ingest, sync-inbox, cleanup, reseed) ---"
 
 for cmd in ingest sync-inbox cleanup reseed; do
-  output=$(./rotkeeper.sh "$cmd" 2>&1 || true)
+  output=$("$ROOT_DIR/rotkeeper.sh" "$cmd" 2>&1 || true)
   if echo "$output" | grep -q "ERROR: The '$cmd' command has been permanently removed"; then
     echo "  🎉 Pass: Command '$cmd' correctly triggered deprecation error."
   else
@@ -66,7 +66,7 @@ require_bins jq
 
 echo "--- Rotkeeper Single framework Release Assertion Test Matrix ---"
 
-TEST_DIR="${ROOT_DIR:-$PWD}/bones/tmp/rotkeeper-test-env"
+TEST_DIR="$ROOT_DIR/bones/tmp/rotkeeper-test-env"
 cleanup_ran=false
 TEST_RELEASE_VERSION="${ROTKEEPER_VERSION:-}"
 if [[ -z "$TEST_RELEASE_VERSION" && -f "$ROOT_DIR/bones/config/version" ]]; then
@@ -165,9 +165,9 @@ for mode in ${LAYOUT_MODES[@]+"${LAYOUT_MODES[@]}"}; do
   mkdir -p "$pass_dir/$b_config"
   mkdir -p "$pass_dir/$b_templates"
 
-  cp rotkeeper.sh "$pass_dir/"
-  cp bones/scripts/rc-*.sh "$pass_dir/$b_scripts/"
-  cp bones/templates/*.html "$pass_dir/$b_templates/"
+  cp "$ROOT_DIR"/rotkeeper.sh "$pass_dir/"
+  cp "$ROOT_DIR"/bones/scripts/rc-*.sh "$pass_dir/$b_scripts/"
+  cp "$ROOT_DIR"/bones/templates/*.html "$pass_dir/$b_templates/"
   cp "$ROOT_DIR/bones/config/version" "$pass_dir/$b_config/version"
 
   cat << CONF_EOF > "$pass_dir/$b_config/rotkeeper.yaml"
@@ -1773,7 +1773,7 @@ contract_failed=false
 for cmd in ${CONTRACT_COMMANDS[@]+"${CONTRACT_COMMANDS[@]}"}; do
   before_tree="$(tree_snapshot)"
 
-  if ! help_out=$(./rotkeeper.sh "$cmd" --help 2>&1); then
+  if ! help_out=$("$ROOT_DIR/rotkeeper.sh" "$cmd" --help 2>&1); then
     echo "❌ Assertion Failed: rotkeeper.sh $cmd --help exited non-zero."
     contract_failed=true
   fi
@@ -1788,7 +1788,7 @@ for cmd in ${CONTRACT_COMMANDS[@]+"${CONTRACT_COMMANDS[@]}"}; do
     contract_failed=true
   fi
 
-  if ! ver_out=$(./rotkeeper.sh "$cmd" --version 2>&1); then
+  if ! ver_out=$("$ROOT_DIR/rotkeeper.sh" "$cmd" --version 2>&1); then
     echo "❌ Assertion Failed: rotkeeper.sh $cmd --version exited non-zero."
     contract_failed=true
   fi
@@ -1811,12 +1811,12 @@ echo "--- DIP regression: clean dry-run, non-mutating, no absolute paths ---"
 # dry-run must be non-mutating (matrix unchanged), and the published matrix
 # must stay free of host-specific absolute paths.
 
-./rotkeeper.sh book --fsbook > /dev/null
+"$ROOT_DIR/rotkeeper.sh" book --fsbook > /dev/null
 
 DIP_MATRIX="$ROOT_DIR/home/content/docs/dip-matrix.md"
 matrix_before="$(rk_sha256 "$DIP_MATRIX" 2>/dev/null | cut -d' ' -f1 || true)"
 
-if ! dip_out=$(./rotkeeper.sh dip --dry-run 2>&1); then
+if ! dip_out=$("$ROOT_DIR/rotkeeper.sh" dip --dry-run 2>&1); then
   echo "❌ Assertion Failed: dip --dry-run exited non-zero."
   exit 135
 fi
@@ -1840,7 +1840,7 @@ echo "======================================================================"
 echo "--- Regression tests for legacy rituals (ingest, sync-inbox, cleanup, reseed) ---"
 
 for cmd in ingest sync-inbox cleanup reseed; do
-  output=$(./rotkeeper.sh "$cmd" 2>&1 || true)
+  output=$("$ROOT_DIR/rotkeeper.sh" "$cmd" 2>&1 || true)
   if echo "$output" | grep -q "ERROR: The '$cmd' command has been permanently removed"; then
     echo "  🎉 Pass: Command '$cmd' correctly triggered deprecation error."
   else
