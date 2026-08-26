@@ -9,6 +9,9 @@ IFS=$'\n\t'
 #  ██║     ██║  ██║╚██████╗██║  ██╗
 #  ╚═╝     ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
 # ============================================================
+# Env assumptions: reads ARCHIVE_DIR, BONES_DIR, CONFIG_DIR, CONTENT_DIR, DEBUG, DOCS_DIR, DRY_RUN, LOG_DIR, OUTPUT_DIR, ROOT_DIR, SCRIPT_DIR, TMP_DIR, VERBOSE, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+# CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-pack.sh
@@ -22,6 +25,8 @@ IFS=$'\n\t'
 # show_help: Print packager usage and exit.
 # Inputs: none (reads VERSION)
 # Outputs: Prints help and exits 0
+# Env: Reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, LOG_DIR, OUTPUT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 show_help() {
   cat << EOF
@@ -112,6 +117,8 @@ validate_gz() {
 # main: Pack output/content/self archives and export markdown JSON.
 # Inputs: $@ (--self, --content, --dry-run, --verbose, --help)
 # Outputs: Writes archives and export JSON under ARCHIVE_DIR; prunes on failure
+# Env: Reads ARCHIVE_DIR, BONES_DIR, CONFIG_DIR, CONTENT_DIR, DEBUG, DRY_RUN ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 main() {
     log "INFO" "Running rc-pack.sh."

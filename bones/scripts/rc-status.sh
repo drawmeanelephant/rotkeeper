@@ -9,6 +9,9 @@ IFS=$'\n\t'
 #  ███████║   ██║   ██║  ██║   ██║   ╚██████╔╝███████║
 #  ╚══════╝   ╚═╝   ╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚══════╝
 # ============================================================
+# Env assumptions: reads ARCHIVE_DIR, BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, LOG_DIR, LOG_FILE, OUTPUT_DIR, ROOT_DIR, ROTKEEPER_VERSION, SCRIPT_DIR, TMP_DIR, VERBOSE, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+# CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-status.sh
@@ -41,6 +44,8 @@ source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&
 # show_help: Print status usage and exit.
 # Inputs: none
 # Outputs: Prints help to stdout and exits 0
+# Env: Reads ARCHIVE_DIR, BONES_DIR, CONFIG_DIR, DRY_RUN, LOG_DIR, LOG_FILE ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 show_help() {
   cat <<'HELP_EOF'
@@ -71,6 +76,8 @@ mkdir -p "$LOG_DIR"
 # log: Status-local logger that tees to LOG_FILE without stdout noise.
 # Inputs: $1 (level), $@ (message)
 # Outputs: Appends timestamped line to LOG_FILE
+# Env: Reads BONES_DIR, DRY_RUN, LOG_FILE, NO_COLOR, QUIET, ROOT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 log() {
   local level="$1"; shift
@@ -82,6 +89,8 @@ log() {
 # status_heading: Print a bold heading when color is available.
 # Inputs: $1 (text)
 # Outputs: Prints heading to stdout
+# Env: Reads BONES_DIR, DRY_RUN, QUIET, ROOT_DIR, ROTKEEPER_VERSION, VERBOSE (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 status_heading() {
   local text="$1"
@@ -96,6 +105,8 @@ status_heading() {
 # status_ok: Print success text in green when color is enabled.
 # Inputs: $1 (text)
 # Outputs: Prints colored or plain line
+# Env: Reads BONES_DIR, DRY_RUN, QUIET, ROOT_DIR, ROTKEEPER_VERSION, VERBOSE (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 status_ok() {
   local text="$1"
@@ -110,6 +121,8 @@ status_ok() {
 # status_warn: Print warning text in yellow when color is enabled.
 # Inputs: $1 (text)
 # Outputs: Prints colored or plain line
+# Env: Reads BONES_DIR, DRY_RUN, QUIET, ROOT_DIR, ROTKEEPER_VERSION, VERBOSE (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 status_warn() {
   local text="$1"
@@ -124,6 +137,8 @@ status_warn() {
 # status_dim: Print muted/dim text when color is enabled.
 # Inputs: $1 (text)
 # Outputs: Prints colored or plain line
+# Env: Reads BONES_DIR, CONTENT_DIR, DRY_RUN, OUTPUT_DIR, QUIET, ROOT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 status_dim() {
   local text="$1"
@@ -166,6 +181,8 @@ JSON_CONFIG=""
 # escape_json: Escape a string for safe JSON embedding (no surrounding quotes).
 # Inputs: $1 (raw string)
 # Outputs: Prints escaped JSON string content (jq -R -s + strip outer quotes)
+# Env: Reads CONTENT_DIR, OUTPUT_DIR, ROOT_DIR, SCRIPT_DIR (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 escape_json() {
   # Trim newlines and escape

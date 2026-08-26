@@ -9,6 +9,9 @@ IFS=$'\n\t'
 #  ██║ ╚████║███████╗╚███╔███╔╝
 #  ╚═╝  ╚═══╝╚══════╝ ╚══╝╚══╝
 # ============================================================
+# Env assumptions: reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, DRY_RUN, LOG_DIR, META_DIR, QUIET, ROOT_DIR, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, VERBOSE (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+# CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-new.sh
@@ -23,6 +26,8 @@ IFS=$'\n\t'
 # show_help: Print scaffold usage and available templates.
 # Inputs: none (reads TEMPLATE_DIR, BONES_DIR)
 # Outputs: Prints help to stdout and exits 0
+# Env: Reads BONES_DIR, CONFIG_DIR, DRY_RUN, QUIET, ROOT_DIR, TEMPLATE_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 show_help() {
   # List available templates for completion hint (safe for unbound vars before env load)
@@ -94,6 +99,8 @@ EOF
 # list_templates: List available templates with default marker.
 # Inputs: none (reads TEMPLATE_DIR, CONFIG_DIR)
 # Outputs: Prints template names to MARKER log
+# Env: Reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, DRY_RUN, LOG_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 list_templates() {
   local td="${TEMPLATE_DIR:-$BONES_DIR/templates}"
@@ -238,6 +245,8 @@ fi
 # main: Scaffold a new content file with frontmatter and optional sidecar.
 # Inputs: none (reads FILE, TITLE_OVERRIDE, TEMPLATE_OVERRIDE, DRY_RUN, etc.)
 # Outputs: Creates file under CONTENT_DIR; optionally creates META_DIR sidecar
+# Env: Reads CONFIG_DIR, CONTENT_DIR, DRY_RUN, FILE, TEMPLATE_OVERRIDE, TITLE_OVERRIDE (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 main() {
     if [[ -z "$FILE" ]]; then

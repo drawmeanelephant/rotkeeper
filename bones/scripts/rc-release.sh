@@ -9,6 +9,9 @@ IFS=$'\n\t'
 #  ██║     ███████╗██║     ███████╗███████╗███████╗
 #  ╚═╝     ╚══════╝╚═╝     ╚══════╝╚══════╝╚══════╝
 # ============================================================
+# Env assumptions: reads ARCHIVE_DIR, BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DRY_RUN, LOG_DIR, OUTPUT_DIR, RELEASE_DIR, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TMP_DIR, VERBOSE, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+# CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
 #  Project : Rotkeeper
 #  Script  : rc-release.sh
 #  Purpose : Streamline multi-tier models down to a single-tier canonical framework distribution zip
@@ -31,6 +34,8 @@ source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&
 # show_help: Print release usage and exit.
 # Inputs: none
 # Outputs: Prints help to stdout
+# Env: Reads BONES_DIR, CONFIG_DIR, DRY_RUN, LOG_DIR, OUTPUT_DIR, QUIET ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 show_help() {
   cat <<'HELP_EOF'
@@ -92,6 +97,8 @@ ZIP_TMP=""
 # cleanup: Remove staging dir and temp zip on exit.
 # Inputs: none (reads STAGING_DIR, ZIP_TMP, TMP_DIR)
 # Outputs: Deletes temp files; preserves exit status
+# Env: Reads ARCHIVE_DIR, BONES_DIR, BOOK_REPORT_DIR, CONTENT_DIR, DRY_RUN, LOG_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 cleanup() {
     local status=$?
@@ -114,6 +121,8 @@ trap cleanup EXIT INT TERM
 # validate_boundary: Ensure path is inside staging or release dir.
 # Inputs: $1 (target path)
 # Outputs: Exits 3 on violation
+# Env: Reads ARCHIVE_DIR, BONES_DIR, BOOK_REPORT_DIR, CONTENT_DIR, DRY_RUN, LOG_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 validate_boundary() {
   local target_path="$1"
@@ -127,6 +136,8 @@ validate_boundary() {
 # verify_archive_contents: Validate archive against allowlist/forbidden prefixes.
 # Inputs: $1 (archive path)
 # Outputs: Returns 0 if valid, 1 on forbidden/missing entries
+# Env: Reads ARCHIVE_DIR, BOOK_REPORT_DIR, CONTENT_DIR, LOG_DIR, OUTPUT_DIR, REPORT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 verify_archive_contents() {
     local archive_path="$1"
@@ -228,6 +239,8 @@ verify_archive_contents() {
 # main: Stage framework files, generate manifest, zip and verify distribution.
 # Inputs: $1 (optional version overrides $VERSION)
 # Outputs: Writes RELEASE_DIR/rotkeeper-<version>.zip
+# Env: Reads ARCHIVE_DIR, BOOK_REPORT_DIR, CONTENT_DIR, DRY_RUN, LOG_DIR, OUTPUT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 main() {
     log "INFO" "Collapsing package model down to canonical single framework distribution: version $VERSION"

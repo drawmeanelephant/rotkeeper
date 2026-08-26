@@ -9,6 +9,9 @@ IFS=$'\n\t'
 #  ███████║██████╔╝██║  ██║██║ ╚████║
 #  ╚══════╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝
 # ============================================================
+# Env assumptions: reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DRY_RUN, LOG_DIR, LOG_FILE, OUTPUT_DIR, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TMP_DIR, VERBOSE, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+# CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-scan.sh
@@ -30,6 +33,8 @@ IFS=$'\n\t'
 # show_help: Print scan usage and exit.
 # Inputs: $1 (optional exit code)
 # Outputs: Prints help to stdout and exits
+# Env: Reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DRY_RUN, LOG_DIR, OUTPUT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 show_help() {
   cat <<EOF
@@ -70,6 +75,8 @@ fi
 # main: Audit manifest vs disk, compute digests, emit JSON/Markdown reports.
 # Inputs: $@ (flags: --manifest-only, --include, --exclude, --json-only, --md-only)
 # Outputs: Writes scan reports to REPORT_DIR; logs digests and orphans
+# Env: Reads BONES_DIR, CONTENT_DIR, DRY_RUN, LOG_DIR, LOG_FILE, OUTPUT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 main() {
     require_bins bash jq

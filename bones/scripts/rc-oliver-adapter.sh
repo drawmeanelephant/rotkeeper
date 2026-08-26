@@ -12,6 +12,9 @@ IFS=$'\n\t'
 #  Updated : 2026-08-21
 #  Phase 6 complete: frontmatter `oliver meta`, template `oliver wrap`, link rewriting `oliver render`, output planning `oliver plan`, manifest `oliver manifest` — direct on pin 9ad86a3, no GAWK/YQ fallback.
 # ============================================================
+# Env assumptions: reads INPUT_FORMAT, RENDER_PROFILE, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+# CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
@@ -34,6 +37,8 @@ fi
 # get_canonical_path: Resolve a path leniently for boundary checks.
 # Inputs: $1 (path; may not exist)
 # Outputs: Prints canonical or raw path via rk_canonical_or_raw
+# Env: Reads BONES_DIR, DRY_RUN, INPUT_FORMAT, QUIET, ROOT_DIR, TMP_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 get_canonical_path() {
   rk_canonical_or_raw "$1"
@@ -43,6 +48,8 @@ get_canonical_path() {
 # is_within_boundary: Check that a target path stays inside a boundary.
 # Inputs: $1 (target), $2 (boundary directory)
 # Outputs: Returns 0 if target == boundary or is strictly under it, 1 otherwise
+# Env: Reads INPUT_FORMAT, TMP_DIR (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 is_within_boundary() {
   local target="$1"

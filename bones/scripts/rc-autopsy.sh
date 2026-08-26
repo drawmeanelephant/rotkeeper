@@ -9,6 +9,9 @@ IFS=$'\n\t'
 #  ██████╔╝╚██████╔╝╚██████╔╝██║  ██╗
 #  ╚═════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═╝
 # ============================================================
+# Env assumptions: reads BONES_DIR, CONFIG_DIR, DRY_RUN, LOG_DIR, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TMP_DIR, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+# CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-autopsy.sh
@@ -25,6 +28,8 @@ IFS=$'\n\t'
 # show_help: Print autopsy usage and exit.
 # Inputs: none
 # Outputs: Prints help to stdout
+# Env: Reads BONES_DIR, CONFIG_DIR, DRY_RUN, LOG_DIR, QUIET, REPORT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 show_help() { cat <<HELP_EOF
 rc-autopsy.sh — Script dissection ritual v$VERSION
@@ -59,6 +64,8 @@ OUTPUT_REPORT=false
 # parse_args: Parse autopsy mode flags (--help-report, --output-report, --all).
 # Inputs: $@ (args)
 # Outputs: Sets HELP_REPORT/OUTPUT_REPORT; exits on --help/--version
+# Env: Reads BONES_DIR, DRY_RUN, QUIET, REPORT_DIR, ROOT_DIR, SCRIPT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 parse_args() {
   local has_mode=false
@@ -86,6 +93,8 @@ parse_args() {
 # run_help_report: Extract --help text from allowed scripts into autopsy-help.md.
 # Inputs: none (reads SCRIPT_DIR, ROOT_DIR, REPORT_DIR)
 # Outputs: Writes REPORT_DIR/autopsy-help.md
+# Env: Reads BONES_DIR, DRY_RUN, QUIET, REPORT_DIR, ROOT_DIR, SCRIPT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 run_help_report() {
   local OUT="$REPORT_DIR/autopsy-help.md"
@@ -155,6 +164,8 @@ run_help_report() {
 # render_output_report_md: Catalog file-write ops (>, >>, tee, mv, cp, tar) into autopsy-outputs.md.
 # Inputs: none (reads SCRIPT_DIR, ROOT_DIR, REPORT_DIR)
 # Outputs: Writes REPORT_DIR/autopsy-outputs.md
+# Env: Reads DRY_RUN, REPORT_DIR, ROOT_DIR, SCRIPT_DIR (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 render_output_report_md() {
   local OUT="$REPORT_DIR/autopsy-outputs.md"
@@ -252,6 +263,8 @@ render_output_report_md() {
 # run_output_report: Wrapper that renders the output catalog.
 # Inputs: none
 # Outputs: Delegates to render_output_report_md
+# Env: Reads BONES_DIR, DRY_RUN, QUIET, ROOT_DIR, VERBOSE (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 run_output_report() {
   render_output_report_md
@@ -261,6 +274,8 @@ run_output_report() {
 # main: Dispatch help/output reports based on parsed flags.
 # Inputs: $@ (args)
 # Outputs: Generates selected reports
+# Env: No env vars (pure args/stdin)
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 main() {
   if ! parse_args "$@"; then

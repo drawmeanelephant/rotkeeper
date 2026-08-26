@@ -9,6 +9,9 @@ IFS=$'\n\t'
 #  ██║  ██║███████║███████║███████╗   ██║   ███████║
 #  ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝   ╚═╝   ╚══════╝
 # ============================================================
+# Env assumptions: reads ARCHIVE_DIR, ASSETS_DIR, BONES_DIR, CONFIG_DIR, DRY_RUN, LOG_DIR, OUTPUT_DIR, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TMP_DIR, VERBOSE, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+# CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-assets.sh
@@ -22,6 +25,8 @@ IFS=$'\n\t'
 # show_help: Print asset manifest usage and exit.
 # Inputs: none (reads VERSION)
 # Outputs: Prints help and exits 0
+# Env: Reads ARCHIVE_DIR, ASSETS_DIR, BONES_DIR, CONFIG_DIR, DRY_RUN, LOG_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 show_help() {
   cat << EOF
@@ -67,6 +72,8 @@ done
 # cleanup: EXIT handler for asset sync (no temp files to remove).
 # Inputs: none
 # Outputs: Logs cleanup; respects cleanup_ran guard via base cleanup()
+# Env: Reads ARCHIVE_DIR, ASSETS_DIR, BONES_DIR, DRY_RUN, OUTPUT_DIR, QUIET ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 cleanup() {
     log "INFO" "Cleaning up after rc-assets.sh."
@@ -76,6 +83,8 @@ cleanup() {
 # main: Synchronize assets, prune stale output, and generate manifests.
 # Inputs: none (reads ASSETS_DIR, OUTPUT_DIR, ARCHIVE_DIR, REPORT_DIR)
 # Outputs: Writes asset-manifest.yaml and report; syncs assets to output/assets
+# Env: Reads ARCHIVE_DIR, ASSETS_DIR, BONES_DIR, DRY_RUN, OUTPUT_DIR, REPORT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 main() {
     TIMESTAMP=$(date +%Y-%m-%d_%H%M)

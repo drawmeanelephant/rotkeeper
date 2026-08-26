@@ -9,6 +9,9 @@ IFS=$'\n\t'
 #  ██████╔╝╚██████╔╝╚██████╔╝██║  ██╗
 #  ╚═════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═╝
 # ============================================================
+# Env assumptions: reads ARCHIVE_DIR, BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, DRY_RUN, LOG_DIR, OUTPUT_DIR, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+# CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
 #  Project : Rotkeeper
 #  Script  : rc-book.sh
 #  Purpose : Bind documentation reports cleanly inside authorized boundaries
@@ -23,6 +26,8 @@ source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&
 # show_help: Display primary help for binder modes.
 # Inputs: none
 # Outputs: Prints help to stdout
+# Env: Reads BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, DRY_RUN ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 show_help() {
   cat <<'HELP_EOF'
@@ -64,6 +69,8 @@ FORCE_BIND=false
 # showhelp: Display secondary help with --strip-frontmatter details.
 # Inputs: none
 # Outputs: Prints help to stdout
+# Env: Reads BONES_DIR, BOOK_REPORT_DIR, DRY_RUN, QUIET, ROOT_DIR, SCRIPT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 showhelp() {
   cat <<HELP_EOF
@@ -96,6 +103,8 @@ HELP_EOF
 # parseflags: Parse binder mode flags and options into globals.
 # Inputs: $@ (CLI args)
 # Outputs: Sets MODE, CONFIG, STRIPMODE, FORCE_BIND; exits on --help/unknown
+# Env: Reads BONES_DIR, BOOK_REPORT_DIR, DRY_RUN, QUIET, ROOT_DIR, SCRIPT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 parseflags() {
   while [[ $# -gt 0 ]]; do
@@ -134,6 +143,8 @@ validate_boundary() {
 # runscriptbookfull: Bind active rc-*.sh plus rotkeeper.sh into scriptbook.
 # Inputs: none; reads SCRIPT_DIR, ROOT_DIR, BOOK_REPORT_DIR, BOOK_SUFFIX
 # Outputs: Writes rotkeeper-scriptbook-full.md
+# Env: Reads BONES_DIR, BOOK_REPORT_DIR, DOCS_DIR, DRY_RUN, QUIET, ROOT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 runscriptbookfull() {
   mkdir -p "$BOOK_REPORT_DIR"
@@ -181,6 +192,8 @@ runscriptbookfull() {
 # rundocbook: Bind DOCS_DIR docs with path markers into docbook.
 # Inputs: none; reads DOCS_DIR, STRIPMODE
 # Outputs: Writes rotkeeper-docbook.md
+# Env: Reads BONES_DIR, BOOK_REPORT_DIR, DOCS_DIR, DRY_RUN, QUIET, ROOT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 rundocbook() {
   mkdir -p "$BOOK_REPORT_DIR"
@@ -222,6 +235,8 @@ rundocbook() {
 # rundocbookclean: Bind docs with frontmatter stripped and title headings.
 # Inputs: none; reads DOCS_DIR
 # Outputs: Writes rotkeeper-docbook-clean.md
+# Env: Reads BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, DRY_RUN ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 rundocbookclean() {
   mkdir -p "$BOOK_REPORT_DIR"
@@ -259,6 +274,8 @@ rundocbookclean() {
 # runconfigbook: Bind YAML config and HTML templates into configbook.
 # Inputs: none; reads CONFIG_DIR, TEMPLATE_DIR
 # Outputs: Writes rotkeeper-configbook.md
+# Env: Reads BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DRY_RUN, QUIET ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 runconfigbook() {
   mkdir -p "$BOOK_REPORT_DIR"
@@ -291,6 +308,8 @@ runconfigbook() {
 # runcontentbook: Bind CONTENT_DIR pages with path markers into contentbook.
 # Inputs: none; reads CONTENT_DIR, STRIPMODE
 # Outputs: Writes rotkeeper-contentbook.md
+# Env: Reads ARCHIVE_DIR, BONES_DIR, BOOK_REPORT_DIR, CONTENT_DIR, DRY_RUN, LOG_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 runcontentbook() {
   mkdir -p "$BOOK_REPORT_DIR"
@@ -332,6 +351,8 @@ runcontentbook() {
 # runcontentmeta: Extract frontmatter YAML from content sources to YAML index.
 # Inputs: none; reads CONTENT_DIR via rk_find_content (NUL-delimited)
 # Outputs: Writes rotkeeper-contentmeta.yaml
+# Env: Reads ARCHIVE_DIR, BONES_DIR, BOOK_REPORT_DIR, CONTENT_DIR, DRY_RUN, LOG_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 runcontentmeta() {
   mkdir -p "$BOOK_REPORT_DIR"
@@ -360,6 +381,8 @@ runcontentmeta() {
 # runfsbook: Build filesystem catalog excluding generated/cache trees.
 # Inputs: none; reads ROOT_DIR, OUTPUT_DIR, TMP_DIR, LOG_DIR, REPORT_DIR, BOOK_REPORT_DIR, ARCHIVE_DIR
 # Outputs: Writes rotkeeper-files.md
+# Env: Reads ARCHIVE_DIR, BONES_DIR, BOOK_REPORT_DIR, CONTENT_DIR, DOCS_DIR, DRY_RUN ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 runfsbook() {
   mkdir -p "$BOOK_REPORT_DIR"
@@ -403,6 +426,8 @@ runfsbook() {
 # collapse: Collapse rotkeeper-*.md books into a single YAML with bodies.
 # Inputs: none; reads BOOK_REPORT_DIR
 # Outputs: Writes collapsed-content.yaml
+# Env: Reads BONES_DIR, BOOK_REPORT_DIR, CONTENT_DIR, DOCS_DIR, DRY_RUN, QUIET ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 collapse() {
   mkdir -p "$BOOK_REPORT_DIR"
@@ -432,6 +457,8 @@ collapse() {
 # runmode: Enforce size guard and dispatch MODE to the matching binder.
 # Inputs: none; reads MODE, FORCE_BIND, DOCS_DIR, CONTENT_DIR
 # Outputs: Writes selected book(s); exits 1 if >5MB without --force-bind
+# Env: Reads BONES_DIR, BOOK_REPORT_DIR, CONTENT_DIR, DOCS_DIR, DRY_RUN, QUIET ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 runmode() {
   local total_size
@@ -481,6 +508,8 @@ runmode() {
 # main: Bootstrap binder, parse flags, and run selected mode.
 # Inputs: $@ (CLI args)
 # Outputs: Generates book artifacts; exits on error
+# Env: Reads BOOK_REPORT_DIR (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 main() {
   export BOOK_SUFFIX=$(printf "%04x%04x" "$RANDOM" "$RANDOM")

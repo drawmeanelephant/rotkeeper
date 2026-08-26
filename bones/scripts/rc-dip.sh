@@ -9,6 +9,9 @@ IFS=$'\n\t'
 #  ██████╔╝██║██║
 #  ╚═════╝ ╚═╝╚═╝
 # ============================================================
+# Env assumptions: reads ARCHIVE_DIR, ASSETS_DIR, BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DEBUG, DOCS_DIR, DRY_RUN, HELP_DIR, LOG_DIR, META_DIR, OUTPUT_DIR, QUIET, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, WEB_DIR (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+# CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-dip.sh
@@ -37,6 +40,8 @@ source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&
 # show_help: Display DIP audit usage.
 # Inputs: none
 # Outputs: Prints help to stdout
+# Env: Reads BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, DRY_RUN ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 show_help() {
   cat <<'HELP_EOF'
@@ -74,6 +79,8 @@ DEGRADED_FSBOOK=false
 # get_fs_date: Format file mtime as YYYY-MM-DD (UTC) or Missing.
 # Inputs: $1 (file path)
 # Outputs: Prints date string
+# Env: Reads BONES_DIR, DRY_RUN, QUIET, ROOT_DIR, VERBOSE (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 get_fs_date() {
   local file=$1
@@ -92,6 +99,8 @@ get_fs_date() {
 # get_fs_iso: Format file mtime as ISO-8601 UTC or zero-date.
 # Inputs: $1 (file path)
 # Outputs: Prints ISO timestamp
+# Env: No env vars (pure args/stdin)
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 get_fs_iso() {
   local file=$1
@@ -228,6 +237,8 @@ normalize_body() {
 # marker_section_regex: Map pillar marker to its heading regex.
 # Inputs: $1 (marker name)
 # Outputs: Prints regex for that pillar
+# Env: Reads BONES_DIR, DRY_RUN, QUIET, ROOT_DIR, VERBOSE (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 # Map marker name → its section header pattern (for duplicate-section collapse).
 marker_section_regex() {
@@ -244,6 +255,8 @@ marker_section_regex() {
 # stitch_pillar: Idempotently rewrite a DIP marker block when body changes.
 # Inputs: $1 (doc path), $2 (marker), $3 (new content)
 # Outputs: Rewrites doc file via 40-line awk state machine; honors DRY_RUN
+# Env: Reads DRY_RUN (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 # Idempotent pillar stitch: rewrite marker block only when content changes
 # (or when duplicate markers/sections need collapsing).
@@ -341,6 +354,8 @@ stitch_pillar() {
 # expected_doc_for_core: Map a core file path to its expected doc under DOCS_DIR.
 # Inputs: $1 (core-relative path)
 # Outputs: Prints expected doc path
+# Env: Reads ARCHIVE_DIR, ASSETS_DIR, BOOK_REPORT_DIR, CONTENT_DIR, DOCS_DIR, OUTPUT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 expected_doc_for_core() {
   local file="$1"
@@ -453,6 +468,8 @@ fi
 # is_excluded_core_path: Check if path falls under autopsy excludes.
 # Inputs: $1 (relative file path)
 # Outputs: Returns 0 if excluded, 1 otherwise
+# Env: Reads DRY_RUN, SCRIPT_DIR (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 is_excluded_core_path() {
   local file_path="$1"
@@ -563,6 +580,8 @@ fi
 # is_blessed_doc: True if doc or its target_file lives under .blessed.
 # Inputs: $1 (doc path), $2 (target_file value)
 # Outputs: Returns 0 if blessed, 1 otherwise
+# Env: Reads DOCS_DIR, ROOT_DIR (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 is_blessed_doc() {
   local doc="$1"
@@ -678,6 +697,8 @@ done
 # rel_path: Make path relative to ROOT_DIR when possible.
 # Inputs: $1 (absolute or ROOT_DIR-relative path)
 # Outputs: Prints relative path or "." for ROOT_DIR itself
+# Env: Reads ARCHIVE_DIR, ASSETS_DIR, BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 # Emit a path relative to ROOT_DIR when possible so stitched docs and the
 # reports that bind them stay machine-independent (no host-specific absolutes).
@@ -696,6 +717,8 @@ rel_path() {
 # build_env_list: Render environment variable bullet list for stitching.
 # Inputs: none; reads ROOT_DIR and derived env vars
 # Outputs: Prints markdown list
+# Env: Reads ARCHIVE_DIR, ASSETS_DIR, BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 build_env_list() {
   cat <<INNER_EOF
@@ -723,6 +746,8 @@ INNER_EOF
 # build_help_content: Extract help block for a script from autopsy-help.md.
 # Inputs: $1 (target script path)
 # Outputs: Prints help markdown or Not-found placeholder
+# Env: Reads BONES_DIR, DOCS_DIR, DRY_RUN, QUIET, REPORT_DIR, ROOT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 build_help_content() {
   local target_script="$1"
@@ -750,6 +775,8 @@ build_help_content() {
 # build_history_content: Search CHANGELOG and road-to-bones for script history.
 # Inputs: $1 (script basename)
 # Outputs: Prints bullet list or Not-found placeholder
+# Env: Reads BONES_DIR, DOCS_DIR, DRY_RUN, QUIET, ROOT_DIR, VERBOSE (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 build_history_content() {
   local script_name="$1"
@@ -776,6 +803,8 @@ build_history_content() {
 # build_soul_content: Read soul sidecar body, stripping recursive DIP tail.
 # Inputs: $1 (core-relative target file)
 # Outputs: Prints sidecar prose or Not-found placeholder
+# Env: Reads DRY_RUN (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 build_soul_content() {
   local target_file="$1"
