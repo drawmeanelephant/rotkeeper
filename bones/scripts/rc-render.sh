@@ -323,8 +323,18 @@ main() {
           log "MARKER" "✗ Render failed — Oliver adapter exited $adapter_status"
           # Surface first error line for copy-paste (prefer ✗ MARKER from either log)
           # Adapter's MARKER via >&3 lands in render's LOG_FILE, not adapter's; check both.
-          # shellcheck disable=SC2012
-          latest_adapter_log=$(ls -t "$LOG_DIR"/rc-oliver-adapter-*.log 2>/dev/null | head -n1 || true)
+          latest_adapter_log=""
+          {
+            _latest_mtime=""
+            for _log in "$LOG_DIR"/rc-oliver-adapter-*.log; do
+              [[ -e "$_log" ]] || continue
+              _m=$(rk_mtime "$_log" 2>/dev/null || echo 0)
+              if [[ -z "$_latest_mtime" || "$_m" -gt "$_latest_mtime" ]]; then
+                _latest_mtime="$_m"
+                latest_adapter_log="$_log"
+              fi
+            done
+          }
           first_err=""
           # Prefer render's own log (contains adapter's >&3 MARKER) then adapter's log
           # Use ASCII pattern "Oliver failed" to avoid UTF-8 ✗ matching issues in C locale
@@ -445,8 +455,18 @@ main() {
       log "MARKER" "DRY-RUN: would reanimate $pages_rendered tombs in ${duration}s"
     else
       if [[ "$warning_total" -gt 0 ]]; then
-        # shellcheck disable=SC2012
-        latest_adapter_log=$(ls -t "$LOG_DIR"/rc-oliver-adapter-*.log 2>/dev/null | head -n1 || true)
+        latest_adapter_log=""
+        {
+          _latest_mtime=""
+          for _log in "$LOG_DIR"/rc-oliver-adapter-*.log; do
+            [[ -e "$_log" ]] || continue
+            _m=$(rk_mtime "$_log" 2>/dev/null || echo 0)
+            if [[ -z "$_latest_mtime" || "$_m" -gt "$_latest_mtime" ]]; then
+              _latest_mtime="$_m"
+              latest_adapter_log="$_log"
+            fi
+          done
+        }
         hint=""
         if [[ -n "$latest_adapter_log" ]]; then
           rel_hint="${latest_adapter_log#"$ROOT_DIR"/}"
