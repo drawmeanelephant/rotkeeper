@@ -26,16 +26,25 @@ show_help() {
   local td=""
   if [[ -n "${TEMPLATE_DIR:-}" && -d "$TEMPLATE_DIR" ]]; then
     td="$TEMPLATE_DIR"
-    # shellcheck disable=SC2011
-    tmpl_list=$(ls -1 "$td"/*.html 2>/dev/null | xargs -n1 basename 2>/dev/null | tr '\n' ' ' || true)
+    tmpl_list=""
+    for _tmpl in "$td"/*.html; do
+      [[ -e "$_tmpl" ]] || continue
+      tmpl_list+="$(basename "$_tmpl") "
+    done
   elif [[ -n "${BONES_DIR:-}" && -d "$BONES_DIR/templates" ]]; then
     td="$BONES_DIR/templates"
-    # shellcheck disable=SC2011
-    tmpl_list=$(ls -1 "$td"/*.html 2>/dev/null | xargs -n1 basename 2>/dev/null | tr '\n' ' ' || true)
+    tmpl_list=""
+    for _tmpl in "$td"/*.html; do
+      [[ -e "$_tmpl" ]] || continue
+      tmpl_list+="$(basename "$_tmpl") "
+    done
   elif [[ -d "bones/templates" ]]; then
     td="bones/templates"
-    # shellcheck disable=SC2011
-    tmpl_list=$(ls -1 "$td"/*.html 2>/dev/null | xargs -n1 basename 2>/dev/null | tr '\n' ' ' || true)
+    tmpl_list=""
+    for _tmpl in "$td"/*.html; do
+      [[ -e "$_tmpl" ]] || continue
+      tmpl_list+="$(basename "$_tmpl") "
+    done
   fi
   # Check if any template uses $palette$ for hint
   # shellcheck disable=SC2016

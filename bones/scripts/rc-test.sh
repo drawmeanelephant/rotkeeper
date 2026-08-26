@@ -1373,8 +1373,11 @@ COOK_CFG_EOF
     fi
 
     # Assert zero missing and zero orphan entries in scan report
-    # shellcheck disable=SC2012
-    scan_json=$(ls -1 bones/reports/scan-report-*.json 2>/dev/null | tail -n 1)
+    scan_json=""
+    for _scan in bones/reports/scan-report-*.json; do
+      [[ -e "$_scan" ]] || continue
+      scan_json="$_scan"
+    done
     if [[ -z "$scan_json" || ! -f "$scan_json" ]]; then
       echo "❌ Assertion Failed: scan JSON report missing."
       exit 127
@@ -1563,8 +1566,12 @@ XHTML_RAW_EOF
     echo "  [+] Pass: XHTML fail-closed raw HTML path ($mode)."
 
     echo "  [+] Executing packager JSON export assertions..."
-    # shellcheck disable=SC2012
-    export_json=$(ls -1 "$b_archive"/tomb-export-*.json 2>/dev/null | head -n 1)
+    export_json=""
+    for _ej in "$b_archive"/tomb-export-*.json; do
+      [[ -e "$_ej" ]] || continue
+      export_json="$_ej"
+      break
+    done
     if [[ -z "$export_json" || ! -f "$export_json" ]]; then
       echo "❌ Assertion Failed: packager JSON export file tomb-export-*.json missing."
       exit 113
@@ -1579,8 +1586,11 @@ XHTML_RAW_EOF
     fi
 
     echo "  [+] Executing pack integrity assertions..."
-    # shellcheck disable=SC2012
-    newest_tomb=$(ls -1 "$b_archive"/tomb-*.tar.gz 2>/dev/null | sort | tail -n 1)
+    newest_tomb=""
+    for _tomb in "$b_archive"/tomb-*.tar.gz; do
+      [[ -e "$_tomb" ]] || continue
+      newest_tomb="$_tomb"
+    done
     if [[ -z "$newest_tomb" || ! -f "$newest_tomb" ]]; then
       echo "❌ Assertion Failed: no tomb-*.tar.gz archive found after pack."
       exit 116
@@ -1643,8 +1653,13 @@ XHTML_RAW_EOF
       echo "❌ Assertion Failed: forbidden artifact shipped in release archive."
       exit 151
     fi
-    # shellcheck disable=SC2010
-    if ls "$b_archive/releases"/rotkeeper-*.tar* 2>/dev/null | grep -q .; then
+    _has_tar=false
+    for _rt in "$b_archive/releases"/rotkeeper-*.tar*; do
+      [[ -e "$_rt" ]] || continue
+      _has_tar=true
+      break
+    done
+    if [[ "$_has_tar" == true ]]; then
       echo "❌ Assertion Failed: non-canonical archive leftovers found in release directory."
       exit 152
     fi
@@ -1686,10 +1701,16 @@ XHTML_RAW_EOF
     echo "  [+] Executing archive naming uniqueness assertions..."
     ./rotkeeper.sh pack > /dev/null
     ./rotkeeper.sh pack > /dev/null
-    # shellcheck disable=SC2012
-    newest_tomb=$(ls -1 "$b_archive"/tomb-*.tar.gz 2>/dev/null | sort | tail -n 1)
-    # shellcheck disable=SC2012
-    prev_tomb=$(ls -1 "$b_archive"/tomb-*.tar.gz 2>/dev/null | sort | tail -n 2 | head -n 1)
+    newest_tomb=""
+    prev_tomb=""
+    _prev=""
+    for _tomb in "$b_archive"/tomb-*.tar.gz; do
+      [[ -e "$_tomb" ]] || continue
+      prev_tomb="$_prev"
+      newest_tomb="$_tomb"
+      _prev="$_tomb"
+    done
+    # newest_tomb is last sorted entry, prev_tomb is second-last
     if [[ -z "$newest_tomb" || "$newest_tomb" == "$prev_tomb" ]]; then
       echo "❌ Assertion Failed: consecutive pack runs produced colliding archive names."
       exit 155
