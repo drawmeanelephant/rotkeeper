@@ -24,6 +24,18 @@ rk_load_env() {
 
       local target_config="${CONFIG_DIR}/rotkeeper.yaml"
       if [[ -s "$target_config" ]]; then
+        # A missing yq must not masquerade as malformed YAML: name the missing
+        # tool with an install hint before any config parse is attempted. At
+        # env-load time fd 3 is not wired yet, so report straight to stderr.
+        if ! command -v yq >/dev/null 2>&1; then
+          local yq_hint="install mikefarah/yq from https://github.com/mikefarah/yq"
+          case "$(uname -s 2>/dev/null || echo Unknown)" in
+            Darwin*) yq_hint="try: brew install yq (mikefarah/yq v4+)" ;;
+            Linux*)  yq_hint="try: sudo snap install yq or brew install yq (mikefarah/yq v4+)" ;;
+          esac
+          log "ERROR" "Missing required dependency: yq needed to parse $target_config ($yq_hint)"
+          exit 2
+        fi
         if ! yq eval '.' "$target_config" >/dev/null 2>&1; then
           log "FATAL" "YAML configuration is malformed at $target_config"
           exit 1
@@ -64,6 +76,10 @@ VERBOSE=false
 QUIET=true
 DEBUG=false
 HELP=false
+# fd 3 is only valid after rk_init_script wires it (`exec 3>&1`). Before that,
+# log() must route console output to stderr or any error raised during
+# environment load would die with "Bad file descriptor" instead of reporting.
+RK_FD3_WIRED=false
 
 # Parse common flags: --dry-run, --verbose, --help
 # ---
@@ -121,6 +137,7 @@ log() {
   local msg="[$ts] [$level] $*"
 
   # Three-tier verbosity filter for standard stdout
+  # Console target: fd 3 once rk_init_script wires it, stderr before that.
   if [[ "$level" == "MARKER" ]]; then
     local marker_out="$*"
     if rk_has_color; then
@@ -134,13 +151,13 @@ log() {
         marker_out=$'\033[31m'"$marker_out"$'\033[0m'
       fi
     fi
-    echo "$marker_out" >&3
+    if [[ "${RK_FD3_WIRED:-false}" == true ]]; then echo "$marker_out" >&3; else echo "$marker_out" >&2; fi
   elif [[ "$QUIET" == true && ( "$level" == "INFO" || "$level" == "DEBUG" || "$level" == "WARN" || "$level" == "DRY-RUN" ) ]]; then
     : # Skip stdout
   elif [[ "$level" == "DEBUG" && "$DEBUG" != true ]]; then
     : # Skip stdout
   else
-    echo "$msg" >&3
+    if [[ "${RK_FD3_WIRED:-false}" == true ]]; then echo "$msg" >&3; else echo "$msg" >&2; fi
   fi
 
   # Always write standard logs to file if present (plain, no ANSI)
@@ -785,6 +802,7 @@ rk_init_script() {
 
   # Save original stdout to fd 3 for MARKER bypass
   exec 3>&1
+  RK_FD3_WIRED=true
 
   # Redirect output to log file as well
   # SIDE EFFECT (write): rebinds stdout/stderr so everything also lands in $LOG_FILE

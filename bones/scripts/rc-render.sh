@@ -117,7 +117,7 @@ main() {
           echo "Run 'bash rotkeeper.sh preflight' for full diagnosis (see home/content/docs/oliver-contract.md)." >&2
           exit 1
         fi
-        require_bins bash
+        require_bins bash jq
         require_sha256
         require_yq_version
         require_gawk_version
