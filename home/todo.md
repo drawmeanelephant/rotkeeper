@@ -198,7 +198,7 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 - [x] Add a sample content fixture specifically for template/theme evaluation with headings, tables, code fences, warnings, footnotes, quotes, metadata, and long paragraphs. *(2026-08-24: tracked in #261)*
 
 ### Experimental / Future Options
-- [x] Replace all HTML regex parsing in `rc-assets.sh` with a proper parser (`pup`, `htmlq`, or `awk`). *(2026-08-24: tracked in #262)*
+- [x] Replace all HTML regex parsing in `rc-assets.sh` with a proper parser (`pup`, `htmlq`, or `awk`). *(2026-08-24: tracked in #262; reconciled 2026-08-26 — the grep/sed HTML scan was already removed when assets switched to source-tree mirroring, so no parser is needed; docs updated to match)*
 - [x] Auto-generate `docs.rotkeeper.com` from `output/`. *(2026-08-24: tracked in #263)*
 - [x] Create `rc-dashboard.sh` to show rot status in a single report. *(2026-08-24: tracked in #264)*
 - [x] Build `rc-pdfbook.sh` to generate PDF from merged docbook/configbook (with optional frontmatter stripping). *(2026-08-24: tracked in #265)*
