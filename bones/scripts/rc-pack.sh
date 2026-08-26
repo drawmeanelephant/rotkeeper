@@ -50,8 +50,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
 rk_init_script "rc-pack" "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR CONTENT_DIR DOCS_DIR OUTPUT_DIR
-set -euo pipefail
-IFS=$'\n\t'
 
 
 
@@ -85,7 +83,7 @@ cleanup() {
   cleanup_ran=true
   if [[ -n "$PARTIAL_ARCHIVE" ]]; then
     # SIDE EFFECT (delete): removes half-written .tar and .gz from bones/archives after failure
-    rm -f "$PARTIAL_ARCHIVE" "$PARTIAL_ARCHIVE.gz"
+    rm -f "$PARTIAL_ARCHIVE" "$PARTIAL_ARCHIVE.gz" || true
     log "WARN" "Removed partial archive after failure: ${PARTIAL_ARCHIVE##*/}"
   fi
 }

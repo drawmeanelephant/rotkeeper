@@ -18,8 +18,6 @@ IFS=$'\n\t'
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
 # Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
 
-set -euo pipefail
-
 
 [[ -n "$BASH_VERSION" ]] || {
   echo "[ERROR] rc-env.sh must be sourced in Bash." >&2

@@ -46,10 +46,6 @@ EOF2
 }
 
 
-set -euo pipefail
-IFS=$'
-	'
-
 # Source shared Rotkeeper helpers
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

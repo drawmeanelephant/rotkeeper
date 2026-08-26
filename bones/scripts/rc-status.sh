@@ -66,8 +66,6 @@ require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR ARCHIV
 # Status is an explicitly human-facing command. Restore the caller's streams
 # after shared initialization so its report is visible even in quiet mode.
 exec 1>&3 2>&3
-set -euo pipefail
-IFS=$'\n\t'
 
 LOG_FILE="$LOG_DIR/rc-status-$(date +%Y-%m-%d_%H%M%S)-$$.log"
 # SIDE EFFECT (write): creates bones/logs before the status ritual boots its logger

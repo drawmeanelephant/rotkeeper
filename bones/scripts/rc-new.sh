@@ -140,9 +140,6 @@ source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&
 rk_init_script "rc-new" "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR CONTENT_DIR DOCS_DIR
 
-set -euo pipefail
-IFS=$'\n\t'
-
 
 
 

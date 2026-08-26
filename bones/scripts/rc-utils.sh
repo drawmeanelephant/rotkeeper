@@ -57,9 +57,6 @@ rk_load_env() {
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
 # Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
 
-set -euo pipefail
-IFS=$'\n\t'
-
 
 # --- Global Flags ---
 DRY_RUN=false
@@ -680,10 +677,34 @@ cleanup() {
 # ---
 # set_traps: Binds the err and exit hooks to ensure graceful demise upon failure
 # ---
-# Binds the err and exit hooks to ensure graceful demise upon failure
+# ---
+# rk_exit_teardown: EXIT trap body that runs cleanup without masking the real exit code.
+# Inputs: none; reads pending $? set by the EXIT trap
+# Outputs: Exits with the pre-trap status after teardown
+# Env: Runs cleanup() override when present; disables errexit/ERR relay for teardown only
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
+# ---
+rk_exit_teardown() {
+  __rk_exit_status=$?
+  # Disarm the ERR relay and errexit so a failing command inside cleanup
+  # cannot abort the trap and replace the original status with its own.
+  trap - ERR EXIT
+  set +e
+  cleanup
+  exit "$__rk_exit_status"
+}
+
+# Binds the err and exit hooks plus signal relays to ensure graceful demise
+# upon failure. The EXIT wrapper snapshots the pending exit status before
+# cleanup runs; disabling ERR and errexit first guarantees that a failing
+# command inside cleanup cannot abort the trap and mask the real exit code.
 set_traps() {
   trap 'trap_err $LINENO' ERR
-  trap 'cleanup' EXIT
+  trap rk_exit_teardown EXIT
+  # Signals relay into the EXIT wrapper so cleanup fires on interruption with
+  # conventional statuses (130=SIGINT, 143=SIGTERM).
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
 }
 
 # Load rc-env.sh from script root
