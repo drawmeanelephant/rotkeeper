@@ -83,17 +83,14 @@ PROJECT_ROOT="$ROOT_DIR"
 STAGING_DIR="$TMP_DIR/release-staging-$$"
 ZIP_TMP=""
 
-canonicalize_release_path() {
-    rk_canonical_or_raw "$1"
-}
-
 cleanup() {
     local status=$?
     log "INFO" "Cleaning up temporary staging directories from the physical realm..."
     if [[ -d "$STAGING_DIR" ]]; then
-        CANONICAL_STAGING_DIR=$(canonicalize_release_path "$STAGING_DIR")
-        if [[ "${CANONICAL_STAGING_DIR}/" == "${ROOT_DIR}/"* ]]; then
+        if CANONICAL_STAGING_DIR=$(rk_guard_delete "$STAGING_DIR" "$TMP_DIR"); then
             rm -rf "$CANONICAL_STAGING_DIR"
+        else
+            log "ERROR" "Skipped staging cleanup; '$STAGING_DIR' failed the deletion guard."
         fi
     fi
     if [[ -n "${ZIP_TMP:-}" && -f "$ZIP_TMP" ]]; then

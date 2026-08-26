@@ -191,7 +191,11 @@ main() {
           --arg count "$count" \
           '{name: $name, sha256: $sha, timestamp: $timestamp, mode: $mode, file_count: $count|tonumber}' > "$PACK_META_DIR/metadata.json"
         run tar --append --file="$ARCHIVE_DIR/$TOMB" -C "$PACK_META_DIR" metadata.json
-        rm -rf "$PACK_META_DIR"
+        if ! CANONICAL_PACK_META=$(rk_guard_delete "$PACK_META_DIR" "$(dirname -- "$PACK_META_DIR")"); then
+          echo "ERROR: Aborting pack; refusing unsafe deletion of '$PACK_META_DIR'." >&2
+          exit 1
+        fi
+        rm -rf "$CANONICAL_PACK_META"
         run gzip -f "$ARCHIVE_DIR/$TOMB"
         validate_gz "$ARCHIVE_DIR/$TOMB.gz" || exit 1
         TOMB="$TOMB.gz"
@@ -226,7 +230,11 @@ main() {
           --arg count "$count" \
           '{name: $name, sha256: $sha, timestamp: $timestamp, mode: $mode, file_count: $count|tonumber}' > "$PACK_META_DIR/metadata.json"
         run tar --append --file="$ARCHIVE_DIR/$SELF_ARCHIVE" -C "$PACK_META_DIR" metadata.json
-        rm -rf "$PACK_META_DIR"
+        if ! CANONICAL_PACK_META=$(rk_guard_delete "$PACK_META_DIR" "$(dirname -- "$PACK_META_DIR")"); then
+          echo "ERROR: Aborting pack; refusing unsafe deletion of '$PACK_META_DIR'." >&2
+          exit 1
+        fi
+        rm -rf "$CANONICAL_PACK_META"
         run gzip -f "$ARCHIVE_DIR/$SELF_ARCHIVE"
         validate_gz "$ARCHIVE_DIR/$SELF_ARCHIVE.gz" || exit 1
         SELF_ARCHIVE="$SELF_ARCHIVE.gz"

@@ -811,6 +811,43 @@ rk_canonical_or_raw() {
     rk_canonical_path "$path" 2>/dev/null || printf '%s\n' "$path"
 }
 
+# Fail-closed preflight guard for rm -rf targets. Canonicalizes both the
+# candidate and the boundary (symlink-safe), then requires the candidate to
+# resolve strictly inside the boundary: never empty, never "/", never the
+# boundary itself. Prints the canonical candidate path on success; logs an
+# error and returns 1 otherwise. Callers must not delete unless this returns 0.
+rk_guard_delete() {
+    local candidate="$1"
+    local boundary="$2"
+    local canonical boundary_canonical
+
+    if [[ -z "$candidate" || -z "$boundary" ]]; then
+        log "ERROR" "Deletion refused: empty candidate or boundary path"
+        return 1
+    fi
+
+    canonical=$(rk_canonical_or_raw "$candidate")
+    boundary_canonical=$(rk_canonical_or_raw "$boundary")
+
+    if [[ -z "$canonical" || -z "$boundary_canonical" ]]; then
+        log "ERROR" "Deletion refused: cannot canonicalize '$candidate' against boundary '$boundary'"
+        return 1
+    fi
+
+    if [[ "$canonical" == "/" ]]; then
+        log "ERROR" "Deletion refused: '$candidate' canonicalized to filesystem root"
+        return 1
+    fi
+
+    if [[ "$canonical" != "$boundary_canonical" && "$canonical" == "$boundary_canonical/"* ]]; then
+        printf '%s\n' "$canonical"
+        return 0
+    fi
+
+    log "ERROR" "Deletion refused: '$candidate' resolved to '$canonical', outside boundary '$boundary_canonical'. Verify the path derivation for this delete target."
+    return 1
+}
+
 # Print the file with a leading YAML frontmatter block removed. Only a "---"
 # on line 1 opens a frontmatter block; files without one pass through intact,
 # and horizontal rules later in the body are never mistaken for delimiters.

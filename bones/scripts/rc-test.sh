@@ -78,26 +78,6 @@ if [[ -z "$TEST_RELEASE_VERSION" ]]; then
   exit 1
 fi
 
-canonicalize_test_path() {
-  local path="$1"
-  local parent
-  local base
-  local canonical
-
-  if canonical=$(realpath -m "$path" 2>/dev/null); then
-    printf '%s\n' "$canonical"
-    return 0
-  fi
-
-  parent=$(dirname "$path")
-  base=$(basename "$path")
-  if parent=$(cd "$parent" 2>/dev/null && pwd -P); then
-    printf '%s/%s\n' "$parent" "$base"
-  else
-    printf '%s\n' "$path"
-  fi
-}
-
 # shellcheck disable=SC2329 # invoked indirectly by the EXIT/INT/TERM traps
 cleanup() {
   local status=$?
@@ -109,11 +89,12 @@ cleanup() {
   trap - ERR EXIT INT TERM
   set +e
 
-  if [[ -n "${TEST_DIR:-}" && -d "${TEST_DIR}" ]]; then
-    CANONICAL_TEST_DIR=$(canonicalize_test_path "$TEST_DIR")
-    if [[ "${CANONICAL_TEST_DIR}/" == "${ROOT_DIR}/"* ]]; then
+  if [[ -n "${TEST_DIR:-}" && -d "${TEST_DIR}" && -n "${ROOT_DIR:-}" ]]; then
+    if CANONICAL_TEST_DIR=$(rk_guard_delete "$TEST_DIR" "${ROOT_DIR}/bones/tmp"); then
       echo "Pruning testing footprints from the physical realm..."
       rm -rf "$CANONICAL_TEST_DIR" || true
+    else
+      echo "WARNING: Skipped test-env pruning; '$TEST_DIR' failed the deletion guard." >&2
     fi
   fi
 
@@ -135,10 +116,11 @@ trap 'cleanup' EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
-if [[ -n "${TEST_DIR:-}" ]]; then
-    CANONICAL_TEST_DIR=$(canonicalize_test_path "$TEST_DIR")
-    if [[ "${CANONICAL_TEST_DIR}/" == "${ROOT_DIR}/"* ]]; then
+if [[ -n "${TEST_DIR:-}" && -n "${ROOT_DIR:-}" ]]; then
+    if CANONICAL_TEST_DIR=$(rk_guard_delete "$TEST_DIR" "${ROOT_DIR}/bones/tmp"); then
         rm -rf "$CANONICAL_TEST_DIR" || true
+    else
+        echo "WARNING: Skipped pre-run cleanup; '$TEST_DIR' failed the deletion guard." >&2
     fi
 fi
 mkdir -p "$TEST_DIR"
