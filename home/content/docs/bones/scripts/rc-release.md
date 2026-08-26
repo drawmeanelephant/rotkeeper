@@ -1,21 +1,19 @@
 ---
 title: "📦 rc-release.sh Reference"
 slug: rc-release
-version: "0.3.0"
-updated: "2026-06-15"
-description: "Packages the project into one canonical distribution zip file."
+target_file: "bones/scripts/rc-release.sh"
+date: "2026-08-26"
+template: "rotkeeper-doc.html"
+status: "active"
+version: "0.5.1"
+author: "Rotkeeper Ritual Council"
+project: "Rotkeeper"
+description: "Packages one canonical framework-distribution zip with an explicit allowlist, required spine, forbidden-path rules, and post-build archive verification."
 tags:
   - rotkeeper
   - scripts
   - packaging
   - distribution
-asset_meta:
-  name: "rc-release.md"
-  version: "v0.3.0"
-  author: "Rotkeeper Ritual Council"
-  project: "Rotkeeper"
-  tracked: true
-  license: "All Rights Reserved"
 ---
 
 <!--
@@ -28,28 +26,43 @@ asset_meta:
 <!-- The rite of distribution -->
 **Script Path:** `bones/scripts/rc-release.sh`
 
-## Purpose
-- Prepares the Rotkeeper framework for distribution to other users or subagents.
-- Generates one canonical distribution archive.
-- The archive contains the working framework while excluding temporary outputs, reports, logs, archives, messages, and `.git`.
+## Overview
 
-## CLI Interface
+`rc-release.sh` backs `release <VERSION>`: it collapses every packaging model into **one canonical framework distribution zip** — dispatcher, bones system, templates, configuration, and project docs. A release is explicitly *not* a site-source archive or a full backup: author content outside the framework spine is out of contract, and caches/logs/temp/output/archives/reports/credentials are forbidden.
+
+The pass:
+
+1. **Staging** — the repository is rsynced into a per-run staging directory under `TMP_DIR` with strict exclusions (`.git/`, `.github/`, `.vscode/`, output, logs, tmp, the whole bones archive/report/book-report trees, `content/messages/`, `.DS_Store`, `*_temp.md`).
+2. **Manifest generation** — the staged tree gets a generated `bones/config/release-manifest.txt`: version, model line, ruleset identifier, and the complete sorted entry list.
+3. **Archive & verify** — the staged `rotkeeper/` tree is zipped to a temp name, `zip -T`-tested, then verified against **allowlist v1**: every entry must live under `rotkeeper/`; root-level entries must match an explicit allowlist; five spine entries are required (`rotkeeper.sh`, `rotkeeper.yaml`, `version`, `release-manifest.txt`, `rc-utils.sh`); forbidden prefixes (git, output, logs, tmp, archives, reports, book-reports, messages) and forbidden artifacts (`.env`, keys, `.pem/.p12`, `.pyc`, `id_rsa`, `.npmrc`, editor backups) fail the build.
+4. **Install & cleanup** — only a fully verified archive is renamed into place at `$ARCHIVE_DIR/releases/rotkeeper-$VERSION.zip`. The EXIT/INT/TERM trap prunes staging through `rk_guard_delete`.
+
+## CLI Usage
+
 ```bash
-./rotkeeper.sh release
+rotkeeper.sh release <VERSION> [options]
+
+# Arguments:
+#   VERSION       Semver-style version for the distribution name (e.g. 0.5.2)
+
+# Options:
+#   --dry-run     Preview the release without writing archives
+#   --verbose     Detailed output
+#   --help, -h    Show usage help
 ```
 
-## Workflow Steps
-1. **Version Detection**
-   - Extracts the current system version from `rotkeeper.sh`.
-2. **Staging**
-   - Creates a temporary staging directory in the configured temporary area.
-3. **Copying**
-   - Uses `rsync` to mirror the repository into the staging directories while excluding volatile folders like `.git/`, `output/`, and `bones/logs/`.
-4. **Compression**
-   - Writes `bones/archive/releases/rotkeeper-[version].zip`.
-   - Replaces any existing archive at that exact destination.
-5. **Cleanup**
-   - Prunes the temporary staging files.
+### Environment assumptions
+
+- **Reads:** the whole repository tree (subject to exclusions); requires `ROOT_DIR` … `RELEASE_DIR` canonical paths.
+- **Writes:** `bones/archive/releases/rotkeeper-$VERSION.zip` (installed atomically from a temp name) plus scratch space under `TMP_DIR`.
+- **Dependencies:** `bash`, `rsync`, `zip`, `zipinfo`.
+- **CWD:** none (staging-relative `cd` is internal).
+
+## Dangerous operations
+
+- **Overwrites any existing archive at the exact destination name** for the target version.
+- Deletes its own staging directory in the exit trap — guarded by `rk_guard_delete` against `$TMP_DIR`, so a refused guard skips cleanup rather than deleting unsafely.
+- Verification failures leave no artifact behind: the zip is installed only after integrity and allowlist checks pass.
 
 ## 🛣️ Navigation
 - [Scripts Index](index.html)
@@ -76,10 +89,12 @@ The exclusion lists are a brittle defense. If a sensitive file gets created that
 
 ### Ritual Warnings
 Audit the exclusion lists regularly. Never assume that 'lite' means 'safe'—sensitive data will slip through if you aren't paying attention.
+
 ## Ritual History
 <!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
 
 *Not found: no changelog/history entries matching `rc-release.sh`.*
+
 ## Environment
 <!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
 
@@ -100,6 +115,7 @@ Audit the exclusion lists regularly. Never assume that 'lite' means 'safe'—sen
 - **$TEMPLATE_DIR**: bones/templates
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
+
 ###### CLI Usage
 <!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
 

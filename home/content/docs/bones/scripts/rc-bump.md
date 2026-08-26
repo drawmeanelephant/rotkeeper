@@ -1,21 +1,19 @@
 ---
 title: "📈 rc-bump.sh Reference"
 slug: rc-bump
+target_file: "bones/scripts/rc-bump.sh"
+date: "2026-08-26"
+template: "rotkeeper-doc.html"
+status: "active"
 version: "0.5.1"
-updated: "2026-08-11"
-description: "Explicit semver version bump against the single canonical version source."
+author: "Rotkeeper Ritual Council"
+project: "Rotkeeper"
+description: "Explicit semver version bump against the single canonical version source, with Living Buildlog and CHANGELOG updates and optional git commit."
 tags:
   - rotkeeper
   - scripts
   - logging
   - versioning
-asset_meta:
-  name: "rc-bump.md"
-  version: "v0.5.1"
-  author: "Rotkeeper Ritual Council"
-  project: "Rotkeeper"
-  tracked: true
-  license: "All Rights Reserved"
 ---
 
 <!--
@@ -50,11 +48,22 @@ asset_meta:
 3. **Canonical Version Update**
    - Writes the new version to `bones/config/version`; scripts, dispatcher output, release names, and tests pick it up automatically.
 4. **Living Buildlog Injection**
-   - Appends the message and timestamp directly into the `road-to-bones/index.md` buildlog.
-5. **Changelog Append**
-   - Adds the new version entry to the root `CHANGELOG.md`.
+   - Inserts a `` `vX.Y.Z` `` entry with timestamp and message directly beneath the `<!-- LIVING_BUILDLOG_START -->` anchor in `road-to-bones/index.md`, via a per-process temp file.
+5. **Changelog Prepend**
+   - Inserts a new `## [version] - date` section at the top of the root `CHANGELOG.md` (newest-first convention).
 6. **Git Commit (optional)**
-   - With `--commit`, stages the version file, changelog, and roadmap, then commits with a standardized `bump: [version] - [message]` commit message. `--dry-run` previews everything without writing.
+   - With `--commit`, stages exactly the three touched files (version, changelog, roadmap) and commits as `bump: [version] - [message]`. Without it, changes stay local. A dirty working tree earns a `[WARN]` but does not abort; `--dry-run` previews everything without writing.
+
+### Environment assumptions
+
+- **Reads:** `bones/config/version` (must exist and be semver-style), `DOCS_DIR/road-to-bones/index.md`, root `CHANGELOG.md`; requires a git work tree only for `--commit`.
+- **Writes:** the version file, buildlog, changelog — each edited through a temp file + atomic `mv`.
+- **CWD:** none except `--commit`, which operates from `ROOT_DIR`.
+
+## Dangerous operations
+
+- **Git commit** (`--commit`) — stages and commits only the three files this ritual touches, never a blanket `git add`. A dirty tree is warned about, and an empty staged diff is reported instead of committed.
+- Version-file writes affect every consumer (release naming, tests, dispatcher output) — a bad write here propagates everywhere, which is why the file is validated as semver before and after.
 
 ## 🛣️ Navigation
 - [Scripts Index](index.html)

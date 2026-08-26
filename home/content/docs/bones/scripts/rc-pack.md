@@ -1,24 +1,20 @@
 ---
 title: "📦 rc-pack.sh Reference"
 slug: rc-pack
-version: "v0.2.3-pre"
-updated: "2025-06-01"
-description: "Creates a tar.gz tomb archive from the rendered directory and embeds tomb metadata into the archive."
+target_file: "bones/scripts/rc-pack.sh"
+date: "2026-08-26"
+template: "rotkeeper-doc.html"
+status: "active"
+version: "0.5.1"
+author: "Rotkeeper Ritual Council"
+project: "Rotkeeper"
+description: "Ritual compression packager: seals rendered output (or source content, or the whole system) into integrity-checked tombs with embedded metadata, plus a Markdown-to-JSON export."
 tags:
   - rotkeeper
   - scripts
   - packing
   - tombs
-asset_meta:
-  name: "rc-pack.md"
-  version: "v0.2.3-pre"
-  author: "Rotkeeper Ritual Council"
-  project: "Rotkeeper"
-  tracked: true
-  license: "All Rights Reserved"
 ---
-
-<!-- Begin Ritual Script Documentation -->
 
 # 🪦 rc-pack.sh
 
@@ -26,88 +22,49 @@ asset_meta:
 
 **Script Path:** `bones/scripts/rc-pack.sh`
 
-## Purpose
-<!-- Core objectives of rc-pack.sh -->
-- Bundle the `output/` directory into a timestamped `.tar.gz` archive and log it in `bones/manifest.txt`.
-- Export all Markdown under `home/content/` into a single JSON file for AI consumption and external indexing.
-- Embed archive metadata (`metadata.json`) directly into each tomb before compression for self-validation and ritual completeness.
+## Overview
 
-## CLI Interface
-<!-- How to invoke the packing ceremony -->
-```bash
-rc-pack.sh [--dry-run] [--verbose] [--self] [--json-only] [--help]
-```
+`rc-pack.sh` is the embalmer: it turns living trees into self-describing archives under `bones/archive/`. Three mutually exclusive modes:
 
-Supported options:
-- `--help`, `-h`
-  Show usage information and exit.
-- `--dry-run`, `-n`
-  Preview actions without writing files.
-- `--verbose`, `-v`
-  Show detailed logs.
-- `--self`
-  Include the entire Rotkeeper project in the archive.
-  Includes the entire Rotkeeper repo, including scripts, configs, and source docs.
-- `--json-only`
-  Export Markdown to JSON only, skip tarball.
+1. **Default** — packs `OUTPUT_DIR` into `tomb-<timestamp>.tar.gz`. Before compression, a generated `metadata.json` (name, SHA256 of the uncompressed tar, timestamp, mode, file count) is appended into the archive so every tomb carries its own provenance. The compressed archive is integrity-checked with `gzip -t`, and its checksum is recorded in `bones/manifest.txt`. The default pass also **exports Markdown to JSON**: every `.md` under `CONTENT_DIR` becomes an entry (`absolute_path`, `relative_path`, parsed `frontmatter`, full `source_markdown`) in `tomb-export-<timestamp>.json`, validated with `jq` before being installed.
+2. **`--content`** — packs `CONTENT_DIR` only (excluding `help/` and `*_temp.md`) into `tomb-content-<timestamp>.tar.gz`, preserving author sources separately from rendered output.
+3. **`--self`** — packs the entire system (`rotkeeper.sh`, `bones/`, content, output; excluding the archive directory itself) into `tombkit-<timestamp>.tar.gz`, also with embedded metadata.
 
-Workflow Steps
+Archive names carry a timestamp plus a per-process random tag, so two packs within the same second never collide. A cleanup hook removes any half-written archive if a pack fails mid-flight — no truncated `.tar` or `.gz` survives.
 
-<!-- Sequential rites performed by the script -->
-
-	1.	Verify Dependencies
-	•	Check for tar and jq.
-	2.	Archive Output
-	•	Create bones/archive/tomb-YYYY-MM-DD_HHMM.tar.gz from output/ (excluding backups if --self).
-	2.5. Embed Metadata
-	•  Inject a generated `metadata.json` file into each `.tar` archive before compression. This includes name, SHA256 checksum, timestamp, archive mode, and file count.
-	3.	Export Markdown
-	•	Export Markdown files under `home/content/` into `tomb-export-*.json` using `jq --rawfile` to supply an explicit `source_markdown` field contract.
-	4.	Log Operation
-	•	Write bones/manifest.txt and bones/logs/rc-pack-YYYYMMDD-HHMMSS.log.
-
-Exit Codes
-
-<!-- Symbolic outcomes of incantation -->
-
-
-	•	0 — Archive and export completed successfully.
-	•	1 — Missing dependencies or I/O errors.
-	•	2 — No files found to process.
-
-Examples
-
-<!-- Sample invocations for celebratory rites -->
+## CLI Usage
 
 ```bash
-# Standard pack
-./bones/scripts/rc-pack.sh
-# → Creates: bones/archive/tomb-YYYY-MM-DD_HHMM.tar.gz
+rotkeeper.sh pack [options]
 
-# Include full project in archive
-./bones/scripts/rc-pack.sh --self
-
-# JSON export only
-./bones/scripts/rc-pack.sh --json-only
-
-# Preview actions
-./bones/scripts/rc-pack.sh --dry-run --verbose
-
-# Show help
-./bones/scripts/rc-pack.sh --help
-
-# Embed metadata in default pack (done automatically)
-./bones/scripts/rc-pack.sh
+# Options:
+#   --self       Archive the full Rotkeeper system (dispatcher, bones/, home/, output/)
+#   --content    Archive only home/content (source preservation)
+#   --dry-run    Preview actions without writing files
+#   --verbose    Detailed logs
+#   --help, -h   Show usage help
 ```
 
-🛣️ Navigation
+### Environment assumptions
+
+- **Reads:** `OUTPUT_DIR` (default mode requires it to exist), `CONTENT_DIR`, `BONES_DIR` (manifest).
+- **Writes:** archives and JSON exports under `ARCHIVE_DIR`; appends archive lines to `bones/manifest.txt`; scratch space under `TMP_DIR` (metadata staging dirs are removed through `rk_guard_delete`).
+- **Dependencies:** `bash`, `jq`, `tar`, `gzip`, a SHA-256 tool, `yq` v4.
+- **CWD:** none.
+
+## Dangerous operations
+
+- Appends to `bones/manifest.txt` (the same ledger `scan` audits).
+- Deletes its own scratch directories and partial archives — the scratch `rm -rf` is gated through `rk_guard_delete`, and interrupted packs clean up after themselves rather than leaving truncated tombs.
+- Archives are additive; nothing outside `ARCHIVE_DIR`, `TMP_DIR`, and the manifest is ever modified.
+
+## 🛣️ Navigation
 
 <!-- Quick navigation links -->
 
-
-	•	Scripts Index
-	•	Pack Reference
-	•	Bones Home
+- [Scripts Index](index.html)
+- [Pack Reference](rc-pack.html)
+- [Bones Home](../index.html)
 
 <!--
 Limerick 1:
@@ -124,6 +81,7 @@ It bundled and scribed,
 Then logged what survived,
 Ensuring no relic would stray.
 -->
+
 ## Necromancer's Notes
 <!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
 
@@ -136,6 +94,7 @@ Its absolute reliance on `jq` means that without it, the metadata creation proce
 
 ### Ritual Warnings
 Ensure `jq` is installed and functioning. Beware of injecting raw, unescaped text into the JSON metadata fields.
+
 ## Ritual History
 <!-- DIP-HISTORY-EXTRACTED: 2026-08-12T00:38:36Z -->
 
@@ -144,6 +103,7 @@ Ensure `jq` is installed and functioning. Beware of injecting raw, unescaped tex
 - - Enhance rc-pack.sh compression algorithm for smaller tarballs.
 - - Update rc-pack.sh to handle content flag natively.
 - `CHANGELOG.md` records parallel `rc-render.sh` processing, smaller `rc-pack.sh`
+
 ## Environment
 <!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
 
@@ -164,6 +124,7 @@ Ensure `jq` is installed and functioning. Beware of injecting raw, unescaped tex
 - **$TEMPLATE_DIR**: bones/templates
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
+
 ###### CLI Usage
 <!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
 
