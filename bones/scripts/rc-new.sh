@@ -48,8 +48,8 @@ show_help() {
       [[ -e "$_tmpl" ]] || continue
       tmpl_list+="$(basename "$_tmpl") "
     done
-  elif [[ -d "bones/templates" ]]; then
-    td="bones/templates"
+  elif [[ -n "${ROOT_DIR:-}" && -d "${ROOT_DIR}/bones/templates" ]]; then
+    td="${ROOT_DIR}/bones/templates"
     tmpl_list=""
     for _tmpl in "$td"/*.html; do
       [[ -e "$_tmpl" ]] || continue
@@ -62,7 +62,7 @@ show_help() {
     palette_hint=" (templates with \$palette\$ support palette flag)"
   elif [[ -n "${BONES_DIR:-}" ]] && grep -q '\$palette\$' "$BONES_DIR/templates"/*.html 2>/dev/null; then
     palette_hint=" (templates with \$palette\$ support palette flag)"
-  elif grep -q '\$palette\$' "bones/templates"/*.html 2>/dev/null; then
+  elif [[ -n "${ROOT_DIR:-}" ]] && grep -q '\$palette\$' "${ROOT_DIR}"/bones/templates/*.html 2>/dev/null; then
     palette_hint=" (templates with \$palette\$ support palette flag)"
   fi
 
