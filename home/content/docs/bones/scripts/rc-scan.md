@@ -1,24 +1,20 @@
 ---
 title: "🔍 rc-scan.sh Reference"
 slug: rc-scan
-version: "v0.2.3-pre"
-updated: "2025-06-01"
-description: "Scans the filesystem and rotkeeper manifest for mismatches, orphan files, and missing artifacts. Produces checksums and reports."
+target_file: "bones/scripts/rc-scan.sh"
+date: "2026-08-26"
+template: "rotkeeper-doc.html"
+status: "active"
+version: "0.5.1"
+author: "Rotkeeper Ritual Council"
+project: "Rotkeeper"
+description: "Audits the tree against bones/manifest.txt — classifying missing and orphan files, computing SHA256 digests — and emits JSON plus Markdown scan reports."
 tags:
   - rotkeeper
   - scripts
   - scan
   - digests
-asset_meta:
-  name: "rc-scan.md"
-  version: "v0.2.3-pre"
-  author: "Rotkeeper Ritual Council"
-  project: "Rotkeeper"
-  tracked: true
-  license: "All Rights Reserved"
 ---
-
-<!-- Begin Ritual Script Documentation -->
 
 # 🔍 rc-scan.sh
 
@@ -26,53 +22,43 @@ asset_meta:
 
 **Script Path:** `bones/scripts/rc-scan.sh`
 
-## Purpose
-<!-- Core objectives of rc-scan.sh -->
-- Traverse the file tree to identify orphan files (not in manifest) and missing artifacts (in manifest but absent).
-- Compute and record SHA256 checksums for all valid files.
-- Produce machine-readable JSON and human-readable Markdown summaries.
+## Overview
 
-## CLI Interface
-<!-- How to invoke the scanning ceremony -->
+`rc-scan.sh` is the integrity auditor: it reconciles what the manifest claims exists against what is actually on disk, then files a report of the discrepancies. It runs at the end of `init --full` and can be invoked any time an audit is wanted.
+
+The audit, in order:
+
+1. **Manifest load** — reads `bones/manifest.txt` (blank lines and `#` comments skipped), normalizing each entry to a root-relative path.
+2. **Disk walk** — scans `CONTENT_DIR`, `BONES_DIR`, and `OUTPUT_DIR`, pruning noisy subtrees (`tmp`, `logs`, `archive`, `reports`, `book-reports`) and filtering by extension (default allowlist: `png jpg svg css js md html json yaml`; override with `--include`, tighten further with repeatable `--exclude` glob patterns).
+3. **Classification** — *missing* = listed in the manifest but absent on disk; *orphan* = on disk but absent from the manifest.
+4. **Digests** — SHA256 for every scanned file (via the portable checksum helper).
+5. **Reports** — timestamped JSON (`scan-report-<ts>.json`) and Markdown (`scan-report-<ts>.md`) under `bones/reports/`, each containing the missing list, orphan list, and digest table. `--json-only` / `--md-only` restrict output to one form; `--manifest-only` skips the disk walk entirely.
+
+## CLI Usage
+
 ```bash
-rc-scan.sh [--dry-run] [--verbose] [--help]
+rotkeeper.sh scan [options]
+
+# Options:
+#   --manifest-only   Read only the manifest file, skip the disk scan
+#   --include <ext>   Comma-separated extensions to include
+#   --exclude <pat>   Glob pattern to exclude (can repeat)
+#   --json-only       Write only the JSON report
+#   --md-only         Write only the Markdown report
+#   --dry-run         Show actions without writing reports or logs
+#   --verbose         Print detailed logs
+#   --help, -h        Show usage help
 ```
 
-Supported flags:
-- `--help`, `-h`
-  Show usage information and exit.
-- `--dry-run`
-  Preview actions without writing reports.
-- `--verbose`
-  Show detailed logs.
+### Environment assumptions
 
-## Workflow Steps
-<!-- Sequential rites performed by the script -->
-1. **Parse Flags & Setup**: Handle `--dry-run`, `--verbose`, and `--help`.
-2. **Verify Dependencies**: require_bins find sha256sum yq (from rc-utils.sh).
-3. **Load Manifest**: Read asset-manifest.yaml into `manifest_list`.
-4. **Scan Files**: Walk `home/assets/` (or specified dir) into `disk_list`.
-5. **Classification & Checksums**: Identify missing, orphan files, compute SHA256.
-6. **Report Generation**: Write JSON and Markdown reports or preview under dry-run.
+- **Reads:** `bones/manifest.txt` (the render ledger — not the asset manifest), plus `CONTENT_DIR`, `BONES_DIR`, `OUTPUT_DIR`.
+- **Writes:** two timestamped reports under `REPORT_DIR`; a per-run log under `LOG_DIR` (real runs only — `--dry-run` stays non-mutating).
+- **Dependencies:** `bash`, `jq`, and a SHA-256 tool; exits 2 if `--manifest-only` is set but the manifest file is missing.
 
-## Exit Codes
-<!-- Symbolic outcomes of incantation -->
-- `0` — Scan completed (even if orphans/missing found).
-- `1` — Critical error (missing manifest, dependencies).
-- `2` — No files found to scan.
+## Dangerous operations
 
-## Examples
-<!-- Sample invocations for celebratory rites -->
-```bash
-# Standard scan
-./bones/scripts/rc-scan.sh
-
-# Preview scan without writing
-./bones/scripts/rc-scan.sh --dry-run --verbose
-
-# Show help
-./bones/scripts/rc-scan.sh --help
-```
+None destructive — the ritual is read-only except for its own reports and logs. Its findings are advisory: missing/orphan classifications inform cleanup decisions but never trigger deletions themselves.
 
 ## 🛣️ Navigation
 <!-- Quick navigation links -->
@@ -95,6 +81,7 @@ With hashes in hand,
 It restores the land,
 Ensuring no file is at frost.
 -->
+
 ## Necromancer's Notes
 <!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
 
@@ -107,6 +94,7 @@ Its reporting mechanism for missing or orphaned files is easily confused by syml
 
 ### Ritual Warnings
 Do not treat its manifest as absolute truth. It is easily fooled by the slightest deviation in the physical realm.
+
 ## Ritual History
 <!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
 
@@ -115,6 +103,7 @@ Do not treat its manifest as absolute truth. It is easily fooled by the slightes
 - - Optimize rc-scan.sh to quickly analyze missing references.
 - tarballs, improved `rc-scan.sh` orphan reporting, `rc-ingest.sh` validation,
 - `CHANGELOG.md` records faster `rc-scan.sh`, multiple ingest sources,
+
 ## Environment
 <!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
 
@@ -135,6 +124,7 @@ Do not treat its manifest as absolute truth. It is easily fooled by the slightes
 - **$TEMPLATE_DIR**: bones/templates
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
+
 ###### CLI Usage
 <!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
 

@@ -1,79 +1,52 @@
 ---
-title: "🧱 rc-env.sh"
+title: "🧱 rc-env.sh Reference"
 slug: rc-env
-version: "0.2.5"
-updated: "2025-06-03"
-description: "Defines centralized environment variables and directory layout for the Rotkeeper ritual system."
+target_file: "bones/scripts/rc-env.sh"
+date: "2026-08-26"
+template: "rotkeeper-doc.html"
+status: "active"
+version: "0.5.1"
+author: "Rotkeeper Ritual Council"
+project: "Rotkeeper"
+description: "Canonical environment bootstrap: derives root-relative paths, parses the active layout style and renderer toggles, and exports the shared Rotkeeper environment."
 tags:
   - rotkeeper
-  - environment
+  - scripts
   - bootstrap
   - shared
-asset_meta:
-  name: "rc-env.md"
-  author: "Filed Systems"
-  project: "Rotkeeper"
-  license: "All Rights Reserved"
-  tracked: true
-  version: "0.2.5"
 ---
 
 # 🧱 rc-env.sh
 
-This script centralizes all environment setup and directory layout logic for Rotkeeper.
+**Script Path:** `bones/scripts/rc-env.sh`
 
-It should be sourced by **every `rc-*.sh` script** to establish a consistent and portable runtime environment.
+## Overview
 
-## 💼 Purpose
+`rc-env.sh` is the canonical environment loader for the whole ritual system. It is **sourced, never executed**: rituals reach it through `rk_load_env` in `rc-utils.sh`, which sources this file and then validates what it produced (`strict`) or tolerates a half-initialized tree (`bootstrap`). On its own it performs no work beyond variable derivation.
 
-- Define canonical paths (`ROOT_DIR`, `BONES_DIR`, `OUTPUT_DIR`, etc.)
-- Resolve script-relative locations safely via `BASH_SOURCE`
-- Eliminate hardcoded paths across rituals
-- Optionally bootstrap default logs, tmp folders, etc.
+Responsibilities, in order:
 
-## 📜 Exposed Variables
+1. **Root-relative path derivation.** `ROOT_DIR` is resolved from `BASH_SOURCE` (two levels above `bones/scripts/`), never from the caller's CWD. All structural bones directories (`BONES_DIR`, `SCRIPT_DIR`, `CONFIG_DIR`, `LOG_DIR`, `TMP_DIR`, `ARCHIVE_DIR`, `RELEASE_DIR`, `REPORT_DIR`, `BOOK_REPORT_DIR`, `META_DIR`) hang off that root.
+2. **Layout parsing.** Configuration is read from `bones/config/rotkeeper.yaml`, falling back to a root-level `config/rotkeeper.yaml` for flat trees. With no serialized `paths` block, layout-dependent directories are computed from `layout_style`: `crypt` (`home/content`, `bones/templates`, `home/assets`, `output`), `busy` (`home/content`, `templates`, `assets`, `output`), or `sterile` (`src/content`, `config/templates`, `src/assets`, `dist`). `DOCS_DIR`, `HELP_DIR`, and `WEB_DIR` derive from the content/output directories.
+3. **Cached-path reuse with relocation hardening.** When a `paths` block exists and its saved `ROOT_DIR` matches the freshly derived root, the cached values are exported as-is. If the repository has been moved, the cache is invalidated with a `[WARN]` and paths are recomputed from the active layout.
+4. **Renderer toggles.** `INPUT_FORMAT` (`markdown` | `textile` | `cooklang`) and `RENDER_PROFILE` (`html` | `xhtml`) are read from config with safe defaults; unsupported values emit `[WARN]` and fall back to `markdown`/`html`. These flow into every Oliver invocation via the adapter and preflight.
 
-- `ROOT_DIR` — absolute project root path
-- `BONES_DIR` — `"$ROOT_DIR/bones"`
-- `OUTPUT_DIR` — `"$ROOT_DIR/output"`
-- `CONTENT_DIR` — `"$ROOT_DIR/home/content"`
-- `ASSETS_DIR` — `"$ROOT_DIR/home/assets"`
-- `LOG_DIR` — `"$BONES_DIR/logs"`
-- `TMP_DIR` — `"$ROOT_DIR/tmp"`
-- `CONFIG_DIR` — `"$BONES_DIR/config"`
-- `ARCHIVE_DIR` — `"$BONES_DIR/archive"`
-- `REPORT_DIR` — `"$BONES_DIR/reports"`
-- `TEMPLATE_DIR` — `"$BONES_DIR/templates"`
-- `DOCS_DIR` — `"$OUTPUT_DIR/docs"`
-- `WEB_DIR` — `"$OUTPUT_DIR/web"`
-- `HELP_DIR` — `"$CONTENT_DIR/help"`
-- `SCRIPT_DIR` — `"$BONES_DIR/scripts"`
-- `META_DIR` — `"$BONES_DIR/meta"`
+An idempotency guard (`ROTKEEPER_ENV_LOADED`) makes repeated sourcing within one shell a no-op for the same repository root, so nested script-to-script calls cannot clobber a validated environment mid-ritual.
 
-## 🔧 Usage
+### Environment assumptions
 
-Add this to the top of any `rc-*.sh`:
+- **Reads:** `ROTKEEPER_ENV_LOADED` and `FORCE_ENV_RELOAD` (guard controls — the latter is deliberately set by `rc-init.sh` after rewriting the path cache; do not set it elsewhere without a specific reason), plus `layout_style`, `input_format`, `render_profile`, and any `paths` block from `rotkeeper.yaml`.
+- **Exports:** the full canonical variable set — `ROOT_DIR`, `BONES_DIR`, `OUTPUT_DIR`, `CONTENT_DIR`, `ASSETS_DIR`, `DOCS_DIR`, `HELP_DIR`, `LOG_DIR`, `TMP_DIR`, `CONFIG_DIR`, `ARCHIVE_DIR`, `RELEASE_DIR`, `REPORT_DIR`, `BOOK_REPORT_DIR`, `SCRIPT_DIR`, `TEMPLATE_DIR`, `META_DIR`, `WEB_DIR`, `LAYOUT_STYLE`, `INPUT_FORMAT`, `RENDER_PROFILE` — and flips `ROTKEEPER_ENV_LOADED=true`.
+- **Dependencies:** `yq` (mikefarah v4 syntax) whenever a config file is present.
+- **CWD:** none. Every path is anchored to the script's own location; callers may invoke rituals from any directory.
 
-```bash
-source "$(dirname "${BASH_SOURCE[0]}")/rc-env.sh"
-```
+## Dangerous operations
 
-Or, if using via `rc-utils.sh`:
+No writes or deletions happen here — but this file is indirectly authoritative for every destructive ritual, because they all act inside the boundaries it defines:
 
-```bash
-source "$(dirname "${BASH_SOURCE[0]}")/rc-utils.sh"
-```
+- A wrong-root derivation would silently redirect every later ritual; the idempotency guard (keyed on `ROOT_DIR`) and relocation-based cache invalidation are the mitigations. Treat both as load-bearing.
+- A corrupted or partially written `paths` block is fatal downstream: strict validation exits rather than guessing. `rc-init.sh` writes the block in a single `yq` transaction specifically so a crash cannot produce that state.
 
-## 🧪 Notes
-
-- Will eventually include environment validation (`check_bones()`, `require_dirs()`)
-- May emit logs if used with `--debug`
-- Intended for both human-run and CI-safe contexts
-
-```
-🪦 Ritual Standard:
-Every script should source `rc-env.sh` to avoid path chaos.
-```
 ## Necromancer's Notes
 <!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
 
@@ -86,6 +59,7 @@ Sourcing dynamic shell scripts is basically inviting vampires in through the fro
 
 ### Ritual Warnings
 Never trust the environment. Validate `ROOT_DIR` as if your life depends on it, because the lifespan of your filesystem certainly does.
+
 ## Ritual History
 <!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
 
@@ -93,9 +67,10 @@ Never trust the environment. Validate `ROOT_DIR` as if your life depends on it, 
 - - Remove redundant subshells from rc-env.sh.
 - - Optimize rc-env.sh subshell parsing and harden sidecar path traversal boundaries
 - - Optimize rc-env.sh to prevent unnecessary fork subshells.
-- streamlined `rc-dip.sh` parsing, and removal of redundant `rc-env.sh`
-- stitching in `rc-dip.sh`, and revised `rc-env.sh` resolution order.
-- Sidecar path-traversal boundaries were hardened and `rc-env.sh` subshell parsing
+- - streamlined `rc-dip.sh` parsing, and removal of redundant `rc-env.sh`
+- - stitching in `rc-dip.sh`, and revised `rc-env.sh` resolution order.
+- - Sidecar path-traversal boundaries were hardened and `rc-env.sh` subshell parsing
+
 ## Environment
 <!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
 
@@ -116,6 +91,7 @@ Never trust the environment. Validate `ROOT_DIR` as if your life depends on it, 
 - **$TEMPLATE_DIR**: bones/templates
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
+
 ###### CLI Usage
 <!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
 

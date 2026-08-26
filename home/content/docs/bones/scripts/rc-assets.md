@@ -1,21 +1,19 @@
 ---
 title: "🧾 rc-assets.sh Reference"
 slug: rc-assets
-version: "0.3.0"
-updated: "2026-08-26"
-description: "Documents and explains the behavior of rc-assets.sh, which mirrors home/assets/ into output/assets/ and generates a checksum manifest."
+target_file: "bones/scripts/rc-assets.sh"
+date: "2026-08-26"
+template: "rotkeeper-doc.html"
+status: "active"
+version: "0.5.1"
+author: "Rotkeeper Ritual Council"
+project: "Rotkeeper"
+description: "Mirrors home/assets/ into output/assets/ and generates a SHA256 checksum manifest at bones/asset-manifest.yaml, pruning stale generated assets."
 tags:
   - rotkeeper
   - scripts
   - assets
   - manifest
-asset_meta:
-  name: "rc-assets.md"
-  version: "0.3.0"
-  author: "Rotkeeper Ritual Council"
-  project: "Rotkeeper"
-  tracked: true
-  license: "All Rights Reserved"
 ---
 
 
@@ -56,8 +54,20 @@ Supported flags:
 ## Exit Codes
 <!-- Symbolic outcomes of incantation -->
 - `0` — Manifest generated successfully.
-- `1` — Dependencies missing or I/O error.
-- `2` — Critical error (e.g. missing inputs)
+- Nonzero — dependency failure (`require_bins` exits 2 when `rsync` is missing) or an I/O error under strict mode.
+
+### Environment assumptions
+
+- **Reads:** `ASSETS_DIR` (source tree), `OUTPUT_DIR`, `BONES_DIR`, `ARCHIVE_DIR`, `REPORT_DIR`; requires the output ownership marker (`.rotkeeper-generated`) before pruning.
+- **Writes:** `output/assets/` mirror, `bones/asset-manifest.yaml` (prior manifest archived to `bones/archive/asset-manifest-<timestamp>.yaml`), timestamped report under `bones/reports/`.
+- **Dependencies:** `bash`, `rsync`, and a SHA-256 tool (`sha256sum` or `shasum`).
+- **CWD:** none — all paths are environment-derived.
+
+## Dangerous operations
+
+- **Prunes stale files from `output/assets/`** — any generated asset with no source counterpart is deleted, but only when the output tree carries the `.rotkeeper-generated` ownership marker; unmarked trees are never touched.
+- Rotates the asset manifest by moving the previous one into `bones/archive/`; history is preserved, never merged.
+- Relative asset paths are validated against traversal and character allowlists before copy; violations are logged as errors and skipped, not copied.
 
 ## Examples
 ```bash

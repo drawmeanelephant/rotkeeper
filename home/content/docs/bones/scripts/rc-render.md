@@ -1,100 +1,69 @@
 ---
 title: "🖨️ rc-render.sh Reference"
 slug: rc-render
-version: "0.5.0"
-updated: "2026-07-23"
-description: "Main rendering engine for converting Markdown tombs into HTML using Oliver and custom templates. Skips any Markdown with `status: draft`."
+target_file: "bones/scripts/rc-render.sh"
+date: "2026-08-26"
+template: "rotkeeper-doc.html"
+status: "active"
+version: "0.7.0"
+author: "Rotkeeper Ritual Council"
+project: "Rotkeeper"
+description: "The core render ritual: plans and executes Oliver renders of every content source into themed HTML pages under output/, pruning stale pages and recording a manifest."
 tags:
   - rotkeeper
   - scripts
   - rendering
   - oliver
-asset_meta:
-  name: "rc-render.md"
-  version: "v0.5.0"
-  author: "Rotkeeper Ritual Council"
-  project: "Rotkeeper"
-  tracked: true
-  license: "All Rights Reserved"
 ---
-
-<!--
-🎨 Sora Prompt:
-"A cryptic ritual hall illuminated by rows of glowing <code>oliver</code> invocations, candles flickering on terminal screens, as rc-render.sh weaves Markdown into spectral HTML pages."
--->
-<!-- Begin Ritual Script Documentation -->
 
 # 🎨 rc-render.sh
 
 <!-- The sacred rite of tomb rendering -->
 **Script Path:** `bones/scripts/rc-render.sh`
 
-## Purpose
-<!-- Core objectives of rc-render.sh -->
-- Convert all Markdown documentation into HTML pages.
-- Support custom templates, parallel execution, verbose logging, and dry-run previews.
-- Emit detailed logs for ritual auditing.
-- Renders Markdown pages from `home/content/` to HTML in `output/`
-- Uses HTML templates via Oliver
+## Overview
 
-## CLI Interface
-<!-- How to invoke the rendering ceremony -->
+`rc-render.sh` backs the `render` dispatcher command — the beating heart of the pipeline. Every `.md`, `.textile`, and `.cook` source under `CONTENT_DIR` is planned and rendered through Oliver into an HTML page at the mirrored path under `OUTPUT_DIR`.
+
+The pass, in order:
+
+1. **Renderer gate** — Oliver is the only renderer (pandoc was removed and is refused by name). The binary is resolved via `rk_oliver_preflight` (`RK_OLIVER_BIN` override, then `PATH`); failure aborts with copy-pasteable diagnosis and a pointer to `preflight`.
+2. **Template resolution** — `default_template` from `rotkeeper.yaml`; if unset, the first template in `TEMPLATE_DIR` is used with a `[WARN]`; no templates at all is fatal.
+3. **Source discovery** — NUL-delimited walk of `CONTENT_DIR` using the GNU-find-safe helper (BSD find + yq can segfault on macOS). With `render_system_docs: false` in config, the internal `docs/`, `messages/`, and `help/` subtrees are pruned from user space.
+4. **Output mapping & collision check** — each source maps to `$OUTPUT_DIR/<rel-path>.html`; two sources competing for one page basename (`foo.md` vs `foo.textile`) is a fatal error, not a silent overwrite.
+5. **Stale-page pruning** — HTML files in `output/` that no longer map to any source are deleted, but *only* when the tree carries the `.rotkeeper-generated` ownership marker; an unmarked tree is refused with a warning instead.
+6. **Asset sync** — delegates to `rc-assets.sh` so every rendered page's relative asset links resolve (real runs only; `--dry-run` stays non-mutating).
+7. **Oliver plan + adapter batch** — `oliver plan` emits a TSV of render jobs which `rc-oliver-adapter.sh` executes page by page (frontmatter stripping, template application, link rewriting). Adapter failures surface the first underlying Oliver error line plus hints (including the XHTML raw-HTML rule) as terminal markers.
+8. **Manifest & summary** — every expected output is recorded into `bones/manifest.txt` via `oliver manifest --add`; the run ends with a duration/warning-count marker and re-stamps the output ownership marker.
+
+## CLI Usage
+
 ```bash
-rc-render.sh [--renderer oliver] [--dry-run] [--verbose] [--help]
+rotkeeper.sh render [options]
 
-# Note: rc-render.sh now runs lint first and skips drafts.
-# Flags:
-#   --dry-run (-n)  Preview actions without writing output; skips drafts and linting occurs first.
-#   --verbose (-v)  Show detailed logs.
-#   --help (-h)     Show usage information and exit.
+# Options:
+#   --renderer NAME  Select renderer: oliver (the only supported value)
+#   --dry-run        Preview without invoking the adapter or writing output
+#   --verbose        Show detailed logs and per-page progress
+#   --help, -h       Show usage help
+
+# Examples:
+bash rotkeeper.sh render
+RK_OLIVER_BIN=/path/to/oliver bash rotkeeper.sh render --renderer oliver
 ```
 
-Supported options:
-- `--help`, `-h`
-  Show usage information and exit.
-- `--dry-run`, `-n`
-  Preview actions without writing output.
-- `--verbose`, `-v`
-  Show detailed logs.
+### Environment assumptions
 
-## Workflow Steps
-<!-- Sequential rites performed by the script -->
-0. **Filter Drafts**
-   - Any Markdown file with `status: draft` is skipped with a log entry.
-1. **Check Dependencies**
-   - Ensure `find`, `xargs`, `date`, and `yq` are available.
-2. **Initialize Logging**
-   - Write to `bones/logs/rc-render.log`. All stdout and stderr are captured.
-3. **Discover Markdown Files**
-   - Recursively locate `*.md` pages to render.
-   - Searches `home/content/` recursively for `.md` files.
-4. **Render Files**
-   - Process each Markdown file sequentially using Oliver.
-5. **Log Results**
-   - Record successes and failures with timestamps.
-6. **Cleanup**
-   - Remove temporary files on exit.
+- **Reads:** `RK_RENDERER` (default `oliver`), `RK_OLIVER_BIN`, `INPUT_FORMAT`, `RENDER_PROFILE`; config keys `default_template` and `render_system_docs`; requires the canonical path set (`CONTENT_DIR`, `OUTPUT_DIR`, `TEMPLATE_DIR`, `META_DIR`, …).
+- **Writes:** the HTML tree under `OUTPUT_DIR` (via the adapter), `bones/manifest.txt`, batch/bookkeeping files under `TMP_DIR`, per-run logs under `LOG_DIR`; refreshes the `.rotkeeper-generated` marker.
+- **CWD:** none — sources and outputs resolve against canonical roots.
 
-## Exit Codes
-<!-- Symbolic outcomes of incantation -->
-- `0` — All pages rendered successfully.
-- `1` — Missing dependencies or invalid flags.
-- `2` — One or more render failures.
+## Dangerous operations
 
-Errors and render failures are logged to `bones/logs/rc-render.log`.
-
-## Examples
-<!-- Sample invocations for celebratory rites -->
-```bash
-# Default render
-./bones/scripts/rc-render.sh
-
-# Verbose output
-./bones/scripts/rc-render.sh -v
-
-# Dry-run (lint and draft skipping occur, but no output is written)
-./bones/scripts/rc-render.sh --dry-run
-```
+- **Deletes stale rendered pages** under `OUTPUT_DIR` — gated on the `.rotkeeper-generated` marker proving the tree is machine-produced; unmarked trees are never pruned.
+- Delegates destructive asset pruning to `rc-assets.sh` (same ownership-marker gate).
+- Appends to `bones/manifest.txt`; a failed `oliver manifest --add` aborts the run rather than silently desyncing the ledger.
+- Source-basename collisions abort the whole render up front, protecting the output tree from nondeterministic overwrites.
 
 ## 🛣️ Navigation
 <!-- Quick navigation links -->
@@ -117,6 +86,7 @@ It logs every start,
 And edges apart,
 Leaving no page in pending doom.
 -->
+
 ## Necromancer's Notes
 <!-- DIP-SOUL-EXTRACTED: 2026-08-12T02:18:17Z -->
 
@@ -138,6 +108,7 @@ This script is a masterclass in bureaucratic necromancy. I deeply appreciate the
 * The most glaring vulnerability is its blind trust in Oliver's handling of user-provided Markdown. If a template name is cleverly manipulated in the frontmatter to traverse directories (e.g., `../../etc/passwd`), this ritual could inadvertently attempt to read outside the `TEMPLATE_DIR`.
 * The fallback template selection is reliant on whatever file globbing decides is first; one day, it will grab a template meant for internal torture rather than public display.
 * If `ROOT_DIR` or `OUTPUT_DIR` somehow become unassigned or point to `/`, the recursive `mkdir -p` and path string replacements (`${mdpath#"$PROJ_ROOT"/}`) might attempt to entomb the entire operating system.
+
 ## Ritual History
 <!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
 
@@ -147,6 +118,7 @@ This script is a masterclass in bureaucratic necromancy. I deeply appreciate the
 - - Fix template parsing bug in rc-render.sh using yq
 - - Ensure rc-render.sh outputs proper HTML with valid tags.
 - `CHANGELOG.md` records parallel `rc-render.sh` processing, smaller `rc-pack.sh`
+
 ## Environment
 <!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
 
@@ -167,6 +139,7 @@ This script is a masterclass in bureaucratic necromancy. I deeply appreciate the
 - **$TEMPLATE_DIR**: bones/templates
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
+
 ###### CLI Usage
 <!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
 

@@ -1,71 +1,67 @@
 ---
 title: "🦴 rc-init.sh Reference"
 slug: rc-init
-version: "v0.2.3-pre"
-updated: "2025-06-01"
-description: "Initializes a new rotkeeper directory structure with all required folders, templates, and seed files."
+target_file: "bones/scripts/rc-init.sh"
+date: "2026-08-26"
+template: "rotkeeper-doc.html"
+status: "active"
+version: "0.5.1"
+author: "Rotkeeper Ritual Council"
+project: "Rotkeeper"
+description: "Non-destructive environment initialization: blesses scripts executable, verifies dependencies, creates core directories, and serializes the canonical path cache into rotkeeper.yaml."
 tags:
   - rotkeeper
   - scripts
   - init
   - bootstrap
-asset_meta:
-  name: "rc-init.md"
-  version: "v0.2.3-pre"
-  author: "Rotkeeper Ritual Council"
-  project: "Rotkeeper"
-  tracked: true
-  license: "All Rights Reserved"
 ---
 
-# 🧱 rc-init — Ritual Bootstrap
+# 🦴 rc-init.sh
 
-The `rc-init.sh` script creates the skeletal folder structure and placeholder files required for a new Rotkeeper deployment.
+**Script Path:** `bones/scripts/rc-init.sh`
 
-This script is typically run **once**, or when reanimating a collapsed tomb structure. It can be safely run multiple times (idempotent).
+## Overview
 
----
+`rc-init.sh` backs the `init` dispatcher command: the first ritual run on a new repository, and the repair tool whenever path validation complains. It is deliberately **non-destructive** and idempotent — safe to run repeatedly on a live tomb.
 
-## 📁 What It Creates
+What it actually does, in order:
 
-- `bones/`, `bones/logs/`, `bones/archive/`, `bones/reports/`, `bones/templates/`
-- `home/`, `home/assets/`, `home/content/rotkeeper/`
-- `output/`
+1. **Blesses scripts** — `chmod +x` on every `rc-*.sh` and `rc-*.bats` under `SCRIPT_DIR`.
+2. **Verifies dependencies** — requires `bash` and mikefarah `yq` v4+ (`require_yq_version`).
+3. **Creates core directories** — `mkdir -p` for `CONTENT_DIR`, `OUTPUT_DIR`, and `CONFIG_DIR` only; everything else is derived or already exists.
+4. **Serializes the path cache** — writes the full canonical path mapping into the `paths` block of `bones/config/rotkeeper.yaml` in a *single* `yq` transaction, so a mid-write crash cannot leave the partially populated block that strict validation treats as fatal. A `--profile=<style>` argument also sets `.layout_style`. Afterwards it forces a strict environment reload (`FORCE_ENV_RELOAD=true`) to validate what was just written.
+5. **Optional extras** — `--with-sample` writes a starter `test-file.md` into `CONTENT_DIR` (only when absent — existing files are never touched), `--with-assets` chains `rc-assets.sh`, `--with-render` chains `rc-render.sh --verbose`, `--full` enables all three plus `rc-scan.sh`.
 
-It also ensures the following exist:
-- `bones/manifest.txt`
+## CLI Usage
 
----
+```bash
+rotkeeper.sh init [options]
 
-## 🔁 Behavior
-
-- Can be run repeatedly without error
-- Logs are saved to `bones/logs/rc-init.log`. All stdout and stderr are captured.
-- Errors from `rc-render.sh` will cause a non-zero exit and be captured in the log.
-- Exits `0` on success, `1` if required tools or permissions are missing
-- Sources `rc-env.sh` to set root path constants
-
----
-
-## 🏁 Flags
-
-```markdown
-- `--help`: print usage text and exit
-- `--verbose`: print log entries to terminal
-- `--dry-run`: simulate setup without creating files
+# Options:
+#   --profile=STYLE  Layout style for .layout_style (crypt | busy | sterile)
+#   --with-sample    Generate starter content at $CONTENT_DIR/test-file.md
+#   --with-assets    Run the assets ritual after initialization
+#   --with-render    Run the render ritual after initialization
+#   --full           Sample + assets + render + scan
+#   --dry-run        Preview actions without writing
+#   --verbose        Show detailed logs
+#   --help, -h       Show usage help
 ```
 
----
+### Environment assumptions
 
-## 🔗 Related Rituals
+- **Reads:** `--profile` is exported as `LAYOUT_STYLE` before loading; standard `RK_*` flag defaults via `rk_init_script`.
+- **Requires:** `ROOT_DIR`, `BONES_DIR`, `SCRIPT_DIR`, `CONFIG_DIR`, `LOG_DIR`, `TMP_DIR`, `CONTENT_DIR`, `DOCS_DIR`, `OUTPUT_DIR`, `RELEASE_DIR`.
+- **Writes:** `bones/config/rotkeeper.yaml` (frontmatter title seed when missing, optional `layout_style`, full `paths` block); `$CONTENT_DIR/test-file.md` with `--with-sample`; log file under `LOG_DIR`.
+- **CWD:** none — root-relative throughout.
 
-- [`rc-new.sh`](rc-new.md) — scaffolds new content files
-- [`rc-render.sh`](rc-render.md) — renders output after structure is seeded
-- [`rc-book.sh`](rc-book.md) — generates documentation reports after init
+## Dangerous operations
 
----
+The gentlest ritual, but it does hold the pen that writes the path cache:
 
-## 🪦 Limericks
+- The `paths` block in `rotkeeper.yaml` is overwritten wholesale. Because every other ritual trusts that cache (and exits rather than guessing when it looks wrong), a bad write here poisons the whole system — hence the single-transaction write followed by an immediate strict reload.
+- Delegated rituals (`assets`, `render`, `scan`) perform their own writes/deletes; see their pages.
+- Nothing is ever deleted by this script, and existing content files are never overwritten.
 
 <!-- 🎴 Limerick 1:
 A tomb with no bones is just lore,
@@ -83,60 +79,11 @@ From home to the math,
 And ensured your rot cycle’s theme.
 -->
 
+## Related Rituals
 
----
-
-
----
-
-## 🧪 Usage Examples
-
-Run from the root of your Rotkeeper repo:
-
-```bash
-bash bones/scripts/rc-init.sh
-```
-
-Or invoke through the main dispatcher:
-
-```bash
-./rotkeeper init
-```
-
-All output is logged to `bones/logs/rc-init.log`.
-
-Use this at the beginning of any new tomb cycle or prior to reseeding from archive.
-
----
-
-## 🗂️ Folder Layout Preview
-
-```plaintext
-rotkeeper/
-├── bones/
-│   ├── archive/
-│   ├── logs/
-│   ├── reports/
-│   └── templates/
-├── home/
-│   ├── assets/
-│   └── content/
-│       └── rotkeeper/
-├── output/
-└── bones/manifest.txt
-```
-
----
-
-## ⚠️ Notes & Caveats
-
-- If `bones/manifest.txt` already exists, it will not be overwritten
-- Does not clone or fetch any default templates — only prepares the structure
-- Won’t run `expand` or `render` unless explicitly chained
-- Errors are trapped and logged via `trap_err`. Review `rc-init.log` for troubleshooting.
-- May be chained with `rc-book.sh` or `rc-render.sh` to generate reports and outputs after setup
-
-<!-- Sora Prompt: "A ceremonial shovel labeled 'rc-init.sh' digging the first directory into a haunted filescape; skeletons holding folder trees, sigils glowing faintly on markdown pages." -->
+- [`rc-new.sh`](rc-new.md) — scaffolds new content files
+- [`rc-render.sh`](rc-render.md) — renders output after structure is seeded
+- [`rc-book.sh`](rc-book.md) — generates documentation reports after init
 
 ## Necromancer's Notes
 <!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
@@ -150,6 +97,7 @@ Its zealotry knows no bounds. When invoked with `--force`, it will violently ove
 
 ### Ritual Warnings
 Use `--force` only when you are entirely prepared to salt the earth and start anew. Keep backups of your configuration.
+
 ## Ritual History
 <!-- DIP-HISTORY-EXTRACTED: 2026-07-04T15:41:00Z -->
 
@@ -175,6 +123,7 @@ Use `--force` only when you are entirely prepared to salt the earth and start an
 - **$TEMPLATE_DIR**: bones/templates
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
+
 ###### CLI Usage
 <!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
 

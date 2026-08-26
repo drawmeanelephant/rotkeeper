@@ -1,62 +1,69 @@
 ---
-title: "rc-status.sh"
+title: "🩺 rc-status.sh Reference"
 slug: rc-status
-subtitle: "Reports the current rotkeeper project state, including logs, active version, and tomb status."
-version: "v0.2.5"
-updated: "2025-06-03"
-description: "Provides a snapshot of the rotkeeper environment including changelog info, log count, manifest state, and current archive status."
+target_file: "bones/scripts/rc-status.sh"
+date: "2026-08-26"
+template: "rotkeeper-doc.html"
+status: "active"
+version: "0.5.1"
+author: "Rotkeeper Ritual Council"
+project: "Rotkeeper"
+description: "Read-only health snapshot across environment, script health, RAG exports, releases, recent tombs, content pulse, render freshness, and config — with --json and --short modes."
 tags:
   - rotkeeper
   - status
-  - logs
-  - version
   - audit
-  - script
-asset_meta:
-  name: "rc-status.md"
-  version: "v0.2.5"
-  author: "Filed Systems"
-  project: "Rotkeeper"
-  type: "script-doc"
-  tracked: true
-  license: "All Rights Reserved"
----
+  - diagnostics
 ---
 
-# `rc-status.sh`
+# 🩺 rc-status.sh
 
-This script provides a snapshot of the current Rotkeeper environment. It displays the active version, the latest changelog entry, recent logs, archive size summaries, and other system signals.
+**Script Path:** `bones/scripts/rc-status.sh`
 
----
+## Overview
 
-## 🧠 Purpose
+`rc-status.sh` backs the `status` dispatcher command: a read-only diagnostic sweep for pre-deploy audits, post-pack confirmation, or ritual postmortems. It never mutates the workspace (its only write is its own log file).
 
-To get a quick overview of the current tomb state without triggering full renders or validations. Useful for pre-deploy audits, post-pack confirmation, or ritual postmortems.
+The report walks eight sections:
 
----
+1. **Environment** — canonical version and where it came from (`bones/config/version` vs `ROTKEEPER_VERSION` override), CWD, git branch and commit.
+2. **Script Health** — syntax checks across every `rc-*.sh` plus the dispatcher.
+3. **RAG Exports** — which binder artifacts exist under `bones/book-reports/`.
+4. **Releases** / **Recent Tombs** — what has been shipped and archived lately.
+5. **Content Pulse** — source counts by format (markdown/textile/cook).
+6. **Render Freshness** — newest-source vs newest-HTML mtime comparison: `✓ [OK] output is current`, `✗ [STALE] content has changed since last render`, or `[EMPTY] no rendered output found`.
+7. **Config Summary** — project/author/version/template/input-format/license from `rotkeeper.yaml`.
 
-## 🌀 Usage
+Output modes:
+
+- **Default** — human-readable headed report with TTY color (respects `NO_COLOR`); explicitly restores the caller's stdout/stderr after shared initialization so the report is visible even in quiet mode.
+- **`--short`** — one line: `rotkeeper <version> | <pages> | <freshness> | <branch>`.
+- **`--json`** — one machine-readable JSON object with the same sections.
+
+## CLI Usage
 
 ```bash
-./scripts/rc-status.sh
+rotkeeper.sh status [--json | --short] [options]
+
+# Options:
+#   --json         Emit a machine-readable JSON report
+#   --short        One-line summary (version | pages | freshness | branch)
+#   --dry-run      No-op flag accepted for contract consistency
+#   --verbose      Detailed output
+#   --help, -h     Show usage help
 ```
 
-No flags required. It operates read-only and emits to STDOUT.
+### Environment assumptions
+
+- **Reads:** version file, git metadata, `CONTENT_DIR`, `OUTPUT_DIR`, `ARCHIVE_DIR`, `BOOK_REPORT_DIR`, `CONFIG_DIR/rotkeeper.yaml`; requires `bash`, `jq`, `yq` v4.
+- **Writes:** nothing except a per-run log under `LOG_DIR`.
+- **CWD:** none; git context is read from the repository.
+
+## Dangerous operations
+
+None. The ritual is strictly read-only over workspace state — safe to run at any time, including mid-pipeline.
 
 ---
-
-## 📦 Example Output
-
-```
-Rotkeeper Version: 0.2.0
-Latest Tomb: bones/archive/tomb-0.2.0.tar.gz
-Log Count: 37
-Manifest: bones/asset-manifest.yaml (valid)
-```
-
----
-
-
 
 <!-- 🎴 Limerick 1:
 To query the bones with a glance so wise,
@@ -86,10 +93,12 @@ If Git is not installed, it panics like a lost child. If the logs are empty, it 
 
 ### Ritual Warnings
 Do not mistake silence for health. An empty log often means the patient is already dead.
+
 ## Ritual History
 <!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
 
 *Not found: no changelog/history entries matching `rc-status.sh`.*
+
 ## Environment
 <!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
 
@@ -110,6 +119,7 @@ Do not mistake silence for health. An empty log often means the patient is alrea
 - **$TEMPLATE_DIR**: bones/templates
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
+
 ###### CLI Usage
 <!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
 

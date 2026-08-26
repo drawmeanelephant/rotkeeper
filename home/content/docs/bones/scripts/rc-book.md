@@ -1,60 +1,74 @@
 ---
-title: "rc-book — binder ritual for compiling and collapsing Rotkeeper books"
+title: "📚 rc-book.sh Reference"
 slug: rc-book
-status: stable
-version: "v0.2.5"
-updated: 2025-06-03
-description: "Centralizes all documentation binding; compiles or collapses Rotkeeper books from markdown and script rituals."
+target_file: "bones/scripts/rc-book.sh"
+date: "2026-08-26"
+template: "rotkeeper-doc.html"
+status: "active"
+version: "0.5.1"
+author: "Rotkeeper Ritual Council"
+project: "Rotkeeper"
+description: "The binder ritual: aggregates scripts, docs, config, content, and the filesystem catalog into retrieval books under bones/book-reports, with boundary and size safeguards."
 tags:
   - rotkeeper
   - scripts
   - docs
   - binders
-asset_meta:
-  name: "rc-book.md"
-  version: "v0.2.5"
-  author: "Rotkeeper Ritual Council"
-  project: "Rotkeeper"
-  tracked: true
-  license: "All Rights Reserved"
 ---
 
-`rc-book.sh` is the singular binder ritual for Rotkeeper. It replaces all prior book scripts (`rc-scriptbook.sh`, `rc-docbook.sh`, `rc-configbook.sh`) and now produces canonical markdown reports for resurrection, rendering, or collapse.
+# 📚 rc-book.sh
 
-It supports generation of scriptbooks, docbooks (clean and full), and configbooks, and can output a collapsed YAML form of all content.
+**Script Path:** `bones/scripts/rc-book.sh`
 
-## 🧰 Usage
+## Overview
+
+`rc-book.sh` is the singular binder ritual behind the `book` dispatcher command. It compiles scattered sources into single retrieval artifacts — RAG tomes for humans and machines — replacing all prior per-book scripts. Every bound section is wrapped in `<!-- START <path>::<suffix> -->` / `<!-- END … -->` markers carrying a per-run random suffix.
+
+Modes (one per run; no mode means `--all`):
+
+- `--fsbook` — filesystem catalog (`rotkeeper-files.md`): every project file not pruned (`.git`, output/tmp/logs/reports/book-reports/archive trees, logs, `.DS_Store`, temp files). This catalog **feeds DIP's core-file discovery** — regenerate it after adding or removing files.
+- `--docbook` / `--docbook-clean` — every `.md`/`.textile`/`.cook` under `DOCS_DIR` bound verbatim (`rotkeeper-docbook.md`) or frontmatter-stripped with a title heading per page (`rotkeeper-docbook-clean.md`). `--strip-frontmatter` also applies to the content book.
+- `--scriptbook-full` — all active `rc-*.sh` plus the dispatcher, each in a bash fence (`rotkeeper-scriptbook-full.md`).
+- `--configbook` — YAML/YML/TPL/HTML files from `CONFIG_DIR` and `TEMPLATE_DIR` (`rotkeeper-configbook.md`).
+- `--contentbook` — all content sources under `CONTENT_DIR` (`rotkeeper-contentbook.md`).
+- `--contentmeta` — frontmatter of every content source as a YAML list keyed by path (`rotkeeper-contentmeta.yaml`).
+- `--collapse` — folds all existing `rotkeeper-*.md` books into one `collapsed-content.yaml` (title/subtitle/body block scalars).
+- `--all` — runs every mode in sequence.
+
+Safeguards:
+
+- **Write boundary** — every destination must canonicalize inside the repository/book-report zones; violations exit with code 3.
+- **Size safeguard** — when the doc+content source corpus exceeds 5 MB, binding aborts unless `--force-bind` is given explicitly.
+- **Dry-run** — previews the scriptbook/docbook/contentbook/fsbook modes without writing; note that `--configbook`, `--contentmeta`, and `--collapse` currently write their outputs even under `--dry-run`.
+
+Book outputs are generated retrieval aids, not authoritative policy — verify source scripts and configuration when a binder conflicts with them.
+
+## CLI Usage
 
 ```bash
-./bones/scripts/rc-book.sh [--scriptbook-full|--docbook|--docbook-clean|--configbook|--collapse|--all] [--dry-run]
+rotkeeper.sh book --fsbook
+rotkeeper.sh book --docbook | --docbook-clean | --scriptbook-full | --configbook
+rotkeeper.sh book --contentbook | --contentmeta | --collapse | --all
+# Shared options:
+#   --dry-run            Preview binds without writing (see caveat above)
+#   --strip-frontmatter  Strip frontmatter in docbook/contentbook bodies
+#   --force-bind         Proceed past the 5 MB size safeguard
+#   --help, -h           Show usage help
 ```
 
-## 🧾 Flags
+### Environment assumptions
 
-- `--scriptbook-full` — Bind full scripts into `rotkeeper-scriptbook-full.md`
-- `--docbook` — Bind all site documentation into `rotkeeper-docbook.md`
-- `--docbook-clean` — Same as docbook but with stripped frontmatter (for collapse)
-- `--configbook` — Bind configuration and template files into `rotkeeper-configbook.md`
-- `--collapse` — Output all binders into a single collapsed YAML file
-- `--all` — Run all binder modes (scriptbook, docbook, docbook-clean, configbook)
-- `--dry-run` — Print what would be generated without writing files
-- `--help` — Show help text
+- **Reads:** `DOCS_DIR`, `CONTENT_DIR`, `CONFIG_DIR`, `TEMPLATE_DIR`, `SCRIPT_DIR`, plus the repository tree for the fsbook walk.
+- **Writes:** exclusively under `BOOK_REPORT_DIR` (`bones/book-reports/`) — the binder enforces this boundary and its 5 MB size safeguard.
+- **Dependencies:** GNU awk (`require_gawk_version`); `bash`.
+- **CWD:** none — root-relative throughout.
 
-## 📦 Outputs
+## Dangerous operations
 
-All binders are written to `bones/reports/`:
+- Overwrites its eight book artifacts on every run (no archiving of previous generations) and creates `BOOK_REPORT_DIR` if absent.
+- The fsbook walk `cd`s to `ROOT_DIR` for the listing but writes only inside `BOOK_REPORT_DIR`; boundary breaches exit 3 before any write.
+- `--force-bind` deliberately lifts the memory-friendly size safeguard — use only when a massive tome is intentional.
 
-- `rotkeeper-scriptbook-full.md`
-- `rotkeeper-docbook.md`
-- `rotkeeper-docbook-clean.md`
-- `rotkeeper-configbook.md`
-- `collapsed-content.yaml`
-
-## 🔮 Future Work
-
-- Support for `book-config.yaml` to define inclusion/exclusion
-- Better collapse metadata (e.g., tags, titles, sections)
-- Potential for binder diffing or validation modes
 ## Necromancer's Notes
 <!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
 
@@ -67,6 +81,7 @@ Including raw configs and logs is a fool's errand. The token weight of this mons
 
 ### Ritual Warnings
 Keep the project small, or watch this script choke on its own creation. Never feed the resulting tome to a language model without a robust token budget, lest you bankrupt your API account.
+
 ## Ritual History
 <!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
 
@@ -76,6 +91,7 @@ Keep the project small, or watch this script choke on its own creation. Never fe
 - `rc-book.sh` gained `--all` and YAML-collapse modes. Binder generation was
 - unified in `rc-book.sh`; the former expansion and webbook rituals were
 -   `rc-book.sh`, `rc-dip.sh`, and `rc-glue.sh`.
+
 ## Environment
 <!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
 
@@ -96,6 +112,7 @@ Keep the project small, or watch this script choke on its own creation. Never fe
 - **$TEMPLATE_DIR**: bones/templates
 - **$META_DIR**: bones/meta
 - **$WEB_DIR**: output
+
 ###### CLI Usage
 <!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
 
