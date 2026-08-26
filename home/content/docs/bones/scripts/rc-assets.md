@@ -1,9 +1,9 @@
 ---
 title: "🧾 rc-assets.sh Reference"
 slug: rc-assets
-version: "0.2.5"
-updated: "2025-06-03"
-description: "Documents and explains the behavior of rc-assets.sh, which scans HTML for asset links and generates a manifest."
+version: "0.3.0"
+updated: "2026-08-26"
+description: "Documents and explains the behavior of rc-assets.sh, which mirrors home/assets/ into output/assets/ and generates a checksum manifest."
 tags:
   - rotkeeper
   - scripts
@@ -11,7 +11,7 @@ tags:
   - manifest
 asset_meta:
   name: "rc-assets.md"
-  version: "0.2.5"
+  version: "0.3.0"
   author: "Rotkeeper Ritual Council"
   project: "Rotkeeper"
   tracked: true
@@ -27,10 +27,10 @@ asset_meta:
 
 ## Purpose
 <!-- Core objectives of rc-assets.sh -->
-- Scan rendered HTML in `output/` for `<img>` or `<link>` tags referencing `assets/`
-- Identify actual files used in the tomb pages
-- Copy matched assets from `home/assets/` into `output/assets/`
-- Emit a YAML manifest of the matched files to `bones/asset-manifest.yaml`
+- Enumerate every file under `home/assets/` (no HTML scanning — assets are mirrored by source tree, not discovered from rendered output)
+- Copy each asset into `output/assets/`, preserving the directory layout
+- Prune stale generated assets from `output/assets/` when the output tree is marked generated, so deleted source assets do not linger
+- Emit a YAML manifest of path → SHA256 pairs to `bones/asset-manifest.yaml`, archiving any prior manifest to `bones/archive/`
 
 ## CLI Interface
 ```bash
@@ -46,10 +46,12 @@ Supported flags:
   Show detailed logs.
 
 ## Workflow Steps
-1. **Verify Dependencies**: `require_bins find sha256sum yq` (sourced from `rc-utils.sh`).
-2. **Discover Assets**: Locate referenced assets in output/*.html
-3. **Compute Metadata**: For each referenced asset, compute SHA256 and copy into output/assets/
-4. **Assemble & Write Manifest**: Structure and write to `bones/asset-manifest.yaml` or preview under dry-run.
+1. **Verify Dependencies**: `require_bins bash rsync` and `require_sha256` (sourced from `rc-utils.sh`).
+2. **Archive Prior Manifest**: Move any existing `bones/asset-manifest.yaml` to `bones/archive/asset-manifest-<timestamp>.yaml`.
+3. **Discover Assets**: Enumerate files under `home/assets/` (`find`, excluding `.DS_Store`), sorted by relative path.
+4. **Prune Stale Output**: When the output tree is marked generated, delete `output/assets/` entries with no source counterpart.
+5. **Sync & Checksum**: Validate each relative path for traversal/illegal characters, `rsync` into `output/assets/`, and compute SHA256.
+6. **Assemble & Write Manifest**: Append `- path:` / `  sha256:` entries to the report, copy it to `bones/asset-manifest.yaml`, and mark the output tree generated.
 
 ## Exit Codes
 <!-- Symbolic outcomes of incantation -->
@@ -79,7 +81,7 @@ The output manifest is a YAML file with entries like:
   sha256: "abc123..."
 ```
 
-If no assets are found, an empty manifest with `assets: []` is written.
+If no assets are found, the manifest is a single comment line: `# assets: []`.
 
 ## 🛣️ Navigation
 <!-- Quick navigation links -->

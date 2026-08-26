@@ -19,7 +19,7 @@ This folder contains the core shell scripts that run Rotkeeper's commands.
 - **[rc-init.sh](rc-init.html)**: Prepares the directory layouts and template configurations.
 - **[rc-render.sh](rc-render.html)**: Invokes Oliver to compile Markdown files into HTML.
 - **[rc-preflight.sh](rc-preflight.html)**: Reports whether the Oliver renderer is discoverable, executable, and runnable.
-- **[rc-assets.sh](rc-assets.html)**: Scans HTML and generates the SHA256 assets manifest.
+- **[rc-assets.sh](rc-assets.html)**: Mirrors `home/assets/` into `output/assets/` and generates the SHA256 assets manifest.
 - **[rc-scan.sh](rc-scan.html)**: Audits file integrity and metadata drift.
 - **[rc-pack.sh](rc-pack.html)**: Packages directories into a compressed archive.
 - **[rc-dip.sh](rc-dip.html)**: Runs the Document Improvement Project to build and stitch documentation.
