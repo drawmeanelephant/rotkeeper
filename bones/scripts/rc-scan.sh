@@ -36,22 +36,35 @@ disk_list=()
 # ---
 show_help() {
   cat <<EOF
-rc-scan.sh — Audit manifest and scan environment for file reports (v$VERSION)
+rc-scan.sh — Audit manifest and scan environment for file reports (v${VERSION:-unknown})
 
-Options:
-  --version, -v    Show script version and quit
+Usage:
+  rotkeeper.sh scan [flags]
 
-Usage: rc-scan.sh [flags]
+Description:
+  Verifies manifest entries against the actual files on disk and
+  writes Markdown/JSON reports to bones/reports/.
 
 Flags:
   --manifest-only   Read only manifest file, skip disk scan.
   --include <ext>   Comma-separated list of extensions to include.
   --exclude <pat>   Glob pattern to exclude (can repeat).
-  --dry-run         Show actions without writing reports.
-  --verbose         Print detailed logs.
   --json-only       Output only JSON report.
   --md-only         Output only Markdown report.
+  --dry-run         Show actions without writing reports.
+  --verbose         Print detailed logs.
   -h, --help        Show this help message and exit.
+  --version, -v     Show script version and quit.
+
+Examples:
+  bash rotkeeper.sh scan                                     Full audit
+  bash rotkeeper.sh scan --manifest-only                     Manifest check only
+  bash rotkeeper.sh scan --include md,textile --dry-run      Filtered preview
+
+Exit codes:
+  0    Success
+  1    Environment failure
+  2    Manifest file missing
 EOF
   exit "${1:-0}"
 }

@@ -14,20 +14,30 @@ IFS=$'\n\t'
 # shellcheck disable=SC2329 # invoked indirectly by rk_init_script's help handling
 show_help() {
   cat << EOF
-rc-preflight.sh — Report Oliver renderer availability (v$VERSION)
+rc-preflight.sh — Report Oliver renderer availability (v${VERSION:-unknown})
 
-Usage: rc-preflight.sh
+Usage:
+  rotkeeper.sh preflight [options]
 
-Reports whether the Oliver renderer is discoverable, executable, and actually
-runnable (a live smoke render through the real CLI; see
-home/content/docs/oliver-contract.md). Exits 0 when rendering is ready; exits
-1 with one actionable setup message when it is not.
+Description:
+  Reports whether the Oliver renderer is discoverable, executable, and
+  actually runnable (a live smoke render through the real CLI; see
+  home/content/docs/oliver-contract.md). This is the single renderer
+  health check; render routes through the same check.
 
 Options:
-  --version, -v    Show script version and quit
-  --help, -h       Show this help message and exit
   --verbose        Show detailed findings
   --dry-run        Report the check without invoking the Oliver binary
+  --help, -h       Show this help message and exit
+  --version, -v    Show script version and quit
+
+Examples:
+  bash rotkeeper.sh preflight              Verify rendering is ready
+  bash rotkeeper.sh preflight --verbose    Show discovery details
+
+Exit codes:
+  0    Rendering ready
+  1    Renderer missing or unusable (with one actionable setup message)
 EOF
   exit 0
 }

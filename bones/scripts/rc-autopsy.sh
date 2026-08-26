@@ -32,8 +32,15 @@ IFS=$'\n\t'
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 show_help() { cat <<HELP_EOF
-rc-autopsy.sh — Script dissection ritual v$VERSION
-Usage: rc-autopsy.sh [mode] [options]
+rc-autopsy.sh — Script dissection ritual (v${VERSION:-unknown})
+
+Usage:
+  rotkeeper.sh autopsy [mode] [options]
+
+Description:
+  Catalogs ritual behavior: extracts --help output from all rc-*.sh
+  scripts and scans scripts for file-write operations into reference
+  reports under bones/reports/.
 
 Modes:
   --help-report    Extract --help output from all rc-*.sh into a reference report
@@ -43,8 +50,16 @@ Modes:
 Options:
   --dry-run        Preview without writing
   --verbose        Detailed logging
-  --help, -h       Show this message
-  --version, -v    Show version
+  --help, -h       Show this help message and exit
+  --version, -v    Show script version and quit
+
+Examples:
+  bash rotkeeper.sh autopsy                  Both reports (default)
+  bash rotkeeper.sh autopsy --help-report    Help catalog only
+
+Exit codes:
+  0    Success
+  1    Report generation failure
 HELP_EOF
 }
 

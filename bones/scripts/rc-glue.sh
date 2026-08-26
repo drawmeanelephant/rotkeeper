@@ -32,7 +32,12 @@ show_help() {
   cat <<'EOF'
 rc-glue.sh — Generate navigation glue for unindexed content directories
 
-Usage: rotkeeper.sh glue [options]
+Usage:
+  rotkeeper.sh glue [options]
+
+Description:
+  Auto-generates index pages for content directories that lack one, so
+  every section stays navigable after render.
 
 Options:
   --path DIR       Limit glue to a directory under home/content/
@@ -40,6 +45,16 @@ Options:
   --dry-run        Preview changes without writing
   --verbose        Show detailed logs
   --help, -h       Show this help message
+  --version, -v    Show script version and quit
+
+Examples:
+  bash rotkeeper.sh glue                                Glue all unindexed directories
+  bash rotkeeper.sh glue --path journal                 One directory
+  bash rotkeeper.sh glue --force --dry-run              Preview refresh
+
+Exit codes:
+  0    Success
+  1    Generation failure
 EOF
   exit 0
 }

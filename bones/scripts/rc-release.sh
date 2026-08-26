@@ -38,20 +38,34 @@ source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 show_help() {
-  cat <<'HELP_EOF'
-rc-release.sh — Package the canonical single-tier framework distribution
+  cat <<HELP_EOF
+rc-release.sh — Package the canonical single-tier framework distribution (v${VERSION:-unknown})
 
 Usage:
   rotkeeper.sh release <VERSION> [options]
 
+Description:
+  Builds releases/rotkeeper-<VERSION>.zip from a staged tree that must
+  match an explicit root-entry allowlist, contain the framework spine,
+  and carry a generated manifest.
+
 Arguments:
-  VERSION        Semver-style version for the distribution name (.e.g 0.5.2)
+  VERSION        Semver-style version for the distribution name (e.g. 0.8.0)
 
 Options:
   --dry-run      Preview the release without writing archives
   --verbose      Detailed output
   --help, -h     Show help
   --version, -v  Show version and quit
+
+Examples:
+  bash rotkeeper.sh release 0.8.0              Package the distribution
+  bash rotkeeper.sh release 0.8.0 --dry-run    Preview without writing
+
+Exit codes:
+  0    Success
+  1    Invalid usage or packaging failure
+  3    Write-boundary violation
 HELP_EOF
 }
 

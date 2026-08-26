@@ -47,8 +47,14 @@ show_help() {
   cat <<'HELP_EOF'
 rc-dip.sh — Document Improvement Project audit
 
-Scans documentation coverage, ownership, staleness, and obsolete
-references. Reads source scripts and generated books critically.
+Usage:
+  rotkeeper.sh dip [options]
+
+Description:
+  Scans documentation coverage, ownership, staleness, and obsolete
+  references; publishes the dip-matrix report. Reads source scripts
+  and generated books critically. Moves an obsolete doc only with
+  strong evidence; ambiguous docs are reported as unowned.
 
 Options:
   --dry-run      Preview actions without moving or writing docs
@@ -56,6 +62,14 @@ Options:
   --quiet        Suppress informational output
   --help, -h     Show help
   --version, -v  Show version and quit
+
+Examples:
+  bash rotkeeper.sh dip --dry-run     Audit without moving or writing docs
+  bash rotkeeper.sh dip               Full audit and matrix publication
+
+Exit codes:
+  0         Audit completed (findings live in the matrix report)
+  nonzero   Audit could not complete
 HELP_EOF
 }
 

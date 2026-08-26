@@ -35,25 +35,37 @@ source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 show_help() {
-  cat <<'HELP_EOF'
-rc-bump.sh — Explicit semver version bump
+  cat <<HELP_EOF
+rc-bump.sh — Explicit semver version bump (v${VERSION:-unknown})
 
 Usage:
   rotkeeper.sh bump [--major|--minor|--patch|--to X.Y.Z] -m MESSAGE [options]
 
-Options:
-  --major          Bump major segment: 0.5.1 -> 1.0.0
-  --minor          Bump minor segment: 0.5.1 -> 0.6.0
-  --patch          Bump patch segment: 0.5.1 -> 0.5.2
-  --to VERSION     Set an explicit semver-style version (X.Y.Z)
-  --message, -m MSG  Update message recorded in CHANGELOG.md and the roadmap
-  --commit         Stage changes and commit them to git
-  --dry-run        Preview changes without saving or committing
-  --verbose        Detailed output
-  --help, -h       Show help
-  --version, -v    Show version and quit
+Description:
+  Records a microrelease update: writes the version marker and
+  synchronizes CHANGELOG.md and the roadmap. Exactly one of --major,
+  --minor, --patch, or --to is required.
 
-Exactly one of --major, --minor, --patch, or --to is required.
+Options:
+  --major            Bump major segment: 0.5.1 -> 1.0.0
+  --minor            Bump minor segment: 0.5.1 -> 0.6.0
+  --patch            Bump patch segment: 0.5.1 -> 0.5.2
+  --to VERSION       Set an explicit semver-style version (X.Y.Z)
+  --message, -m MSG  Update message recorded in CHANGELOG.md and the roadmap
+  --commit           Stage changes and commit them to git
+  --dry-run          Preview changes without saving or committing
+  --verbose          Detailed output
+  --help, -h         Show help
+  --version, -v      Show version and quit
+
+Examples:
+  bash rotkeeper.sh bump --patch -m "Fix wrap bug"                 Patch bump
+  bash rotkeeper.sh bump --to 0.8.0 -m "UX pass" --commit          Explicit version + commit
+  bash rotkeeper.sh bump --minor -m "..." --dry-run                Preview only
+
+Exit codes:
+  0    Success
+  1    Invalid input or bump failure
 HELP_EOF
 }
 

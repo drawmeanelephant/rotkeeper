@@ -51,6 +51,13 @@ show_help() {
   cat <<'HELP_EOF'
 rc-status.sh — Display environment health status reports
 
+Usage:
+  rotkeeper.sh status [options]
+
+Description:
+  Reports environment health: version, layout alignment, rendered page
+  counts, freshness, and branch state.
+
 Options:
   --json         Emit a machine-readable JSON report
   --short        One-line summary (version | pages | freshness | branch)
@@ -58,6 +65,15 @@ Options:
   --verbose      Detailed output
   --help, -h     Show help
   --version, -v  Show version and quit
+
+Examples:
+  bash rotkeeper.sh status           Full health report
+  bash rotkeeper.sh status --short   One-line summary
+  bash rotkeeper.sh status --json    Machine-readable report
+
+Exit codes:
+  0         Success
+  nonzero   Environment error
 HELP_EOF
 }
 
