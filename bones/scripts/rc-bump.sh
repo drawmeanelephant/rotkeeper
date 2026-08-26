@@ -9,6 +9,9 @@ IFS=$'\n\t'
 #  ██████╔╝╚██████╔╝██║ ╚═╝ ██║██║
 #  ╚═════╝  ╚═════╝ ╚═╝     ╚═╝╚═╝
 # ============================================================
+# Env assumptions: reads BONES_DIR, CONFIG_DIR, DOCS_DIR, DRY_RUN, LOG_DIR, QUIET, ROOT_DIR, SCRIPT_DIR, TMP_DIR, VERBOSE, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+# CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-bump.sh
@@ -31,6 +34,8 @@ source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&
 # show_help: Print bump usage and exit.
 # Inputs: none
 # Outputs: Prints help to stdout
+# Env: Reads BONES_DIR, CONFIG_DIR, DRY_RUN, LOG_DIR, QUIET, ROOT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 show_help() {
   cat <<'HELP_EOF'

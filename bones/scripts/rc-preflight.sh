@@ -8,6 +8,9 @@ IFS=$'\n\t'
 #  Version : 0.5.1
 #  Updated : 2026-08-12
 # ============================================================
+# Env assumptions: reads DRY_RUN, OLIVER_BIN, RK_OLIVER_BIN, SCRIPT_DIR, TMP_DIR, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+# CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
 # shellcheck disable=SC2329 # invoked indirectly by rk_init_script's help handling
 show_help() {
   cat << EOF
@@ -38,6 +41,8 @@ require_env_vars TMP_DIR
 # main: Execute the Oliver preflight check and report pass/fail.
 # Inputs: none (reads DRY_RUN, TMP_DIR)
 # Outputs: Exits 0 on pass, 1 on fail; prints MARKER summary
+# Env: Reads DRY_RUN, OLIVER_BIN, RK_OLIVER_BIN, TMP_DIR (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 main() {
   if [[ "${DRY_RUN:-false}" == true ]]; then

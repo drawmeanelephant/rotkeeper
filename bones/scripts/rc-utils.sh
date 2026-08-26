@@ -53,6 +53,9 @@ rk_load_env() {
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
+# Env assumptions: reads ARCHIVE_DIR, ASSETS_DIR, BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DEBUG, DOCS_DIR, DRY_RUN, HELP_DIR, INPUT_FORMAT, LOG_DIR, LOG_FILE, META_DIR, OLIVER_BIN, OUTPUT_DIR, QUIET, RELEASE_DIR, RENDER_PROFILE, REPORT_DIR, RK_OLIVER_BIN, ROOT_DIR, ROTKEEPER_VERSION, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, VERBOSE, VERSION, WEB_DIR (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+# CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
 
 set -euo pipefail
 IFS=$'\n\t'
@@ -70,6 +73,8 @@ HELP=false
 # parse_flags: Interprets the whispered command-line flags (--dry-run, --verbose, --help)
 # Inputs: $@ (all arguments)
 # Outputs: Modifies global DRY_RUN, VERBOSE, HELP flags
+# Env: Reads DEBUG, DRY_RUN, LOG_FILE, NO_COLOR, QUIET, TERM ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 # Interprets the whispered command-line flags (--dry-run, --verbose, --help)
 parse_flags() {
@@ -155,6 +160,8 @@ log() {
 # run: Dry-run/verbose wrapper for commands.
 # Inputs: $@ (command and args)
 # Outputs: Logs DRY-RUN when enabled; otherwise executes command via `command`
+# Env: Reads BONES_DIR, DRY_RUN, QUIET, ROOT_DIR, VERBOSE (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 # Runner: dry-run and verbose wrapper for commands
 run() {
@@ -171,6 +178,8 @@ run() {
 # require_bins: Checks if the required earthly binaries exist in the PATH
 # Inputs: $@ (List of binary names like 'jq' or 'gawk')
 # Outputs: Exits with code 2 if a tool is missing
+# Env: No env vars (pure args/stdin)
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 # Checks if the required earthly binaries exist in the PATH
 require_bins() {
@@ -284,6 +293,8 @@ require_gawk_version() {
 # actionable setup message on failure.
 # Inputs: reads RK_OLIVER_BIN and RENDER_PROFILE; uses TMP_DIR for the smoke document
 # Outputs: sets OLIVER_BIN to the resolved executable on success
+# Env: Reads BONES_DIR, DRY_RUN, INPUT_FORMAT, OLIVER_BIN, OUTPUT_DIR, QUIET ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # Returns: 0 on pass; 1 on failure
 # ---
 rk_oliver_preflight() {
@@ -358,6 +369,8 @@ OUTPUT_MARKER_NAME=".rotkeeper-generated"
 # mark_output_generated: Claim an output directory as generated.
 # Inputs: $1 (output dir, defaults to OUTPUT_DIR)
 # Outputs: Creates $out_dir/$OUTPUT_MARKER_NAME; respects DRY_RUN
+# Env: Reads BONES_DIR, CONFIG_DIR, DRY_RUN, OUTPUT_DIR, QUIET, ROOT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 mark_output_generated() {
   local out_dir="${1:-${OUTPUT_DIR:-}}"
@@ -378,6 +391,8 @@ mark_output_generated() {
 # output_is_generated: Test whether an output tree is marked as generated.
 # Inputs: $1 (output dir, defaults to OUTPUT_DIR)
 # Outputs: Returns 0 if marker file exists, 1 otherwise
+# Env: Reads ASSETS_DIR, BONES_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, META_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 output_is_generated() {
   local out_dir="${1:-${OUTPUT_DIR:-}}"
@@ -629,6 +644,8 @@ validate_layout_alignment() {
 # trap_err: ERR trap handler that reports the failing command.
 # Inputs: $1 (optional line override); reads BASH_LINENO, BASH_SOURCE, FUNCNAME, BASH_COMMAND
 # Outputs: Logs ERROR with status, file, line, function; exits with original status
+# Env: Reads BONES_DIR, DEBUG, DRY_RUN, LOG_DIR, LOG_FILE, QUIET ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 # Error trap: report error line and exit
 trap_err() {
@@ -647,6 +664,8 @@ cleanup_ran=false
 # cleanup: Idempotent EXIT handler (no-op by default).
 # Inputs: none; reads cleanup_ran guard
 # Outputs: Sets cleanup_ran=true; scripts override for temp-file removal
+# Env: Reads BONES_DIR, DEBUG, DRY_RUN, LOG_DIR, LOG_FILE, QUIET ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 cleanup() {
   if [[ "${cleanup_ran:-false}" == true ]]; then return 0; fi
@@ -670,6 +689,8 @@ set_traps() {
 # init_log: Initialize the per-run log file for the current ritual.
 # Inputs: $1 (log name, defaults to basename of $0)
 # Outputs: Sets LOG_FILE and creates its parent directory
+# Env: Reads BONES_DIR, DEBUG, DRY_RUN, LOG_DIR, LOG_FILE, QUIET ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 # Initialize log file with script name
 init_log() {
@@ -703,6 +724,8 @@ rk_load_version
 # rk_init_script: Canonical dispatcher bootstrap for all rituals.
 # Inputs: $1 (script name), $@ (passthrough flags for parse_flags)
 # Outputs: Sets SCRIPTNAME/DRY_RUN/VERBOSE/QUIET/DEBUG/HELP, installs traps, loads env, inits log, wires fd 3
+# Env: Reads BONES_DIR, DEBUG, DRY_RUN, LOG_DIR, LOG_FILE, QUIET ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 # Standardize script initialization: sets name, logs, traps, and parses common flags
 
@@ -758,6 +781,8 @@ rk_init_script() {
 # get_base_no_ext: Strip the final extension while preserving directory and dotfile semantics.
 # Inputs: $1 (path like "a/b.md" or ".hidden.md")
 # Outputs: Prints path without its last extension
+# Env: Reads BONES_DIR, DRY_RUN, META_DIR, QUIET, ROOT_DIR, VERBOSE (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 get_base_no_ext() {
     local file="$1"
@@ -805,6 +830,8 @@ rk_canonical_path() {
 # get_sidecar_path: Derive the soul sidecar path for a content target.
 # Inputs: $1 (content-relative target like "posts/foo.md" or a directory)
 # Outputs: Prints canonical META_DIR path to the .soul.md; falls back to null.soul.md on traversal
+# Env: Reads BONES_DIR, DRY_RUN, META_DIR, QUIET, ROOT_DIR, VERBOSE (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 get_sidecar_path() {
     local target="$1"
@@ -834,6 +861,8 @@ get_sidecar_path() {
 # read_meta_sidecar_body: Print the body of a sidecar soul file without frontmatter.
 # Inputs: $1 (content-relative target file)
 # Outputs: Prints stripped sidecar body if it exists; otherwise prints nothing
+# Env: No env vars (pure args/stdin)
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 read_meta_sidecar_body() {
     local target_file="$1"
@@ -934,6 +963,8 @@ rk_frontmatter_field() {
 # resolve_script_dir: Return the absolute directory of this script.
 # Inputs: none (uses BASH_SOURCE[0])
 # Outputs: Prints canonical script dir
+# Env: Reads BONES_DIR, DRY_RUN, QUIET, ROOT_DIR, VERBOSE (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 # Return script directory
 resolve_script_dir() {
@@ -944,6 +975,8 @@ resolve_script_dir() {
 # has_frontmatter: Test whether a file starts with a YAML frontmatter delimiter.
 # Inputs: $1 (file path)
 # Outputs: Returns 0 if "---" is found, 1 otherwise
+# Env: Reads BONES_DIR, DRY_RUN, QUIET, ROOT_DIR, VERBOSE (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 # Check if file has YAML frontmatter
 has_frontmatter() {
@@ -955,6 +988,8 @@ has_frontmatter() {
 # get_yaml_key: Extract a primitive frontmatter value for a key.
 # Inputs: $1 (key), $2 (file)
 # Outputs: Prints the raw second field; exits if not found
+# Env: Reads BONES_DIR, DRY_RUN, QUIET, ROOT_DIR, VERBOSE (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 # Extract value from YAML frontmatter key (primitive)
 get_yaml_key() {
@@ -967,6 +1002,8 @@ get_yaml_key() {
 # list_md_files: List *.md files under a directory.
 # Inputs: $1 (directory)
 # Outputs: Prints matching paths via find
+# Env: Reads BONES_DIR, DRY_RUN, QUIET, ROOT_DIR, VERBOSE (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 # List markdown files in a directory
 list_md_files() {
@@ -1004,6 +1041,8 @@ rk_find_content() {
 # require_env_vars: Assert that listed environment variables are set.
 # Inputs: $@ (variable names)
 # Outputs: Exits 1 via log ERROR if any is empty
+# Env: No env vars (pure args/stdin)
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 # Require env vars to be set
 require_env_vars() {

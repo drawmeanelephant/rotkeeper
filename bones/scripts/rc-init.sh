@@ -9,6 +9,9 @@ IFS=$'\n\t'
 #  ██║██║ ╚████║██║   ██║
 #  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝
 # ============================================================
+# Env assumptions: reads ARCHIVE_DIR, ASSETS_DIR, BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, DRY_RUN, HELP_DIR, LAYOUT_STYLE, LOG_DIR, META_DIR, OUTPUT_DIR, RELEASE_DIR, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, VERBOSE, WEB_DIR (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+# CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
 #  Project : Rotkeeper
 #  Script  : rc-init.sh
 #  Purpose : Minimal, non-destructive environment initialization
@@ -18,6 +21,8 @@ IFS=$'\n\t'
 # show_help: Print init usage and exit.
 # Inputs: none
 # Outputs: Prints help to stdout and returns 0
+# Env: Reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, LAYOUT_STYLE, LOG_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 show_help() {
   cat << EOF2
@@ -120,6 +125,8 @@ fi
 # main: Initialize environment directories, config, and optional sample/assets/render.
 # Inputs: none (reads WITH_SAMPLE/WITH_ASSETS/WITH_RENDER/FULL, DRY_RUN)
 # Outputs: Creates dirs, writes rotkeeper.yaml paths, scaffolds sample content
+# Env: Reads ARCHIVE_DIR, ASSETS_DIR, BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 main() {
     # Verify required tools (config serialization is yq-driven)

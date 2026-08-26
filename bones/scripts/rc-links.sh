@@ -7,11 +7,16 @@ IFS=$'\n\t'
 #  Purpose : Audit rendered HTML links and local asset references
 #  Version : 0.5.1
 # ============================================================
+# Env assumptions: reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DRY_RUN, LOG_DIR, LOG_FILE, OUTPUT_DIR, QUIET, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TMP_DIR, VERBOSE (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+# CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
 
 # ---
 # show_help: Print links audit usage and exit.
 # Inputs: none
 # Outputs: Prints help to stdout and exits 0
+# Env: Reads BONES_DIR, CONFIG_DIR, DRY_RUN, LOG_DIR, OUTPUT_DIR, QUIET ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 show_help() {
   cat <<'EOF'
@@ -73,6 +78,8 @@ done
 # cleanup: Remove temporary result file.
 # Inputs: none (reads RESULT_FILE)
 # Outputs: Deletes temp file if set
+# Env: Reads BONES_DIR, DRY_RUN, OUTPUT_DIR, QUIET, REPORT_DIR, RESULT_FILE ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 cleanup() {
   if [[ -n "${RESULT_FILE:-}" ]]; then
@@ -84,6 +91,8 @@ cleanup() {
 # main: Audit rendered HTML links/assets, emit reports in md/json.
 # Inputs: $@ (flags: --root, --report, --json, --fix-hint)
 # Outputs: Writes report file, prints MARKER summary; exits 1 on failures
+# Env: Reads OUTPUT_DIR, REPORT_DIR, ROOT_DIR, TMP_DIR (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 main() {
   require_bins python3

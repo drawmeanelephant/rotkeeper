@@ -35,6 +35,9 @@ rk_load_env strict
 #     ██║   ███████╗███████║   ██║
 #     ╚═╝   ╚══════╝╚══════╝   ╚═╝
 # ============================================================
+# Env assumptions: reads OUTPUT_DIR, RK_OLIVER_BIN, RK_RENDERER, ROOT_DIR, ROTKEEPER_VERSION, SCRIPT_DIR, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+# CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
 #  Project : Rotkeeper
 #  Script  : rc-test.sh
 #  Purpose : Multi-Pass Layout Integration Test Suite aligned for single distribution zip archives
@@ -982,6 +985,8 @@ FIXTURE_EOF
 # check_contract: Assert a pattern exists in a rendered contract file.
 # Inputs: $1 (desc), $2 (file), $@ (grep args/pattern)
 # Outputs: Sets contract_failed=true on mismatch
+# Env: No env vars (pure args/stdin)
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
         check_contract() {
           local desc="$1" file="$2"; shift 2
@@ -1754,6 +1759,8 @@ CONTRACT_COMMANDS=(init new render pack preflight release bump test scan assets 
 # tree_snapshot: Capture git status plus sorted logs/tmp file lists for mutation check.
 # Inputs: none; reads ROOT_DIR
 # Outputs: Prints snapshot text; used to compare before/after --help
+# Env: Reads ROOT_DIR (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 tree_snapshot() {
   git status --porcelain 2>/dev/null

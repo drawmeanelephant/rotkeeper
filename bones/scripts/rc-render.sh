@@ -9,6 +9,9 @@ IFS=$'\n\t'
 #  ██║  ██║███████╗██║ ╚████║██████╔╝███████╗██║  ██║
 #  ╚═╝  ╚═╝╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═╝
 # ============================================================
+# Env assumptions: reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, DRY_RUN, INPUT_FORMAT, LOG_DIR, LOG_FILE, META_DIR, OLIVER_BIN, OUTPUT_DIR, QUIET, RK_OLIVER_BIN, RK_RENDERER, ROOT_DIR, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, VERBOSE, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+# CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-render.sh
@@ -22,6 +25,8 @@ IFS=$'\n\t'
 # show_help: Print render usage and exit.
 # Inputs: none (reads VERSION)
 # Outputs: Prints help to stdout and exits 0
+# Env: Reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, DRY_RUN, LOG_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 show_help() {
   cat << EOF
@@ -53,6 +58,8 @@ RENDERER="${RK_RENDERER:-oliver}"
 # parse_render_args: Normalize --renderer flags regardless of position.
 # Inputs: $@ (command-line args)
 # Outputs: Sets global RENDERER; exits 1 on missing argument
+# Env: Reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, LOG_DIR, META_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 # Parse position-independent --renderer arguments
 parse_render_args() {
