@@ -103,6 +103,7 @@ ZIP_TMP=""
 cleanup() {
     local status=$?
     log "INFO" "Cleaning up temporary staging directories from the physical realm..."
+    # SIDE EFFECT (delete): removes bones/tmp/release-staging-<pid> on any exit path
     if [[ -d "$STAGING_DIR" ]]; then
         if CANONICAL_STAGING_DIR=$(rk_guard_delete "$STAGING_DIR" "$TMP_DIR"); then
             rm -rf "$CANONICAL_STAGING_DIR"
@@ -110,6 +111,7 @@ cleanup() {
             log "ERROR" "Skipped staging cleanup; '$STAGING_DIR' failed the deletion guard."
         fi
     fi
+    # SIDE EFFECT (delete): removes the in-flight zip temp file (no-op after successful mv)
     if [[ -n "${ZIP_TMP:-}" && -f "$ZIP_TMP" ]]; then
         rm -f "$ZIP_TMP" || true
     fi
@@ -246,6 +248,7 @@ main() {
     log "INFO" "Collapsing package model down to canonical single framework distribution: version $VERSION"
 
     if [[ "$DRY_RUN" == false ]]; then
+        # SIDE EFFECT (write): creates bones/archives/releases and bones/tmp/release-staging-<pid>
         mkdir -p "$RELEASE_DIR" "$STAGING_DIR"
     fi
 
@@ -266,6 +269,7 @@ main() {
 
     mkdir -p "$CANONICAL_DIR"
 
+    # SIDE EFFECT (write): copies the repo (minus exclusions) into the staging tree
     rsync -a \
         --exclude='.git/' \
         --exclude='.github/' \
@@ -286,7 +290,9 @@ main() {
     local manifest_file="$CANONICAL_DIR/bones/config/release-manifest.txt"
     local entry_list="$TMP_DIR/release-entries-$$.txt"
     # find+sort: enumerate staged files deterministically for manifest
+    # SIDE EFFECT (write): writes the entry list scratch file under bones/tmp
     (cd "$STAGING_DIR" && find rotkeeper -type f | sort) > "$entry_list"
+    # SIDE EFFECT (write): generates release-manifest.txt inside the staged tree
     {
         echo "Rotkeeper framework distribution manifest"
         echo "version: $VERSION"
@@ -296,15 +302,18 @@ main() {
         echo "entries:"
         cat "$entry_list"
     } > "$manifest_file"
+    # SIDE EFFECT (delete): removes the entry list scratch file
     rm -f "$entry_list"
 
     local orig_dir; orig_dir="$(pwd)"
     cd "$STAGING_DIR"
+    # SIDE EFFECT (archive): zips the staged tree to <release>.zip.tmp.$$ (temp name)
     zip -rq "$ZIP_TMP" "rotkeeper"
     cd "$orig_dir"
 
     zip -T "$ZIP_TMP" >/dev/null
     verify_archive_contents "$ZIP_TMP"
+    # SIDE EFFECT (write): promotes the verified temp zip to bones/archives/releases/rotkeeper-<version>.zip
     mv "$ZIP_TMP" "$ZIP_PATH"
     ZIP_TMP=""
 

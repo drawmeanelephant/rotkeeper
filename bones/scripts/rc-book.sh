@@ -147,6 +147,7 @@ validate_boundary() {
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 runscriptbookfull() {
+  # SIDE EFFECT (write): creates bones/book-reports if missing
   mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-scriptbook-full.md"
   validate_boundary "$OUT"
@@ -169,6 +170,7 @@ runscriptbookfull() {
     echo "generated: $(date +%Y-%m-%d)"
     echo "---"
     echo ""
+  # SIDE EFFECT (write): overwrites bones/book-reports/rotkeeper-scriptbook-full.md
   } > "$OUT"
 
   while read -r script; do
@@ -196,6 +198,7 @@ runscriptbookfull() {
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 rundocbook() {
+  # SIDE EFFECT (write): creates bones/book-reports if missing
   mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-docbook.md"
   validate_boundary "$OUT"
@@ -209,6 +212,7 @@ rundocbook() {
     echo "subtitle: All documentation sources with path markers"
     echo "---"
     echo ""
+  # SIDE EFFECT (write): overwrites bones/book-reports/rotkeeper-docbook.md
   } > "$OUT"
   # Find all 3 content formats (md/textile/cook) — sorted for deterministic book order
   mapfile -t docfiles < <(find "$DOCS_DIR" -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) | sort)
@@ -239,6 +243,7 @@ rundocbook() {
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 rundocbookclean() {
+  # SIDE EFFECT (write): creates bones/book-reports if missing
   mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-docbook-clean.md"
   validate_boundary "$OUT"
@@ -252,6 +257,7 @@ rundocbookclean() {
     echo "subtitle: Frontmatter-stripped, collapse-friendly version"
     echo "---"
     echo ""
+  # SIDE EFFECT (write): overwrites bones/book-reports/rotkeeper-docbook-clean.md
   } > "$OUT"
   # Same 3-format find sorted deterministically; derivate title from basename stripped of any of the 3 extensions
   while read -r file; do
@@ -278,6 +284,7 @@ rundocbookclean() {
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 runconfigbook() {
+  # SIDE EFFECT (write): creates bones/book-reports if missing (this mode ignores DRY_RUN)
   mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-configbook.md"
   validate_boundary "$OUT"
@@ -287,6 +294,7 @@ runconfigbook() {
     echo "subtitle: YAML configuration and templates used by rotkeeper"
     echo "---"
     echo ""
+  # SIDE EFFECT (write): overwrites bones/book-reports/rotkeeper-configbook.md
   } > "$OUT"
   # Config/template find covers yaml/yml/tpl/html across both dirs; sort for reproducibility
   while read -r file; do
@@ -312,6 +320,7 @@ runconfigbook() {
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 runcontentbook() {
+  # SIDE EFFECT (write): creates bones/book-reports if missing
   mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-contentbook.md"
   validate_boundary "$OUT"
@@ -325,6 +334,7 @@ runcontentbook() {
     echo "subtitle: All content sources with path markers"
     echo "---"
     echo ""
+  # SIDE EFFECT (write): overwrites bones/book-reports/rotkeeper-contentbook.md
   } > "$OUT"
   # Same 3-format find sorted deterministically for content order
   mapfile -t contentfiles < <(find "$CONTENT_DIR" -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) | sort)
@@ -355,10 +365,12 @@ runcontentbook() {
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 runcontentmeta() {
+  # SIDE EFFECT (write): creates bones/book-reports if missing
   mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-contentmeta.yaml"
   validate_boundary "$OUT"
   log "INFO" "Extracting frontmatter YAML from content files..."
+  # SIDE EFFECT (write): overwrites bones/book-reports/rotkeeper-contentmeta.yaml; entries appended below
   echo "" > "$OUT"
   # Iterate NUL-delimited content files (safe for spaces/newlines); rk_find_content emits -print0
   while IFS= read -r -d '' file; do
@@ -385,6 +397,7 @@ runcontentmeta() {
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 runfsbook() {
+  # SIDE EFFECT (write): creates bones/book-reports if missing
   mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-files.md"
   validate_boundary "$OUT"
@@ -418,6 +431,7 @@ runfsbook() {
         ! -path './bones/manifest.txt' \
         -print | sed 's|^./||' | sort
     )
+  # SIDE EFFECT (write): overwrites bones/book-reports/rotkeeper-files.md
   } > "$OUT"
   log "INFO" "File system catalog written to $OUT"
 }
@@ -430,10 +444,12 @@ runfsbook() {
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 collapse() {
+  # SIDE EFFECT (write): creates bones/book-reports if missing
   mkdir -p "$BOOK_REPORT_DIR"
   local OUTPUT="$BOOK_REPORT_DIR/collapsed-content.yaml"
   validate_boundary "$OUTPUT"
   log "INFO" "Collapsing reports into YAML..."
+  # SIDE EFFECT (write): overwrites bones/book-reports/collapsed-content.yaml; bodies appended below
   echo "" > "$OUTPUT"
   for file in "$BOOK_REPORT_DIR"/rotkeeper-*.md; do
     [[ -f "$file" ]] || continue
@@ -515,6 +531,7 @@ main() {
   export BOOK_SUFFIX=$(printf "%04x%04x" "$RANDOM" "$RANDOM")
   require_bins bash
   log "INFO" "Running rc-book.sh safely bounded."
+  # SIDE EFFECT (write): creates bones/book-reports before any binder runs
   mkdir -p "$BOOK_REPORT_DIR"
   parseflags "$@"
   runmode

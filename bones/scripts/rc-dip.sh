@@ -138,6 +138,8 @@ path_stays_under() {
 }
 
 # Atomic write from stdin → dest (temp sibling, then mv).
+# SIDE EFFECT (write): creates the destination directory, writes <dest>.tmp.$$, then
+# replaces <dest> atomically via mv; removes the temp file on write failure.
 atomic_write() {
   local dest="$1"
   local dir tmp
@@ -346,6 +348,8 @@ stitch_pillar() {
       exit
     }
   ' "$doc_path" >"$tmp_file"
+  # SIDE EFFECT (delete+write): drops the extracted-content scratch file and replaces the
+  # stitched doc in place with the rewritten temp file
   rm -f "$content_file"
   mv -f "$tmp_file" "$doc_path"
 }
@@ -671,6 +675,8 @@ for doc in ${EXISTING_DOCS[@]+"${EXISTING_DOCS[@]}"}; do
     log "DRY-RUN" "Would whisk obsolete doc: $doc -> $DEST_PATH"
     OBSOLETE_MOVED+=("$REL_PATH")
   else
+    # SIDE EFFECT (delete/move): relocates an obsolete doc under bones/obsolete (source is
+    # consumed by the move); never clobbers an existing destination
     if ! mkdir -p "$DEST_DIR"; then
       log "ERROR" "Cannot create obsolete dest dir (move aborted, source kept): $DEST_DIR"
       continue
@@ -917,6 +923,7 @@ for doc_path in "${!EXPECTED_DOCS[@]}"; do
     continue
   fi
 
+  # SIDE EFFECT (write): creates the doc directory and writes a stub doc in place
   mkdir -p "$(dirname -- "$doc_path")"
   TITLE=$(basename -- "$doc_path" .md)
   stub_tmp="${doc_path}.tmp.$$"
@@ -1140,6 +1147,7 @@ MATRIX
     old_norm=$(grep -v '^date: ' "$MATRIX_FILE" || true)
     new_norm=$(grep -v '^date: ' "$matrix_tmp" || true)
     if [[ "$old_norm" == "$new_norm" ]]; then
+      # SIDE EFFECT (delete): discards the identical matrix scratch copy
       rm -f "$matrix_tmp"
       log "INFO" "DIP matrix unchanged (content identical); preserving existing file."
     else

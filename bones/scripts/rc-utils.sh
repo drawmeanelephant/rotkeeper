@@ -147,6 +147,7 @@ log() {
   fi
 
   # Always write standard logs to file if present (plain, no ANSI)
+  # SIDE EFFECT (write): appends each message to bones/logs/<ritual>-<ts>.log
   if [[ -n "${LOG_FILE:-}" ]]; then
     if [[ "$level" == "MARKER" ]]; then
       echo "[$ts] [MARKER] $*" >> "$LOG_FILE"
@@ -321,6 +322,7 @@ rk_oliver_preflight() {
   fi
 
   if [[ -z "$reason" ]]; then
+    # SIDE EFFECT (write): creates bones/tmp and the smoke doc/output/stderr scratch files
     mkdir -p "$TMP_DIR"
     printf '# preflight smoke\n' > "$smoke_doc"
     if [[ "$profile" == "xhtml" ]]; then
@@ -336,6 +338,7 @@ rk_oliver_preflight() {
     elif [[ ! -s "$smoke_out" ]]; then
       reason="Oliver binary produced empty output on its smoke render"
     fi
+    # SIDE EFFECT (delete): removes the smoke scratch files under bones/tmp
     rm -f "$smoke_doc" "$smoke_out" "$smoke_err"
   fi
 
@@ -382,6 +385,7 @@ mark_output_generated() {
     log "DRY-RUN" "Would mark output tree as generated: $out_dir/$OUTPUT_MARKER_NAME"
     return 0
   fi
+  # SIDE EFFECT (write): creates the output tree if missing and drops/truncates its .rotkeeper-generated marker
   mkdir -p "$out_dir"
   : > "$out_dir/$OUTPUT_MARKER_NAME"
   log "INFO" "Output tree marked as generated: $out_dir/$OUTPUT_MARKER_NAME"
@@ -695,6 +699,7 @@ set_traps() {
 # Initialize log file with script name
 init_log() {
   local name="${1:-$(basename "$0" .sh)}"
+  # SIDE EFFECT (write): creates bones/logs and a new per-run log file (one per invocation)
   LOG_FILE="$LOG_DIR/${name}-$(date +%Y-%m-%d_%H%M%S)-$$.log"
   mkdir -p "$(dirname "$LOG_FILE")"
 }
@@ -761,6 +766,7 @@ rk_init_script() {
   exec 3>&1
 
   # Redirect output to log file as well
+  # SIDE EFFECT (write): rebinds stdout/stderr so everything also lands in $LOG_FILE
   if [[ "$QUIET" == true ]]; then
     exec > "$LOG_FILE" 2>&1
   else

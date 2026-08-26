@@ -70,6 +70,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 LOG_FILE="$LOG_DIR/rc-status-$(date +%Y-%m-%d_%H%M%S)-$$.log"
+# SIDE EFFECT (write): creates bones/logs before the status ritual boots its logger
 mkdir -p "$LOG_DIR"
 
 # ---

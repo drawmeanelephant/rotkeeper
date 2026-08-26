@@ -122,6 +122,7 @@ main() {
   local mode="md"
   local out_file="$REPORT_FILE"
   if [[ "$JSON_MODE" == true || "$DRY_RUN" == true ]]; then
+    # SIDE EFFECT (write): mktemp creates a bones/tmp scratch file holding the JSON/dry-run result (removed after emit)
     out_file=$(mktemp "$TMP_DIR/a11y-result.XXXXXX")
     if [[ "$JSON_MODE" == true ]]; then
       mode="json"
@@ -622,6 +623,7 @@ A11Y_PY
 
   if [[ "$JSON_MODE" == true ]]; then
     cat "$out_file" >&3 2>/dev/null || cat "$out_file"
+    # SIDE EFFECT (delete): removes the bones/tmp result scratch file after emit
     rm -f "$out_file"
     log "INFO" "Accessibility audit JSON emitted: $fails theme(s) failing"
   elif [[ "$DRY_RUN" == true ]]; then
