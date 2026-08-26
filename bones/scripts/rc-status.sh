@@ -37,6 +37,11 @@ done
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
 
+# ---
+# show_help: Print status usage and exit.
+# Inputs: none
+# Outputs: Prints help to stdout and exits 0
+# ---
 show_help() {
   cat <<'HELP_EOF'
 rc-status.sh — Display environment health status reports
@@ -62,12 +67,22 @@ IFS=$'\n\t'
 LOG_FILE="$LOG_DIR/rc-status-$(date +%Y-%m-%d_%H%M%S)-$$.log"
 mkdir -p "$LOG_DIR"
 
+# ---
+# log: Status-local logger that tees to LOG_FILE without stdout noise.
+# Inputs: $1 (level), $@ (message)
+# Outputs: Appends timestamped line to LOG_FILE
+# ---
 log() {
   local level="$1"; shift
   printf '[%s] [%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$level" "$*" | tee -a "$LOG_FILE" >/dev/null
 }
 
 # Status headings with optional TTY color (respects NO_COLOR via rk_has_color from rc-utils.sh)
+# ---
+# status_heading: Print a bold heading when color is available.
+# Inputs: $1 (text)
+# Outputs: Prints heading to stdout
+# ---
 status_heading() {
   local text="$1"
   if command -v rk_has_color >/dev/null 2>&1 && rk_has_color; then
@@ -77,6 +92,11 @@ status_heading() {
   fi
 }
 
+# ---
+# status_ok: Print success text in green when color is enabled.
+# Inputs: $1 (text)
+# Outputs: Prints colored or plain line
+# ---
 status_ok() {
   local text="$1"
   if command -v rk_has_color >/dev/null 2>&1 && rk_has_color; then
@@ -86,6 +106,11 @@ status_ok() {
   fi
 }
 
+# ---
+# status_warn: Print warning text in yellow when color is enabled.
+# Inputs: $1 (text)
+# Outputs: Prints colored or plain line
+# ---
 status_warn() {
   local text="$1"
   if command -v rk_has_color >/dev/null 2>&1 && rk_has_color; then
@@ -95,6 +120,11 @@ status_warn() {
   fi
 }
 
+# ---
+# status_dim: Print muted/dim text when color is enabled.
+# Inputs: $1 (text)
+# Outputs: Prints colored or plain line
+# ---
 status_dim() {
   local text="$1"
   if command -v rk_has_color >/dev/null 2>&1 && rk_has_color; then
@@ -132,8 +162,14 @@ JSON_PULSE=""
 JSON_RENDER=""
 JSON_CONFIG=""
 
+# ---
+# escape_json: Escape a string for safe JSON embedding (no surrounding quotes).
+# Inputs: $1 (raw string)
+# Outputs: Prints escaped JSON string content (jq -R -s + strip outer quotes)
+# ---
 escape_json() {
   # Trim newlines and escape
+  # Pipeline: jq -R -s encodes raw string to JSON; sed strips outer quotes to inline into larger object.
   echo -n "$1" | jq -R -s -c . | sed 's/^"//' | sed 's/"$//'
 }
 
@@ -262,6 +298,7 @@ if [[ "$JSON_MODE" == true ]]; then
                 fn=$(basename "$f")
                 sz=$(du -h "$f" | cut -f1)
                 ch=$(wc -c < "$f")
+                # Estimate tokens as chars/4 (heuristic) and context % vs 128k window.
                 tk=$(awk -v c="$ch" 'BEGIN { printf "%.0f", c/4 }')
                 pct=$(awk -v t="$tk" 'BEGIN { printf "%.1f", t/1280 }')
 
@@ -298,6 +335,7 @@ else
                 fn=$(basename "$f")
                 sz=$(du -h "$f" | cut -f1)
                 ch=$(wc -c < "$f")
+                # Tokens ≈ chars/4; display in k and % of 128k context.
                 tk=$(awk -v c="$ch" 'BEGIN { printf "%.0f", c/4 }')
 
                 tk_disp=$(awk -v t="$tk" 'BEGIN { if(t>=1000) printf "~%.1fk", t/1000; else printf "~%s", t }')

@@ -151,6 +151,11 @@ log() {
   fi
 }
 
+# ---
+# run: Dry-run/verbose wrapper for commands.
+# Inputs: $@ (command and args)
+# Outputs: Logs DRY-RUN when enabled; otherwise executes command via `command`
+# ---
 # Runner: dry-run and verbose wrapper for commands
 run() {
   if [[ "${DRY_RUN:-false}" == true ]]; then
@@ -349,6 +354,11 @@ OLIVER_GUIDE_EOF
 # the output tree carries this marker, proving a generator produced it.
 OUTPUT_MARKER_NAME=".rotkeeper-generated"
 
+# ---
+# mark_output_generated: Claim an output directory as generated.
+# Inputs: $1 (output dir, defaults to OUTPUT_DIR)
+# Outputs: Creates $out_dir/$OUTPUT_MARKER_NAME; respects DRY_RUN
+# ---
 mark_output_generated() {
   local out_dir="${1:-${OUTPUT_DIR:-}}"
   if [[ -z "$out_dir" ]]; then
@@ -364,6 +374,11 @@ mark_output_generated() {
   log "INFO" "Output tree marked as generated: $out_dir/$OUTPUT_MARKER_NAME"
 }
 
+# ---
+# output_is_generated: Test whether an output tree is marked as generated.
+# Inputs: $1 (output dir, defaults to OUTPUT_DIR)
+# Outputs: Returns 0 if marker file exists, 1 otherwise
+# ---
 output_is_generated() {
   local out_dir="${1:-${OUTPUT_DIR:-}}"
   [[ -n "$out_dir" && -f "$out_dir/$OUTPUT_MARKER_NAME" ]]
@@ -610,6 +625,11 @@ validate_layout_alignment() {
 
 
 
+# ---
+# trap_err: ERR trap handler that reports the failing command.
+# Inputs: $1 (optional line override); reads BASH_LINENO, BASH_SOURCE, FUNCNAME, BASH_COMMAND
+# Outputs: Logs ERROR with status, file, line, function; exits with original status
+# ---
 # Error trap: report error line and exit
 trap_err() {
   local status=$?
@@ -623,6 +643,11 @@ trap_err() {
 
 # Cleanup hook: override in scripts to perform teardown
 cleanup_ran=false
+# ---
+# cleanup: Idempotent EXIT handler (no-op by default).
+# Inputs: none; reads cleanup_ran guard
+# Outputs: Sets cleanup_ran=true; scripts override for temp-file removal
+# ---
 cleanup() {
   if [[ "${cleanup_ran:-false}" == true ]]; then return 0; fi
   cleanup_ran=true
@@ -641,6 +666,11 @@ set_traps() {
 # Load rc-env.sh from script root
 
 
+# ---
+# init_log: Initialize the per-run log file for the current ritual.
+# Inputs: $1 (log name, defaults to basename of $0)
+# Outputs: Sets LOG_FILE and creates its parent directory
+# ---
 # Initialize log file with script name
 init_log() {
   local name="${1:-$(basename "$0" .sh)}"
@@ -669,6 +699,11 @@ rk_load_version() {
 VERSION=""
 rk_load_version
 
+# ---
+# rk_init_script: Canonical dispatcher bootstrap for all rituals.
+# Inputs: $1 (script name), $@ (passthrough flags for parse_flags)
+# Outputs: Sets SCRIPTNAME/DRY_RUN/VERBOSE/QUIET/DEBUG/HELP, installs traps, loads env, inits log, wires fd 3
+# ---
 # Standardize script initialization: sets name, logs, traps, and parses common flags
 
 rk_init_script() {
@@ -719,6 +754,11 @@ rk_init_script() {
   fi
 }
 
+# ---
+# get_base_no_ext: Strip the final extension while preserving directory and dotfile semantics.
+# Inputs: $1 (path like "a/b.md" or ".hidden.md")
+# Outputs: Prints path without its last extension
+# ---
 get_base_no_ext() {
     local file="$1"
     local dir_part="."
@@ -761,6 +801,11 @@ rk_canonical_path() {
     printf '%s%s\n' "$current_abs" "$suffix"
 }
 
+# ---
+# get_sidecar_path: Derive the soul sidecar path for a content target.
+# Inputs: $1 (content-relative target like "posts/foo.md" or a directory)
+# Outputs: Prints canonical META_DIR path to the .soul.md; falls back to null.soul.md on traversal
+# ---
 get_sidecar_path() {
     local target="$1"
     local base_no_ext
@@ -785,6 +830,11 @@ get_sidecar_path() {
     fi
 }
 
+# ---
+# read_meta_sidecar_body: Print the body of a sidecar soul file without frontmatter.
+# Inputs: $1 (content-relative target file)
+# Outputs: Prints stripped sidecar body if it exists; otherwise prints nothing
+# ---
 read_meta_sidecar_body() {
     local target_file="$1"
     local sidecar
@@ -880,17 +930,32 @@ rk_frontmatter_field() {
     ' "$file"
 }
 
+# ---
+# resolve_script_dir: Return the absolute directory of this script.
+# Inputs: none (uses BASH_SOURCE[0])
+# Outputs: Prints canonical script dir
+# ---
 # Return script directory
 resolve_script_dir() {
   cd "$(dirname "${BASH_SOURCE[0]}")" && pwd
 }
 
+# ---
+# has_frontmatter: Test whether a file starts with a YAML frontmatter delimiter.
+# Inputs: $1 (file path)
+# Outputs: Returns 0 if "---" is found, 1 otherwise
+# ---
 # Check if file has YAML frontmatter
 has_frontmatter() {
   local file="$1"
   grep -q '^---' "$file"
 }
 
+# ---
+# get_yaml_key: Extract a primitive frontmatter value for a key.
+# Inputs: $1 (key), $2 (file)
+# Outputs: Prints the raw second field; exits if not found
+# ---
 # Extract value from YAML frontmatter key (primitive)
 get_yaml_key() {
   local key="$1"
@@ -898,6 +963,11 @@ get_yaml_key() {
   awk -v k="$key" '$0 ~ "^"k":" {print $2; exit}' "$file"
 }
 
+# ---
+# list_md_files: List *.md files under a directory.
+# Inputs: $1 (directory)
+# Outputs: Prints matching paths via find
+# ---
 # List markdown files in a directory
 list_md_files() {
   find "$1" -type f -name '*.md'
@@ -930,6 +1000,11 @@ rk_find_content() {
   "$find_bin" "$dir" -type f \( "${name_args[@]}" \) -print0 2>/dev/null || true
 }
 
+# ---
+# require_env_vars: Assert that listed environment variables are set.
+# Inputs: $@ (variable names)
+# Outputs: Exits 1 via log ERROR if any is empty
+# ---
 # Require env vars to be set
 require_env_vars() {
   for var in "$@"; do

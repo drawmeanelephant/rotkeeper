@@ -34,6 +34,11 @@ source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&
 rk_init_script "rc-preflight" "$@"
 require_env_vars TMP_DIR
 
+# ---
+# main: Execute the Oliver preflight check and report pass/fail.
+# Inputs: none (reads DRY_RUN, TMP_DIR)
+# Outputs: Exits 0 on pass, 1 on fail; prints MARKER summary
+# ---
 main() {
   if [[ "${DRY_RUN:-false}" == true ]]; then
     log "DRY-RUN" "Preflight would report Oliver renderer availability and compatibility."

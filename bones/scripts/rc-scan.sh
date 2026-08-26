@@ -26,6 +26,11 @@ disk_list=()
 IFS=$'\n\t'
 
 
+# ---
+# show_help: Print scan usage and exit.
+# Inputs: $1 (optional exit code)
+# Outputs: Prints help to stdout and exits
+# ---
 show_help() {
   cat <<EOF
 rc-scan.sh — Audit manifest and scan environment for file reports (v$VERSION)
@@ -61,6 +66,11 @@ fi
 
 
 
+# ---
+# main: Audit manifest vs disk, compute digests, emit JSON/Markdown reports.
+# Inputs: $@ (flags: --manifest-only, --include, --exclude, --json-only, --md-only)
+# Outputs: Writes scan reports to REPORT_DIR; logs digests and orphans
+# ---
 main() {
     require_bins bash jq
     require_sha256
@@ -162,6 +172,7 @@ if [[ "${MANIFEST_ONLY:-false}" != true ]]; then
       done
       $skip && { $VERBOSE && echo "[SKIP] Excluded by pattern: $file"; continue; }
       disk_list+=("$file")
+    # find prune: skip volatile output dirs (tmp/logs/archive/reports) and emit only regular files
     done < <(find "$dir" \( -type d -a \( -name "tmp" -o -name "logs" -o -name "archive" -o -name "reports" -o -name "book-reports" \) -prune \) -o \( -type f -print \))
   done
   echo "[INFO] Disk scan completed"

@@ -27,6 +27,11 @@ export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
 
+# ---
+# show_help: Print bump usage and exit.
+# Inputs: none
+# Outputs: Prints help to stdout
+# ---
 show_help() {
   cat <<'HELP_EOF'
 rc-bump.sh — Explicit semver version bump
@@ -163,6 +168,7 @@ if [[ -f "$ROADMAP_FILE" ]]; then
     log "DRY-RUN" "Would inject into roadmap: $ENTRY"
   else
     # Inject after the anchor through a per-process temp surface (#231)
+    # awk: inject new entry immediately after LIVING_BUILDLOG_START marker, pass through rest
     roadmap_tmp="${ROADMAP_FILE}.tmp.$$"
     if ! awk -v entry="$ENTRY" '
       /<!-- LIVING_BUILDLOG_START -->/ {
@@ -190,6 +196,7 @@ if [[ -f "$CHANGELOG_FILE" ]]; then
     log "DRY-RUN" "Would prepend to CHANGELOG.md"
   else
     # Prepend through a per-process temp surface (#231)
+    # awk: prepend new changelog section before first ## [ header, pass through rest
     changelog_tmp="${CHANGELOG_FILE}.tmp.$$"
     if ! awk -v new_version="$NEW_VERSION" -v date_str="$(date +%Y-%m-%d)" -v msg="$MESSAGE" '
       !inserted && /^## \[/ {

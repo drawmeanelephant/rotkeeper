@@ -18,6 +18,11 @@ IFS=$'\n\t'
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
+# ---
+# show_help: Print render usage and exit.
+# Inputs: none (reads VERSION)
+# Outputs: Prints help to stdout and exits 0
+# ---
 show_help() {
   cat << EOF
 rc-render.sh — Render Markdown tombs into HTML (v$VERSION)
@@ -44,6 +49,11 @@ source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&
 
 RENDERER="${RK_RENDERER:-oliver}"
 
+# ---
+# parse_render_args: Normalize --renderer flags regardless of position.
+# Inputs: $@ (command-line args)
+# Outputs: Sets global RENDERER; exits 1 on missing argument
+# ---
 # Parse position-independent --renderer arguments
 parse_render_args() {
   local args=("$@")
@@ -133,6 +143,11 @@ main() {
     log "INFO" "MANIFEST=$MANIFEST"
     log "INFO" "TEMPLATE_DIR=$TEMPLATE_DIR"
 
+    # ---
+    # log_manifest: Append a rendered output path to the Oliver manifest.
+    # Inputs: $1 (absolute output path)
+    # Outputs: Adds rel_entry via `oliver manifest --add`; respects DRY_RUN; exits 1 on failure
+    # ---
     log_manifest() {
       local raw_entry="$1"
       local rel_entry="${raw_entry#"$ROOT_DIR"/}"
@@ -196,6 +211,7 @@ main() {
     _tmp_find=$(mktemp)
     if [[ "$render_sys_docs" == "false" ]]; then
         log "INFO" "Surgically pruning internal system docs and platform messages from user space."
+        # Find prune: skip internal docs/messages/help subtrees (prune) and emit only source files NUL-terminated.
         "$_find_cmd" "$CONTENT_DIR" \( -type d -a \( -name "docs" -o -name "messages" -o -name "help" \) -prune \) -o \( -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) -print0 \) > "$_tmp_find" 2>/dev/null || true
     else
         "$_find_cmd" "$CONTENT_DIR" -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) -print0 > "$_tmp_find" 2>/dev/null || true
@@ -207,10 +223,20 @@ main() {
 
     log "INFO" "Discovered ${#md_corpses[@]} source files for compilation."
 
+    # ---
+    # get_canonical_path: Lenient canonicalizer for boundary checks (nested, render-local).
+    # Inputs: $1 (path)
+    # Outputs: Prints canonical or raw path
+    # ---
     get_canonical_path() {
       rk_canonical_or_raw "$1"
     }
 
+    # ---
+    # strip_source_ext: Remove known source extensions (.md/.textile/.cook).
+    # Inputs: $1 (filename)
+    # Outputs: Prints basename without extension; passes through unknown extensions
+    # ---
     strip_source_ext() {
       # Source extensions are .md, .textile, and .cook; anything else passes
       # through untouched so a misnamed source fails loudly rather than silently.
@@ -338,8 +364,9 @@ main() {
           first_err=""
           # Prefer render's own log (contains adapter's >&3 MARKER) then adapter's log
           # Use ASCII pattern "Oliver failed" to avoid UTF-8 ✗ matching issues in C locale
-          if [[ -f "${LOG_FILE:-}" ]]; then
-            first_err=$(grep -a -m1 "Oliver failed" "$LOG_FILE" 2>/dev/null | head -n1 || true)
+            # Prefer ASCII "Oliver failed" (grep -a handles binary log safely; -m1 stops at first match)
+            if [[ -f "${LOG_FILE:-}" ]]; then
+              first_err=$(grep -a -m1 "Oliver failed" "$LOG_FILE" 2>/dev/null | head -n1 || true)
           fi
           if [[ -z "$first_err" && -n "$latest_adapter_log" && -f "$latest_adapter_log" ]]; then
             first_err=$(grep -a -m1 "Oliver failed" "$latest_adapter_log" 2>/dev/null | head -n1 || true)
@@ -357,7 +384,7 @@ main() {
             first_err=$(grep -a -m1 "ERROR" "$latest_adapter_log" 2>/dev/null | head -n1 || true)
           fi
           if [[ -n "$first_err" ]]; then
-            # Strip timestamp prefix for cleaner MARKER
+            # Strip timestamp/level prefix: sed removes "[YYYY-MM-DD HH:MM:SS] [LEVEL] " and MARKER wrappers for display.
             clean_err=$(echo "$first_err" | sed -E 's/^\[[^]]+\] \[[^]]+\] //; s/^ERROR: //; s/^.*\[MARKER\] //')
             # Ensure we show the ✗ prefix if stripped
             if [[ "$clean_err" != "✗"* && "$clean_err" == *"Oliver failed"* ]]; then

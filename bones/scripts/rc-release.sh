@@ -27,6 +27,11 @@ IFS=$'\n\t'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
 
+# ---
+# show_help: Print release usage and exit.
+# Inputs: none
+# Outputs: Prints help to stdout
+# ---
 show_help() {
   cat <<'HELP_EOF'
 rc-release.sh — Package the canonical single-tier framework distribution
@@ -83,6 +88,11 @@ PROJECT_ROOT="$ROOT_DIR"
 STAGING_DIR="$TMP_DIR/release-staging-$$"
 ZIP_TMP=""
 
+# ---
+# cleanup: Remove staging dir and temp zip on exit.
+# Inputs: none (reads STAGING_DIR, ZIP_TMP, TMP_DIR)
+# Outputs: Deletes temp files; preserves exit status
+# ---
 cleanup() {
     local status=$?
     log "INFO" "Cleaning up temporary staging directories from the physical realm..."
@@ -100,6 +110,11 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
+# ---
+# validate_boundary: Ensure path is inside staging or release dir.
+# Inputs: $1 (target path)
+# Outputs: Exits 3 on violation
+# ---
 validate_boundary() {
   local target_path="$1"
   if [[ "$target_path" != "$STAGING_DIR"* && "$target_path" != "$RELEASE_DIR"* ]]; then
@@ -108,6 +123,11 @@ validate_boundary() {
   fi
 }
 
+# ---
+# verify_archive_contents: Validate archive against allowlist/forbidden prefixes.
+# Inputs: $1 (archive path)
+# Outputs: Returns 0 if valid, 1 on forbidden/missing entries
+# ---
 verify_archive_contents() {
     local archive_path="$1"
     local entry
@@ -153,6 +173,7 @@ verify_archive_contents() {
     )
 
     local archive_entries
+    # zipinfo: list archive entries one per line for allowlist/forbidden checks
     archive_entries="$(zipinfo -1 "$archive_path")"
 
     local requirement
@@ -203,6 +224,11 @@ verify_archive_contents() {
     done <<< "$archive_entries"
 }
 
+# ---
+# main: Stage framework files, generate manifest, zip and verify distribution.
+# Inputs: $1 (optional version overrides $VERSION)
+# Outputs: Writes RELEASE_DIR/rotkeeper-<version>.zip
+# ---
 main() {
     log "INFO" "Collapsing package model down to canonical single framework distribution: version $VERSION"
 
@@ -246,6 +272,7 @@ main() {
 
     local manifest_file="$CANONICAL_DIR/bones/config/release-manifest.txt"
     local entry_list="$TMP_DIR/release-entries-$$.txt"
+    # find+sort: enumerate staged files deterministically for manifest
     (cd "$STAGING_DIR" && find rotkeeper -type f | sort) > "$entry_list"
     {
         echo "Rotkeeper framework distribution manifest"

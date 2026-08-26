@@ -33,6 +33,11 @@ IFS=$'\n\t'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
 
+# ---
+# show_help: Display DIP audit usage.
+# Inputs: none
+# Outputs: Prints help to stdout
+# ---
 show_help() {
   cat <<'HELP_EOF'
 rc-dip.sh — Document Improvement Project audit
@@ -65,6 +70,11 @@ DEGRADED_FSBOOK=false
 
 # --- helpers ---------------------------------------------------------------
 
+# ---
+# get_fs_date: Format file mtime as YYYY-MM-DD (UTC) or Missing.
+# Inputs: $1 (file path)
+# Outputs: Prints date string
+# ---
 get_fs_date() {
   local file=$1
   if [[ -f "$file" ]]; then
@@ -78,6 +88,11 @@ get_fs_date() {
   fi
 }
 
+# ---
+# get_fs_iso: Format file mtime as ISO-8601 UTC or zero-date.
+# Inputs: $1 (file path)
+# Outputs: Prints ISO timestamp
+# ---
 get_fs_iso() {
   local file=$1
   if [[ -f "$file" ]]; then
@@ -209,6 +224,11 @@ normalize_body() {
   '
 }
 
+# ---
+# marker_section_regex: Map pillar marker to its heading regex.
+# Inputs: $1 (marker name)
+# Outputs: Prints regex for that pillar
+# ---
 # Map marker name → its section header pattern (for duplicate-section collapse).
 marker_section_regex() {
   case "$1" in
@@ -220,6 +240,11 @@ marker_section_regex() {
   esac
 }
 
+# ---
+# stitch_pillar: Idempotently rewrite a DIP marker block when body changes.
+# Inputs: $1 (doc path), $2 (marker), $3 (new content)
+# Outputs: Rewrites doc file via 40-line awk state machine; honors DRY_RUN
+# ---
 # Idempotent pillar stitch: rewrite marker block only when content changes
 # (or when duplicate markers/sections need collapsing).
 stitch_pillar() {
@@ -260,7 +285,10 @@ stitch_pillar() {
   export SECTION_RE="$section_re"
   export CONTENT_FILE="$content_file"
 
+  # State machine: is_header identifies pillar headings; real_boundary confirms heading+marker pair
+  # is the authoritative section boundary; process_line streams input collapsing duplicates and stitching new body.
   awk '
+    # is_header: true if line is a DIP pillar heading (Environment/History/Necromancer/CLI/Overview)
     function is_header(line) {
       return line ~ /^##[[:space:]]+Environment([[:space:]]|$)/ \
           || line ~ /^##[[:space:]]+Ritual[[:space:]]+History/ \
@@ -268,12 +296,14 @@ stitch_pillar() {
           || line ~ /^######[[:space:]]+CLI[[:space:]]+Usage/ \
           || line ~ /^##[[:space:]]+Overview([[:space:]]|$)/
     }
+    # real_boundary: true only when heading is immediately followed by a DIP marker (authored ## Environment alone is not a boundary)
     function real_boundary(i, j) {
       if (!is_header(lines[i])) return 0
       j=i+1
       while (j<=count && lines[j] ~ /^[[:space:]]*$/) j++
       return j<=count && lines[j] ~ /^<!-- DIP-[A-Z0-9-]+-EXTRACTED:/
     }
+    # process_line: stream one buffered line handling skip/emit for duplicate collapse and marker replacement
     function process_line(i, line, marker_line, foreign_marker) {
       line=lines[i]
       marker_line=(line ~ ("<!-- " ENVIRON["MARKER"] ":"))
@@ -307,6 +337,11 @@ stitch_pillar() {
   mv -f "$tmp_file" "$doc_path"
 }
 
+# ---
+# expected_doc_for_core: Map a core file path to its expected doc under DOCS_DIR.
+# Inputs: $1 (core-relative path)
+# Outputs: Prints expected doc path
+# ---
 expected_doc_for_core() {
   local file="$1"
   local base_no_ext
@@ -414,6 +449,11 @@ if [[ -f "$BLESSED_FILE" ]]; then
   done <"$BLESSED_FILE"
 fi
 
+# ---
+# is_excluded_core_path: Check if path falls under autopsy excludes.
+# Inputs: $1 (relative file path)
+# Outputs: Returns 0 if excluded, 1 otherwise
+# ---
 is_excluded_core_path() {
   local file_path="$1"
   local excl
@@ -494,6 +534,7 @@ fi
 declare -A SOUL_TARGETS=()
 if [[ -d "$META_DIR" ]]; then
   log "INFO" "Indexing structural soul sidecars from metadata registry..."
+  # -print0 + read -d '' handles filenames with spaces/newlines safely
   while IFS= read -r -d '' soul_path; do
     rel_meta_path="${soul_path#"$META_DIR"/}"
     target_origin="${rel_meta_path%.soul.md}"
@@ -504,6 +545,7 @@ fi
 # --- 3. Obsolete-document handling -----------------------------------------
 
 log "INFO" "Checking for obsolete docs..."
+# rk_find_content uses -print0 (NUL-delimited) for safe handling of exotic filenames; mapfile -d '' preserves it
 mapfile -d '' EXISTING_DOCS < <(rk_find_content "$DOCS_DIR" md textile cook)
 
 declare -A WHITELIST=()
@@ -517,6 +559,11 @@ if [[ -f "$WHITELIST_FILE" ]]; then
   done <"$WHITELIST_FILE"
 fi
 
+# ---
+# is_blessed_doc: True if doc or its target_file lives under .blessed.
+# Inputs: $1 (doc path), $2 (target_file value)
+# Outputs: Returns 0 if blessed, 1 otherwise
+# ---
 is_blessed_doc() {
   local doc="$1"
   local rel_doc="${doc#"$ROOT_DIR"/}"
@@ -627,6 +674,11 @@ done
 
 # --- pillar content builders -----------------------------------------------
 
+# ---
+# rel_path: Make path relative to ROOT_DIR when possible.
+# Inputs: $1 (absolute or ROOT_DIR-relative path)
+# Outputs: Prints relative path or "." for ROOT_DIR itself
+# ---
 # Emit a path relative to ROOT_DIR when possible so stitched docs and the
 # reports that bind them stay machine-independent (no host-specific absolutes).
 rel_path() {
@@ -640,6 +692,11 @@ rel_path() {
   fi
 }
 
+# ---
+# build_env_list: Render environment variable bullet list for stitching.
+# Inputs: none; reads ROOT_DIR and derived env vars
+# Outputs: Prints markdown list
+# ---
 build_env_list() {
   cat <<INNER_EOF
 - **\$ROOT_DIR**: $(rel_path "$ROOT_DIR")
@@ -662,6 +719,11 @@ build_env_list() {
 INNER_EOF
 }
 
+# ---
+# build_help_content: Extract help block for a script from autopsy-help.md.
+# Inputs: $1 (target script path)
+# Outputs: Prints help markdown or Not-found placeholder
+# ---
 build_help_content() {
   local target_script="$1"
   local help_report="$REPORT_DIR/autopsy-help.md"
@@ -673,6 +735,7 @@ build_help_content() {
     return 0
   fi
 
+  # sed range extracts the ## <script> section; second sed trims leading/trailing blank lines
   help_content=$(sed -n "/^## ${script_name}\$/,/^## /{ /^## /d; p; }" "$help_report" 2>/dev/null \
     | sed -e '1{/^$/d;}' -e '${/^$/d;}' || true)
 
@@ -683,6 +746,11 @@ build_help_content() {
   fi
 }
 
+# ---
+# build_history_content: Search CHANGELOG and road-to-bones for script history.
+# Inputs: $1 (script basename)
+# Outputs: Prints bullet list or Not-found placeholder
+# ---
 build_history_content() {
   local script_name="$1"
   local history_content="" matches
@@ -704,6 +772,11 @@ build_history_content() {
   fi
 }
 
+# ---
+# build_soul_content: Read soul sidecar body, stripping recursive DIP tail.
+# Inputs: $1 (core-relative target file)
+# Outputs: Prints sidecar prose or Not-found placeholder
+# ---
 build_soul_content() {
   local target_file="$1"
   local soulbody target_origin sidecar
@@ -716,13 +789,14 @@ build_soul_content() {
     target_origin=$(get_base_no_ext "$target_file")
     sidecar="${SOUL_TARGETS[$target_origin]:-}"
     if [[ -n "$sidecar" && -f "$sidecar" ]]; then
-      soulbody=$(sed "1{/^---$/!q;}; 1,/^---$/d" "$sidecar")
+      soulbody=$(sed "1{/^---$/!q;}; 1,/^---$/d" "$sidecar")  # strip leading YAML frontmatter (--- ... ---) if present
     fi
   fi
   # Sidecars can themselves have been stitched.  Strip only the recursive
   # generated tail, retaining all authored prose before that marker.
   if [[ "$soulbody" == *"<!-- DIP-"* ]]; then
-    soulbody=$(printf '%s\n' "$soulbody" | awk '
+    soulbody=$(printf '%s\n' "$soulbody" | awk '  # awk truncates at first stitched DIP marker and trims trailing scaffolding
+
       { lines[NR]=$0 }
       END {
         stop=0

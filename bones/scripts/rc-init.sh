@@ -14,6 +14,11 @@ IFS=$'\n\t'
 #  Purpose : Minimal, non-destructive environment initialization
 # ============================================================
 
+# ---
+# show_help: Print init usage and exit.
+# Inputs: none
+# Outputs: Prints help to stdout and returns 0
+# ---
 show_help() {
   cat << EOF2
 rc-init.sh — Initialize environment
@@ -111,6 +116,11 @@ else
     find "$SCRIPT_DIR" -type f \( -name "rc-*.sh" -o -name "rc-*.bats" \) -exec chmod +x {} \;
 fi
 
+# ---
+# main: Initialize environment directories, config, and optional sample/assets/render.
+# Inputs: none (reads WITH_SAMPLE/WITH_ASSETS/WITH_RENDER/FULL, DRY_RUN)
+# Outputs: Creates dirs, writes rotkeeper.yaml paths, scaffolds sample content
+# ---
 main() {
     # Verify required tools (config serialization is yq-driven)
     require_bins bash

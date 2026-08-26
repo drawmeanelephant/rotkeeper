@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# ---
+# show_help: Print showcase usage and exit.
+# Inputs: none
+# Outputs: Prints help to stdout and exits 0
+# ---
 show_help() {
   cat <<'EOF'
 rc-showcase.sh — Generate showcase content for every HTML template
@@ -28,6 +33,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
 rk_init_script "rc-showcase" "$@"
 
+# ---
+# main: Scaffold showcase pages per template and generate gallery index.
+# Inputs: none (reads TEMPLATE_DIR, CONTENT_DIR, OUTPUT_DIR, DRY_RUN)
+# Outputs: Writes showcase/*.md and output/showcase/index.html
+# ---
 main() {
   log "INFO" "Initializing Gallery of the Damned showcase scanner..."
 
@@ -55,6 +65,7 @@ main() {
     log "INFO" "Scaffolding showcase page for template: $template_name -> $target_file"
     log "INFO" "Auditing template: $(basename "$template_file")"
 
+    # grep-extract template vars: pull $var$ tokens, strip $ delimiters, dedupe
     mapfile -t found_vars < <(grep -oE '\$[a-zA-Z_]+\$' "$template_file" | tr -d '$' | sort -u)
 
     local frontmatter="---

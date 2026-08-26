@@ -19,6 +19,11 @@ IFS=$'\n\t'
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
 
+# ---
+# show_help: Print scaffold usage and available templates.
+# Inputs: none (reads TEMPLATE_DIR, BONES_DIR)
+# Outputs: Prints help to stdout and exits 0
+# ---
 show_help() {
   # List available templates for completion hint (safe for unbound vars before env load)
   local tmpl_list=""
@@ -85,6 +90,11 @@ EOF
   exit 0
 }
 
+# ---
+# list_templates: List available templates with default marker.
+# Inputs: none (reads TEMPLATE_DIR, CONFIG_DIR)
+# Outputs: Prints template names to MARKER log
+# ---
 list_templates() {
   local td="${TEMPLATE_DIR:-$BONES_DIR/templates}"
   [[ -d "$td" ]] || td="$BONES_DIR/templates"
@@ -224,6 +234,11 @@ if [[ -z "$FILE" ]]; then
   exit 0
 fi
 
+# ---
+# main: Scaffold a new content file with frontmatter and optional sidecar.
+# Inputs: none (reads FILE, TITLE_OVERRIDE, TEMPLATE_OVERRIDE, DRY_RUN, etc.)
+# Outputs: Creates file under CONTENT_DIR; optionally creates META_DIR sidecar
+# ---
 main() {
     if [[ -z "$FILE" ]]; then
       log "ERROR" "No file specified. Usage: rotkeeper.sh new <file>"

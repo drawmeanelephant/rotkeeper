@@ -18,6 +18,11 @@ IFS=$'\n\t'
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
+# ---
+# show_help: Print packager usage and exit.
+# Inputs: none (reads VERSION)
+# Outputs: Prints help and exits 0
+# ---
 show_help() {
   cat << EOF
 rc-pack.sh — Ritual Compression Packager (v$VERSION)
@@ -86,6 +91,7 @@ pack_archive() {
   shift
   PARTIAL_ARCHIVE="$target"
   run "$@"
+  # Count archive entries: tar -tf lists members, wc -l counts them.
   count=$(tar -tf "$target" | wc -l | tr -d ' ')
   log "INFO" "Packaged $count files into ${target##*/}"
 }
@@ -102,6 +108,11 @@ validate_gz() {
   return 0
 }
 
+# ---
+# main: Pack output/content/self archives and export markdown JSON.
+# Inputs: $@ (--self, --content, --dry-run, --verbose, --help)
+# Outputs: Writes archives and export JSON under ARCHIVE_DIR; prunes on failure
+# ---
 main() {
     log "INFO" "Running rc-pack.sh."
 

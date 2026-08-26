@@ -217,6 +217,8 @@ CONF_EOF
     fi
 
     # 5. Pure Bash Oliver adapter contract test (direct, pin 06dd640 — no yq/gawk fallbacks)
+    # Fake helpers below duplicate rc-utils/rc-render logic: strip_source_ext strips .md/.textile/.cook,
+    # rk_up_dirs builds ../ depth prefix, get_canonical_path canonicalizes via realpath/readlink -m fallback.
     echo "  [+] Executing default pure Bash Oliver adapter contract tests (direct, pin 06dd640)..."
     mkdir -p bones/tmp
     fake_bin="$pass_dir/bones/tmp/fake_oliver"
@@ -349,6 +351,8 @@ if [[ "${1:-}" == "wrap" ]]; then
   [[ "$author" == "null" ]] && author=""
   [[ "$date" == "null" ]] && date=""
   [[ "$palette" == "null" ]] && palette=""
+  # gawk template wrapper: 6 vars (title/desc/author/date/palette/assets_root + body/template files)
+  # html_escape escapes &<>"' for meta; literal_replace does index() literal substitution; evaluate_if handles $if(var)$...$endif$
   gawk -v title="$title" -v desc="$desc" -v author="$author" -v date="$date" -v palette="$palette" -v assets_root="$ar" -v body_file="$bf" -v template_file="$tpl" '
   function html_escape(str,   s) { s=str; gsub(/&/,"\\&amp;",s); gsub(/</,"\\&lt;",s); gsub(/>/,"\\&gt;",s); gsub(/"/,"\\&quot;",s); gsub(/\x27/,"\\&#39;",s); return s }
   function literal_replace(str, search, replace,   pos, len, result, tail) { len=length(search); result=""; tail=str; while((pos=index(tail,search))>0){result=result substr(tail,1,pos-1) replace; tail=substr(tail,pos+len)} return result tail }
@@ -363,6 +367,7 @@ if [[ "${1:-}" != "render" || "${2:-}" != "--from" || ( "${3:-}" != "markdown" &
 fi
 if [[ "$*" == *"--to xhtml"* ]]; then
   printf '<h1>xhtml-profile-confirmed</h1>\n<hr />\n'
+  # Pipeline: strip frontmatter (awk on ---), markdown [text](url) -> <a> (sed), then gawk rewrites href/src .md/.textile/.cook -> .html with angle-bracket unwrapping and external/mailto skip
   awk '/^---$/ { f++; next } f>=2 || f==0 { print }' | \
     sed -E 's/\[([^]]+)\]\(([^)]+)\)/<a href="\2">\1<\/a>/g' | \
     gawk '{ line=$0; out=""; while(match(line,/(href|src)=("|\x27)([^"\x27]+)("|\x27)/,a)){ outer=RSTART; rlen=RLENGTH; pre=substr(line,1,outer-1); tgt=a[3]; if(tgt~/^(%3C|<|&lt;).*(%3E|>|&gt;)$/){ if(substr(tgt,1,3)=="%3C") tgt=substr(tgt,4); else if(substr(tgt,1,4)=="&lt;") tgt=substr(tgt,5); else if(substr(tgt,1,1)=="<") tgt=substr(tgt,2); tlen=length(tgt); if(tlen>=3 && substr(tgt,tlen-2)=="%3E") tgt=substr(tgt,1,tlen-3); else if(tlen>=4 && substr(tgt,tlen-3)=="&gt;") tgt=substr(tgt,1,tlen-4); else if(tlen>=1 && substr(tgt,tlen)==">") tgt=substr(tgt,1,tlen-1)} if(tgt~/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//||tgt~/^mailto:/) nt=tgt; else if(match(tgt,/\.md(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+3)} else if(match(tgt,/\.textile(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+8)} else if(match(tgt,/\.cook(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+5)} else nt=tgt; out=out pre a[1] "=" a[2] nt a[2]; line=substr(line,outer+rlen)} out=out line; print out }'
@@ -376,6 +381,7 @@ if [[ "${3:-}" == "cooklang" ]]; then
   printf '<article class="recipe"><h1>cooklang-input-confirmed</h1>\n<a href="sibling.html">Sibling</a>\n</article>\n'
   exit 0
 fi
+# Pipeline: strip frontmatter (awk on ---), markdown [text](url) -> <a> (sed), then gawk rewrites href/src .md/.textile/.cook -> .html with angle-bracket unwrapping and external/mailto skip
 awk '/^---$/ { f++; next } f>=2 || f==0 { print }' | \
   sed -E 's/\[([^]]+)\]\(([^)]+)\)/<a href="\2">\1<\/a>/g' | \
   gawk '{ line=$0; out=""; while(match(line,/(href|src)=("|\x27)([^"\x27]+)("|\x27)/,a)){ outer=RSTART; rlen=RLENGTH; pre=substr(line,1,outer-1); tgt=a[3]; if(tgt~/^(%3C|<|&lt;).*(%3E|>|&gt;)$/){ if(substr(tgt,1,3)=="%3C") tgt=substr(tgt,4); else if(substr(tgt,1,4)=="&lt;") tgt=substr(tgt,5); else if(substr(tgt,1,1)=="<") tgt=substr(tgt,2); tlen=length(tgt); if(tlen>=3 && substr(tgt,tlen-2)=="%3E") tgt=substr(tgt,1,tlen-3); else if(tlen>=4 && substr(tgt,tlen-3)=="&gt;") tgt=substr(tgt,1,tlen-4); else if(tlen>=1 && substr(tgt,tlen)==">") tgt=substr(tgt,1,tlen-1)} if(tgt~/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//||tgt~/^mailto:/) nt=tgt; else if(match(tgt,/\.md(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+3)} else if(match(tgt,/\.textile(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+8)} else if(match(tgt,/\.cook(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+5)} else nt=tgt; out=out pre a[1] "=" a[2] nt a[2]; line=substr(line,outer+rlen)} out=out line; print out }'
@@ -543,11 +549,14 @@ if [[ "${1:-}" == "wrap" ]]; then
   if [[ -z "$tpl" || -z "$mj" || -z "$bf" ]]; then exit 1; fi
   title=$(jq -r '.title // ""' "$mj" 2>/dev/null || yq -r '.title // ""' "$mj" 2>/dev/null || echo ""); desc=$(jq -r '.description // ""' "$mj" 2>/dev/null || yq -r '.description // ""' "$mj" 2>/dev/null || echo ""); author=$(jq -r '.author // ""' "$mj" 2>/dev/null || yq -r '.author // ""' "$mj" 2>/dev/null || echo ""); date=$(jq -r '.date // ""' "$mj" 2>/dev/null || yq -r '.date // ""' "$mj" 2>/dev/null || echo ""); palette=$(jq -r '.palette // ""' "$mj" 2>/dev/null || yq -r '.palette // ""' "$mj" 2>/dev/null || echo "")
   [[ "$title" == "null" ]] && title=""; [[ "$desc" == "null" ]] && desc=""; [[ "$author" == "null" ]] && author=""; [[ "$date" == "null" ]] && date=""; [[ "$palette" == "null" ]] && palette=""
+  # gawk template wrapper: 6 vars (title/desc/author/date/palette/assets_root + body/template files)
+  # html_escape escapes &<>"' for meta; literal_replace does index() literal substitution; evaluate_if handles $if(var)$...$endif$
   gawk -v title="$title" -v desc="$desc" -v author="$author" -v date="$date" -v palette="$palette" -v assets_root="$ar" -v body_file="$bf" -v template_file="$tpl" 'function html_escape(str,   s) { s=str; gsub(/&/,"\\&amp;",s); gsub(/</,"\\&lt;",s); gsub(/>/,"\\&gt;",s); gsub(/"/,"\\&quot;",s); gsub(/\x27/,"\\&#39;",s); return s } function literal_replace(str, search, replace,   pos, len, result, tail) { len=length(search); result=""; tail=str; while((pos=index(tail,search))>0){result=result substr(tail,1,pos-1) replace; tail=substr(tail,pos+len)} return result tail } function evaluate_if(tmpl, var_name, var_val,   start_tag, end_tag, sp, ep, before, after, inner) { start_tag="$if(" var_name ")$"; end_tag="$endif$"; while((sp=index(tmpl,start_tag))>0){ep=index(substr(tmpl,sp),end_tag); if(ep==0) break; ep=sp+ep-1+length(end_tag)-1; before=substr(tmpl,1,sp-1); after=substr(tmpl,ep+1); if(var_val==""||var_val=="null"){tmpl=before after}else{inner=substr(tmpl,sp+length(start_tag),ep-sp-length(start_tag)-length(end_tag)+1); tmpl=before inner after} } return tmpl } BEGIN { title_esc=html_escape(title); desc_esc=html_escape(desc); author_esc=html_escape(author); date_esc=html_escape(date); palette_esc=html_escape(palette); body=""; while((getline line < body_file)>0){body=body line "\n"} close(body_file); if(length(body)>0 && substr(body,length(body))=="\n") body=substr(body,1,length(body)-1); tmpl=""; while((getline line < template_file)>0){tmpl=tmpl line "\n"} close(template_file); tmpl=evaluate_if(tmpl,"title",title); tmpl=evaluate_if(tmpl,"description",desc); tmpl=evaluate_if(tmpl,"author",author); tmpl=evaluate_if(tmpl,"date",date); tmpl=evaluate_if(tmpl,"palette",palette); tmpl=literal_replace(tmpl,"$title$",title_esc); tmpl=literal_replace(tmpl,"$description$",desc_esc); tmpl=literal_replace(tmpl,"$author$",author_esc); tmpl=literal_replace(tmpl,"$date$",date_esc); tmpl=literal_replace(tmpl,"$palette$",palette_esc); tmpl=literal_replace(tmpl,"$assets_root$",ar); tmpl=literal_replace(tmpl,"$body$",body); printf "%s",tmpl; exit }'
   exit 0
 fi
 if [[ "${1:-}" != "render" || "${2:-}" != "--from" || ( "${3:-}" != "markdown" && "${3:-}" != "textile" && "${3:-}" != "cooklang" ) ]]; then exit 1; fi
 echo "[OLIVER WARN] Sample non-fatal renderer warning" >&2
+# Pipeline: strip frontmatter (awk on ---), markdown [text](url) -> <a> (sed), then gawk rewrites href/src .md/.textile/.cook -> .html with angle-bracket unwrapping and external/mailto skip
 awk '/^---$/ { f++; next } f>=2 || f==0 { print }' | sed -E 's/\[([^]]+)\]\(([^)]+)\)/<a href="\2">\1<\/a>/g' | gawk '{ line=$0; out=""; while(match(line,/(href|src)=("|\x27)([^"\x27]+)("|\x27)/,a)){ outer=RSTART; rlen=RLENGTH; pre=substr(line,1,outer-1); tgt=a[3]; if(tgt~/^(%3C|<|&lt;).*(%3E|>|&gt;)$/){ if(substr(tgt,1,3)=="%3C") tgt=substr(tgt,4); else if(substr(tgt,1,4)=="&lt;") tgt=substr(tgt,5); else if(substr(tgt,1,1)=="<") tgt=substr(tgt,2); tlen=length(tgt); if(tlen>=3 && substr(tgt,tlen-2)=="%3E") tgt=substr(tgt,1,tlen-3); else if(tlen>=4 && substr(tgt,tlen-3)=="&gt;") tgt=substr(tgt,1,tlen-4); else if(tlen>=1 && substr(tgt,tlen)==">") tgt=substr(tgt,1,tlen-1)} if(tgt~/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//||tgt~/^mailto:/) nt=tgt; else if(match(tgt,/\.md(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+3)} else if(match(tgt,/\.textile(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+8)} else if(match(tgt,/\.cook(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+5)} else nt=tgt; out=out pre a[1] "=" a[2] nt a[2]; line=substr(line,outer+rlen)} out=out line; print out }'
 WARN_BIN_EOF
     chmod +x "$fake_warn_bin"
@@ -969,6 +978,11 @@ FIXTURE_EOF
         table="$out_dir_rel/contract-table.html"
         contract_failed=false
 
+# ---
+# check_contract: Assert a pattern exists in a rendered contract file.
+# Inputs: $1 (desc), $2 (file), $@ (grep args/pattern)
+# Outputs: Sets contract_failed=true on mismatch
+# ---
         check_contract() {
           local desc="$1" file="$2"; shift 2
           if ! grep -q "$@" "$file"; then
@@ -1168,6 +1182,11 @@ TG_XHTML_FM_EOF
           echo "  [!] Template goldens REGENERATED under bones/scripts/tests/fixtures/template-golden/ — review the git diff before committing."
         else
           tg_failed=false
+          # ---
+          # tg_check: Compare rendered output byte-for-byte against golden.
+          # Inputs: $1 (rendered), $2 (golden), $3 (label)
+          # Outputs: Sets tg_failed=true on divergence
+          # ---
           tg_check() {
             local rendered="$1" golden="$2" label="$3"
             if [[ ! -f "$golden" ]]; then
@@ -1503,6 +1522,8 @@ if [[ "${1:-}" == "wrap" ]]; then
   if [[ -z "$tpl" || -z "$mj" || -z "$bf" ]]; then exit 1; fi
   title=$(jq -r '.title // ""' "$mj" 2>/dev/null || yq -r '.title // ""' "$mj" 2>/dev/null || echo ""); desc=$(jq -r '.description // ""' "$mj" 2>/dev/null || yq -r '.description // ""' "$mj" 2>/dev/null || echo ""); author=$(jq -r '.author // ""' "$mj" 2>/dev/null || yq -r '.author // ""' "$mj" 2>/dev/null || echo ""); date=$(jq -r '.date // ""' "$mj" 2>/dev/null || yq -r '.date // ""' "$mj" 2>/dev/null || echo ""); palette=$(jq -r '.palette // ""' "$mj" 2>/dev/null || yq -r '.palette // ""' "$mj" 2>/dev/null || echo "")
   [[ "$title" == "null" ]] && title=""; [[ "$desc" == "null" ]] && desc=""; [[ "$author" == "null" ]] && author=""; [[ "$date" == "null" ]] && date=""; [[ "$palette" == "null" ]] && palette=""
+  # gawk template wrapper: 6 vars (title/desc/author/date/palette/assets_root + body/template files)
+  # html_escape escapes &<>"' for meta; literal_replace does index() literal substitution; evaluate_if handles $if(var)$...$endif$
   gawk -v title="$title" -v desc="$desc" -v author="$author" -v date="$date" -v palette="$palette" -v assets_root="$ar" -v body_file="$bf" -v template_file="$tpl" 'function html_escape(str,   s) { s=str; gsub(/&/,"\\&amp;",s); gsub(/</,"\\&lt;",s); gsub(/>/,"\\&gt;",s); gsub(/"/,"\\&quot;",s); gsub(/\x27/,"\\&#39;",s); return s } function literal_replace(str, search, replace,   pos, len, result, tail) { len=length(search); result=""; tail=str; while((pos=index(tail,search))>0){result=result substr(tail,1,pos-1) replace; tail=substr(tail,pos+len)} return result tail } function evaluate_if(tmpl, var_name, var_val,   start_tag, end_tag, sp, ep, before, after, inner) { start_tag="$if(" var_name ")$"; end_tag="$endif$"; while((sp=index(tmpl,start_tag))>0){ep=index(substr(tmpl,sp),end_tag); if(ep==0) break; ep=sp+ep-1+length(end_tag)-1; before=substr(tmpl,1,sp-1); after=substr(tmpl,ep+1); if(var_val==""||var_val=="null"){tmpl=before after}else{inner=substr(tmpl,sp+length(start_tag),ep-sp-length(start_tag)-length(end_tag)+1); tmpl=before inner after} } return tmpl } BEGIN { title_esc=html_escape(title); desc_esc=html_escape(desc); author_esc=html_escape(author); date_esc=html_escape(date); palette_esc=html_escape(palette); body=""; while((getline line < body_file)>0){body=body line "\n"} close(body_file); if(length(body)>0 && substr(body,length(body))=="\n") body=substr(body,1,length(body)-1); tmpl=""; while((getline line < template_file)>0){tmpl=tmpl line "\n"} close(template_file); tmpl=evaluate_if(tmpl,"title",title); tmpl=evaluate_if(tmpl,"description",desc); tmpl=evaluate_if(tmpl,"author",author); tmpl=evaluate_if(tmpl,"date",date); tmpl=evaluate_if(tmpl,"palette",palette); tmpl=literal_replace(tmpl,"$title$",title_esc); tmpl=literal_replace(tmpl,"$description$",desc_esc); tmpl=literal_replace(tmpl,"$author$",author_esc); tmpl=literal_replace(tmpl,"$date$",date_esc); tmpl=literal_replace(tmpl,"$palette$",palette_esc); tmpl=literal_replace(tmpl,"$assets_root$",ar); tmpl=literal_replace(tmpl,"$body$",body); printf "%s",tmpl; exit }'
   exit 0
 fi
@@ -1729,9 +1750,14 @@ echo "--- Command contract: --help is non-mutating, --version is consistent ---"
 
 CONTRACT_COMMANDS=(init new render pack preflight release bump test scan assets autopsy glue links showcase dip book status)
 
+# ---
+# tree_snapshot: Capture git status plus sorted logs/tmp file lists for mutation check.
+# Inputs: none; reads ROOT_DIR
+# Outputs: Prints snapshot text; used to compare before/after --help
+# ---
 tree_snapshot() {
   git status --porcelain 2>/dev/null
-  _tmp1=$(mktemp); find "$ROOT_DIR/bones/logs" -type f 2>/dev/null | sort > "$_tmp1" 2>/dev/null || true; cat "$_tmp1"; rm -f "$_tmp1"
+  _tmp1=$(mktemp); find "$ROOT_DIR/bones/logs" -type f 2>/dev/null | sort > "$_tmp1" 2>/dev/null || true; cat "$_tmp1"; rm -f "$_tmp1"  # sorted inventory for deterministic diff
   _tmp2=$(mktemp); find "$ROOT_DIR/bones/tmp" -type f 2>/dev/null | sort > "$_tmp2" 2>/dev/null || true; cat "$_tmp2"; rm -f "$_tmp2"
 }
 
