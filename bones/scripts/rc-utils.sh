@@ -104,15 +104,57 @@ parse_flags() {
   done
 }
 
+# ---
+# rk_show_help: Emit a script's canonical help text from its # @HELP ... # @END-HELP
+# header block (the single sourced help source per ritual). Strips the comment
+# prefix, substitutes the {VERSION} token with the loaded version, and prints to
+# stdout. Never writes and does not require the environment to be loaded: help
+# must stay non-mutating and must not start a workflow (enforced by the
+# command-contract harness). Prints the eternal-void message when the script
+# has no help block.
+# Inputs: $1 (script file path, typically $0)
+# Outputs: Prints the help text (or the void message) to stdout
+# Env: Reads VERSION (via rk_load_version); no layout env required
+# CWD: No assumption — the script path comes from the caller
+# ---
+rk_show_help() {
+  local script_file="${1:-}"
+  if [[ -z "$script_file" || ! -f "$script_file" ]]; then
+    log "INFO" "No help available for this command."
+    return 0
+  fi
+  # awk: emit only the @HELP..@END-HELP block, stripping the "# " comment prefix;
+  # the {VERSION} token is filled from the loaded version so the block stays a
+  # literal, non-interpolated source. Exit 1 (no block) falls through to the void.
+  if awk -v version="${VERSION:-unknown}" '
+    BEGIN { in_block = 0; found = 0 }
+    /^[[:space:]]*# @HELP[[:space:]]*$/ { in_block = 1; found = 1; next }
+    /^[[:space:]]*# @END-HELP[[:space:]]*$/ { in_block = 0; next }
+    in_block == 1 {
+      line = $0
+      sub(/^[[:space:]]*#[[:space:]]?/, "", line)
+      gsub(/\{VERSION\}/, version, line)
+      print line
+    }
+    END { exit (found ? 0 : 1) }
+  ' "$script_file"; then
+    return 0
+  fi
+  log "INFO" "No help available for this command."
+  return 0
+}
+
 # Default help handler (can be overridden by scripts)
 # ---
-# show_help: Displays the eternal void (default help text) if a script has no manual
+# show_help: Emit the script's canonical help block via rk_show_help, or the
+# eternal void when the script has no manual. Returns so callers keep control
+# of their own exit status (rk_init_script's --help path exits 0; rc-bump's
+# error paths do `show_help; exit 1`). Scripts that need an exit code from
+# show_help itself (rc-scan's `show_help 2`) define a thin wrapper.
 # ---
-# Displays the eternal void (default help text) if a script has no manual
 if ! declare -f show_help > /dev/null; then
   show_help() {
-    log "INFO" "No help available for this command."
-    exit 0
+    rk_show_help "$0"
   }
 fi
 

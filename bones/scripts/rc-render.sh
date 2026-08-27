@@ -21,42 +21,32 @@ IFS=$'\n\t'
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
-# ---
-# show_help: Print render usage and exit.
-# Inputs: none (reads VERSION)
-# Outputs: Prints help to stdout and exits 0
-# Env: Reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, DRY_RUN, LOG_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
-# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
-# ---
-show_help() {
-  cat << EOF
-rc-render.sh — Render Markdown tombs into HTML (v${VERSION:-unknown})
-
-Usage:
-  rotkeeper.sh render [options]
-
-Description:
-  Converts home/content sources (markdown, textile, cooklang) into
-  wrapped HTML tombs under output/ via the Oliver renderer.
-
-Options:
-  --renderer NAME  Select renderer: oliver (the only supported renderer; pandoc was removed)
-  --dry-run        Preview actions without invoking renderer
-  --verbose        Show detailed logs
-  --help, -h       Show this help message and exit
-  --version, -v    Show script version and quit
-
-Examples:
-  bash rotkeeper.sh render                                            Render all content
-  bash rotkeeper.sh render --dry-run                                  Preview without rendering
-  RK_OLIVER_BIN=/path/to/oliver bash rotkeeper.sh render --renderer oliver
-
-Exit codes:
-  0    Success
-  1    Render or validation failure
-EOF
-  exit 0
-}
+# @HELP
+# rc-render.sh — Render Markdown tombs into HTML (v{VERSION})
+#
+# Usage:
+#   rotkeeper.sh render [options]
+#
+# Description:
+#   Converts home/content sources (markdown, textile, cooklang) into
+#   wrapped HTML tombs under output/ via the Oliver renderer.
+#
+# Options:
+#   --renderer NAME  Select renderer: oliver (the only supported renderer; pandoc was removed)
+#   --dry-run        Preview actions without invoking renderer
+#   --verbose        Show detailed logs
+#   --help, -h       Show this help message and exit
+#   --version, -v    Show script version and quit
+#
+# Examples:
+#   bash rotkeeper.sh render                                            Render all content
+#   bash rotkeeper.sh render --dry-run                                  Preview without rendering
+#   RK_OLIVER_BIN=/path/to/oliver bash rotkeeper.sh render --renderer oliver
+#
+# Exit codes:
+#   0    Success
+#   1    Render or validation failure
+# @END-HELP
 
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -27,53 +27,50 @@ manifest_list=()
 disk_list=()
 
 
-# ---
-# show_help: Print scan usage and exit.
-# Inputs: $1 (optional exit code)
-# Outputs: Prints help to stdout and exits
-# Env: Reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DRY_RUN, LOG_DIR, OUTPUT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
-# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
-# ---
+# @HELP
+# rc-scan.sh — Audit manifest and scan environment for file reports (v{VERSION})
+#
+# Usage:
+#   rotkeeper.sh scan [flags]
+#
+# Description:
+#   Audits the render ledger (bones/manifest.txt) against disk:
+#   missing = ledger entries absent from disk; orphans = files under the
+#   rendered output tree that the ledger does not list (output/assets/
+#   is exempt — owned by the assets ritual); digests = SHA-256 of
+#   ledger-listed files present on disk; digest_mismatches = ledger
+#   entries with a recorded SHA-256 (pack's two-space format) whose
+#   on-disk digest differs or whose file is absent. Writes Markdown/JSON
+#   reports to bones/reports/.
+#
+# Flags:
+#   --manifest-only   Read only manifest file, skip the output-tree walk.
+#   --include <ext>   Comma-separated extensions to include in the orphan walk.
+#   --exclude <pat>   Glob pattern to exclude from the orphan walk (can repeat).
+#   --json            Emit machine-readable JSON to stdout (report files unchanged).
+#   --json-only       Output only JSON report.
+#   --md-only         Output only Markdown report.
+#   --dry-run         Show actions without writing reports.
+#   --verbose         Print detailed logs.
+#   -h, --help        Show this help message and exit.
+#   --version, -v     Show script version and quit.
+#
+# Examples:
+#   bash rotkeeper.sh scan                                     Full audit
+#   bash rotkeeper.sh scan --manifest-only                     Manifest check only
+#   bash rotkeeper.sh scan --include md,textile --dry-run      Filtered preview
+#   bash rotkeeper.sh scan --json | jq .                       Machine-readable output
+#
+# Exit codes:
+#   0    Success
+#   1    Environment failure
+#   2    Manifest file missing
+# @END-HELP
+
+# rc-scan is the one ritual whose help takes an optional exit code
+# (`show_help 2` on unknown flags), so it overrides the shared default handler.
 show_help() {
-  cat <<EOF
-rc-scan.sh — Audit manifest and scan environment for file reports (v${VERSION:-unknown})
-
-Usage:
-  rotkeeper.sh scan [flags]
-
-Description:
-  Audits the render ledger (bones/manifest.txt) against disk:
-  missing = ledger entries absent from disk; orphans = files under the
-  rendered output tree that the ledger does not list (output/assets/
-  is exempt — owned by the assets ritual); digests = SHA-256 of
-  ledger-listed files present on disk; digest_mismatches = ledger
-  entries with a recorded SHA-256 (pack's two-space format) whose
-  on-disk digest differs or whose file is absent. Writes Markdown/JSON
-  reports to bones/reports/.
-
-Flags:
-  --manifest-only   Read only manifest file, skip the output-tree walk.
-  --include <ext>   Comma-separated extensions to include in the orphan walk.
-  --exclude <pat>   Glob pattern to exclude from the orphan walk (can repeat).
-  --json            Emit machine-readable JSON to stdout (report files unchanged).
-  --json-only       Output only JSON report.
-  --md-only         Output only Markdown report.
-  --dry-run         Show actions without writing reports.
-  --verbose         Print detailed logs.
-  -h, --help        Show this help message and exit.
-  --version, -v     Show script version and quit.
-
-Examples:
-  bash rotkeeper.sh scan                                     Full audit
-  bash rotkeeper.sh scan --manifest-only                     Manifest check only
-  bash rotkeeper.sh scan --include md,textile --dry-run      Filtered preview
-  bash rotkeeper.sh scan --json | jq .                       Machine-readable output
-
-Exit codes:
-  0    Success
-  1    Environment failure
-  2    Manifest file missing
-EOF
+  rk_show_help "$0"
   exit "${1:-0}"
 }
 

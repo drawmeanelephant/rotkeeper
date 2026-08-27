@@ -22,53 +22,44 @@ IFS=$'\n\t'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
 
-# ---
-# show_help: Display primary help for binder modes.
-# Inputs: none
-# Outputs: Prints help to stdout
-# Env: Reads BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, DRY_RUN ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
-# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
-# ---
-show_help() {
-  cat <<'HELP_EOF'
-rc-book.sh — Aggregate documentation into bound book reports
-
-Usage:
-  rotkeeper.sh book <mode> [options]
-
-Description:
-  Binds retrieval artifacts under bones/book-reports/: filesystem
-  catalogs for DIP discovery, documentation/script/config books, and
-  content metadata. Outputs are generated retrieval aids, not policy.
-
-Modes:
-  --fsbook          Filesystem catalog consumed by DIP for core-file discovery
-  --docbook         Bind documentation pages
-  --docbook-clean   Bind documentation pages, cleaning stale targets
-  --scriptbook-full Bind active scripts
-  --configbook      Bind configuration and templates
-  --contentbook     Bind content pages
-  --contentmeta     Emit content metadata
-  --collapse        Collapse a book or content tree
-  --force-bind      Allow larger than safe default bind
-
-Options:
-  --dry-run      Preview the bind without writing
-  --verbose      Detailed output
-  --help, -h     Show help
-  --version, -v  Show version and quit
-
-Examples:
-  bash rotkeeper.sh book --fsbook                          Filesystem catalog for DIP
-  bash rotkeeper.sh book --docbook-clean --strip-frontmatter
-  bash rotkeeper.sh book --configbook --dry-run            Preview config bind
-
-Exit codes:
-  0         Success
-  1         No mode selected or bind failure
-  3         Write-boundary violation
-HELP_EOF
-}
+# @HELP
+# rc-book.sh — Aggregate documentation into bound book reports
+#
+# Usage:
+#   rotkeeper.sh book <mode> [options]
+#
+# Description:
+#   Binds retrieval artifacts under bones/book-reports/: filesystem
+#   catalogs for DIP discovery, documentation/script/config books, and
+#   content metadata. Outputs are generated retrieval aids, not policy.
+#
+# Modes:
+#   --fsbook          Filesystem catalog consumed by DIP for core-file discovery
+#   --docbook         Bind documentation pages
+#   --docbook-clean   Bind documentation pages, cleaning stale targets
+#   --scriptbook-full Bind active scripts
+#   --configbook      Bind configuration and templates
+#   --contentbook     Bind content pages
+#   --contentmeta     Emit content metadata
+#   --collapse        Collapse a book or content tree
+#   --force-bind      Allow larger than safe default bind
+#
+# Options:
+#   --dry-run      Preview the bind without writing
+#   --verbose      Detailed output
+#   --help, -h     Show help
+#   --version, -v  Show version and quit
+#
+# Examples:
+#   bash rotkeeper.sh book --fsbook                          Filesystem catalog for DIP
+#   bash rotkeeper.sh book --docbook-clean --strip-frontmatter
+#   bash rotkeeper.sh book --configbook --dry-run            Preview config bind
+#
+# Exit codes:
+#   0         Success
+#   1         No mode selected or bind failure
+#   3         Write-boundary violation
+# @END-HELP
 
 rk_init_script "rc-book" "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR TEMPLATE_DIR LOG_DIR TMP_DIR REPORT_DIR BOOK_REPORT_DIR DOCS_DIR CONTENT_DIR

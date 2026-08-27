@@ -10,34 +10,37 @@ if [[ "${1:-}" == "--version" || "${1:-}" == "-v" ]]; then
   exit 0
 fi
 
+# @HELP
+# rc-test.sh — Integration test harness matrix
+#
+# Usage:
+#   rotkeeper.sh test|smoke [--dry-run]
+#
+# Description:
+#   Builds temporary crypt, busy, and sterile fixtures, initializes each
+#   with sample content, runs the full ritual matrix (init, render, pack,
+#   scan, release, preflight), verifies archive properties, stale-output
+#   pruning, dry-run non-mutation, command contracts (--help/--version),
+#   removed-command regressions, and schema-tagged --json output checks for
+#   scan and dip. With --dry-run, runs only the removed-command regression checks.
+#
+# Options:
+#   --dry-run      Run only the removed-command regression checks
+#   --help, -h     Show help
+#   --version, -v  Show version and quit
+#
+# Examples:
+#   bash rotkeeper.sh test               Full multi-layout harness matrix
+#   bash rotkeeper.sh test --dry-run     Removed-command regressions only
+#
+# Exit codes:
+#   0         All harness assertions passed
+#   nonzero   A harness assertion failed (the code identifies the suite)
+# @END-HELP
+
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
-  cat <<'HELP_EOF'
-rc-test.sh — Integration test harness matrix
-
-Usage:
-  rotkeeper.sh test|smoke [--dry-run]
-
-Description:
-  Builds temporary crypt, busy, and sterile fixtures, initializes each
-  with sample content, runs the full ritual matrix (init, render, pack,
-  scan, release, preflight), verifies archive properties, stale-output
-  pruning, dry-run non-mutation, command contracts (--help/--version),
-  removed-command regressions, and schema-tagged --json output checks for
-  scan and dip. With --dry-run, runs only the removed-command regression checks.
-
-Options:
-  --dry-run      Run only the removed-command regression checks
-  --help, -h     Show help
-  --version, -v  Show version and quit
-
-Examples:
-  bash rotkeeper.sh test               Full multi-layout harness matrix
-  bash rotkeeper.sh test --dry-run     Removed-command regressions only
-
-Exit codes:
-  0         All harness assertions passed
-  nonzero   A harness assertion failed (the code identifies the suite)
-HELP_EOF
+  # Static help lives in the @HELP header block (single sourced help).
+  rk_show_help "$0"
   exit 0
 fi
 

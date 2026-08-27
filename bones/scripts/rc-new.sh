@@ -22,14 +22,57 @@ IFS=$'\n\t'
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
 
+# @HELP
+# rc-new.sh — Scaffold a new markdown file with required YAML frontmatter (v{VERSION})
+#
+# Usage:
+#   rotkeeper.sh new <file> [options]
+#   rotkeeper.sh new --list
+#
+# Description:
+#   Creates a new markdown source with canonical YAML frontmatter under
+#   home/content/, deriving title/slug defaults from the filename and
+#   configuration.
+#
+# Options:
+#   --title "Title"        Override auto-derived title; skip slug-from-filename
+#   --author "Name"        Override config-derived author
+#   --tags "tag1,tag2"     Comma-separated tags; rendered as YAML list
+#   --template "file.html" Override the configured default template
+#   --description "text"   Frontmatter description field
+#   --body "text"          Starting body content
+#   --url "https://..."    A URL to embed in the document (creates source skeleton)
+#   --subdir "path"        Directory under home/content/ to place the file
+#   --soul                 Also scaffold sidecar bones/meta/<path>.soul.md
+#   --list                 List available templates and exit
+#   --dry-run              Preview actions without writing files
+#   --verbose              Enable detailed debug logging
+#   --help, -h             Show this help message and exit
+#   --version, -v          Show script version and quit
+#
+# Examples:
+#   bash rotkeeper.sh new graveyard-shift                       Simple scaffold at content root
+#   bash rotkeeper.sh new ember-report --subdir journal         Place under journal/
+#   bash rotkeeper.sh new ember-report --title "Ember Report" --tags "news,ember" --dry-run
+#
+# Exit codes:
+#   0    Success
+#   1    Invalid usage or scaffold failure
+# @END-HELP
+
 # ---
-# show_help: Print scaffold usage and available templates.
+# show_help: Print scaffold usage from the @HELP header block plus the runtime
+# template completion hint — the only dynamic part of this ritual's help.
 # Inputs: none (reads TEMPLATE_DIR, BONES_DIR)
 # Outputs: Prints help to stdout and exits 0
 # Env: Reads BONES_DIR, CONFIG_DIR, DRY_RUN, QUIET, ROOT_DIR, TEMPLATE_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 show_help() {
+  # Static usage text lives in the @HELP header block (single sourced help);
+  # only the runtime template completion hint is appended here.
+  rk_show_help "$0"
+
   # List available templates for completion hint (safe for unbound vars before env load)
   local tmpl_list=""
   local palette_hint=""
@@ -66,43 +109,6 @@ show_help() {
     palette_hint=" (templates with \$palette\$ support palette flag)"
   fi
 
-  cat << EOF
-rc-new.sh — Scaffold a new markdown file with required YAML frontmatter (v${VERSION:-unknown})
-
-Usage:
-  rotkeeper.sh new <file> [options]
-  rotkeeper.sh new --list
-
-Description:
-  Creates a new markdown source with canonical YAML frontmatter under
-  home/content/, deriving title/slug defaults from the filename and
-  configuration.
-
-Options:
-  --title "Title"        Override auto-derived title; skip slug-from-filename
-  --author "Name"        Override config-derived author
-  --tags "tag1,tag2"     Comma-separated tags; rendered as YAML list
-  --template "file.html" Override the configured default template ($tmpl_list)
-  --description "text"   Frontmatter description field
-  --body "text"          Starting body content
-  --url "https://..."    A URL to embed in the document (creates source skeleton)
-  --subdir "path"        Directory under home/content/ to place the file
-  --soul                 Also scaffold sidecar bones/meta/<path>.soul.md
-  --list                 List available templates and exit
-  --dry-run              Preview actions without writing files
-  --verbose              Enable detailed debug logging
-  --help, -h             Show this help message and exit
-  --version, -v          Show script version and quit
-
-Examples:
-  bash rotkeeper.sh new graveyard-shift                       Simple scaffold at content root
-  bash rotkeeper.sh new ember-report --subdir journal         Place under journal/
-  bash rotkeeper.sh new ember-report --title "Ember Report" --tags "news,ember" --dry-run
-
-Exit codes:
-  0    Success
-  1    Invalid usage or scaffold failure
-EOF
   if [[ -n "$tmpl_list" ]]; then
     echo
     echo "Available templates: $tmpl_list$palette_hint"

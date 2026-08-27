@@ -17,47 +17,37 @@ IFS=$'\n\t'
 #  Purpose : Minimal, non-destructive environment initialization
 # ============================================================
 
-# ---
-# show_help: Print init usage and exit.
-# Inputs: none
-# Outputs: Prints help to stdout and returns 0
-# Env: Reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, LAYOUT_STYLE, LOG_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
-# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
-# ---
-show_help() {
-  cat << EOF2
-rc-init.sh — Initialize environment (v${VERSION:-unknown})
-
-Usage:
-  rotkeeper.sh init [options]
-
-Description:
-  Prepares the Rotkeeper environment for the active layout style —
-  creates canonical bones directories, validates path alignment, and
-  optionally scaffolds starter content. Non-destructive.
-
-Options:
-  --with-sample    Generate starter test-file.md
-  --with-assets    Run assets generation
-  --with-render    Run the render ritual
-  --full           Perform full sample, assets, render, and scan
-  --profile=STYLE  Set layout style (crypt, busy, sterile)
-  --dry-run        Preview actions without writing
-  --verbose        Show detailed logs
-  --help, -h       Show this help message and exit
-  --version, -v    Show script version and quit
-
-Examples:
-  bash rotkeeper.sh init                        Initialize with defaults
-  bash rotkeeper.sh init --full                 Sample content + assets + render + scan
-  bash rotkeeper.sh init --with-sample --dry-run
-
-Exit codes:
-  0    Success
-  1    Initialization failure
-EOF2
-  return 0
-}
+# @HELP
+# rc-init.sh — Initialize environment (v{VERSION})
+#
+# Usage:
+#   rotkeeper.sh init [options]
+#
+# Description:
+#   Prepares the Rotkeeper environment for the active layout style —
+#   creates canonical bones directories, validates path alignment, and
+#   optionally scaffolds starter content. Non-destructive.
+#
+# Options:
+#   --with-sample    Generate starter test-file.md
+#   --with-assets    Run assets generation
+#   --with-render    Run the render ritual
+#   --full           Perform full sample, assets, render, and scan
+#   --profile=STYLE  Set layout style (crypt, busy, sterile)
+#   --dry-run        Preview actions without writing
+#   --verbose        Show detailed logs
+#   --help, -h       Show this help message and exit
+#   --version, -v    Show script version and quit
+#
+# Examples:
+#   bash rotkeeper.sh init                        Initialize with defaults
+#   bash rotkeeper.sh init --full                 Sample content + assets + render + scan
+#   bash rotkeeper.sh init --with-sample --dry-run
+#
+# Exit codes:
+#   0    Success
+#   1    Initialization failure
+# @END-HELP
 
 
 # Source shared Rotkeeper helpers

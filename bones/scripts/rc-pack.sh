@@ -21,44 +21,34 @@ IFS=$'\n\t'
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
-# ---
-# show_help: Print packager usage and exit.
-# Inputs: none (reads VERSION)
-# Outputs: Prints help and exits 0
-# Env: Reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, LOG_DIR, OUTPUT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
-# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
-# ---
-show_help() {
-  cat << EOF
-rc-pack.sh — Ritual Compression Packager (v${VERSION:-unknown})
-
-Usage:
-  rotkeeper.sh pack [options]
-
-Description:
-  Archives rendered output into a unique versioned tar.gz tomb.
-  Default mode packs output/; --self bundles the whole system;
-  --content preserves source content only.
-
-Options:
-  --self           Archive the full Rotkeeper system (rotkeeper.sh, bones/, home/, output/)
-  --content        Archive only the home/content directory to preserve source files
-  --dry-run        Preview actions without writing files
-  --verbose        Enable detailed debug logging
-  --help, -h       Show this help message and exit
-  --version, -v    Show script version and quit
-
-Examples:
-  bash rotkeeper.sh pack                    Archive rendered output into a tomb
-  bash rotkeeper.sh pack --self             Full-system bundle
-  bash rotkeeper.sh pack --content --dry-run
-
-Exit codes:
-  0    Success
-  1    Packaging or archive-validation failure
-EOF
-  exit 0
-}
+# @HELP
+# rc-pack.sh — Ritual Compression Packager (v{VERSION})
+#
+# Usage:
+#   rotkeeper.sh pack [options]
+#
+# Description:
+#   Archives rendered output into a unique versioned tar.gz tomb.
+#   Default mode packs output/; --self bundles the whole system;
+#   --content preserves source content only.
+#
+# Options:
+#   --self           Archive the full Rotkeeper system (rotkeeper.sh, bones/, home/, output/)
+#   --content        Archive only the home/content directory to preserve source files
+#   --dry-run        Preview actions without writing files
+#   --verbose        Enable detailed debug logging
+#   --help, -h       Show this help message and exit
+#   --version, -v    Show script version and quit
+#
+# Examples:
+#   bash rotkeeper.sh pack                    Archive rendered output into a tomb
+#   bash rotkeeper.sh pack --self             Full-system bundle
+#   bash rotkeeper.sh pack --content --dry-run
+#
+# Exit codes:
+#   0    Success
+#   1    Packaging or archive-validation failure
+# @END-HELP
 
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

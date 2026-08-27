@@ -21,43 +21,33 @@ IFS=$'\n\t'
 
 FORCE_GLUE=false
 
-# ---
-# show_help: Print glue usage and exit.
-# Inputs: none
-# Outputs: Prints help to stdout and exits 0
-# Env: Reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, DRY_RUN, LOG_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
-# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
-# ---
-show_help() {
-  cat <<'EOF'
-rc-glue.sh — Generate navigation glue for unindexed content directories
-
-Usage:
-  rotkeeper.sh glue [options]
-
-Description:
-  Auto-generates index pages for content directories that lack one, so
-  every section stays navigable after render.
-
-Options:
-  --path DIR       Limit glue to a directory under home/content/
-  --force          Refresh existing auto-generated indexes
-  --dry-run        Preview changes without writing
-  --verbose        Show detailed logs
-  --help, -h       Show this help message
-  --version, -v    Show script version and quit
-
-Examples:
-  bash rotkeeper.sh glue                                Glue all unindexed directories
-  bash rotkeeper.sh glue --path journal                 One directory
-  bash rotkeeper.sh glue --force --dry-run              Preview refresh
-
-Exit codes:
-  0    Success
-  1    Generation failure
-EOF
-  exit 0
-}
+# @HELP
+# rc-glue.sh — Generate navigation glue for unindexed content directories
+#
+# Usage:
+#   rotkeeper.sh glue [options]
+#
+# Description:
+#   Auto-generates index pages for content directories that lack one, so
+#   every section stays navigable after render.
+#
+# Options:
+#   --path DIR       Limit glue to a directory under home/content/
+#   --force          Refresh existing auto-generated indexes
+#   --dry-run        Preview changes without writing
+#   --verbose        Show detailed logs
+#   --help, -h       Show this help message
+#   --version, -v    Show script version and quit
+#
+# Examples:
+#   bash rotkeeper.sh glue                                Glue all unindexed directories
+#   bash rotkeeper.sh glue --path journal                 One directory
+#   bash rotkeeper.sh glue --force --dry-run              Preview refresh
+#
+# Exit codes:
+#   0    Success
+#   1    Generation failure
+# @END-HELP
 TARGET_DIR=""
 
 # shellcheck disable=SC2034

@@ -28,6 +28,10 @@ elif [[ -f "$SCRIPT_DIR/bones/config/version" ]]; then
 fi
 [[ -n "$VERSION" ]] || VERSION="unknown"
 
+# Source the shared helpers for the block-driven help emitter (rk_show_help);
+# this does not load the environment — rk_load_env only runs inside rk_init_script.
+source "$BONES/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
+
 on_err() {
   local status=$?
   printf 'ERROR: status=%s file=%s line=%s function=%s command=%q\n' \
@@ -41,44 +45,42 @@ trap 'on_err' ERR
 command="${1:-}"
 if [[ $# -gt 0 ]]; then shift; fi
 
-show_help() {
-  cat <<HELP_EOF
-rotkeeper.sh — Rotkeeper CLI v$VERSION
-
-Usage:
-  rotkeeper.sh <command> [options]
-
-Commands:
-  init        Initialize environment
-  new <file>  Scaffold a new markdown file
-  render      Convert markdown into HTML tombs
-  pack        Archive rendered HTML into a versioned tarball
-  preflight   Report Oliver renderer availability and compatibility
-  release     Package the project into a single canonical framework zip file
-  bump        Record a microrelease update and synchronize version markers
-  test        Run the integration test harness matrix (alias: smoke)
-  scan        Verify manifest entries against actual files
-  assets      Generate asset manifest
-  autopsy     Catalog script help and output behavior
-  glue        Auto-generate navigation glue for unindexed content directories
-  links       Audit links and local assets in rendered HTML
-  a11y        Audit theme accessibility: contrast, focus states, legibility
-  showcase    Generate showcase content for every HTML template
-  dip         Audit documentation coverage via DIP
-  book        Generate aggregated documentation book targets
-  status      Display environment health status reports
-
-Examples:
-  bash rotkeeper.sh init --full          Initialize sample env, assets, render, scan
-  bash rotkeeper.sh render               Render content tombs into HTML
-  bash rotkeeper.sh pack                 Archive rendered HTML into a tomb
-  bash rotkeeper.sh release 0.8.0        Package the canonical distribution
-
-Exit codes:
-  0    Success
-  1    Unknown command or ritual failure
-HELP_EOF
-}
+# @HELP
+# rotkeeper.sh — Rotkeeper CLI v{VERSION}
+#
+# Usage:
+#   rotkeeper.sh <command> [options]
+#
+# Commands:
+#   init        Initialize environment
+#   new <file>  Scaffold a new markdown file
+#   render      Convert markdown into HTML tombs
+#   pack        Archive rendered HTML into a versioned tarball
+#   preflight   Report Oliver renderer availability and compatibility
+#   release     Package the project into a single canonical framework zip file
+#   bump        Record a microrelease update and synchronize version markers
+#   test        Run the integration test harness matrix (alias: smoke)
+#   scan        Verify manifest entries against actual files
+#   assets      Generate asset manifest
+#   autopsy     Catalog script help and output behavior
+#   glue        Auto-generate navigation glue for unindexed content directories
+#   links       Audit links and local assets in rendered HTML
+#   a11y        Audit theme accessibility: contrast, focus states, legibility
+#   showcase    Generate showcase content for every HTML template
+#   dip         Audit documentation coverage via DIP
+#   book        Generate aggregated documentation book targets
+#   status      Display environment health status reports
+#
+# Examples:
+#   bash rotkeeper.sh init --full          Initialize sample env, assets, render, scan
+#   bash rotkeeper.sh render               Render content tombs into HTML
+#   bash rotkeeper.sh pack                 Archive rendered HTML into a tomb
+#   bash rotkeeper.sh release 0.8.0        Package the canonical distribution
+#
+# Exit codes:
+#   0    Success
+#   1    Unknown command or ritual failure
+# @END-HELP
 
 case "$command" in
   --version|-v)

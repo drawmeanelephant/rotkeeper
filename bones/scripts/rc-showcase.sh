@@ -2,41 +2,31 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-# ---
-# show_help: Print showcase usage and exit.
-# Inputs: none
-# Outputs: Prints help to stdout and exits 0
-# Env: Reads BONES_DIR, CONTENT_DIR, DRY_RUN, OLIVER_BIN, OUTPUT_DIR, QUIET ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
-# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
-# ---
-show_help() {
-  cat <<EOF
-rc-showcase.sh — Generate showcase content for every HTML template (v${VERSION:-unknown})
-
-Usage:
-  rotkeeper.sh showcase [options]
-
-Description:
-  Auto-scaffolds a test page per HTML template under
-  home/content/showcase/ and renders a gallery index, so every theme
-  has visible sample output.
-
-Options:
-  --dry-run        Preview generated showcase pages without writing
-  --verbose        Show detailed logs
-  --help, -h       Show this help message
-  --version, -v    Show script version and quit
-
-Examples:
-  bash rotkeeper.sh showcase --dry-run      Preview gallery scaffolding
-  bash rotkeeper.sh showcase                Generate showcase content
-
-Exit codes:
-  0    Success
-  1    Generation failure
-EOF
-  exit 0
-}
+# @HELP
+# rc-showcase.sh — Generate showcase content for every HTML template (v{VERSION})
+#
+# Usage:
+#   rotkeeper.sh showcase [options]
+#
+# Description:
+#   Auto-scaffolds a test page per HTML template under
+#   home/content/showcase/ and renders a gallery index, so every theme
+#   has visible sample output.
+#
+# Options:
+#   --dry-run        Preview generated showcase pages without writing
+#   --verbose        Show detailed logs
+#   --help, -h       Show this help message
+#   --version, -v    Show script version and quit
+#
+# Examples:
+#   bash rotkeeper.sh showcase --dry-run      Preview gallery scaffolding
+#   bash rotkeeper.sh showcase                Generate showcase content
+#
+# Exit codes:
+#   0    Success
+#   1    Generation failure
+# @END-HELP
 IFS=$'\n\t'
 # ============================================================
 #  Project : Rotkeeper

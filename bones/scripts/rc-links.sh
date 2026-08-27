@@ -11,45 +11,35 @@ IFS=$'\n\t'
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
 # Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
 
-# ---
-# show_help: Print links audit usage and exit.
-# Inputs: none
-# Outputs: Prints help to stdout and exits 0
-# Env: Reads BONES_DIR, CONFIG_DIR, DRY_RUN, LOG_DIR, OUTPUT_DIR, QUIET ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
-# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
-# ---
-show_help() {
-  cat <<'EOF'
-rc-links.sh — Audit rendered HTML links and local asset references
-
-Usage:
-  rotkeeper.sh links [options]
-
-Description:
-  Audits rendered output for broken internal links and missing local
-  asset references; writes a markdown report under bones/reports/.
-
-Options:
-  --root DIR       Rendered directory to scan; defaults to output/
-  --report FILE    Report destination; defaults to bones/reports/link-report-*.md
-  --json           Emit machine-readable JSON to stdout (failures with line+excerpt)
-  --fix-hint       Show suggested fixes for each failure (no auto-fix)
-  --dry-run        Scan without writing a report
-  --verbose        Show detailed logs (line numbers + excerpts)
-  --help, -h       Show this help message
-  --version, -v    Show script version and quit
-
-Examples:
-  bash rotkeeper.sh links                     Audit and write report
-  bash rotkeeper.sh links --fix-hint          Audit with per-failure hints
-  bash rotkeeper.sh links --json | jq .       Machine-readable output
-
-Exit codes:
-  0    No broken links or missing assets found
-  1    Broken references found, or audit error
-EOF
-  exit 0
-}
+# @HELP
+# rc-links.sh — Audit rendered HTML links and local asset references
+#
+# Usage:
+#   rotkeeper.sh links [options]
+#
+# Description:
+#   Audits rendered output for broken internal links and missing local
+#   asset references; writes a markdown report under bones/reports/.
+#
+# Options:
+#   --root DIR       Rendered directory to scan; defaults to output/
+#   --report FILE    Report destination; defaults to bones/reports/link-report-*.md
+#   --json           Emit machine-readable JSON to stdout (failures with line+excerpt)
+#   --fix-hint       Show suggested fixes for each failure (no auto-fix)
+#   --dry-run        Scan without writing a report
+#   --verbose        Show detailed logs (line numbers + excerpts)
+#   --help, -h       Show this help message
+#   --version, -v    Show script version and quit
+#
+# Examples:
+#   bash rotkeeper.sh links                     Audit and write report
+#   bash rotkeeper.sh links --fix-hint          Audit with per-failure hints
+#   bash rotkeeper.sh links --json | jq .       Machine-readable output
+#
+# Exit codes:
+#   0    No broken links or missing assets found
+#   1    Broken references found, or audit error
+# @END-HELP
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }

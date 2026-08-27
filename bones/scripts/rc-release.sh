@@ -30,44 +30,35 @@ IFS=$'\n\t'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
 
-# ---
-# show_help: Print release usage and exit.
-# Inputs: none
-# Outputs: Prints help to stdout
-# Env: Reads BONES_DIR, CONFIG_DIR, DRY_RUN, LOG_DIR, OUTPUT_DIR, QUIET ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
-# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
-# ---
-show_help() {
-  cat <<HELP_EOF
-rc-release.sh — Package the canonical single-tier framework distribution (v${VERSION:-unknown})
-
-Usage:
-  rotkeeper.sh release <VERSION> [options]
-
-Description:
-  Builds releases/rotkeeper-<VERSION>.zip from a staged tree that must
-  match an explicit root-entry allowlist, contain the framework spine,
-  and carry a generated manifest.
-
-Arguments:
-  VERSION        Semver-style version for the distribution name (e.g. 0.8.0)
-
-Options:
-  --dry-run      Preview the release without writing archives
-  --verbose      Detailed output
-  --help, -h     Show help
-  --version, -v  Show version and quit
-
-Examples:
-  bash rotkeeper.sh release 0.8.0              Package the distribution
-  bash rotkeeper.sh release 0.8.0 --dry-run    Preview without writing
-
-Exit codes:
-  0    Success
-  1    Invalid usage or packaging failure
-  3    Write-boundary violation
-HELP_EOF
-}
+# @HELP
+# rc-release.sh — Package the canonical single-tier framework distribution (v{VERSION})
+#
+# Usage:
+#   rotkeeper.sh release <VERSION> [options]
+#
+# Description:
+#   Builds releases/rotkeeper-<VERSION>.zip from a staged tree that must
+#   match an explicit root-entry allowlist, contain the framework spine,
+#   and carry a generated manifest.
+#
+# Arguments:
+#   VERSION        Semver-style version for the distribution name (e.g. 0.8.0)
+#
+# Options:
+#   --dry-run      Preview the release without writing archives
+#   --verbose      Detailed output
+#   --help, -h     Show help
+#   --version, -v  Show version and quit
+#
+# Examples:
+#   bash rotkeeper.sh release 0.8.0              Package the distribution
+#   bash rotkeeper.sh release 0.8.0 --dry-run    Preview without writing
+#
+# Exit codes:
+#   0    Success
+#   1    Invalid usage or packaging failure
+#   3    Write-boundary violation
+# @END-HELP
 
 rk_init_script "rc-release" "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR OUTPUT_DIR RELEASE_DIR

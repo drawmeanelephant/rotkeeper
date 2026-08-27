@@ -24,44 +24,36 @@ IFS=$'\n\t'
 
 
 
-# ---
-# show_help: Print autopsy usage and exit.
-# Inputs: none
-# Outputs: Prints help to stdout
-# Env: Reads BONES_DIR, CONFIG_DIR, DRY_RUN, LOG_DIR, QUIET, REPORT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
-# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
-# ---
-show_help() { cat <<HELP_EOF
-rc-autopsy.sh — Script dissection ritual (v${VERSION:-unknown})
-
-Usage:
-  rotkeeper.sh autopsy [mode] [options]
-
-Description:
-  Catalogs ritual behavior: extracts --help output from all rc-*.sh
-  scripts and scans scripts for file-write operations into reference
-  reports under bones/reports/.
-
-Modes:
-  --help-report    Extract --help output from all rc-*.sh into a reference report
-  --output-report  Scan scripts for file-write operations and catalog outputs
-  --all            Run both reports (default)
-
-Options:
-  --dry-run        Preview without writing
-  --verbose        Detailed logging
-  --help, -h       Show this help message and exit
-  --version, -v    Show script version and quit
-
-Examples:
-  bash rotkeeper.sh autopsy                  Both reports (default)
-  bash rotkeeper.sh autopsy --help-report    Help catalog only
-
-Exit codes:
-  0    Success
-  1    Report generation failure
-HELP_EOF
-}
+# @HELP
+# rc-autopsy.sh — Script dissection ritual (v{VERSION})
+#
+# Usage:
+#   rotkeeper.sh autopsy [mode] [options]
+#
+# Description:
+#   Catalogs ritual behavior: extracts --help output from all rc-*.sh
+#   scripts and scans scripts for file-write operations into reference
+#   reports under bones/reports/.
+#
+# Modes:
+#   --help-report    Extract --help output from all rc-*.sh into a reference report
+#   --output-report  Scan scripts for file-write operations and catalog outputs
+#   --all            Run both reports (default)
+#
+# Options:
+#   --dry-run        Preview without writing
+#   --verbose        Detailed logging
+#   --help, -h       Show this help message and exit
+#   --version, -v    Show script version and quit
+#
+# Examples:
+#   bash rotkeeper.sh autopsy                  Both reports (default)
+#   bash rotkeeper.sh autopsy --help-report    Help catalog only
+#
+# Exit codes:
+#   0    Success
+#   1    Report generation failure
+# @END-HELP
 
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
