@@ -24,9 +24,11 @@
       </article>
     </main>
     <footer class="brutal-footer">
-      <span>RENDERED BY ROTKEEPER · © 2026</span>
+      <span>RENDERED BY ROTKEEPER · v$version$</span>
       $if(author)$<span>AUTHOR: $author$</span>$endif$
-    </footer>
+$if(asset_meta)$      <span>ASSET: $asset_meta$</span>
+$endif$$if(tags)$      <span>TAGS: $tags$</span>
+$endif$    </footer>
   </div>
 </body>
 </html>

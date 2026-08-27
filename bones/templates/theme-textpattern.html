@@ -172,9 +172,11 @@
           &copy; 2026 <strong>Rotkeeper Necropolis</strong> &bull; Crafted with <a href="$assets_root$../docs/textile-guide.html">Textile Markup</a> &amp; Bash.
         </p>
         <p class="txp-footer-meta">
-          What lives in <code>/bones/</code> may yet render again &bull; All pages generated statically by Rotkeeper.
+          What lives in <code>/bones/</code> may yet render again &bull; Rendered by Rotkeeper &bull; v$version$
         </p>
-      </div>
+$if(asset_meta)$        <p class="txp-footer-meta">Asset: $asset_meta$</p>
+$endif$$if(tags)$        <p class="txp-footer-meta">Tags: $tags$</p>
+$endif$      </div>
     </footer>
 
   </div>

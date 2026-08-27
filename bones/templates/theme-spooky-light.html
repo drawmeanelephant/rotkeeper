@@ -33,7 +33,11 @@
         </article>
       </main>
     </div>
-    <footer class="journal-footer"><p>Rendered by Rotkeeper · © 2026</p></footer>
+    <footer class="journal-footer">
+      <p class="footer-credit">Rendered by Rotkeeper · v$version$</p>
+$if(asset_meta)$      <p class="footer-asset-meta">$asset_meta$</p>
+$endif$$if(tags)$      <p class="footer-tags">$tags$</p>
+$endif$    </footer>
   </div>
 </body>
 </html>

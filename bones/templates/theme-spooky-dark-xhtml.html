@@ -35,8 +35,10 @@
     </div>
     <footer class="journal-footer">
       <p class="footer-lore">† The Rotkeeper tends the necropolis — what is buried here is not lost †</p>
-      <p>Rendered by Rotkeeper · © 2026</p>
-    </footer>
+      <p class="footer-credit">Rendered by Rotkeeper · v$version$</p>
+$if(asset_meta)$      <p class="footer-asset-meta">$asset_meta$</p>
+$endif$$if(tags)$      <p class="footer-tags">$tags$</p>
+$endif$    </footer>
   </div>
 </body>
 </html>
