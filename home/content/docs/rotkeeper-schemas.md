@@ -3,8 +3,8 @@ title: "Rotkeeper Schema Reference"
 slug: rotkeeper-schemas
 template: rotkeeper-doc.html
 version: "1.0"
-updated: "2026-08-13"
-description: "Field-by-field schemas for Rotkeeper's YAML and manifest files: bones/asset-manifest.yaml, bones/config/rotkeeper.yaml, and the release-manifest.txt bill of materials."
+updated: "2026-08-27"
+description: "Field-by-field schemas for Rotkeeper's YAML and manifest files: bones/asset-manifest.yaml, bones/config/rotkeeper.yaml, the release-manifest.txt bill of materials — plus the CLI --json stdout envelopes for scan and dip."
 tags:
   - rotkeeper
   - reference
@@ -92,6 +92,73 @@ Verification failures (unexpected root files, missing required spine, forbidden 
 `pack` writes versioned `.tar.gz` tombs (`tomb-<YYYY-MM-DD_HHMMSS>-NNNN.tar.gz`), tombkit bundles (`tombkit-*`), content archives (`tomb-content-*`), JSON exports (`tomb-export-*`), and releases (`releases/rotkeeper-<version>.zip`).
 
 **Tomb versioning policy:** archives are append-only and immutable. The random `-NNNN` tag (GNU and BSD safe — `%N` is GNU-only) guarantees unique names even for packs within the same second; old tombs are never invalidated, overwritten, or pruned. Each archive embeds a `metadata.json` (name, sha256 of the uncompressed tar, timestamp, mode, file count) and is recorded in `bones/manifest.txt` as `<relative-path>  <sha256>`. `gzip -t` integrity is verified at pack time (`validate_gz`) and re-asserted by the test harness; any failed or interrupted pack is cleaned up by the partial-archive trap (no half-written `.tar` or truncated `.gz` survives).
+
+## CLI `--json` output
+
+Several dispatcher commands emit a single machine-readable JSON object on stdout when passed `--json`; human-facing output, report files, and exit codes are unchanged when the flag is absent. New outputs are tagged with a stable `schema` field (`rotkeeper.<subject>.v1`) so CI consumers can version-check before parsing. As everywhere else on this page, when a script and this page disagree, the script is authoritative.
+
+### `scan --json`
+
+Emitted by `bash rotkeeper.sh scan --json`. The report files under `bones/reports/` keep their existing shape; this object carries the same findings inside an additive envelope.
+
+```json
+{
+  "schema": "rotkeeper.scan.v1",
+  "generated_at": "2026-08-27T00:00:00Z",
+  "manifest": "bones/manifest.txt",
+  "counts": { "missing": 0, "orphans": 0 },
+  "missing": [],
+  "orphans": [],
+  "digest_count": 2,
+  "digests": {
+    "home/content/index.md": "1dbb3b1b…c0b504d661"
+  }
+}
+```
+
+| Field | Type | Rules |
+| --- | --- | --- |
+| `schema` | string | Always `rotkeeper.scan.v1` |
+| `generated_at` | string | ISO-8601 UTC timestamp emitted at audit time |
+| `manifest` | string | Manifest path audited, root-relative |
+| `counts.missing`, `counts.orphans` | number | Lengths of the arrays below, mirrored for convenience |
+| `missing`, `orphans` | string[] | Root-relative paths; empty array when clean |
+| `digest_count` | number | Number of entries in `digests` |
+| `digests` | map | Scanned file path → lowercase hex SHA-256 |
+
+### `dip --json`
+
+Emitted by `bash rotkeeper.sh dip --json`. Rows appear in matrix order (sorted owned docs, then sorted unowned docs) with values equal to the published `dip-matrix.md` table cells minus markdown link decoration. Works under `--dry-run` without writing anything.
+
+```json
+{
+  "schema": "rotkeeper.dip-matrix.v1",
+  "generated_at": "2026-08-27T00:00:00Z",
+  "matrix_file": "home/content/docs/dip-matrix.md",
+  "totals": { "ok": 10, "stub": 0, "missing": 0, "stale": 0, "unowned": 0, "rows": 10 },
+  "rows": [
+    { "target_file": "bones/scripts/rc-dip.sh", "doc": "bones/scripts/rc-dip.md", "last_code_edit": "2026-08-27", "last_doc_edit": "2026-08-27", "status": "OK" }
+  ],
+  "ownership_collisions": [],
+  "obsolete_moved": [],
+  "degraded": { "autopsy_report": false, "fsbook_catalog": false }
+}
+```
+
+| Field | Type | Rules |
+| --- | --- | --- |
+| `schema` | string | Always `rotkeeper.dip-matrix.v1` |
+| `generated_at` | string | ISO-8601 UTC timestamp |
+| `matrix_file` | string | Published matrix path relative to root |
+| `totals` | map | Counts by status (`ok`, `stub`, `missing`, `stale`, `unowned`) plus total `rows` |
+| `rows[]` | object | `target_file`, `doc`, `last_code_edit`, `last_doc_edit`, `status` (all strings); targets without an owning script use `"Unknown"` |
+| `ownership_collisions[]` | object | `{doc, claims}` where `claims` lists the two generated sources claiming the same doc page |
+| `obsolete_moved[]` | string[] | Docs moved to the obsolete tree this run (always empty under `--dry-run`) |
+| `degraded.autopsy_report`, `degraded.fsbook_catalog` | boolean | True when that input artifact was missing and discovery degraded |
+
+### Other producers
+
+`status`, `links`, and `a11y` each support `--json` today with command-specific shapes (see their reference pages). They predate the envelope convention above and do not carry a `schema` tag; treat their exact fields as defined by the scripts themselves.
 
 ## Related
 

@@ -1,7 +1,7 @@
 ---
 title: "🧬 rc-dip.sh Reference"
 target_file: "bones/scripts/rc-dip.sh"
-date: "2026-08-26"
+date: "2026-08-27"
 template: "rotkeeper-doc.html"
 status: "active"
 version: "0.5.1"
@@ -26,7 +26,7 @@ tags:
 1. **Discovery & classification.** Core-file inventory comes from the FSBook catalog (`bones/book-reports/rotkeeper-files.md`, via `book --fsbook`); without it, discovery degrades and no moves/stubs are decided. Each doc is classified as *generated* (has a `target_file`), *authored* (hand-written conceptual page), *stub* (still carrying TODO placeholders), *stale* (source newer than doc), or *unowned* (reported, never silently discarded).
 2. **Obsolete handling.** A generated doc whose explicit `target_file` is no longer in the core inventory is moved to the obsolete tree — but only on that strong evidence. Ambiguous cases are reported as unowned, not moved.
 3. **Stub generation.** Missing expected reference pages are scaffolded with frontmatter (including `target_file`) and the canonical section skeleton.
-4. **Pillar stitching & matrix.** Four dynamic pillars per page are idempotently rewritten from live extraction: `## Environment` (variable listing), `###### CLI Usage` (from the autopsy help report), `## Ritual History` (CHANGELOG entries naming the script), and Necromancer's Notes (soul sidecars under `META_DIR`). Authored prose outside those pillars is preserved untouched. Finally `dip-matrix.md` summarizes the audit.
+4. **Pillar stitching & matrix.** Four dynamic pillars per page are idempotently rewritten from live extraction: `## Environment` (variable listing), `###### CLI Usage` (from the autopsy help report), `## Ritual History` (CHANGELOG entries naming the script), and Necromancer's Notes (soul sidecars under `META_DIR`). Authored prose outside those pillars is preserved untouched. Finally `dip-matrix.md` summarizes the audit, and `dip --json` mirrors it as a schema-tagged machine-readable object (`rotkeeper.dip-matrix.v1`) on stdout without changing the matrix, human output, or exit codes.
 
 The obsolete-document move check honors `bones/config/dip-whitelist.txt` exemptions (that whitelist is not an exemption from matrix reporting or pillar stitching).
 
@@ -39,6 +39,7 @@ rotkeeper.sh dip [options]
 #   --dry-run      Preview actions without moving or writing docs
 #   --verbose      Detailed output
 #   --quiet        Suppress informational output
+#   --json         Emit a machine-readable DIP matrix JSON on stdout
 #   --help, -h     Show usage help
 ```
 
@@ -62,6 +63,7 @@ rotkeeper.sh dip [options]
 --dry-run
 --verbose
 --quiet
+--json
 --version
 ```
 

@@ -22,8 +22,8 @@ Description:
   with sample content, runs the full ritual matrix (init, render, pack,
   scan, release, preflight), verifies archive properties, stale-output
   pruning, dry-run non-mutation, command contracts (--help/--version),
-  and removed-command regressions. With --dry-run, runs only the
-  removed-command regression checks.
+  removed-command regressions, and schema-tagged --json output checks for
+  scan and dip. With --dry-run, runs only the removed-command regression checks.
 
 Options:
   --dry-run      Run only the removed-command regression checks
@@ -1444,6 +1444,25 @@ COOK_CFG_EOF
       exit 128
     fi
 
+    # Assert scan --json emits a valid machine-readable envelope on stdout;
+    # report files, human output, and exit codes must be unaffected by the flag.
+    if ! scan_stdout=$(./rotkeeper.sh scan --json); then
+      echo "❌ Assertion Failed: ./rotkeeper.sh scan --json failed."
+      exit 129
+    fi
+    if ! jq -e '
+        .schema == "rotkeeper.scan.v1" and
+        (.missing | type == "array") and
+        (.orphans | type == "array") and
+        (.digests | type == "object") and
+        .counts.missing == (.missing | length) and
+        .counts.orphans == (.orphans | length)
+      ' >/dev/null <<< "$scan_stdout"; then
+      echo "❌ Assertion Failed: scan --json stdout does not match the rotkeeper.scan.v1 envelope."
+      exit 130
+    fi
+    echo "  [+] Pass: scan --json emitted a valid rotkeeper.scan.v1 object ($mode)."
+
     # --- XHTML output profile (hermetic) assertions ---
     # These render and prune fixture pages after the manifest-vs-disk scan above,
     # because render prunes stale output while bones/manifest.txt is append-only;
@@ -1859,6 +1878,25 @@ fi
 if grep -q "$ROOT_DIR" "$DIP_MATRIX"; then
   echo "❌ Assertion Failed: DIP matrix contains host-specific absolute paths."
   exit 138
+fi
+
+# dip --dry-run --json must emit a valid machine-readable matrix without
+# publishing anything or disturbing the assertions above. Dry-run un-quiets
+# rituals by design, so informational lines share stdout with the envelope;
+# slice the brace-delimited JSON body out before validating.
+if ! dip_raw=$("$ROOT_DIR/rotkeeper.sh" dip --dry-run --json 2>/dev/null); then
+  echo "❌ Assertion Failed: dip --dry-run --json exited non-zero."
+  exit 139
+fi
+dip_json=$(sed -n '/^{$/,/^}$/p' <<< "$dip_raw")
+if ! jq -e '
+    .schema == "rotkeeper.dip-matrix.v1" and
+    (.rows | type == "array") and
+    (.totals.rows | type == "number") and
+    .totals.rows == (.rows | length)
+  ' >/dev/null <<< "$dip_json"; then
+  echo "❌ Assertion Failed: dip --json output does not match the rotkeeper.dip-matrix.v1 envelope."
+  exit 140
 fi
 echo "✅ DIP regression passed."
 
