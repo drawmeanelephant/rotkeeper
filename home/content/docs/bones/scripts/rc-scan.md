@@ -8,7 +8,7 @@ status: "active"
 version: "0.5.1"
 author: "Rotkeeper Ritual Council"
 project: "Rotkeeper"
-description: "Audits the render ledger (bones/manifest.txt) against disk — missing entries, output-tree orphans (assets tree exempt), ledger digests — and emits JSON plus Markdown scan reports."
+description: "Audits the render ledger (bones/manifest.txt) against disk — missing entries, output-tree orphans (assets tree exempt), ledger digests, and digest mismatches — and emits JSON plus Markdown scan reports."
 tags:
   - rotkeeper
   - scripts
@@ -32,7 +32,8 @@ The audit, in order:
 2. **Output walk** — scans `OUTPUT_DIR` only, pruning noisy subtrees (`tmp`, `logs`, `archive`, `reports`, `book-reports`) and the assets tree (`output/assets/` — owned by the assets ritual, not the ledger), filtered by extension (default allowlist: `png jpg svg css js md html json yaml`; override with `--include`, tighten further with repeatable `--exclude` glob patterns).
 3. **Classification** — *missing* = listed in the ledger but absent on disk; *orphan* = under the output tree but absent from the ledger.
 4. **Digests** — SHA256 for every ledger-listed file present on disk (via the portable checksum helper); entries absent from disk are already reported as missing.
-5. **Reports** — timestamped JSON (`scan-report-<ts>.json`) and Markdown (`scan-report-<ts>.md`) under `bones/reports/`, each containing the missing list, orphan list, and digest table. `--json-only` / `--md-only` restrict output to one form; `--manifest-only` skips the disk walk entirely. `--json` additionally prints a schema-tagged summary object (`rotkeeper.scan.v1`) on stdout — report files, human output, and exit codes are unchanged.
+5. **Integrity** — `digest_mismatches` verifies manifest lines recorded by pack as `<path>  <sha256>` (two-space format) against the on-disk digest: existence, tamper/drift, and foreign-file checks make the scan a real ledger auditor (`actual: null` when the file is missing).
+6. **Reports** — timestamped JSON (`scan-report-<ts>.json`) and Markdown (`scan-report-<ts>.md`) under `bones/reports/`, each containing missing, orphans, digests, and digest mismatches. `--json-only` / `--md-only` restrict output to one form; `--manifest-only` skips the disk walk entirely. `--json` additionally prints a schema-tagged summary object (`rotkeeper.scan.v2`) on stdout — report files, human output, and exit codes are unchanged.
 
 ## CLI Usage
 
