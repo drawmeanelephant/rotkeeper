@@ -655,7 +655,9 @@ SOUL_V051_EOF
 
     # --- S1: Frontmatter extraction via Oliver meta (direct, pin 06dd640) ---
     echo "  [+] Executing S1 frontmatter extraction assertions (Oliver meta direct)..."
-    # 1. Multiline description + scalar-only: lists/maps ignored, null handling
+    # 1. Multiline description + non-contract lists/maps ignored, null handling.
+    #    (v2 renders the contract list/map fields tags/asset_meta via the
+    #    adapter's yq read, so the negative uses a non-contract list key.)
     cat << 'FRONT_S1_EOF' > "$b_content/frontmatter-s1.md"
 ---
 title: "S1 Frontmatter"
@@ -665,7 +667,7 @@ description: |-
 author: "Author & <Test>"
 date: "2026-08-20"
 palette: "phosphor"
-tags: [ignored, list]
+keywords: [ignored, list]
 extra_map:
   key: value
 render_profile: html

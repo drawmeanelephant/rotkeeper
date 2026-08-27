@@ -48,6 +48,25 @@ The site default (`theme-spooky-dark.html`) lives here alongside the XHTML profi
 
 Overgrown and Textpattern set Georgia-family serifs against muted grounds; Spooky-light is the declared light reading variant of the persistent Spooky experience. Each caps the measure so prose lines stay in the comfortable band on wide screens.
 
+## Shared skeleton (all members)
+
+Every template follows the same base skeleton — the variation between themes lives in CSS, ornament, and surface treatment, not in divergent HTML structure:
+
+- **Header** — site/page title (`$title$`) plus optional deck (`$if(description)$`), per theme.
+- **Nav** — optional; only `theme-textpattern` ships one today (hardcoded). The reserved `$navigation$` token exists for a future config-driven nav (#244); templates without a nav simply omit the region.
+- **Main/article** — `$body$` wrapped in the theme's article element.
+- **Footer** — the standardized asset-meta slot, present on every theme:
+
+```html
+<footer class="<theme-footer>">
+  <p class="footer-credit">Rendered by Rotkeeper · v$version$</p>
+$if(asset_meta)$      <p class="footer-asset-meta">$asset_meta$</p>
+$endif$$if(tags)$      <p class="footer-tags">$tags$</p>
+$endif$    </footer>
+```
+
+`v$version$` is live from `bones/config/version` (the same single source `--version` uses); `$asset_meta$` and `$tags$` render the page's frontmatter asset meta and tags when present and are cleanly removed otherwise (the `$if$` markers sit at column 0 so a removed block leaves no blank line — keep that convention when adding gated lines). Lore lines (e.g. spooky's †-line, textpattern's colophon) are ornament and live above the slot. Because the footer is live, rendered goldens are version-sensitive: regenerate template goldens with `RK_REGEN_TEMPLATE_GOLDENS=1 bash rotkeeper.sh test` and update the smoke golden (`smoke-fixture-expected.html`) on version bumps.
+
 ## Choosing and comparing
 
 Render the same content through every member with the showcase scaffolder (`bash rotkeeper.sh showcase`), or browse the [preview gallery](../showcase/showcase-preview.html) for the side-by-side wall. Set a page's template with `template:` frontmatter; the site default comes from `default_template` in `bones/config/rotkeeper.yaml`.
