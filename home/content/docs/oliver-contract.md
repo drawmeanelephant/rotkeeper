@@ -2,8 +2,8 @@
 title: "Oliver Renderer Contract"
 slug: oliver-contract
 template: rotkeeper-doc.html
-version: "1.11"
-updated: "2026-08-21"
+version: "1.12"
+updated: "2026-08-27"
 description: "The supported contract between Rotkeeper and the native Oliver HTML renderer: executable discovery, input format and output profile, output streams, exit codes, the adapter boundary, and the stable template/input contract."
 tags:
   - rotkeeper
@@ -143,6 +143,62 @@ oliver wrap --template bones/templates/theme-spooky-dark.html \
 ```
 
 Seven tokens remain, same escape/raw split and `$if$` evaluation order. Bash keeps `TEMPLATE_DIR` boundary checks; Oliver handles interpolation when `wrap` is present.
+
+## Shared template contract v2 — target surface (addendum, not yet implemented)
+
+This section scopes the shared template contract for exposed frontmatter/template variables (#244): the target dialect that extends the stable v1 table above with a real `$version$` token, page tags, and `asset_meta` rendering. **It is not implemented.** Until Oliver `wrap` learns to interpolate the extended tokens and the pin moves, the stable section above and `rc-oliver-adapter.sh` remain authoritative. v2 changes nothing for templates that do not use the new tokens — every v1 template renders byte-identically.
+
+### Goal
+
+Give every theme one shared source of truth for the metadata a header/footer needs — credits, engine version, tags, asset meta — so the static stamps added in #240 (`Rendered by Rotkeeper · © 2026`) can become live values (`Rendered by Rotkeeper · v$version$`) once implemented.
+
+### What the adapter/wrap stage injects today (v1)
+
+| Key | Source | Into `wrap`? |
+| --- | --- | --- |
+| `title` `description` `author` `date` `palette` | `oliver meta` (sidecar wins) | yes — 5 keys via `jq` |
+| `template` `render_profile` | `oliver meta` | no — consumed by the adapter (template resolution, `--to xhtml`) |
+| `$assets_root$` | render batch (`oliver plan`) | no — separate `--assets-root` flag |
+| `$body$` | `oliver render` | no — separate `--body` file |
+| everything else in frontmatter | — | **dropped** — `oliver meta` emits 7 scalar fields only; lists/maps ignored |
+
+### Target token surface (v2)
+
+| Token | Source | Insertion | Gate | Status |
+| --- | --- | --- | --- | --- |
+| `$title$` `$description$` `$author$` `$date$` `$palette$` | frontmatter (sidecar wins) | HTML-escaped | `$if(...)$` | **required** (v1 stable, unchanged) |
+| `$assets_root$` | render batch | literal | — | **required** |
+| `$body$` | rendered fragment | literal | — | **required** |
+| `$version$` | `bones/config/version` via the adapter (`$VERSION`, `rk_load_version`) | HTML-escaped | `$if(version)$` | **new** |
+| `$subtitle$` | frontmatter `subtitle` (sidecar wins) | HTML-escaped | `$if(subtitle)$` | **new** (optional; `description` remains the de-facto sub-headline) |
+| `$tags$` | frontmatter `tags` list, adapter-joined with `, ` | HTML-escaped | `$if(tags)$` | **new** |
+| `$asset_meta$` | frontmatter `asset_meta` map, adapter-serialized (below) | HTML-escaped | `$if(asset_meta)$` | **new** |
+| `$navigation$` | site nav from `bones/config/rotkeeper.yaml` | HTML-escaped | `$if(navigation)$` | **deferred** — no nav schema in config yet |
+| `$warnings$` | per-page renderer warnings | HTML-escaped | `$if(warnings)$` | **deferred** — warnings stay log/stderr-only today |
+
+### Provenance rules
+
+- `oliver meta` keeps emitting exactly the seven v1 fields — no map/list support is added to `meta`. `$version$` is not frontmatter: the adapter injects it from the canonical version source (`rk_load_version` → `bones/config/version`), the same single source `--version` and `@HELP` `{VERSION}` use.
+- The adapter enriches `wrap_meta` with the extended scalars before invoking `wrap`:
+  - `subtitle` ← frontmatter (sidecar wins; the sidecar merge is already adapter-owned).
+  - `tags` ← frontmatter list joined with `, ` (deterministic order as authored).
+  - `asset_meta` ← frontmatter map serialized deterministically: `name`, `version`, `author`, `project`, `license` joined with ` — `, empty fields omitted, `tracked` never rendered (it is retrieval metadata, not display content). Example for `home/content/index.md`: `index.md — 0.3.0.4 — Filed Systems — Rotkeeper — All Rights Reserved`.
+- **Frontmatter authority splits by design:** Oliver owns the seven v1 fields; yq (`--front-matter extract`, as the harness already does) reads the extended v2 fields from the raw source because `oliver meta` drops them. The contract records this split explicitly; a future `oliver meta` that emits every scalar key (and serializes `asset_meta`) would collapse it back into Oliver.
+
+### Dialect semantics (v2)
+
+- `wrap` interpolates exactly the keys present in `--meta-json` (plus `$assets_root$` and `$body$`): every metadata token HTML-escaped, `$assets_root$`/`$body$` literal as today. A token whose key is absent — including any unknown `$word$` — passes through verbatim (unchanged fail-soft behavior; a typo'd token is visible, not fatal).
+- `$if(...)$` gating extends to every v2 token with the same semantics: empty/`null` value removes the whole block including interior newlines; single-level, first `$endif$` closes.
+- Escaping policy is unchanged (`&` `<` `>` `"` `'`); v2 adds no raw-insertion tokens.
+
+### Implementation path (to land v2 and close the contract)
+
+1. **Oliver (upstream):** `wrap` interpolates any scalar key present in `--meta-json` (html-escape metadata, keep `$assets_root$`/`$body$` literal) and extends `$if$` to the new tokens. Land upstream, then move `OLIVER_PIN` deliberately in `setup.sh` and update the version table above.
+2. **Adapter:** extend the `wrap_meta` `jq` with `version` plus the yq-extracted `subtitle`/`tags`/`asset_meta` (deterministic serialization above).
+3. **Harness:** update the contract-table assertions in `rc-test.sh` for the extended dialect; add a v2 golden-fixture page exercising every new token; regenerate template goldens; re-render all content and review.
+4. **Contract:** promote this addendum into the stable section above (token table, gating, provenance), bump the doc version.
+5. **Themes (#245):** define the asset-meta footer slot on the standardized skeleton using `$version$`/`$asset_meta$`/`$tags$`; replace the static © 2026 stamps with live tokens.
+6. **Docs:** `themes.md` and `new-ritual.md` document the extended dialect for template authors.
 
 ## Sidecar precedence
 
