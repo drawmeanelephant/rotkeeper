@@ -6,10 +6,13 @@
   <title>$title$</title>
   <link rel="stylesheet" href="$assets_root$css/theme-necropolis.css">
 </head>
-<!-- Necropolis is the dedicated Tomb-Not-Found theme: the body hook is
-     hardcoded because $page_type$ is not part of the wrap dialect's token
-     set (see oliver-contract.md) — it drives the signature 404 effects. -->
-<body data-page-type="404">
+<!-- Necropolis is the dedicated Tomb-Not-Found theme: the $page_type$
+     body hook drives the signature 404 effects. page_type is not one of
+     the typed dialect tokens — it flows through the v3 generic hook
+     (#269): any frontmatter key the adapter merges into wrap_meta
+     becomes an interpolatable token (see oliver-contract.md). Pages
+     using this theme should set page_type in frontmatter. -->
+<body data-page-type="$page_type$">
   <div class="necropolis-scene" aria-hidden="true">
     <div class="scene-lightning"></div>
     <div class="scene-moon"></div>
