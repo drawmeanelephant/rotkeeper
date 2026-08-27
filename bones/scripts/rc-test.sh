@@ -1436,8 +1436,9 @@ COOK_CFG_EOF
 
     missing_cnt=$(jq '.missing | length' "$scan_json")
     orphan_cnt=$(jq '.orphans | length' "$scan_json")
-    if [[ "$missing_cnt" -ne 0 || "$orphan_cnt" -ne 0 ]]; then
-      echo "❌ Assertion Failed: scan reported $missing_cnt missing files and $orphan_cnt orphan files."
+    mismatch_cnt=$(jq '.digest_mismatches | length' "$scan_json" 2>/dev/null || echo 0)
+    if [[ "$missing_cnt" -ne 0 || "$orphan_cnt" -ne 0 || "$mismatch_cnt" -ne 0 ]]; then
+      echo "❌ Assertion Failed: scan reported $missing_cnt missing, $orphan_cnt orphans, $mismatch_cnt digest mismatches."
       echo "--- Scan JSON Report ---"
       cat "$scan_json"
       echo ""
@@ -1455,8 +1456,10 @@ COOK_CFG_EOF
         (.missing | type == "array") and
         (.orphans | type == "array") and
         (.digests | type == "object") and
+        (.digest_mismatches | type == "array") and
         .counts.missing == (.missing | length) and
-        .counts.orphans == (.orphans | length)
+        .counts.orphans == (.orphans | length) and
+        .counts.digest_mismatches == (.digest_mismatches | length)
       ' >/dev/null <<< "$scan_stdout"; then
       echo "❌ Assertion Failed: scan --json stdout does not match the rotkeeper.scan.v2 envelope."
       exit 130
@@ -1476,13 +1479,72 @@ COOK_CFG_EOF
         .schema == "rotkeeper.scan.v2" and
         .counts.orphans == 1 and
         (.orphans | any(. == ($d + "/stray-orphan-probe.html"))) and
-        ([.orphans[] | select(startswith(($d + "/assets/")))] | length) == 0
+        ([.orphans[] | select(startswith(($d + "/assets/")))] | length) == 0 and
+        .counts.digest_mismatches == 0
       ' >/dev/null <<< "$probe_stdout"; then
       echo "❌ Assertion Failed: orphan walk did not classify the stray file (or output/assets leaked into scope)."
       exit 184
     fi
     rm -f "$out_dir_rel/stray-orphan-probe.html"
     echo "  [+] Pass: orphan walk classified stray output file, assets tree exempt ($mode)."
+
+    # P2 verification (#292): a ledgered archive whose on-disk hash drifts must
+    # be reported in digest_mismatches. The probe tampers then restores so later
+    # dry-run and integrity assertions stay clean.
+    _probe_manifest="bones/manifest.txt"
+    _probe_archive=""
+    while IFS= read -r _ml; do
+      if [[ "$_ml" =~ .+[[:space:]]{2}[0-9a-fA-F]{64}$ ]]; then
+        _cand="${_ml%%  *}"
+        _cand="${_cand%% *}"
+        if [[ -f "$_cand" ]]; then
+          _probe_archive="$_cand"
+          break
+        fi
+      fi
+    done < "$_probe_manifest"
+    if [[ -z "$_probe_archive" ]]; then
+      for _t in "$b_archive"/tomb-*.tar.gz; do
+        [[ -e "$_t" ]] || continue
+        _probe_archive="$_t"
+      done
+    fi
+    if [[ -n "$_probe_archive" && -f "$_probe_archive" ]]; then
+      _probe_backup="$TMP_DIR/mismatch-backup-$$"
+      mkdir -p "$(dirname "$_probe_backup")" 2>/dev/null || true
+      cp "$_probe_archive" "$_probe_backup"
+      printf "x" >> "$_probe_archive"
+      if ! mismatch_stdout=$(./rotkeeper.sh scan --json); then
+        echo "❌ Assertion Failed: digest-mismatch probe scan failed."
+        exit 185
+      fi
+      if ! jq -e --arg p "$_probe_archive" '
+          .schema == "rotkeeper.scan.v2" and
+          .counts.digest_mismatches == 1 and
+          (.digest_mismatches | length == 1) and
+          (.digest_mismatches[0].path == $p) and
+          (.digest_mismatches[0].expected | test("^[0-9a-f]{64}$")) and
+          (.digest_mismatches[0].actual | test("^[0-9a-f]{64}$")) and
+          (.digest_mismatches[0].expected != .digest_mismatches[0].actual)
+        ' >/dev/null <<< "$mismatch_stdout"; then
+        echo "❌ Assertion Failed: digest mismatch not reported for tampered ledger entry $_probe_archive"
+        cat <<< "$mismatch_stdout"
+        mv "$_probe_backup" "$_probe_archive"
+        exit 186
+      fi
+      mv "$_probe_backup" "$_probe_archive"
+      if ! clean_stdout=$(./rotkeeper.sh scan --json); then
+        echo "❌ Assertion Failed: post-restore scan failed."
+        exit 187
+      fi
+      if ! jq -e '.counts.digest_mismatches == 0 and (.digest_mismatches | length == 0)' >/dev/null <<< "$clean_stdout"; then
+        echo "❌ Assertion Failed: digest_mismatches not clean after restore."
+        exit 188
+      fi
+      echo "  [+] Pass: digest mismatch detected for tampered ledger entry, clean after restore ($mode)."
+    else
+      echo "  ⚠️  Skipping digest-mismatch probe: no ledgered archive with recorded SHA found ($mode)."
+    fi
 
     # --- XHTML output profile (hermetic) assertions ---
     # These render and prune fixture pages after the manifest-vs-disk scan above,

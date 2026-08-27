@@ -15,8 +15,8 @@ IFS=$'\n\t'
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-scan.sh
-#  Purpose : Audit the render ledger vs disk: missing entries, output-tree orphans, ledger digests
-#  Version : 0.5.1
+#  Purpose : Audit the render ledger vs disk: missing, output-tree orphans, ledger digests, and digest mismatches
+#  Version : 0.5.2
 #  Updated : 2026-08-27
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
@@ -46,8 +46,10 @@ Description:
   missing = ledger entries absent from disk; orphans = files under the
   rendered output tree that the ledger does not list (output/assets/
   is exempt — owned by the assets ritual); digests = SHA-256 of
-  ledger-listed files present on disk. Writes Markdown/JSON reports
-  to bones/reports/.
+  ledger-listed files present on disk; digest_mismatches = ledger
+  entries with a recorded SHA-256 (pack's two-space format) whose
+  on-disk digest differs or whose file is absent. Writes Markdown/JSON
+  reports to bones/reports/.
 
 Flags:
   --manifest-only   Read only manifest file, skip the output-tree walk.
@@ -111,6 +113,7 @@ main() {
 #   - Missing Files: listed in the ledger but absent from disk
 #   - Orphan Files: under OUTPUT_DIR but absent from the ledger (assets tree exempt)
 #   - File Digests: SHA256 of ledger-listed files present on disk
+#   - Digest Mismatches: ledger entries with recorded SHA-256 whose on-disk digest differs
 #
 
 #
@@ -266,6 +269,43 @@ for f in ${manifest_paths[@]+"${manifest_paths[@]}"}; do
 done
 
 #
+# --- Step 4a: Ledger Integrity (digest_mismatches) ---
+# Manifest lines recorded by pack as "<path>  <sha256>" carry the expected
+# digest. Verify each such line against the on-disk SHA-256; a mismatch
+# signals tamper/drift, a missing file is already in missing[] but also
+# surfaced here with actual null for a single audit view.
+declare -A expected_sha=()
+for raw in ${manifest_list[@]+"${manifest_list[@]}"}; do
+  # pack uses exactly two spaces between path and lowercase hex sha256
+  if [[ "$raw" =~ ^(.+)[[:space:]]{2}([0-9a-fA-F]{64})$ ]]; then
+    e_path="${BASH_REMATCH[1]}"
+    e_sha="${BASH_REMATCH[2]}"
+    e_path="${e_path%%  *}"
+    e_path="${e_path%% *}"
+    e_path="${e_path#"$ROOT_DIR"/}"
+    e_path="${e_path#./}"
+    [[ -n "$e_path" ]] && expected_sha["$e_path"]="${e_sha,,}"
+  fi
+done
+
+digest_mismatches=()
+for e_path in "${!expected_sha[@]}"; do
+  e_sha="${expected_sha[$e_path]}"
+  target="$e_path"
+  [[ -f "$target" ]] || target="$ROOT_DIR/$e_path"
+  if [[ ! -f "$target" ]]; then
+    # missing — record with actual null (jq will encode as JSON null)
+    digest_mismatches+=("$e_path|$e_sha|")
+  else
+    actual=$(rk_sha256 "$target" | awk '{print $1}')
+    actual="${actual,,}"
+    if [[ "$actual" != "$e_sha" ]]; then
+      digest_mismatches+=("$e_path|$e_sha|$actual")
+    fi
+  fi
+done
+
+#
 # --- Step 4b: Machine-Readable Stdout (--json) ---
 # --json emits a single schema-tagged JSON object on fd 3 so it stays visible
 # to callers even in quiet mode. Report files are written exactly as without
@@ -296,6 +336,21 @@ if [[ "$JSON_MODE" == true ]]; then
     )
   fi
 
+  mismatches_json="[]"
+  if [[ ${#digest_mismatches[@]} -gt 0 ]]; then
+    mismatches_json=$(
+      for entry in "${digest_mismatches[@]}"; do
+        IFS='|' read -r m_path m_exp m_act <<< "$entry"
+        # Encode actual as JSON null when empty (missing file)
+        if [[ -z "$m_act" ]]; then
+          jq -n --arg path "$m_path" --arg exp "$m_exp" '{path: $path, expected: $exp, actual: null}'
+        else
+          jq -n --arg path "$m_path" --arg exp "$m_exp" --arg act "$m_act" '{path: $path, expected: $exp, actual: $act}'
+        fi
+      done | jq -s 'sort_by(.path)'
+    )
+  fi
+
   # SIDE EFFECT (write): creates a bones/tmp scratch file for stdout JSON assembly
   json_out="$TMP_DIR/scan-json-stdout.$$"
   {
@@ -303,11 +358,12 @@ if [[ "$JSON_MODE" == true ]]; then
     printf '  "schema": "rotkeeper.scan.v2",\n'
     printf '  "generated_at": "%s",\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
     printf '  "manifest": %s,\n' "$(printf '%s' "$MANIFEST_FILE" | jq -R .)"
-    printf '  "counts": {"missing": %d, "orphans": %d},\n' "${#missing[@]}" "${#orphans[@]}"
+    printf '  "counts": {"missing": %d, "orphans": %d, "digest_mismatches": %d},\n' "${#missing[@]}" "${#orphans[@]}" "${#digest_mismatches[@]}"
     printf '  "missing": %s,\n' "$missing_json"
     printf '  "orphans": %s,\n' "$orphans_json"
     printf '  "digest_count": %d,\n' "${#file_checksums[@]}"
-    printf '  "digests": %s\n' "$digests_json"
+    printf '  "digests": %s,\n' "$digests_json"
+    printf '  "digest_mismatches": %s\n' "$mismatches_json"
     echo "}"
   } > "$json_out"
 
@@ -344,6 +400,20 @@ if [[ "$MD_ONLY" == false ]]; then
       orphans_json=$(printf '%s\n' "${orphans[@]}" | jq -R . | jq -s .)
     fi
 
+    mismatches_json_report="[]"
+    if [[ ${#digest_mismatches[@]} -gt 0 ]]; then
+      mismatches_json_report=$(
+        for entry in "${digest_mismatches[@]}"; do
+          IFS='|' read -r m_path m_exp m_act <<< "$entry"
+          if [[ -z "$m_act" ]]; then
+            jq -n --arg path "$m_path" --arg exp "$m_exp" '{path: $path, expected: $exp, actual: null}'
+          else
+            jq -n --arg path "$m_path" --arg exp "$m_exp" --arg act "$m_act" '{path: $path, expected: $exp, actual: $act}'
+          fi
+        done | jq -s 'sort_by(.path)'
+      )
+    fi
+
     # SIDE EFFECT (write): writes bones/reports/scan-report-<ts>.json (real runs only)
     cat > "$json_report" <<EOF
 {
@@ -353,7 +423,8 @@ if [[ "$MD_ONLY" == false ]]; then
 $(for f in "${!file_checksums[@]}"; do
   echo "    \"${f}\": \"${file_checksums[$f]}\","
 done | sed '$ s/,$//')
-  }
+  },
+  "digest_mismatches": $mismatches_json_report
 }
 EOF
     log "INFO" "JSON report written: $json_report"
@@ -378,6 +449,8 @@ $(for f in ${missing[@]+"${missing[@]}"}; do echo "- $f"; done)
 $(for f in ${orphans[@]+"${orphans[@]}"}; do echo "- $f"; done)
 ## File Digests
 $(for f in "${!file_checksums[@]}"; do echo "- \`$f\`: ${file_checksums[$f]}"; done)
+## Digest Mismatches
+$(if [[ ${#digest_mismatches[@]} -eq 0 ]]; then echo "- none"; else for entry in "${digest_mismatches[@]}"; do IFS='|' read -r m_path m_exp m_act <<< "$entry"; if [[ -z "$m_act" ]]; then echo "- \`$m_path\`: expected $m_exp, actual missing"; else echo "- \`$m_path\`: expected $m_exp, actual $m_act"; fi; done; fi)
 EOF
     log "INFO" "Markdown report written: $md_report"
   else
