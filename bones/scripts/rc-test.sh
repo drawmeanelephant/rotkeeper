@@ -379,18 +379,26 @@ if [[ "${1:-}" == "wrap" ]]; then
   author=$(jq -r '.author // ""' "$mj" 2>/dev/null || yq -r '.author // ""' "$mj" 2>/dev/null || echo "")
   date=$(jq -r '.date // ""' "$mj" 2>/dev/null || yq -r '.date // ""' "$mj" 2>/dev/null || echo "")
   palette=$(jq -r '.palette // ""' "$mj" 2>/dev/null || yq -r '.palette // ""' "$mj" 2>/dev/null || echo "")
+  version=$(jq -r '.version // ""' "$mj" 2>/dev/null || yq -r '.version // ""' "$mj" 2>/dev/null || echo "")
+  subtitle=$(jq -r '.subtitle // ""' "$mj" 2>/dev/null || yq -r '.subtitle // ""' "$mj" 2>/dev/null || echo "")
+  tags=$(jq -r '.tags // ""' "$mj" 2>/dev/null || yq -r '.tags // ""' "$mj" 2>/dev/null || echo "")
+  asset_meta=$(jq -r '.asset_meta // ""' "$mj" 2>/dev/null || yq -r '.asset_meta // ""' "$mj" 2>/dev/null || echo "")
   [[ "$title" == "null" ]] && title=""
   [[ "$desc" == "null" ]] && desc=""
   [[ "$author" == "null" ]] && author=""
   [[ "$date" == "null" ]] && date=""
   [[ "$palette" == "null" ]] && palette=""
-  # gawk template wrapper: 6 vars (title/desc/author/date/palette/assets_root + body/template files)
+  [[ "$version" == "null" ]] && version=""
+  [[ "$subtitle" == "null" ]] && subtitle=""
+  [[ "$tags" == "null" ]] && tags=""
+  [[ "$asset_meta" == "null" ]] && asset_meta=""
+  # gawk template wrapper: 10 vars (title/desc/author/date/palette/version/subtitle/tags/asset_meta + assets_root + body/template files)
   # html_escape escapes &<>"' for meta; literal_replace does index() literal substitution; evaluate_if handles $if(var)$...$endif$
-  gawk -v title="$title" -v desc="$desc" -v author="$author" -v date="$date" -v palette="$palette" -v assets_root="$ar" -v body_file="$bf" -v template_file="$tpl" '
+  gawk -v title="$title" -v desc="$desc" -v author="$author" -v date="$date" -v palette="$palette" -v version="$version" -v subtitle="$subtitle" -v tags="$tags" -v asset_meta="$asset_meta" -v assets_root="$ar" -v body_file="$bf" -v template_file="$tpl" '
   function html_escape(str,   s) { s=str; gsub(/&/,"\\&amp;",s); gsub(/</,"\\&lt;",s); gsub(/>/,"\\&gt;",s); gsub(/"/,"\\&quot;",s); gsub(/\x27/,"\\&#39;",s); return s }
   function literal_replace(str, search, replace,   pos, len, result, tail) { len=length(search); result=""; tail=str; while((pos=index(tail,search))>0){result=result substr(tail,1,pos-1) replace; tail=substr(tail,pos+len)} return result tail }
   function evaluate_if(tmpl, var_name, var_val,   start_tag, end_tag, sp, ep, before, after, inner) { start_tag="$if(" var_name ")$"; end_tag="$endif$"; while((sp=index(tmpl,start_tag))>0){ep=index(substr(tmpl,sp),end_tag); if(ep==0) break; ep=sp+ep-1+length(end_tag)-1; before=substr(tmpl,1,sp-1); after=substr(tmpl,ep+1); if(var_val==""||var_val=="null"){tmpl=before after}else{inner=substr(tmpl,sp+length(start_tag),ep-sp-length(start_tag)-length(end_tag)+1); tmpl=before inner after} } return tmpl }
-  BEGIN { title_esc=html_escape(title); desc_esc=html_escape(desc); author_esc=html_escape(author); date_esc=html_escape(date); palette_esc=html_escape(palette); body=""; while((getline line < body_file)>0){body=body line "\n"} close(body_file); if(length(body)>0 && substr(body,length(body))=="\n") body=substr(body,1,length(body)-1); tmpl=""; while((getline line < template_file)>0){tmpl=tmpl line "\n"} close(template_file); tmpl=evaluate_if(tmpl,"title",title); tmpl=evaluate_if(tmpl,"description",desc); tmpl=evaluate_if(tmpl,"author",author); tmpl=evaluate_if(tmpl,"date",date); tmpl=evaluate_if(tmpl,"palette",palette); tmpl=literal_replace(tmpl,"$title$",title_esc); tmpl=literal_replace(tmpl,"$description$",desc_esc); tmpl=literal_replace(tmpl,"$author$",author_esc); tmpl=literal_replace(tmpl,"$date$",date_esc); tmpl=literal_replace(tmpl,"$palette$",palette_esc); tmpl=literal_replace(tmpl,"$assets_root$",ar); tmpl=literal_replace(tmpl,"$body$",body); printf "%s",tmpl; exit }'
+  BEGIN { title_esc=html_escape(title); desc_esc=html_escape(desc); author_esc=html_escape(author); date_esc=html_escape(date); palette_esc=html_escape(palette); version_esc=html_escape(version); subtitle_esc=html_escape(subtitle); tags_esc=html_escape(tags); asset_meta_esc=html_escape(asset_meta); body=""; while((getline line < body_file)>0){body=body line "\n"} close(body_file); if(length(body)>0 && substr(body,length(body))=="\n") body=substr(body,1,length(body)-1); tmpl=""; while((getline line < template_file)>0){tmpl=tmpl line "\n"} close(template_file); tmpl=evaluate_if(tmpl,"title",title); tmpl=evaluate_if(tmpl,"description",desc); tmpl=evaluate_if(tmpl,"author",author); tmpl=evaluate_if(tmpl,"date",date); tmpl=evaluate_if(tmpl,"palette",palette); tmpl=evaluate_if(tmpl,"version",version); tmpl=evaluate_if(tmpl,"subtitle",subtitle); tmpl=evaluate_if(tmpl,"tags",tags); tmpl=evaluate_if(tmpl,"asset_meta",asset_meta); tmpl=literal_replace(tmpl,"$title$",title_esc); tmpl=literal_replace(tmpl,"$description$",desc_esc); tmpl=literal_replace(tmpl,"$author$",author_esc); tmpl=literal_replace(tmpl,"$date$",date_esc); tmpl=literal_replace(tmpl,"$palette$",palette_esc); tmpl=literal_replace(tmpl,"$version$",version_esc); tmpl=literal_replace(tmpl,"$subtitle$",subtitle_esc); tmpl=literal_replace(tmpl,"$tags$",tags_esc); tmpl=literal_replace(tmpl,"$asset_meta$",asset_meta_esc); tmpl=literal_replace(tmpl,"$assets_root$",ar); tmpl=literal_replace(tmpl,"$body$",body); printf "%s",tmpl; exit }'
   exit 0
 fi
 # Mimic Oliver's CLI shape: oliver render --from <markdown|textile|cooklang> [--frontmatter yaml] [--to <html|xhtml>] < file
@@ -580,11 +588,11 @@ if [[ "${1:-}" == "wrap" ]]; then
   if [[ "${2:-}" == "--help" ]]; then echo "Usage: oliver wrap --template <file> --meta-json <file> --assets-root <prefix> --body <file>"; exit 0; fi
   tpl=""; mj=""; ar=""; bf=""; while [[ $# -gt 0 ]]; do case "$1" in --template) tpl="$2"; shift 2 ;; --meta-json) mj="$2"; shift 2 ;; --assets-root) ar="$2"; shift 2 ;; --body) bf="$2"; shift 2 ;; *) shift ;; esac; done
   if [[ -z "$tpl" || -z "$mj" || -z "$bf" ]]; then exit 1; fi
-  title=$(jq -r '.title // ""' "$mj" 2>/dev/null || yq -r '.title // ""' "$mj" 2>/dev/null || echo ""); desc=$(jq -r '.description // ""' "$mj" 2>/dev/null || yq -r '.description // ""' "$mj" 2>/dev/null || echo ""); author=$(jq -r '.author // ""' "$mj" 2>/dev/null || yq -r '.author // ""' "$mj" 2>/dev/null || echo ""); date=$(jq -r '.date // ""' "$mj" 2>/dev/null || yq -r '.date // ""' "$mj" 2>/dev/null || echo ""); palette=$(jq -r '.palette // ""' "$mj" 2>/dev/null || yq -r '.palette // ""' "$mj" 2>/dev/null || echo "")
-  [[ "$title" == "null" ]] && title=""; [[ "$desc" == "null" ]] && desc=""; [[ "$author" == "null" ]] && author=""; [[ "$date" == "null" ]] && date=""; [[ "$palette" == "null" ]] && palette=""
+  title=$(jq -r '.title // ""' "$mj" 2>/dev/null || yq -r '.title // ""' "$mj" 2>/dev/null || echo ""); desc=$(jq -r '.description // ""' "$mj" 2>/dev/null || yq -r '.description // ""' "$mj" 2>/dev/null || echo ""); author=$(jq -r '.author // ""' "$mj" 2>/dev/null || yq -r '.author // ""' "$mj" 2>/dev/null || echo ""); date=$(jq -r '.date // ""' "$mj" 2>/dev/null || yq -r '.date // ""' "$mj" 2>/dev/null || echo ""); palette=$(jq -r '.palette // ""' "$mj" 2>/dev/null || yq -r '.palette // ""' "$mj" 2>/dev/null || echo ""); version=$(jq -r '.version // ""' "$mj" 2>/dev/null || yq -r '.version // ""' "$mj" 2>/dev/null || echo ""); subtitle=$(jq -r '.subtitle // ""' "$mj" 2>/dev/null || yq -r '.subtitle // ""' "$mj" 2>/dev/null || echo ""); tags=$(jq -r '.tags // ""' "$mj" 2>/dev/null || yq -r '.tags // ""' "$mj" 2>/dev/null || echo ""); asset_meta=$(jq -r '.asset_meta // ""' "$mj" 2>/dev/null || yq -r '.asset_meta // ""' "$mj" 2>/dev/null || echo "")
+  [[ "$title" == "null" ]] && title=""; [[ "$desc" == "null" ]] && desc=""; [[ "$author" == "null" ]] && author=""; [[ "$date" == "null" ]] && date=""; [[ "$palette" == "null" ]] && palette=""; [[ "$version" == "null" ]] && version=""; [[ "$subtitle" == "null" ]] && subtitle=""; [[ "$tags" == "null" ]] && tags=""; [[ "$asset_meta" == "null" ]] && asset_meta=""
   # gawk template wrapper: 6 vars (title/desc/author/date/palette/assets_root + body/template files)
   # html_escape escapes &<>"' for meta; literal_replace does index() literal substitution; evaluate_if handles $if(var)$...$endif$
-  gawk -v title="$title" -v desc="$desc" -v author="$author" -v date="$date" -v palette="$palette" -v assets_root="$ar" -v body_file="$bf" -v template_file="$tpl" 'function html_escape(str,   s) { s=str; gsub(/&/,"\\&amp;",s); gsub(/</,"\\&lt;",s); gsub(/>/,"\\&gt;",s); gsub(/"/,"\\&quot;",s); gsub(/\x27/,"\\&#39;",s); return s } function literal_replace(str, search, replace,   pos, len, result, tail) { len=length(search); result=""; tail=str; while((pos=index(tail,search))>0){result=result substr(tail,1,pos-1) replace; tail=substr(tail,pos+len)} return result tail } function evaluate_if(tmpl, var_name, var_val,   start_tag, end_tag, sp, ep, before, after, inner) { start_tag="$if(" var_name ")$"; end_tag="$endif$"; while((sp=index(tmpl,start_tag))>0){ep=index(substr(tmpl,sp),end_tag); if(ep==0) break; ep=sp+ep-1+length(end_tag)-1; before=substr(tmpl,1,sp-1); after=substr(tmpl,ep+1); if(var_val==""||var_val=="null"){tmpl=before after}else{inner=substr(tmpl,sp+length(start_tag),ep-sp-length(start_tag)-length(end_tag)+1); tmpl=before inner after} } return tmpl } BEGIN { title_esc=html_escape(title); desc_esc=html_escape(desc); author_esc=html_escape(author); date_esc=html_escape(date); palette_esc=html_escape(palette); body=""; while((getline line < body_file)>0){body=body line "\n"} close(body_file); if(length(body)>0 && substr(body,length(body))=="\n") body=substr(body,1,length(body)-1); tmpl=""; while((getline line < template_file)>0){tmpl=tmpl line "\n"} close(template_file); tmpl=evaluate_if(tmpl,"title",title); tmpl=evaluate_if(tmpl,"description",desc); tmpl=evaluate_if(tmpl,"author",author); tmpl=evaluate_if(tmpl,"date",date); tmpl=evaluate_if(tmpl,"palette",palette); tmpl=literal_replace(tmpl,"$title$",title_esc); tmpl=literal_replace(tmpl,"$description$",desc_esc); tmpl=literal_replace(tmpl,"$author$",author_esc); tmpl=literal_replace(tmpl,"$date$",date_esc); tmpl=literal_replace(tmpl,"$palette$",palette_esc); tmpl=literal_replace(tmpl,"$assets_root$",ar); tmpl=literal_replace(tmpl,"$body$",body); printf "%s",tmpl; exit }'
+  gawk -v title="$title" -v desc="$desc" -v author="$author" -v date="$date" -v palette="$palette" -v version="$version" -v subtitle="$subtitle" -v tags="$tags" -v asset_meta="$asset_meta" -v assets_root="$ar" -v body_file="$bf" -v template_file="$tpl" 'function html_escape(str,   s) { s=str; gsub(/&/,"\\&amp;",s); gsub(/</,"\\&lt;",s); gsub(/>/,"\\&gt;",s); gsub(/"/,"\\&quot;",s); gsub(/\x27/,"\\&#39;",s); return s } function literal_replace(str, search, replace,   pos, len, result, tail) { len=length(search); result=""; tail=str; while((pos=index(tail,search))>0){result=result substr(tail,1,pos-1) replace; tail=substr(tail,pos+len)} return result tail } function evaluate_if(tmpl, var_name, var_val,   start_tag, end_tag, sp, ep, before, after, inner) { start_tag="$if(" var_name ")$"; end_tag="$endif$"; while((sp=index(tmpl,start_tag))>0){ep=index(substr(tmpl,sp),end_tag); if(ep==0) break; ep=sp+ep-1+length(end_tag)-1; before=substr(tmpl,1,sp-1); after=substr(tmpl,ep+1); if(var_val==""||var_val=="null"){tmpl=before after}else{inner=substr(tmpl,sp+length(start_tag),ep-sp-length(start_tag)-length(end_tag)+1); tmpl=before inner after} } return tmpl } BEGIN { title_esc=html_escape(title); desc_esc=html_escape(desc); author_esc=html_escape(author); date_esc=html_escape(date); palette_esc=html_escape(palette); version_esc=html_escape(version); subtitle_esc=html_escape(subtitle); tags_esc=html_escape(tags); asset_meta_esc=html_escape(asset_meta); body=""; while((getline line < body_file)>0){body=body line "\n"} close(body_file); if(length(body)>0 && substr(body,length(body))=="\n") body=substr(body,1,length(body)-1); tmpl=""; while((getline line < template_file)>0){tmpl=tmpl line "\n"} close(template_file); tmpl=evaluate_if(tmpl,"title",title); tmpl=evaluate_if(tmpl,"description",desc); tmpl=evaluate_if(tmpl,"author",author); tmpl=evaluate_if(tmpl,"date",date); tmpl=evaluate_if(tmpl,"palette",palette); tmpl=evaluate_if(tmpl,"version",version); tmpl=evaluate_if(tmpl,"subtitle",subtitle); tmpl=evaluate_if(tmpl,"tags",tags); tmpl=evaluate_if(tmpl,"asset_meta",asset_meta); tmpl=literal_replace(tmpl,"$title$",title_esc); tmpl=literal_replace(tmpl,"$description$",desc_esc); tmpl=literal_replace(tmpl,"$author$",author_esc); tmpl=literal_replace(tmpl,"$date$",date_esc); tmpl=literal_replace(tmpl,"$palette$",palette_esc); tmpl=literal_replace(tmpl,"$version$",version_esc); tmpl=literal_replace(tmpl,"$subtitle$",subtitle_esc); tmpl=literal_replace(tmpl,"$tags$",tags_esc); tmpl=literal_replace(tmpl,"$asset_meta$",asset_meta_esc); tmpl=literal_replace(tmpl,"$assets_root$",ar); tmpl=literal_replace(tmpl,"$body$",body); printf "%s",tmpl; exit }'
   exit 0
 fi
 if [[ "${1:-}" != "render" || "${2:-}" != "--from" || ( "${3:-}" != "markdown" && "${3:-}" != "textile" && "${3:-}" != "cooklang" ) ]]; then exit 1; fi
@@ -842,6 +850,100 @@ S2_EMPTY_EOF
       fi
     fi
     echo "  [+] Pass: S2 template dialect assertions ($mode)."
+
+    # --- S2-v2: Extended template dialect (version/subtitle/tags/asset_meta) ---
+    # Shared template contract v2 (#244): the adapter enriches wrap_meta with
+    # version (bones/config/version) plus yq-extracted subtitle/tags/asset_meta;
+    # the fake wrap mirrors the extended token set (escaped substitution,
+    # \$if\$ gating, absent-known → empty, unknown → verbatim).
+    echo "  [+] Executing S2-v2 extended template dialect assertions ($mode)..."
+    cat << 'S2V2_EOF' > "$b_templates/custom-s2-v2.html"
+<h1>$title$</h1>
+<p class="sub">$if(subtitle)$[$subtitle$]$endif$</p>
+<p class="meta">$if(version)$v$version$$endif$ | $tags$ | $asset_meta$</p>
+<p class="unknown">$unknown$</p>
+S2V2_EOF
+    cat << 'S2V2_FM_EOF' > "$b_content/template-s2-v2.md"
+---
+title: "S2V2"
+subtitle: "Sub & <Title>"
+tags:
+  - "one"
+  - "two & <three>"
+asset_meta:
+  name: "template-s2-v2.md"
+  version: "1.2.3"
+  author: "Filed Systems"
+  project: "Rotkeeper"
+  tracked: true
+  license: "All Rights Reserved"
+template: "custom-s2-v2.html"
+---
+S2V2 body.
+S2V2_FM_EOF
+    RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null
+    rendered_s2v2="$out_dir_rel/template-s2-v2.html"
+    if [[ ! -f "$rendered_s2v2" ]]; then
+      echo "❌ Assertion Failed: template-s2-v2.html missing (S2-v2)."
+      exit 241
+    fi
+    exp_ver=$(tr -d '[:space:]' < "$ROOT_DIR/bones/config/version")
+    if ! grep -q "v$exp_ver" "$rendered_s2v2"; then
+      echo "❌ Assertion Failed: S2-v2 \$version\$ substitution failed (expected v$exp_ver)."
+      exit 242
+    fi
+    if ! grep -q '<p class="sub">\[Sub &amp; &lt;Title&gt;\]</p>' "$rendered_s2v2"; then
+      echo "❌ Assertion Failed: S2-v2 subtitle \$if\$ gate + html_escape failed."
+      exit 243
+    fi
+    if ! grep -q 'one, two &amp; &lt;three&gt;' "$rendered_s2v2"; then
+      echo "❌ Assertion Failed: S2-v2 tags join + html_escape failed."
+      exit 244
+    fi
+    if ! grep -q 'template-s2-v2.md — 1.2.3 — Filed Systems — Rotkeeper — All Rights Reserved' "$rendered_s2v2"; then
+      echo "❌ Assertion Failed: S2-v2 asset_meta serialization failed."
+      exit 245
+    fi
+    # shellcheck disable=SC2016
+    if ! grep -q '\$unknown\$' "$rendered_s2v2"; then
+      echo "❌ Assertion Failed: S2-v2 unknown token should pass verbatim."
+      exit 246
+    fi
+    # Absent subtitle/tags/asset_meta → \$if(subtitle)\$ block removed; version
+    # is still fed by the adapter (bones/config/version), so the meta line remains.
+    cat << 'S2V2_EMPTY_EOF' > "$b_content/template-s2-v2-empty.md"
+---
+title: "S2V2 Empty"
+template: "custom-s2-v2.html"
+---
+Empty v2 body.
+S2V2_EMPTY_EOF
+    RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null
+    rendered_s2v2e="$out_dir_rel/template-s2-v2-empty.html"
+    if ! grep -q '<p class="sub"></p>' "$rendered_s2v2e"; then
+      echo "❌ Assertion Failed: S2-v2 \$if(subtitle)\$ empty removal failed."
+      exit 247
+    fi
+    if grep -q 'one,' "$rendered_s2v2e"; then
+      echo "❌ Assertion Failed: S2-v2 absent tags leaked into output."
+      exit 248
+    fi
+    # Real Oliver wrap v2 probe (when a real binary is present): the adapter
+    # feeds version in wrap_meta; the real wrap must interpolate \$version$.
+    _real_wrap2="${RK_OLIVER_BIN:-}"
+    if [[ -z "$_real_wrap2" || ! -x "$_real_wrap2" ]]; then
+      _real_wrap2="$(command -v oliver 2>/dev/null || true)"
+    fi
+    if [[ -n "$_real_wrap2" && -x "$_real_wrap2" ]]; then
+      tmp_meta_wrap_v2="$pass_dir/bones/tmp/meta-wrap-v2-probe.json"
+      printf '{"title":"","description":"","author":"","date":"","palette":"","version":"%s","subtitle":"","tags":"","asset_meta":""}' "$exp_ver" > "$tmp_meta_wrap_v2"
+      if ! "$_real_wrap2" wrap --template "$b_templates/custom-s2-v2.html" --meta-json "$tmp_meta_wrap_v2" --assets-root "./assets/" --body "$tmp_body" | grep -q "v$exp_ver"; then
+        echo "❌ Assertion Failed: real Oliver wrap v2 \$version\$ interpolation failed."
+        exit 249
+      fi
+      echo "  [+] Pass: real Oliver wrap v2 token interpolation ($mode)."
+    fi
+    echo "  [+] Pass: S2-v2 extended template dialect assertions ($mode)."
 
     # --- S3: Link rewriting via Oliver (direct, pin 06dd640) ---
     echo "  [+] Executing S3 link rewriting assertions (Oliver native direct)..."
@@ -1657,11 +1759,11 @@ if [[ "${1:-}" == "wrap" ]]; then
   if [[ "${2:-}" == "--help" ]]; then echo "Usage: oliver wrap --template <file> --meta-json <file> --assets-root <prefix> --body <file>"; exit 0; fi
   tpl=""; mj=""; ar=""; bf=""; while [[ $# -gt 0 ]]; do case "$1" in --template) tpl="$2"; shift 2 ;; --meta-json) mj="$2"; shift 2 ;; --assets-root) ar="$2"; shift 2 ;; --body) bf="$2"; shift 2 ;; *) shift ;; esac; done
   if [[ -z "$tpl" || -z "$mj" || -z "$bf" ]]; then exit 1; fi
-  title=$(jq -r '.title // ""' "$mj" 2>/dev/null || yq -r '.title // ""' "$mj" 2>/dev/null || echo ""); desc=$(jq -r '.description // ""' "$mj" 2>/dev/null || yq -r '.description // ""' "$mj" 2>/dev/null || echo ""); author=$(jq -r '.author // ""' "$mj" 2>/dev/null || yq -r '.author // ""' "$mj" 2>/dev/null || echo ""); date=$(jq -r '.date // ""' "$mj" 2>/dev/null || yq -r '.date // ""' "$mj" 2>/dev/null || echo ""); palette=$(jq -r '.palette // ""' "$mj" 2>/dev/null || yq -r '.palette // ""' "$mj" 2>/dev/null || echo "")
-  [[ "$title" == "null" ]] && title=""; [[ "$desc" == "null" ]] && desc=""; [[ "$author" == "null" ]] && author=""; [[ "$date" == "null" ]] && date=""; [[ "$palette" == "null" ]] && palette=""
+  title=$(jq -r '.title // ""' "$mj" 2>/dev/null || yq -r '.title // ""' "$mj" 2>/dev/null || echo ""); desc=$(jq -r '.description // ""' "$mj" 2>/dev/null || yq -r '.description // ""' "$mj" 2>/dev/null || echo ""); author=$(jq -r '.author // ""' "$mj" 2>/dev/null || yq -r '.author // ""' "$mj" 2>/dev/null || echo ""); date=$(jq -r '.date // ""' "$mj" 2>/dev/null || yq -r '.date // ""' "$mj" 2>/dev/null || echo ""); palette=$(jq -r '.palette // ""' "$mj" 2>/dev/null || yq -r '.palette // ""' "$mj" 2>/dev/null || echo ""); version=$(jq -r '.version // ""' "$mj" 2>/dev/null || yq -r '.version // ""' "$mj" 2>/dev/null || echo ""); subtitle=$(jq -r '.subtitle // ""' "$mj" 2>/dev/null || yq -r '.subtitle // ""' "$mj" 2>/dev/null || echo ""); tags=$(jq -r '.tags // ""' "$mj" 2>/dev/null || yq -r '.tags // ""' "$mj" 2>/dev/null || echo ""); asset_meta=$(jq -r '.asset_meta // ""' "$mj" 2>/dev/null || yq -r '.asset_meta // ""' "$mj" 2>/dev/null || echo "")
+  [[ "$title" == "null" ]] && title=""; [[ "$desc" == "null" ]] && desc=""; [[ "$author" == "null" ]] && author=""; [[ "$date" == "null" ]] && date=""; [[ "$palette" == "null" ]] && palette=""; [[ "$version" == "null" ]] && version=""; [[ "$subtitle" == "null" ]] && subtitle=""; [[ "$tags" == "null" ]] && tags=""; [[ "$asset_meta" == "null" ]] && asset_meta=""
   # gawk template wrapper: 6 vars (title/desc/author/date/palette/assets_root + body/template files)
   # html_escape escapes &<>"' for meta; literal_replace does index() literal substitution; evaluate_if handles $if(var)$...$endif$
-  gawk -v title="$title" -v desc="$desc" -v author="$author" -v date="$date" -v palette="$palette" -v assets_root="$ar" -v body_file="$bf" -v template_file="$tpl" 'function html_escape(str,   s) { s=str; gsub(/&/,"\\&amp;",s); gsub(/</,"\\&lt;",s); gsub(/>/,"\\&gt;",s); gsub(/"/,"\\&quot;",s); gsub(/\x27/,"\\&#39;",s); return s } function literal_replace(str, search, replace,   pos, len, result, tail) { len=length(search); result=""; tail=str; while((pos=index(tail,search))>0){result=result substr(tail,1,pos-1) replace; tail=substr(tail,pos+len)} return result tail } function evaluate_if(tmpl, var_name, var_val,   start_tag, end_tag, sp, ep, before, after, inner) { start_tag="$if(" var_name ")$"; end_tag="$endif$"; while((sp=index(tmpl,start_tag))>0){ep=index(substr(tmpl,sp),end_tag); if(ep==0) break; ep=sp+ep-1+length(end_tag)-1; before=substr(tmpl,1,sp-1); after=substr(tmpl,ep+1); if(var_val==""||var_val=="null"){tmpl=before after}else{inner=substr(tmpl,sp+length(start_tag),ep-sp-length(start_tag)-length(end_tag)+1); tmpl=before inner after} } return tmpl } BEGIN { title_esc=html_escape(title); desc_esc=html_escape(desc); author_esc=html_escape(author); date_esc=html_escape(date); palette_esc=html_escape(palette); body=""; while((getline line < body_file)>0){body=body line "\n"} close(body_file); if(length(body)>0 && substr(body,length(body))=="\n") body=substr(body,1,length(body)-1); tmpl=""; while((getline line < template_file)>0){tmpl=tmpl line "\n"} close(template_file); tmpl=evaluate_if(tmpl,"title",title); tmpl=evaluate_if(tmpl,"description",desc); tmpl=evaluate_if(tmpl,"author",author); tmpl=evaluate_if(tmpl,"date",date); tmpl=evaluate_if(tmpl,"palette",palette); tmpl=literal_replace(tmpl,"$title$",title_esc); tmpl=literal_replace(tmpl,"$description$",desc_esc); tmpl=literal_replace(tmpl,"$author$",author_esc); tmpl=literal_replace(tmpl,"$date$",date_esc); tmpl=literal_replace(tmpl,"$palette$",palette_esc); tmpl=literal_replace(tmpl,"$assets_root$",ar); tmpl=literal_replace(tmpl,"$body$",body); printf "%s",tmpl; exit }'
+  gawk -v title="$title" -v desc="$desc" -v author="$author" -v date="$date" -v palette="$palette" -v version="$version" -v subtitle="$subtitle" -v tags="$tags" -v asset_meta="$asset_meta" -v assets_root="$ar" -v body_file="$bf" -v template_file="$tpl" 'function html_escape(str,   s) { s=str; gsub(/&/,"\\&amp;",s); gsub(/</,"\\&lt;",s); gsub(/>/,"\\&gt;",s); gsub(/"/,"\\&quot;",s); gsub(/\x27/,"\\&#39;",s); return s } function literal_replace(str, search, replace,   pos, len, result, tail) { len=length(search); result=""; tail=str; while((pos=index(tail,search))>0){result=result substr(tail,1,pos-1) replace; tail=substr(tail,pos+len)} return result tail } function evaluate_if(tmpl, var_name, var_val,   start_tag, end_tag, sp, ep, before, after, inner) { start_tag="$if(" var_name ")$"; end_tag="$endif$"; while((sp=index(tmpl,start_tag))>0){ep=index(substr(tmpl,sp),end_tag); if(ep==0) break; ep=sp+ep-1+length(end_tag)-1; before=substr(tmpl,1,sp-1); after=substr(tmpl,ep+1); if(var_val==""||var_val=="null"){tmpl=before after}else{inner=substr(tmpl,sp+length(start_tag),ep-sp-length(start_tag)-length(end_tag)+1); tmpl=before inner after} } return tmpl } BEGIN { title_esc=html_escape(title); desc_esc=html_escape(desc); author_esc=html_escape(author); date_esc=html_escape(date); palette_esc=html_escape(palette); version_esc=html_escape(version); subtitle_esc=html_escape(subtitle); tags_esc=html_escape(tags); asset_meta_esc=html_escape(asset_meta); body=""; while((getline line < body_file)>0){body=body line "\n"} close(body_file); if(length(body)>0 && substr(body,length(body))=="\n") body=substr(body,1,length(body)-1); tmpl=""; while((getline line < template_file)>0){tmpl=tmpl line "\n"} close(template_file); tmpl=evaluate_if(tmpl,"title",title); tmpl=evaluate_if(tmpl,"description",desc); tmpl=evaluate_if(tmpl,"author",author); tmpl=evaluate_if(tmpl,"date",date); tmpl=evaluate_if(tmpl,"palette",palette); tmpl=evaluate_if(tmpl,"version",version); tmpl=evaluate_if(tmpl,"subtitle",subtitle); tmpl=evaluate_if(tmpl,"tags",tags); tmpl=evaluate_if(tmpl,"asset_meta",asset_meta); tmpl=literal_replace(tmpl,"$title$",title_esc); tmpl=literal_replace(tmpl,"$description$",desc_esc); tmpl=literal_replace(tmpl,"$author$",author_esc); tmpl=literal_replace(tmpl,"$date$",date_esc); tmpl=literal_replace(tmpl,"$palette$",palette_esc); tmpl=literal_replace(tmpl,"$version$",version_esc); tmpl=literal_replace(tmpl,"$subtitle$",subtitle_esc); tmpl=literal_replace(tmpl,"$tags$",tags_esc); tmpl=literal_replace(tmpl,"$asset_meta$",asset_meta_esc); tmpl=literal_replace(tmpl,"$assets_root$",ar); tmpl=literal_replace(tmpl,"$body$",body); printf "%s",tmpl; exit }'
   exit 0
 fi
 # Fail closed under --to xhtml
