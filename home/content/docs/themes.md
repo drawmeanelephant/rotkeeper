@@ -23,7 +23,7 @@ Every template in `bones/templates/` belongs to one of three families — with o
 | **terminal-forward** | `theme-phosphor.html`, `theme-brutal.html` (+ `mac` / `unix` / `pwsh` palette scopes) | Body text meets WCAG AA (4.5:1) on every shipped palette scope, CRT and prompt ornament stays outside the text column, and monospace-first typography never drops below the shared audit bar. |
 | **balanced** | `theme-spooky-dark.html` (+ xhtml profile variant), `theme-dark.html`, `theme-light.html`, `theme-kawaii.html` | General-purpose rendering with decoration kept subordinate: AA contrast for body, secondary, link, and code pairs; visible keyboard focus; wide tables and code scroll instead of overflowing. |
 | **reading-first** | `theme-spooky-light.html`, `theme-overgrown.html`, `theme-textpattern.html` | Longform comfort leads: serif or high-legibility prose faces, a capped measure (`--max-width` ≤ 900px), and the same AA contrast/focus/legibility bar as every other family. |
-| **special-purpose** | `theme-necropolis.html` | Dedicated Tomb-Not-Found page, not a general content renderer: the signature 404 treatment (looming ghost numeral, blood-red entry, cracked slab) is unconditional. Still carries the shared asset-meta footer slot and must pass the same a11y gate. |
+| **special-purpose** | `theme-necropolis.html` | Dedicated Tomb-Not-Found page, not a general content renderer: the signature 404 treatment (looming ghost numeral, blood-red entry, cracked slab) keys off the `$page_type$` token (v3 generic hook, #269). Still carries the shared asset-meta footer slot and must pass the same a11y gate. |
 
 ## What the guarantee means
 
@@ -51,7 +51,7 @@ Overgrown and Textpattern set Georgia-family serifs against muted grounds; Spook
 
 ### special-purpose
 
-Necropolis renders only the 404 page today: its `data-page-type` body hook is hardcoded to `404` because `$page_type$` is not part of the wrap dialect's token set (see the [Oliver contract](oliver-contract.md)) — so the haunting effects cannot be scoped per page yet. It wears the same footer slot and passes the same gate as every other theme, but its readability guarantee is the 404 page's, not a general document's. If a real `$page_type$` token ever lands in the dialect, necropolis can join a content family and scope the treatment per page.
+Necropolis renders only the 404 page today: its `data-page-type` body hook is `$page_type$`, fed through the v3 generic hook (#269) — any frontmatter key the adapter merges into `wrap_meta` becomes an interpolatable token (see the [Oliver contract](oliver-contract.md)), so `page_type: 404` on the 404 page drives the haunting effects. It wears the same footer slot and passes the same gate as every other theme, but its readability guarantee is the 404 page's, not a general document's. Point any other page at the theme with its own `page_type` (or none) and the treatment scopes accordingly.
 
 ## Shared skeleton (all members)
 

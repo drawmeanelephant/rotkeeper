@@ -321,6 +321,19 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
     jq -n --arg title "$title" --arg desc "$desc" --arg author "$author" --arg date "$date" --arg palette "$palette" \
       --arg version "${VERSION:-}" --arg subtitle "$sub_v2" --arg tags "$tags_v2" --arg asset_meta "$asset_meta_v2" \
       '{title:$title, description:$desc, author:$author, date:$date, palette:$palette, version:$version, subtitle:$subtitle, tags:$tags, asset_meta:$asset_meta}' > "$wrap_meta" 2>/dev/null || echo '{"title":"","description":"","author":"","date":"","palette":"","version":"","subtitle":"","tags":"","asset_meta":""}' > "$wrap_meta"
+    # v3 generic hook (#269): merge every other scalar frontmatter key so a
+    # template can reference $anyfield$ without an upstream Oliver change.
+    # The typed keys win the merge (right operand) — engine version, joined
+    # tags, and the serialized asset_meta must not be clobbered by raw
+    # frontmatter. Values stay whatever yq emitted; oliver wrap renders
+    # scalars and compact-JSONs objects/arrays.
+    if [[ -f "$src_path" ]]; then
+      fm_json="$(yq --front-matter extract -o=json '.' "$src_path" 2>/dev/null || true)"
+      if [[ -n "$fm_json" && "$fm_json" != "{}" && "$fm_json" != "null" ]]; then
+        merged="$(printf '%s' "$fm_json" | jq -s '.[0] * .[1]' - "$wrap_meta" 2>/dev/null || true)"
+        [[ -n "$merged" ]] && printf '%s' "$merged" > "$wrap_meta"
+      fi
+    fi
 
     wrap_status=0
     "$oliver_bin" wrap --template "$template_path" --meta-json "$wrap_meta" --assets-root "$assets_root" --body "$body_rewritten" > "$dst_path" 2> "$TMP_DIR/oliver-wrap-$$.log" || wrap_status=$?

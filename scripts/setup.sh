@@ -85,7 +85,7 @@ echo "2. Installing Oliver renderer..."
 # (error.RawHtmlNotXmlWellFormed), plus audit fixes #55-#58 (NUL -> U+FFFD
 # under the XHTML profile, CLI subcommand grammar with --to render-only);
 # the 2026-08-13 pin (e314dbbe) added the Cooklang frontend (CK1) plus CK2-CK5.
-OLIVER_PIN="8460f28c43952f1d80a775963b465c72bd890938"
+OLIVER_PIN="3f05bacb188ab28ad797430c82d9ee20080c5ed6"
 
 install_oliver_binary() {
   # Prebuilt-binary fast path: upstream publishes a rolling `builds` release.
