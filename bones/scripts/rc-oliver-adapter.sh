@@ -8,11 +8,11 @@ IFS=$'\n\t'
 #            Zero Python requirement. Enforces path boundaries and
 #            orchestrates Oliver `meta`/`render`/`wrap` for frontmatter,
 #            link rewriting, and template interpolation.
-#  Version : 0.7.0
-#  Updated : 2026-08-21
-#  Phase 6 complete: frontmatter `oliver meta`, template `oliver wrap`, link rewriting `oliver render`, output planning `oliver plan`, manifest `oliver manifest` — direct on pin 9ad86a3, no GAWK/YQ fallback.
+#  Version : 0.7.1
+#  Updated : 2026-08-27
+#  Phase 6 complete: frontmatter `oliver meta`, template `oliver wrap`, link rewriting `oliver render`, output planning `oliver plan`, manifest `oliver manifest` — direct on pin 06dd640; v2 contract (#244): wrap_meta enriched with version/subtitle/tags/asset_meta via yq --front-matter extract (oliver meta stays 7 S1 fields).
 # ============================================================
-# Env assumptions: reads INPUT_FORMAT, RENDER_PROFILE, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+# Env assumptions: reads INPUT_FORMAT, RENDER_PROFILE, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
 # Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
 
@@ -297,8 +297,30 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
     # SIDE EFFECT (write): creates the page's output directory and writes the final HTML into output/
     mkdir -p "$(dirname "$dst_path")"
     wrap_meta="$TMP_DIR/wrap-meta-$$.json"
+    # v2 shared template contract (#244): enrich wrap_meta with the extended
+    # scalars. version comes from the canonical bones/config/version source
+    # (VERSION, via rk_load_version); subtitle/tags/asset_meta are read from
+    # the source frontmatter with yq because oliver meta emits exactly the
+    # seven S1 fields and drops lists/maps. The sidecar may override subtitle
+    # (adapter-owned merge, same dominance rule as the S1 fields).
+    sub_v2=""
+    tags_v2=""
+    asset_meta_v2=""
+    if [[ -f "$src_path" ]]; then
+      sub_v2=$(yq --front-matter extract -r '.subtitle // ""' "$src_path" 2>/dev/null || echo "")
+      tags_v2=$(yq --front-matter extract -r '(.tags // []) | map(select(. != null and . != "")) | join(", ")' "$src_path" 2>/dev/null || echo "")
+      asset_meta_v2=$(yq --front-matter extract -r '[.asset_meta.name, .asset_meta.version, .asset_meta.author, .asset_meta.project, .asset_meta.license] | map(select(. != null and . != "")) | join(" — ")' "$src_path" 2>/dev/null || echo "")
+    fi
+    if [[ -n "$soul_path" && -f "$soul_path" ]]; then
+      s_sub=$(yq --front-matter extract -r '.subtitle // ""' "$soul_path" 2>/dev/null || echo "")
+      [[ -n "$s_sub" && "$s_sub" != "null" ]] && sub_v2="$s_sub"
+    fi
+    [[ "$sub_v2" == "null" ]] && sub_v2=""
+    [[ "$tags_v2" == "null" ]] && tags_v2=""
+    [[ "$asset_meta_v2" == "null" ]] && asset_meta_v2=""
     jq -n --arg title "$title" --arg desc "$desc" --arg author "$author" --arg date "$date" --arg palette "$palette" \
-      '{title:$title, description:$desc, author:$author, date:$date, palette:$palette}' > "$wrap_meta" 2>/dev/null || echo "{\"title\":\"\",\"description\":\"\",\"author\":\"\",\"date\":\"\",\"palette\":\"\"}" > "$wrap_meta"
+      --arg version "${VERSION:-}" --arg subtitle "$sub_v2" --arg tags "$tags_v2" --arg asset_meta "$asset_meta_v2" \
+      '{title:$title, description:$desc, author:$author, date:$date, palette:$palette, version:$version, subtitle:$subtitle, tags:$tags, asset_meta:$asset_meta}' > "$wrap_meta" 2>/dev/null || echo '{"title":"","description":"","author":"","date":"","palette":"","version":"","subtitle":"","tags":"","asset_meta":""}' > "$wrap_meta"
 
     wrap_status=0
     "$oliver_bin" wrap --template "$template_path" --meta-json "$wrap_meta" --assets-root "$assets_root" --body "$body_rewritten" > "$dst_path" 2> "$TMP_DIR/oliver-wrap-$$.log" || wrap_status=$?

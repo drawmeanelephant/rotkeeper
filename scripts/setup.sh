@@ -67,7 +67,15 @@ echo "2. Installing Oliver renderer..."
 # the binary built from $OLIVER_PIN is the renderer contract for 0.7.x.
 # Move the pin deliberately (see oliver-contract.md) — never on a whim.
 # 2026-08-21: bumped to 06dd640 — wrap fix #115 via 06dd6403c505b4863a54c548c978e494b55eb759 (PR #116, parseArgs missing wrap)
-# 2026-08-21: bumped to 9ad86a3 — Phase 6 S1+S2+S3+S4+S5 (oliver meta #107, wrap #108, render links #109, plan+manifest #110) via 9ad86a3763b8bd2f227fd5da94be9fc8ea5fa5fc
+# 2026-08-27: bumped to 8460f28 — shared template contract v2 (rotkeeper #244):
+# oliver wrap interpolates the extended metadata tokens (version, subtitle,
+# tags, asset_meta, navigation, warnings) from --meta-json; the adapter feeds
+# version from bones/config/version and subtitle/tags/asset_meta from source
+# frontmatter via yq. 8460f28 is the merge commit of oliver PR #126 (feature
+# commit 6db830e); the builds release embeds the merge SHA. Previous pin
+# (2026-08-21, 06dd640) landed wrap fix #115 (PR #116); the 2026-08-21 9ad86a3
+# pin landed Phase 6 S1+S2+S3+S4+S5 (oliver meta #107, wrap #108, render links
+# #109, plan+manifest #110) via 9ad86a3763b8bd2f227fd5da94be9fc8ea5fa5fc
 # 2026-08-15: bumped to 6edb520c — upstream now publishes prebuilt binaries
 # via a rolling `builds` release (oliver-<os>-<arch> + sha256sums.txt), so
 # the install path is download-first with checksum + `--version` verification,
@@ -77,7 +85,7 @@ echo "2. Installing Oliver renderer..."
 # (error.RawHtmlNotXmlWellFormed), plus audit fixes #55-#58 (NUL -> U+FFFD
 # under the XHTML profile, CLI subcommand grammar with --to render-only);
 # the 2026-08-13 pin (e314dbbe) added the Cooklang frontend (CK1) plus CK2-CK5.
-OLIVER_PIN="06dd6403c505b4863a54c548c978e494b55eb759"
+OLIVER_PIN="8460f28c43952f1d80a775963b465c72bd890938"
 
 install_oliver_binary() {
   # Prebuilt-binary fast path: upstream publishes a rolling `builds` release.

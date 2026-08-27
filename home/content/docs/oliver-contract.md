@@ -2,7 +2,7 @@
 title: "Oliver Renderer Contract"
 slug: oliver-contract
 template: rotkeeper-doc.html
-version: "1.12"
+version: "1.13"
 updated: "2026-08-27"
 description: "The supported contract between Rotkeeper and the native Oliver HTML renderer: executable discovery, input format and output profile, output streams, exit codes, the adapter boundary, and the stable template/input contract."
 tags:
@@ -46,7 +46,7 @@ oliver render --from markdown --to xhtml < file.md > body.xhtml 2> warnings.log
 | stderr | Non-fatal renderer warnings; forwarded through the adapter as warnings, never into the page body. Under `--to xhtml`, raw HTML fails closed on stderr with `error.RawHtmlNotXmlWellFormed` and an actionable hint, and the page aborts with exit 1 |
 | Exit 0 | Success |
 | Exit 1 | Render failure (e.g. missing input, or raw HTML under `--to xhtml`); page is aborted |
-| Version | Oliver's CLI is provisional and has no stable release yet, so Rotkeeper pins an exact source revision: CI and `scripts/setup.sh` install the binary published by the upstream rolling `builds` release and verify it reports exactly `commit <OLIVER_PIN>`; the Zig source build remains the fallback (the `OLIVER_PIN` variable in `setup.sh`). Moving the pin is a deliberate act — upgrade it, re-run the harness, and update this table. The pin moved 2026-08-21 from `9ad86a3` (`9ad86a3763b8bd2f227fd5da94be9fc8ea5fa5fc`) via `06dd640` (`06dd6403c505b4863a54c548c978e494b55eb759`) to land wrap fix #115 (PR #116, `wrap` parseArgs); the same-day move from `6edb520c` to `9ad86a3` landed Phase 6 S1+S2+S3+S4+S5 (`oliver meta` #107 `9ad86a3`, `wrap` #108, `render` links #109, `plan`+`manifest` #110) — frontmatter, template, link rewriting, output planning, manifest now Oliver-owned with Bash dispatch/env/packaging retained. The prior move (2026-08-15) from `c8a8e06` to `6edb520c` adopted the upstream `builds` release (prebuilt binaries + published `sha256sums.txt`, download-first with checksum and `--version` commit verification), plus the `--version` stdout fix, GFM footnote reference/backref fixes, and the XHTML footnote-attribute serialization fix — Markdown/Textile/Cooklang parsing untouched, footnote/task-list literals remain out of scope. The move before that (2026-08-14) from `e314dbbe` to `c8a8e06` had picked up the XHTML output profile (`--to html\|xhtml`, oliver PR #54, `docs/XHTML.md`) — same semantics, different serialization bytes; Markdown/Textile/Cooklang parsing untouched, CommonMark 652/652 and Cooklang 60/60 gates unchanged — plus the audit fixes #55–#58 (NUL → U+FFFD under the XHTML profile, CLI subcommand grammar with `--to` render-only). The move before that (2026-08-13) from `22b3c779` to `e314dbbe` had added the Cooklang frontend (CK1) plus CK2–CK5. `preflight`'s live smoke render (in the configured format and profile) remains the behavioral safety net on top of the pin |
+| Version | Oliver's CLI is provisional and has no stable release yet, so Rotkeeper pins an exact source revision: CI and `scripts/setup.sh` install the binary published by the upstream rolling `builds` release and verify it reports exactly `commit <OLIVER_PIN>`; the Zig source build remains the fallback (the `OLIVER_PIN` variable in `setup.sh`). Moving the pin is a deliberate act — upgrade it, re-run the harness, and update this table. The pin moved 2026-08-21 from `9ad86a3` (`9ad86a3763b8bd2f227fd5da94be9fc8ea5fa5fc`) via `06dd640` (`06dd6403c505b4863a54c548c978e494b55eb759`) to land wrap fix #115 (PR #116, `wrap` parseArgs); the same-day move from `6edb520c` to `9ad86a3` landed Phase 6 S1+S2+S3+S4+S5 (`oliver meta` #107 `9ad86a3`, `wrap` #108, `render` links #109, `plan`+`manifest` #110) — frontmatter, template, link rewriting, output planning, manifest now Oliver-owned with Bash dispatch/env/packaging retained. The prior move (2026-08-15) from `c8a8e06` to `6edb520c` adopted the upstream `builds` release (prebuilt binaries + published `sha256sums.txt`, download-first with checksum and `--version` commit verification), plus the `--version` stdout fix, GFM footnote reference/backref fixes, and the XHTML footnote-attribute serialization fix — Markdown/Textile/Cooklang parsing untouched, footnote/task-list literals remain out of scope. The move before that (2026-08-14) from `e314dbbe` to `c8a8e06` had picked up the XHTML output profile (`--to html\|xhtml`, oliver PR #54, `docs/XHTML.md`) — same semantics, different serialization bytes; Markdown/Textile/Cooklang parsing untouched, CommonMark 652/652 and Cooklang 60/60 gates unchanged — plus the audit fixes #55–#58 (NUL → U+FFFD under the XHTML profile, CLI subcommand grammar with `--to` render-only). The move before that (2026-08-13) from `22b3c779` to `e314dbbe` had added the Cooklang frontend (CK1) plus CK2–CK5. The 2026-08-27 bump from `06dd640` to `8460f28` landed the shared template contract v2 (rotkeeper #244): `wrap` interpolates the extended metadata tokens (`version`, `subtitle`, `tags`, `asset_meta`, `navigation`, `warnings`) from `--meta-json` (html-escaped, `$if$`-gated), with the adapter feeding `version` from `bones/config/version` and `subtitle`/`tags`/`asset_meta` from the source frontmatter. `8460f28` is the merge commit of oliver PR #126 (feature commit `6db830e`) — the `builds` release embeds the merge SHA. `preflight`'s live smoke render (in the configured format and profile) remains the behavioral safety net on top of the pin |
 
 The binary is deliberately narrow: it converts Markdown, Textile, or Cooklang to a body fragment. **Phase 6 complete (S1 meta, S2 wrap, S3 links, S4 plan, S5 manifest):** frontmatter, template, link rewriting, output planning, manifest are Oliver-owned; Bash retains dispatch, environment, filesystem boundaries, orchestration, packaging.
 
@@ -98,7 +98,7 @@ The fields Rotkeeper reads are:
 - `palette`
 - `render_profile` (per-page XHTML opt-in; `html`/`xhtml`, overrides `render_profile` in `rotkeeper.yaml` for that page only)
 
-All other frontmatter keys pass through untouched. Values are HTML-escaped on template insertion. Rules retained: block must start on line 1 `---` (no BOM, no leading blank line), close at next `---`, `...` not honored, scalar strings only (lists/maps ignored), `null`/empty treated as `""`.
+All other frontmatter keys pass through untouched. Values are HTML-escaped on template insertion. Rules retained: block must start on line 1 `---` (no BOM, no leading blank line), close at next `---`, `...` not honored, scalar strings only (lists/maps ignored), `null`/empty treated as `""`. For the v2 template tokens (`subtitle`/`tags`/`asset_meta`) the adapter reads the raw source frontmatter directly with `yq --front-matter extract` — see [Extended metadata provenance](#extended-metadata-provenance-v2-implemented).
 
 ## Template and input contract (stable)
 
@@ -108,13 +108,13 @@ This section is the stable contract that Phase 6 ("Rationalize the Oliver bounda
 
 - Sources are UTF-8 files with an optional leading YAML frontmatter block. The body format is Markdown by default (`input_format: markdown`), Textile when `input_format: textile` is set, Cooklang when `input_format: cooklang` is set, and any source whose extension is `.textile` or `.cook` renders in that format regardless of the config value. Source-file discovery covers `*.md`, `*.textile`, and `*.cook`; soul sidecar naming and output naming are extension-agnostic (a `.textile` or `.cook` source gets the same `foo.html` output and `foo.soul.md` sidecar as `foo.md`). A `foo.md`/`foo.textile`/`foo.cook` pair in the same directory is a source basename collision and aborts the render — only one source file may exist per page basename.
 - The frontmatter block must start on the **very first line** (`---` on line 1 — no BOM, no leading blank line) and close at the next `---` line. A YAML `...` document-end marker is not honored; anything after the closing `---` is body content in the configured format.
-- Only the seven fields above are consumed, as **scalar strings**. Lists, maps, and other keys are ignored for template purposes.
+- Only the seven fields above are consumed by `oliver meta`, as **scalar strings**. Lists, maps, and other keys are ignored by `meta` — but the v2 template tokens `subtitle`/`tags`/`asset_meta` are read from the raw source by the adapter's yq extraction (provenance below), and `version` is injected from `bones/config/version`.
 - A `.soul.md` sidecar under `bones/meta` may override any of the six metadata fields **per field** (`render_profile` is frontmatter-only); the sidecar value wins only when it is non-empty and not `null`. Without a sidecar, source frontmatter applies.
 - `template` resolution: `$template$` selects `${TEMPLATE_DIR}/${template}`. If the named template does not exist or escapes `TEMPLATE_DIR`, the batch manifest's default template (from `default_template` in `bones/config/rotkeeper.yaml`) is used. The page fails if no valid template resolves.
 
 ### Template dialect
 
-Templates are HTML files containing exactly seven tokens:
+Templates are HTML files containing the following tokens:
 
 | Token | Source | Insertion |
 | --- | --- | --- |
@@ -123,18 +123,24 @@ Templates are HTML files containing exactly seven tokens:
 | `$author$` | frontmatter `author` (sidecar wins) | HTML-escaped |
 | `$date$` | frontmatter `date` (sidecar wins) | HTML-escaped |
 | `$palette$` | frontmatter `palette` (sidecar wins) | HTML-escaped |
+| `$version$` | `bones/config/version` via the adapter (`$VERSION`, `rk_load_version`) | HTML-escaped |
+| `$subtitle$` | frontmatter `subtitle` (sidecar wins) | HTML-escaped |
+| `$tags$` | frontmatter `tags` list, adapter-joined with `, ` | HTML-escaped |
+| `$asset_meta$` | frontmatter `asset_meta` map, adapter-serialized (below) | HTML-escaped |
+| `$navigation$` | site nav from `bones/config/rotkeeper.yaml` | HTML-escaped |
+| `$warnings$` | per-page renderer warnings | HTML-escaped |
 | `$assets_root$` | render batch (path prefix to the layout's assets dir) | literal, not escaped |
 | `$body$` | Oliver-rendered body fragment | literal, not escaped (it is trusted rendered HTML) |
 
 Escaping is `&` `<` `>` `"` `'` → `&amp;` `&lt;` `&gt;` `&quot;` `&#39;`. `$assets_root$` and `$body$` are the only tokens exempt from escaping — templates must never place untrusted values there, and `$body$` must never be escaped.
 
-Conditionals: `$if(name)$ … $endif$` for `title`, `description`, `author`, `date`, `palette`. When the value is empty (or `null`) the whole block — including its interior newlines — is removed; otherwise the interior text is kept.
+Conditionals: `$if(name)$ … $endif$` for every metadata token (`title`, `description`, `author`, `date`, `palette`, `version`, `subtitle`, `tags`, `asset_meta`, `navigation`, `warnings`). When the value is empty (or `null`, or the key is absent) the whole block — including its interior newlines — is removed; otherwise the interior text is kept.
 
-- Evaluation is one variable pass at a time (title → description → author → date → palette), and the **first** `$endif$` in the document closes the opener. Do not nest the same variable twice; keep conditionals single-level in practice.
+- Evaluation is one variable pass at a time in the order listed above, and the **first** `$endif$` in the document closes the opener. Do not nest the same variable twice; keep conditionals single-level in practice.
 - Order of operations: all `$if$` blocks are resolved first, then the literal token substitution runs.
-- Any unrecognized `$word$` token passes through to the output verbatim; it is not an error.
+- A known token whose value is empty/absent substitutes an empty string (it is not an error); any **unrecognized** `$word$` token passes through to the output verbatim.
 
-This dialect — seven tokens, five conditional gates, escape/raw split — is **Phase 6 S2**: **Oliver `wrap --template <file> --meta-json <json> --assets-root <prefix> --body <file>` is authoritative (direct on pin `06dd640`, wrap fix #115)**. Example:
+This dialect — eleven metadata tokens plus `$assets_root$`/`$body$`, escape/raw split — is **Phase 6 S2**: **Oliver `wrap --template <file> --meta-json <json> --assets-root <prefix> --body <file>` is authoritative (direct on pin `8460f28`, wrap dialect v2, oliver #126)**. Example:
 
 ```bash
 oliver wrap --template bones/templates/theme-spooky-dark.html \
@@ -142,63 +148,20 @@ oliver wrap --template bones/templates/theme-spooky-dark.html \
 # or: oliver render --template <file> --meta-json <json> (alternative, feature-detected)
 ```
 
-Seven tokens remain, same escape/raw split and `$if$` evaluation order. Bash keeps `TEMPLATE_DIR` boundary checks; Oliver handles interpolation when `wrap` is present.
+The extended tokens joined the dialect with the shared template contract v2 (rotkeeper #244, pin move `06dd640` → `8460f28`, oliver #126). `$version$` is not frontmatter — the adapter injects it from the canonical version source, the same single source `--version` and `@HELP` `{VERSION}` use. `$subtitle$`/`$tags$`/`$asset_meta$` are read from the source frontmatter by the adapter with `yq --front-matter extract` (see provenance below); `$navigation$` and `$warnings$` are reserved — no adapter feed exists yet, so they substitute empty. Bash keeps `TEMPLATE_DIR` boundary checks; Oliver handles interpolation when `wrap` is present.
 
-## Shared template contract v2 — target surface (addendum, not yet implemented)
+## Extended metadata provenance (v2, implemented)
 
-This section scopes the shared template contract for exposed frontmatter/template variables (#244): the target dialect that extends the stable v1 table above with a real `$version$` token, page tags, and `asset_meta` rendering. **It is not implemented.** Until Oliver `wrap` learns to interpolate the extended tokens and the pin moves, the stable section above and `rc-oliver-adapter.sh` remain authoritative. v2 changes nothing for templates that do not use the new tokens — every v1 template renders byte-identically.
+The extended tokens are live since the shared template contract v2 landed (rotkeeper #244): `oliver wrap` interpolates them on pin `8460f28` (oliver #126), and the adapter feeds them into `wrap_meta`:
 
-### Goal
-
-Give every theme one shared source of truth for the metadata a header/footer needs — credits, engine version, tags, asset meta — so the static stamps added in #240 (`Rendered by Rotkeeper · © 2026`) can become live values (`Rendered by Rotkeeper · v$version$`) once implemented.
-
-### What the adapter/wrap stage injects today (v1)
-
-| Key | Source | Into `wrap`? |
-| --- | --- | --- |
-| `title` `description` `author` `date` `palette` | `oliver meta` (sidecar wins) | yes — 5 keys via `jq` |
-| `template` `render_profile` | `oliver meta` | no — consumed by the adapter (template resolution, `--to xhtml`) |
-| `$assets_root$` | render batch (`oliver plan`) | no — separate `--assets-root` flag |
-| `$body$` | `oliver render` | no — separate `--body` file |
-| everything else in frontmatter | — | **dropped** — `oliver meta` emits 7 scalar fields only; lists/maps ignored |
-
-### Target token surface (v2)
-
-| Token | Source | Insertion | Gate | Status |
-| --- | --- | --- | --- | --- |
-| `$title$` `$description$` `$author$` `$date$` `$palette$` | frontmatter (sidecar wins) | HTML-escaped | `$if(...)$` | **required** (v1 stable, unchanged) |
-| `$assets_root$` | render batch | literal | — | **required** |
-| `$body$` | rendered fragment | literal | — | **required** |
-| `$version$` | `bones/config/version` via the adapter (`$VERSION`, `rk_load_version`) | HTML-escaped | `$if(version)$` | **new** |
-| `$subtitle$` | frontmatter `subtitle` (sidecar wins) | HTML-escaped | `$if(subtitle)$` | **new** (optional; `description` remains the de-facto sub-headline) |
-| `$tags$` | frontmatter `tags` list, adapter-joined with `, ` | HTML-escaped | `$if(tags)$` | **new** |
-| `$asset_meta$` | frontmatter `asset_meta` map, adapter-serialized (below) | HTML-escaped | `$if(asset_meta)$` | **new** |
-| `$navigation$` | site nav from `bones/config/rotkeeper.yaml` | HTML-escaped | `$if(navigation)$` | **deferred** — no nav schema in config yet |
-| `$warnings$` | per-page renderer warnings | HTML-escaped | `$if(warnings)$` | **deferred** — warnings stay log/stderr-only today |
-
-### Provenance rules
-
-- `oliver meta` keeps emitting exactly the seven v1 fields — no map/list support is added to `meta`. `$version$` is not frontmatter: the adapter injects it from the canonical version source (`rk_load_version` → `bones/config/version`), the same single source `--version` and `@HELP` `{VERSION}` use.
-- The adapter enriches `wrap_meta` with the extended scalars before invoking `wrap`:
-  - `subtitle` ← frontmatter (sidecar wins; the sidecar merge is already adapter-owned).
-  - `tags` ← frontmatter list joined with `, ` (deterministic order as authored).
+- `oliver meta` keeps emitting exactly the seven S1 fields — no map/list support was added to `meta`. `$version$` is not frontmatter: the adapter injects it from the canonical version source (`rk_load_version` → `bones/config/version`), the same single source `--version` and `@HELP` `{VERSION}` use.
+- The adapter (`rc-oliver-adapter.sh`) enriches `wrap_meta` with the extended scalars before invoking `wrap`:
+  - `version` ← `$VERSION`.
+  - `subtitle` ← frontmatter `subtitle`, sidecar wins (the sidecar merge is adapter-owned; the soul file is read directly because `oliver meta` drops it).
+  - `tags` ← frontmatter `tags` list joined with `, ` (deterministic order as authored).
   - `asset_meta` ← frontmatter map serialized deterministically: `name`, `version`, `author`, `project`, `license` joined with ` — `, empty fields omitted, `tracked` never rendered (it is retrieval metadata, not display content). Example for `home/content/index.md`: `index.md — 0.3.0.4 — Filed Systems — Rotkeeper — All Rights Reserved`.
-- **Frontmatter authority splits by design:** Oliver owns the seven v1 fields; yq (`--front-matter extract`, as the harness already does) reads the extended v2 fields from the raw source because `oliver meta` drops them. The contract records this split explicitly; a future `oliver meta` that emits every scalar key (and serializes `asset_meta`) would collapse it back into Oliver.
-
-### Dialect semantics (v2)
-
-- `wrap` interpolates exactly the keys present in `--meta-json` (plus `$assets_root$` and `$body$`): every metadata token HTML-escaped, `$assets_root$`/`$body$` literal as today. A token whose key is absent — including any unknown `$word$` — passes through verbatim (unchanged fail-soft behavior; a typo'd token is visible, not fatal).
-- `$if(...)$` gating extends to every v2 token with the same semantics: empty/`null` value removes the whole block including interior newlines; single-level, first `$endif$` closes.
-- Escaping policy is unchanged (`&` `<` `>` `"` `'`); v2 adds no raw-insertion tokens.
-
-### Implementation path (to land v2 and close the contract)
-
-1. **Oliver (upstream):** `wrap` interpolates any scalar key present in `--meta-json` (html-escape metadata, keep `$assets_root$`/`$body$` literal) and extends `$if$` to the new tokens. Land upstream, then move `OLIVER_PIN` deliberately in `setup.sh` and update the version table above.
-2. **Adapter:** extend the `wrap_meta` `jq` with `version` plus the yq-extracted `subtitle`/`tags`/`asset_meta` (deterministic serialization above).
-3. **Harness:** update the contract-table assertions in `rc-test.sh` for the extended dialect; add a v2 golden-fixture page exercising every new token; regenerate template goldens; re-render all content and review.
-4. **Contract:** promote this addendum into the stable section above (token table, gating, provenance), bump the doc version.
-5. **Themes (#245):** define the asset-meta footer slot on the standardized skeleton using `$version$`/`$asset_meta$`/`$tags$`; replace the static © 2026 stamps with live tokens.
-6. **Docs:** `themes.md` and `new-ritual.md` document the extended dialect for template authors.
+  - `navigation`/`warnings` are reserved tokens with no adapter feed yet; they substitute empty until a nav schema and an in-page warnings surface exist.
+- **Frontmatter authority splits by design:** Oliver owns the seven S1 fields; yq (`--front-matter extract`, the same technique the harness uses) reads the extended v2 fields from the raw source because `oliver meta` drops lists/maps. A future `oliver meta` that emits every scalar key (and serializes `asset_meta`) would collapse the split back into Oliver.
 
 ## Sidecar precedence
 
@@ -213,7 +176,7 @@ A `.soul.md` sidecar next to a source file (under `bones/meta`) may override fro
 3. Template resolution — **Bash retains `TEMPLATE_DIR` boundary; Oliver `wrap --template <file> --meta-json <json> --assets-root <prefix> --body <file>` interpolates**.
 4. Oliver invocation and stderr forwarding (including the `--to xhtml` flag when the effective `render_profile` is `xhtml`).
 5. Internal `.md`/`.textile`/`.cook` → `.html` link rewriting — **S3: Oliver `render` AST rewrites `*.md|*.textile|*.cook` → `*.html`**.
-6. Template interpolation — **S2: Oliver `wrap` handles 7 tokens + `html_escape` + `$if$`/`$endif$`**.
+6. Template interpolation — **S2: Oliver `wrap` handles the v2 dialect (11 metadata tokens + `html_escape` + `$if$`/`$endif$` + `$assets_root$`/`$body$` literals)**.
 
 `rc-render.sh` owns output planning. **S4: Oliver `plan --content-dir <dir> --output-dir <dir> --template-dir <dir> --meta-dir <dir> --default-template <file> --oliver-bin <bin> --root-dir <dir> --dry-run <bool> --verbose <bool>` maps `content → output`**.
 
