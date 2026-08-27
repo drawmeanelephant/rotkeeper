@@ -36,44 +36,35 @@ IFS=$'\n\t'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
 
-# ---
-# show_help: Display DIP audit usage.
-# Inputs: none
-# Outputs: Prints help to stdout
-# Env: Reads BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, DRY_RUN ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
-# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
-# ---
-show_help() {
-  cat <<'HELP_EOF'
-rc-dip.sh — Document Improvement Project audit
-
-Usage:
-  rotkeeper.sh dip [options]
-
-Description:
-  Scans documentation coverage, ownership, staleness, and obsolete
-  references; publishes the dip-matrix report. Reads source scripts
-  and generated books critically. Moves an obsolete doc only with
-  strong evidence; ambiguous docs are reported as unowned.
-
-Options:
-  --dry-run      Preview actions without moving or writing docs
-  --verbose      Detailed output
-  --quiet        Suppress informational output
-  --json         Emit a machine-readable DIP matrix JSON on stdout
-  --help, -h     Show help
-  --version, -v  Show version and quit
-
-Examples:
-  bash rotkeeper.sh dip --dry-run     Audit without moving or writing docs
-  bash rotkeeper.sh dip               Full audit and matrix publication
-  bash rotkeeper.sh dip --json | jq . Machine-readable matrix output
-
-Exit codes:
-  0         Audit completed (findings live in the matrix report)
-  nonzero   Audit could not complete
-HELP_EOF
-}
+# @HELP
+# rc-dip.sh — Document Improvement Project audit
+#
+# Usage:
+#   rotkeeper.sh dip [options]
+#
+# Description:
+#   Scans documentation coverage, ownership, staleness, and obsolete
+#   references; publishes the dip-matrix report. Reads source scripts
+#   and generated books critically. Moves an obsolete doc only with
+#   strong evidence; ambiguous docs are reported as unowned.
+#
+# Options:
+#   --dry-run      Preview actions without moving or writing docs
+#   --verbose      Detailed output
+#   --quiet        Suppress informational output
+#   --json         Emit a machine-readable DIP matrix JSON on stdout
+#   --help, -h     Show help
+#   --version, -v  Show version and quit
+#
+# Examples:
+#   bash rotkeeper.sh dip --dry-run     Audit without moving or writing docs
+#   bash rotkeeper.sh dip               Full audit and matrix publication
+#   bash rotkeeper.sh dip --json | jq . Machine-readable matrix output
+#
+# Exit codes:
+#   0         Audit completed (findings live in the matrix report)
+#   nonzero   Audit could not complete
+# @END-HELP
 
 # --json is extracted before shared bootstrap because parse_flags stops at the
 # first unknown flag; everything else passes through to it untouched.

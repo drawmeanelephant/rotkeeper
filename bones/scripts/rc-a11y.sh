@@ -14,53 +14,43 @@ IFS=$'\n\t'
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
 # Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
 
-# ---
-# show_help: Print accessibility audit usage and exit.
-# Inputs: none (reads VERSION)
-# Outputs: Prints help and exits 0
-# Env: Reads ASSETS_DIR, BONES_DIR, CONFIG_DIR, DRY_RUN, LOG_DIR, QUIET ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
-# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
-# ---
-show_help() {
-  cat << EOF
-rc-a11y.sh — Theme accessibility audit (v${VERSION:-unknown})
-
-Usage:
-  rotkeeper.sh a11y [options]
-
-Description:
-  Audits every theme stylesheet reachable from bones/templates/*.html:
-    1. WCAG 2.x contrast ratios for semantic color pairs (body text on
-       page background and surface, code text on code background,
-       secondary text and accent links on the page background) across
-       every palette scope the stylesheet declares: default,
-       prefers-color-scheme: dark overrides, and opt-in .palette-*
-       terminal variants.
-    2. Focus states for interactive elements (:focus / :focus-visible
-       rules that paint a visible indicator).
-    3. Narrow-viewport legibility spot-checks for wide tables and code
-       blocks (overflow-x or pre-wrap strategy).
-  Results are recorded per theme under bones/reports/.
-
-Options:
-  --css-dir DIR    Theme CSS directory; defaults to ASSETS_DIR/css
-  --report FILE    Report destination; defaults to bones/reports/a11y-report-*.md
-  --json           Emit machine-readable JSON instead of the markdown report
-  --dry-run        Run the audit without writing the report
-  --verbose        Show detailed log output
-  --help, -h       Show this help message and exit
-  --version, -v    Show script version and quit
-
-Examples:
-  bash rotkeeper.sh a11y                    Audit all themes, write reports
-  bash rotkeeper.sh a11y --json             Machine-readable findings
-
-Exit codes:
-  0    All themes pass
-  1    One or more themes fail, or audit error
-EOF
-  exit 0
-}
+# @HELP
+# rc-a11y.sh — Theme accessibility audit (v{VERSION})
+#
+# Usage:
+#   rotkeeper.sh a11y [options]
+#
+# Description:
+#   Audits every theme stylesheet reachable from bones/templates/*.html:
+#     1. WCAG 2.x contrast ratios for semantic color pairs (body text on
+#        page background and surface, code text on code background,
+#        secondary text and accent links on the page background) across
+#        every palette scope the stylesheet declares: default,
+#        prefers-color-scheme: dark overrides, and opt-in .palette-*
+#        terminal variants.
+#     2. Focus states for interactive elements (:focus / :focus-visible
+#        rules that paint a visible indicator).
+#     3. Narrow-viewport legibility spot-checks for wide tables and code
+#        blocks (overflow-x or pre-wrap strategy).
+#   Results are recorded per theme under bones/reports/.
+#
+# Options:
+#   --css-dir DIR    Theme CSS directory; defaults to ASSETS_DIR/css
+#   --report FILE    Report destination; defaults to bones/reports/a11y-report-*.md
+#   --json           Emit machine-readable JSON instead of the markdown report
+#   --dry-run        Run the audit without writing the report
+#   --verbose        Show detailed log output
+#   --help, -h       Show this help message and exit
+#   --version, -v    Show script version and quit
+#
+# Examples:
+#   bash rotkeeper.sh a11y                    Audit all themes, write reports
+#   bash rotkeeper.sh a11y --json             Machine-readable findings
+#
+# Exit codes:
+#   0    All themes pass
+#   1    One or more themes fail, or audit error
+# @END-HELP
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }

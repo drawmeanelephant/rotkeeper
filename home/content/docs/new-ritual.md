@@ -30,7 +30,7 @@ Every Rotkeeper command is a small Bash ritual under `bones/scripts/rc-<name>.sh
    IFS=$'\n\t'
    ```
 2. **Header block** identifying the script, its purpose, version, and update date. Keep the `Project / Script / Purpose / Version / Updated` layout used by the other rituals.
-3. **`show_help()`** with a `--help`/`-h`, `--version`/`-v`, and `--dry-run` option (plus `--verbose`) consistent with the other rituals. The help text becomes the `DIP-HELP-EXTRACTED` pillar on the script's DIP page, so write it as the authoritative usage reference.
+3. **Help block** in the file header between `# @HELP` and `# @END-HELP`, following the standard shape (title + version, Usage, Description, Options, realistic Examples, Exit codes). Use the literal `{VERSION}` token — the shared emitter `rk_show_help` (rc-utils.sh) substitutes the loaded version at runtime. The block is the **single sourced help** for the ritual: the default `show_help` in rc-utils.sh emits it for `--help`/`-h`, and `rc-autopsy.sh` help-extracts the same text. Define your own `show_help` only when the help genuinely needs runtime content (rc-new appends a live template completion hint). The block text becomes the `DIP-HELP-EXTRACTED` pillar on the script's DIP page, so write it as the authoritative usage reference. Support `--version`/`-v` and `--dry-run` (plus `--verbose`) consistent with the other rituals.
 4. **Bootstrap** (always, in this order):
    ```bash
    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

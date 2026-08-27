@@ -21,40 +21,30 @@ IFS=$'\n\t'
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
-# ---
-# show_help: Print asset manifest usage and exit.
-# Inputs: none (reads VERSION)
-# Outputs: Prints help and exits 0
-# Env: Reads ARCHIVE_DIR, ASSETS_DIR, BONES_DIR, CONFIG_DIR, DRY_RUN, LOG_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
-# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
-# ---
-show_help() {
-  cat << EOF
-rc-assets.sh — Generate a selective YAML manifest of referenced assets (v${VERSION:-unknown})
-
-Usage:
-  rotkeeper.sh assets [options]
-
-Description:
-  Scans content sources for referenced local assets and writes a
-  selective YAML manifest so asset usage stays auditable.
-
-Options:
-  --dry-run        Preview actions without writing files
-  --verbose        Show detailed logs
-  --help, -h       Show this help message and exit
-  --version, -v    Show script version and quit
-
-Examples:
-  bash rotkeeper.sh assets                Generate the asset manifest
-  bash rotkeeper.sh assets --dry-run      Preview without writing
-
-Exit codes:
-  0    Success
-  1    Manifest generation failure
-EOF
-  exit 0
-}
+# @HELP
+# rc-assets.sh — Generate a selective YAML manifest of referenced assets (v{VERSION})
+#
+# Usage:
+#   rotkeeper.sh assets [options]
+#
+# Description:
+#   Scans content sources for referenced local assets and writes a
+#   selective YAML manifest so asset usage stays auditable.
+#
+# Options:
+#   --dry-run        Preview actions without writing files
+#   --verbose        Show detailed logs
+#   --help, -h       Show this help message and exit
+#   --version, -v    Show script version and quit
+#
+# Examples:
+#   bash rotkeeper.sh assets                Generate the asset manifest
+#   bash rotkeeper.sh assets --dry-run      Preview without writing
+#
+# Exit codes:
+#   0    Success
+#   1    Manifest generation failure
+# @END-HELP
 
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
