@@ -60,12 +60,14 @@ Options:
   --dry-run      Preview actions without moving or writing docs
   --verbose      Detailed output
   --quiet        Suppress informational output
+  --json         Emit a machine-readable DIP matrix JSON on stdout
   --help, -h     Show help
   --version, -v  Show version and quit
 
 Examples:
   bash rotkeeper.sh dip --dry-run     Audit without moving or writing docs
   bash rotkeeper.sh dip               Full audit and matrix publication
+  bash rotkeeper.sh dip --json | jq . Machine-readable matrix output
 
 Exit codes:
   0         Audit completed (findings live in the matrix report)
@@ -73,7 +75,19 @@ Exit codes:
 HELP_EOF
 }
 
-rk_init_script rc-dip "$@"
+# --json is extracted before shared bootstrap because parse_flags stops at the
+# first unknown flag; everything else passes through to it untouched.
+JSON_MODE=false
+DIP_ARGS=()
+for _arg in "$@"; do
+  if [[ "$_arg" == "--json" ]]; then
+    JSON_MODE=true
+  else
+    DIP_ARGS+=("$_arg")
+  fi
+done
+
+rk_init_script rc-dip ${DIP_ARGS[@]+"${DIP_ARGS[@]}"}
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR CONTENT_DIR DOCS_DIR REPORT_DIR BOOK_REPORT_DIR META_DIR
 
 # Surface dry-run actions even when QUIET defaults true
@@ -1036,6 +1050,9 @@ declare -A STAT_COUNTS=(
 
 declare -a MATRIX_ROWS=()
 
+# Parallel row capture for --json emission (order mirrors MATRIX_ROWS)
+declare -a J_TARGETS=() J_DOCS=() J_CODE_DATES=() J_DOC_DATES=() J_STATUSES=()
+
 # Stable iteration for deterministic matrix output
 mapfile -t SORTED_DOC_PATHS < <(printf '%s\n' "${!EXPECTED_DOCS[@]}" | LC_ALL=C sort)
 
@@ -1098,6 +1115,11 @@ for doc_path in ${SORTED_DOC_PATHS[@]+"${SORTED_DOC_PATHS[@]}"}; do
     doc_ref="[$rel_doc]($rel_doc)"
   fi
   MATRIX_ROWS+=("| \`$target_file\` | $doc_ref | $code_date | $doc_date | $status |")
+  J_TARGETS+=("$target_file")
+  J_DOCS+=("$rel_doc")
+  J_CODE_DATES+=("$code_date")
+  J_DOC_DATES+=("$doc_date")
+  J_STATUSES+=("$status")
 done
 
 if ((${#UNOWNED_DOCS[@]} > 0)); then
@@ -1111,10 +1133,90 @@ for doc_path in ${SORTED_UNOWNED[@]+"${SORTED_UNOWNED[@]}"}; do
   status="Unowned"
   STAT_COUNTS["Unowned"]=$((STAT_COUNTS["Unowned"] + 1))
   MATRIX_ROWS+=("| \`Unknown\` | [$rel_doc]($rel_doc) | Missing | $doc_date | $status |")
+  J_TARGETS+=("Unknown")
+  J_DOCS+=("$rel_doc")
+  J_CODE_DATES+=("Missing")
+  J_DOC_DATES+=("$doc_date")
+  J_STATUSES+=("$status")
 done
 
   total_rows=$((${STAT_COUNTS[OK]:-0} + ${STAT_COUNTS[Stub]:-0} + ${STAT_COUNTS[Missing]:-0} + ${STAT_COUNTS[Stale]:-0} + ${STAT_COUNTS[Unowned]:-0}))
 totals_line="**Totals:** OK: ${STAT_COUNTS[OK]:-0} | Stub: ${STAT_COUNTS[Stub]:-0} | Missing: ${STAT_COUNTS[Missing]:-0} | Stale: ${STAT_COUNTS[Stale]:-0} | Unowned: ${STAT_COUNTS[Unowned]:-0} | Rows: ${total_rows}"
+
+# --- 6b. Machine-readable stdout (--json) -----------------------------------
+# --json mirrors the published matrix as a single schema-tagged JSON object on
+# fd 3 (visible even in quiet mode). Matrix publication, the MARKER summary,
+# and exit codes are unchanged. Under --dry-run the computed audit result is
+# still emitted and nothing is written.
+if [[ "$JSON_MODE" == true ]]; then
+  if ! command -v jq >/dev/null 2>&1; then
+    log "ERROR" "dip --json requires jq."
+    exit 1
+  fi
+
+  mkdir -p "$TMP_DIR"
+
+  rows_json="[]"
+  if ((${#J_TARGETS[@]} > 0)); then
+    rows_json=$(
+      for i in "${!J_TARGETS[@]}"; do
+        printf '%s\t%s\t%s\t%s\t%s\n' \
+          "${J_TARGETS[$i]}" "${J_DOCS[$i]}" "${J_CODE_DATES[$i]}" "${J_DOC_DATES[$i]}" "${J_STATUSES[$i]}"
+      done | jq -Rn '
+        [inputs | select(length > 0) | split("\t")]
+        | map({target_file: .[0], doc: .[1], last_code_edit: .[2], last_doc_edit: .[3], status: .[4]})
+      '
+    )
+  fi
+
+  collisions_json="[]"
+  if ((${#OWNERSHIP_COLLISIONS[@]} > 0)); then
+    collisions_json=$(
+      printf '%s\n' "${OWNERSHIP_COLLISIONS[@]}" | LC_ALL=C sort |
+        jq -Rn '[inputs | select(length > 0) | split("|")] | map({doc: .[0], claims: [.[1], .[2]]})'
+    )
+  fi
+
+  obsolete_json="[]"
+  if ((${#OBSOLETE_MOVED[@]} > 0)); then
+    obsolete_json=$(printf '%s\n' "${OBSOLETE_MOVED[@]}" | jq -R -s 'split("\n") | map(select(length > 0))')
+  fi
+
+  matrix_rel="${MATRIX_FILE#"$ROOT_DIR"/}"
+
+  # SIDE EFFECT (write): creates a bones/tmp scratch file for stdout JSON assembly
+  json_out="$TMP_DIR/dip-json-stdout.$$"
+  {
+    echo "{"
+    printf '  "schema": "rotkeeper.dip-matrix.v1",\n'
+    printf '  "generated_at": "%s",\n' "$DATE_STR"
+    printf '  "matrix_file": %s,\n' "$(printf '%s' "$matrix_rel" | jq -R .)"
+    printf '  "totals": {"ok": %d, "stub": %d, "missing": %d, "stale": %d, "unowned": %d, "rows": %d},\n' \
+      "${STAT_COUNTS[OK]:-0}" "${STAT_COUNTS[Stub]:-0}" "${STAT_COUNTS[Missing]:-0}" "${STAT_COUNTS[Stale]:-0}" "${STAT_COUNTS[Unowned]:-0}" "$total_rows"
+    printf '  "rows": %s,\n' "$rows_json"
+    printf '  "ownership_collisions": %s,\n' "$collisions_json"
+    printf '  "obsolete_moved": %s,\n' "$obsolete_json"
+    printf '  "degraded": {"autopsy_report": %s, "fsbook_catalog": %s}\n' \
+      "$( [[ "$DEGRADED_AUTOPSY" == true ]] && echo true || echo false )" \
+      "$( [[ "$DEGRADED_FSBOOK" == true ]] && echo true || echo false )"
+    echo "}"
+  } > "$json_out"
+
+  # Fail closed on malformed JSON rather than shipping it to CI consumers.
+  if ! jq empty "$json_out" >/dev/null 2>&1; then
+    log "ERROR" "dip --json generated invalid JSON; scratch copy kept at $json_out"
+    cat "$json_out" >&2
+    exit 1
+  fi
+
+  # SIDE EFFECT (write): appends the stdout JSON object to the per-run log
+  if [[ -n "${LOG_FILE:-}" ]]; then
+    cat "$json_out" >> "$LOG_FILE"
+  fi
+  cat "$json_out" >&3 2>/dev/null || cat "$json_out"
+  # SIDE EFFECT (delete): removes the stdout JSON scratch file after emit
+  rm -f "$json_out"
+fi
 
 if [[ "${DRY_RUN:-false}" == true ]]; then
   log "DRY-RUN" "Would generate DIP matrix at $MATRIX_FILE (${#MATRIX_ROWS[@]} rows)"

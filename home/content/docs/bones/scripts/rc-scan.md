@@ -2,7 +2,7 @@
 title: "🔍 rc-scan.sh Reference"
 slug: rc-scan
 target_file: "bones/scripts/rc-scan.sh"
-date: "2026-08-26"
+date: "2026-08-27"
 template: "rotkeeper-doc.html"
 status: "active"
 version: "0.5.1"
@@ -32,7 +32,7 @@ The audit, in order:
 2. **Disk walk** — scans `CONTENT_DIR`, `BONES_DIR`, and `OUTPUT_DIR`, pruning noisy subtrees (`tmp`, `logs`, `archive`, `reports`, `book-reports`) and filtering by extension (default allowlist: `png jpg svg css js md html json yaml`; override with `--include`, tighten further with repeatable `--exclude` glob patterns).
 3. **Classification** — *missing* = listed in the manifest but absent on disk; *orphan* = on disk but absent from the manifest.
 4. **Digests** — SHA256 for every scanned file (via the portable checksum helper).
-5. **Reports** — timestamped JSON (`scan-report-<ts>.json`) and Markdown (`scan-report-<ts>.md`) under `bones/reports/`, each containing the missing list, orphan list, and digest table. `--json-only` / `--md-only` restrict output to one form; `--manifest-only` skips the disk walk entirely.
+5. **Reports** — timestamped JSON (`scan-report-<ts>.json`) and Markdown (`scan-report-<ts>.md`) under `bones/reports/`, each containing the missing list, orphan list, and digest table. `--json-only` / `--md-only` restrict output to one form; `--manifest-only` skips the disk walk entirely. `--json` additionally prints a schema-tagged summary object (`rotkeeper.scan.v1`) on stdout — report files, human output, and exit codes are unchanged.
 
 ## CLI Usage
 
@@ -43,6 +43,7 @@ rotkeeper.sh scan [options]
 #   --manifest-only   Read only the manifest file, skip the disk scan
 #   --include <ext>   Comma-separated extensions to include
 #   --exclude <pat>   Glob pattern to exclude (can repeat)
+#   --json            Emit machine-readable JSON on stdout (reports unchanged)
 #   --json-only       Write only the JSON report
 #   --md-only         Write only the Markdown report
 #   --dry-run         Show actions without writing reports or logs

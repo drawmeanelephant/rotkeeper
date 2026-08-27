@@ -49,6 +49,7 @@ Flags:
   --manifest-only   Read only manifest file, skip disk scan.
   --include <ext>   Comma-separated list of extensions to include.
   --exclude <pat>   Glob pattern to exclude (can repeat).
+  --json            Emit machine-readable JSON to stdout (report files unchanged).
   --json-only       Output only JSON report.
   --md-only         Output only Markdown report.
   --dry-run         Show actions without writing reports.
@@ -60,6 +61,7 @@ Examples:
   bash rotkeeper.sh scan                                     Full audit
   bash rotkeeper.sh scan --manifest-only                     Manifest check only
   bash rotkeeper.sh scan --include md,textile --dry-run      Filtered preview
+  bash rotkeeper.sh scan --json | jq .                       Machine-readable output
 
 Exit codes:
   0    Success
@@ -84,7 +86,7 @@ fi
 
 # ---
 # main: Audit manifest vs disk, compute digests, emit JSON/Markdown reports.
-# Inputs: $@ (flags: --manifest-only, --include, --exclude, --json-only, --md-only)
+# Inputs: $@ (flags: --manifest-only, --include, --exclude, --json, --json-only, --md-only)
 # Outputs: Writes scan reports to REPORT_DIR; logs digests and orphans
 # Env: Reads BONES_DIR, CONTENT_DIR, DRY_RUN, LOG_DIR, LOG_FILE, OUTPUT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
@@ -122,6 +124,7 @@ EXCLUDE_PATTERNS=()
 # --- CLI Defaults & Argument Parsing ---
 # Initialize CLI-related variables and parse command-line flags.
 # CLI defaults
+JSON_MODE=false
 JSON_ONLY=false
 MD_ONLY=false
 
@@ -136,6 +139,7 @@ while [[ $# -gt 0 ]]; do
     --exclude) EXCLUDE_PATTERNS+=("$2"); shift 2 ;;
     --dry-run) DRY_RUN=true; shift ;;
     --verbose) VERBOSE=true; shift ;;
+    --json) JSON_MODE=true; shift ;;
     --json-only) JSON_ONLY=true; shift ;;
     --md-only) MD_ONLY=true; shift ;;
     -h|--help) show_help ;;
@@ -236,7 +240,7 @@ done
 # --- Step 4: Generate File Metadata ---
 # Compute SHA256 checksums for each scanned file.
 # Requires bash — file path to SHA256 digest
-declare -A file_checksums
+declare -A file_checksums=()
 for f in ${disk_list[@]+"${disk_list[@]}"}; do
   f_clean=$(echo "$f" | tr -d '\r')
   [[ -z "$f_clean" ]] && continue
@@ -248,6 +252,68 @@ for f in ${disk_list[@]+"${disk_list[@]}"}; do
   fi
   [[ -n "$sha" ]] && file_checksums["$f_clean"]="$sha"
 done
+
+#
+# --- Step 4b: Machine-Readable Stdout (--json) ---
+# --json emits a single schema-tagged JSON object on fd 3 so it stays visible
+# to callers even in quiet mode. Report files are written exactly as without
+# the flag; human-visible MARKER/log behavior is unchanged.
+if [[ "$JSON_MODE" == true ]]; then
+  mkdir -p "$TMP_DIR"
+
+  missing_json="[]"
+  if [[ ${#missing[@]} -gt 0 ]]; then
+    missing_json=$(printf '%s\n' "${missing[@]}" | jq -R . | jq -s .)
+  fi
+
+  orphans_json="[]"
+  if [[ ${#orphans[@]} -gt 0 ]]; then
+    orphans_json=$(printf '%s\n' "${orphans[@]}" | jq -R . | jq -s .)
+  fi
+
+  digests_json="{}"
+  if [[ ${#file_checksums[@]} -gt 0 ]]; then
+    digests_json=$(
+      for f in "${!file_checksums[@]}"; do
+        printf '%s\t%s\n' "$f" "${file_checksums[$f]}"
+      done | LC_ALL=C sort | jq -Rn '
+        [inputs | select(length > 0) | split("\t")]
+        | map({key: .[0], value: .[1]})
+        | from_entries
+      '
+    )
+  fi
+
+  # SIDE EFFECT (write): creates a bones/tmp scratch file for stdout JSON assembly
+  json_out="$TMP_DIR/scan-json-stdout.$$"
+  {
+    echo "{"
+    printf '  "schema": "rotkeeper.scan.v1",\n'
+    printf '  "generated_at": "%s",\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    printf '  "manifest": %s,\n' "$(printf '%s' "$MANIFEST_FILE" | jq -R .)"
+    printf '  "counts": {"missing": %d, "orphans": %d},\n' "${#missing[@]}" "${#orphans[@]}"
+    printf '  "missing": %s,\n' "$missing_json"
+    printf '  "orphans": %s,\n' "$orphans_json"
+    printf '  "digest_count": %d,\n' "${#file_checksums[@]}"
+    printf '  "digests": %s\n' "$digests_json"
+    echo "}"
+  } > "$json_out"
+
+  # Fail closed on malformed JSON rather than shipping it to CI consumers.
+  if ! jq empty "$json_out" >/dev/null 2>&1; then
+    log "ERROR" "scan --json generated invalid JSON; scratch copy kept at $json_out"
+    cat "$json_out" >&2
+    exit 1
+  fi
+
+  # SIDE EFFECT (write): appends the stdout JSON object to the per-run log
+  if [[ -n "${LOG_FILE:-}" ]]; then
+    cat "$json_out" >> "$LOG_FILE"
+  fi
+  cat "$json_out" >&3 2>/dev/null || cat "$json_out"
+  # SIDE EFFECT (delete): removes the stdout JSON scratch file after emit
+  rm -f "$json_out"
+fi
 
 #
 # --- Step 5: JSON Report ---
