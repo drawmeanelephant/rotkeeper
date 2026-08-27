@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>$title$</title>
+  <link rel="stylesheet" href="$assets_root$css/theme-necropolis.css">
+</head>
+<!-- Necropolis is the dedicated Tomb-Not-Found theme: the body hook is
+     hardcoded because $page_type$ is not part of the wrap dialect's token
+     set (see oliver-contract.md) — it drives the signature 404 effects. -->
+<body data-page-type="404">
+  <div class="necropolis-scene" aria-hidden="true">
+    <div class="scene-lightning"></div>
+    <div class="scene-moon"></div>
+    <div class="scene-star scene-star--1"></div>
+    <div class="scene-star scene-star--2"></div>
+    <div class="scene-star scene-star--3"></div>
+    <div class="scene-star scene-star--4"></div>
+    <div class="scene-star scene-star--5"></div>
+    <div class="scene-star scene-star--6"></div>
+    <div class="scene-star scene-star--7"></div>
+    <div class="scene-star scene-star--8"></div>
+    <div class="scene-ember scene-ember--1"></div>
+    <div class="scene-ember scene-ember--2"></div>
+    <div class="scene-ember scene-ember--3"></div>
+    <div class="scene-web scene-web--tl"></div>
+    <div class="scene-web scene-web--tr"></div>
+    <div class="scene-fog"></div>
+  </div>
+
+  <div class="necropolis-container">
+    <header class="necropolis-header">
+      <div class="tombstone-title">
+        <div class="tombstone-title__inner">
+          <span class="tombstone-title__cross" aria-hidden="true">✝</span>
+          <h1 class="tombstone-title__text">$title$</h1>
+          <span class="tombstone-title__cross" aria-hidden="true">✝</span>
+        </div>
+      </div>
+      $if(description)$
+      <p class="necropolis-subtitle">$description$</p>
+      $endif$
+    </header>
+
+    <div class="divider divider--ornate" aria-hidden="true">
+      <span class="divider__line"></span>
+      <span class="divider__icon">💀</span>
+      <span class="divider__line"></span>
+    </div>
+
+    <main>
+      <article class="tombstone-entry">
+        <div class="tombstone-entry__top" aria-hidden="true"></div>
+        <div class="tombstone-entry__body">
+          <header class="tombstone-entry__header">
+            <div>
+              <h2 class="tombstone-entry__title">$title$</h2>
+              $if(date)$<div class="tombstone-entry__date">⚰ $date$</div>$endif$
+            </div>
+            <div class="tombstone-entry__glyph" aria-hidden="true">☠</div>
+          </header>
+          <div class="tombstone-entry__content">$body$</div>
+          $if(author)$
+          <footer class="tombstone-entry__epitaph">
+            <div class="epitaph__line">
+              <span class="epitaph__label">Interred by:</span> $author$
+            </div>
+          </footer>
+          $endif$
+        </div>
+      </article>
+    </main>
+
+    <div class="divider divider--bones" aria-hidden="true">
+      <span class="divider__bone divider__bone--left"></span>
+      <span class="divider__skull">💀</span>
+      <span class="divider__bone divider__bone--right"></span>
+    </div>
+
+    <footer class="necropolis-graveyard">
+      <div class="graveyard-scene" aria-hidden="true">
+        <div class="graveyard-tombstone graveyard-tombstone--1"></div>
+        <div class="graveyard-tombstone graveyard-tombstone--2"></div>
+        <div class="graveyard-cross graveyard-cross--1"></div>
+        <div class="graveyard-tombstone graveyard-tombstone--3"></div>
+        <div class="graveyard-bat graveyard-bat--1">🦇</div>
+        <div class="graveyard-bat graveyard-bat--2">🦇</div>
+      </div>
+      <div class="necropolis-footer-text">
+        <p class="footer-lore">⚗ <em>The Rotkeeper tends the necropolis — what is buried here is not lost.</em> ⚗</p>
+        <p class="footer-lore footer-lore--sub">
+          <span class="lore-icon" aria-hidden="true">🕯️</span>
+          Abandon all hope, ye who enter here
+          <span class="lore-icon" aria-hidden="true">🕯️</span>
+        </p>
+        <p class="footer-credit">Rendered by <strong>Rotkeeper</strong> ☠ v$version$</p>
+$if(asset_meta)$        <p class="footer-asset-meta">$asset_meta$</p>
+$endif$$if(tags)$        <p class="footer-tags">$tags$</p>
+$endif$      </div>
+    </footer>
+  </div>
+</body>
+</html>
