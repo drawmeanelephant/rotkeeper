@@ -99,11 +99,11 @@ Several dispatcher commands emit a single machine-readable JSON object on stdout
 
 ### `scan --json`
 
-Emitted by `bash rotkeeper.sh scan --json`. The report files under `bones/reports/` keep their existing shape; this object carries the same findings inside an additive envelope.
+Emitted by `bash rotkeeper.sh scan --json`. Scan audits the render ledger (`bones/manifest.txt`): `missing` are ledger entries absent from disk, `orphans` are files under the rendered output tree the ledger does not list, and `digests` verify ledger-listed files. The report files under `bones/reports/` keep their existing shape; this object carries the same findings inside an additive envelope.
 
 ```json
 {
-  "schema": "rotkeeper.scan.v1",
+  "schema": "rotkeeper.scan.v2",
   "generated_at": "2026-08-27T00:00:00Z",
   "manifest": "bones/manifest.txt",
   "counts": { "missing": 0, "orphans": 0 },
@@ -118,13 +118,16 @@ Emitted by `bash rotkeeper.sh scan --json`. The report files under `bones/report
 
 | Field | Type | Rules |
 | --- | --- | --- |
-| `schema` | string | Always `rotkeeper.scan.v1` |
+| `schema` | string | Always `rotkeeper.scan.v2` |
 | `generated_at` | string | ISO-8601 UTC timestamp emitted at audit time |
 | `manifest` | string | Manifest path audited, root-relative |
 | `counts.missing`, `counts.orphans` | number | Lengths of the arrays below, mirrored for convenience |
-| `missing`, `orphans` | string[] | Root-relative paths; empty array when clean |
+| `missing` | string[] | Ledger entries absent from disk; empty array when clean |
+| `orphans` | string[] | Files under OUTPUT_DIR absent from the ledger; `output/assets/` is exempt (owned by the assets ritual) |
 | `digest_count` | number | Number of entries in `digests` |
-| `digests` | map | Scanned file path → lowercase hex SHA-256 |
+| `digests` | map | Ledger-listed file path → lowercase hex SHA-256 (files present on disk only) |
+
+**v1 → v2:** v1's full-tree walk never produced orphans/digests — the extension filter could not match under the script's IFS (#292). v2 scopes orphans to the output tree and retargets digests at ledger entries. Planned next: `digest_mismatches[]` verifying pack's recorded SHA-256 lines.
 
 ### `dip --json`
 

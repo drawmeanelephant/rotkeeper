@@ -1451,17 +1451,38 @@ COOK_CFG_EOF
       exit 129
     fi
     if ! jq -e '
-        .schema == "rotkeeper.scan.v1" and
+        .schema == "rotkeeper.scan.v2" and
         (.missing | type == "array") and
         (.orphans | type == "array") and
         (.digests | type == "object") and
         .counts.missing == (.missing | length) and
         .counts.orphans == (.orphans | length)
       ' >/dev/null <<< "$scan_stdout"; then
-      echo "❌ Assertion Failed: scan --json stdout does not match the rotkeeper.scan.v1 envelope."
+      echo "❌ Assertion Failed: scan --json stdout does not match the rotkeeper.scan.v2 envelope."
       exit 130
     fi
-    echo "  [+] Pass: scan --json emitted a valid rotkeeper.scan.v1 object ($mode)."
+    echo "  [+] Pass: scan --json emitted a valid rotkeeper.scan.v2 object ($mode)."
+
+    # P1 verification (#292): the orphan walk is real — a stray file dropped
+    # into the rendered tree must be classified, and the assets ritual's
+    # output/assets/ copies stay exempt from orphan scope. The probe cleans
+    # up after itself so later dry-run non-mutation snapshots are unaffected.
+    touch "$out_dir_rel/stray-orphan-probe.html"
+    if ! probe_stdout=$(./rotkeeper.sh scan --json); then
+      echo "❌ Assertion Failed: stray-orphan probe scan failed."
+      exit 183
+    fi
+    if ! jq -e --arg d "$out_dir_rel" '
+        .schema == "rotkeeper.scan.v2" and
+        .counts.orphans == 1 and
+        (.orphans | any(. == ($d + "/stray-orphan-probe.html"))) and
+        ([.orphans[] | select(startswith(($d + "/assets/")))] | length) == 0
+      ' >/dev/null <<< "$probe_stdout"; then
+      echo "❌ Assertion Failed: orphan walk did not classify the stray file (or output/assets leaked into scope)."
+      exit 184
+    fi
+    rm -f "$out_dir_rel/stray-orphan-probe.html"
+    echo "  [+] Pass: orphan walk classified stray output file, assets tree exempt ($mode)."
 
     # --- XHTML output profile (hermetic) assertions ---
     # These render and prune fixture pages after the manifest-vs-disk scan above,

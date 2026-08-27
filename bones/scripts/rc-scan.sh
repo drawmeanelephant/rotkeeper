@@ -15,9 +15,9 @@ IFS=$'\n\t'
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-scan.sh
-#  Purpose : Audit files vs manifest, classify orphans, and write digest reports
+#  Purpose : Audit the render ledger vs disk: missing entries, output-tree orphans, ledger digests
 #  Version : 0.5.1
-#  Updated : 2026-03-23
+#  Updated : 2026-08-27
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
@@ -42,13 +42,17 @@ Usage:
   rotkeeper.sh scan [flags]
 
 Description:
-  Verifies manifest entries against the actual files on disk and
-  writes Markdown/JSON reports to bones/reports/.
+  Audits the render ledger (bones/manifest.txt) against disk:
+  missing = ledger entries absent from disk; orphans = files under the
+  rendered output tree that the ledger does not list (output/assets/
+  is exempt — owned by the assets ritual); digests = SHA-256 of
+  ledger-listed files present on disk. Writes Markdown/JSON reports
+  to bones/reports/.
 
 Flags:
-  --manifest-only   Read only manifest file, skip disk scan.
-  --include <ext>   Comma-separated list of extensions to include.
-  --exclude <pat>   Glob pattern to exclude (can repeat).
+  --manifest-only   Read only manifest file, skip the output-tree walk.
+  --include <ext>   Comma-separated extensions to include in the orphan walk.
+  --exclude <pat>   Glob pattern to exclude from the orphan walk (can repeat).
   --json            Emit machine-readable JSON to stdout (report files unchanged).
   --json-only       Output only JSON report.
   --md-only         Output only Markdown report.
@@ -85,7 +89,7 @@ fi
 
 
 # ---
-# main: Audit manifest vs disk, compute digests, emit JSON/Markdown reports.
+# main: Audit render ledger vs disk, classify output-tree orphans, emit reports.
 # Inputs: $@ (flags: --manifest-only, --include, --exclude, --json, --json-only, --md-only)
 # Outputs: Writes scan reports to REPORT_DIR; logs digests and orphans
 # Env: Reads BONES_DIR, CONTENT_DIR, DRY_RUN, LOG_DIR, LOG_FILE, OUTPUT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
@@ -104,9 +108,9 @@ main() {
 #   - JSON Report: bones/reports/scan-report-YYYYMMDD_HHMMSS.json
 #   - Markdown Report: bones/reports/scan-report-YYYYMMDD_HHMMSS.md
 # Each report includes:
-#   - Missing Files: present in manifest but not on disk
-#   - Orphan Files: present on disk but not in manifest
-#   - File Digests: SHA256 hashes keyed by relative path
+#   - Missing Files: listed in the ledger but absent from disk
+#   - Orphan Files: under OUTPUT_DIR but absent from the ledger (assets tree exempt)
+#   - File Digests: SHA256 of ledger-listed files present on disk
 #
 
 #
@@ -114,7 +118,7 @@ main() {
 # Set up default file paths, directories, and file type filters.
 # Default configurations
 MANIFEST_FILE="${BONES_DIR#"$ROOT_DIR"/}/manifest.txt"
-SCAN_DIRS=("${CONTENT_DIR#"$ROOT_DIR"/}/" "${BONES_DIR#"$ROOT_DIR"/}/" "${OUTPUT_DIR#"$ROOT_DIR"/}/")
+SCAN_DIRS=("${OUTPUT_DIR#"$ROOT_DIR"/}/")
 REPORT_DIR="${REPORT_DIR#"$ROOT_DIR"/}"
 LOG_DIR="${LOG_DIR#"$ROOT_DIR"/}"
 INCLUDE_EXT=("png" "jpg" "svg" "css" "js" "md" "html" "json" "yaml")
@@ -178,14 +182,22 @@ fi
 
 #
 # --- Step 2: Disk Scan ---
-# Walk specified directories, apply include/exclude filters.
+# Walk the rendered output tree, apply include/exclude filters. Orphan
+# classification is output-scoped: the manifest is the render ledger, and
+# source/system files outside OUTPUT_DIR are not ledger material.
 if [[ "${MANIFEST_ONLY:-false}" != true ]]; then
   for dir in ${SCAN_DIRS[@]+"${SCAN_DIRS[@]}"}; do
     [[ -d "$dir" ]] || continue
     while IFS= read -r file; do
       ext="${file##*.}"
-      # check include
-      if [[ ! " ${INCLUDE_EXT[*]} " =~ " $ext " ]]; then
+      # check include: exact-match loop. A "${INCLUDE_EXT[*]}" join inherits
+      # the script's newline-leading IFS, so the previous " $ext " regex
+      # against that string could never match and the walk stayed empty (#292).
+      include_hit=false
+      for inc in ${INCLUDE_EXT[@]+"${INCLUDE_EXT[@]}"}; do
+        if [[ "$inc" == "$ext" ]]; then include_hit=true; break; fi
+      done
+      if [[ "$include_hit" != true ]]; then
         $VERBOSE && echo "[SKIP] Extension filter: $file"
         continue
       fi
@@ -196,15 +208,17 @@ if [[ "${MANIFEST_ONLY:-false}" != true ]]; then
       done
       $skip && { $VERBOSE && echo "[SKIP] Excluded by pattern: $file"; continue; }
       disk_list+=("$file")
-    # find prune: skip volatile output dirs (tmp/logs/archive/reports) and emit only regular files
-    done < <(find "$dir" \( -type d -a \( -name "tmp" -o -name "logs" -o -name "archive" -o -name "reports" -o -name "book-reports" \) -prune \) -o \( -type f -print \))
+    # find prune: skip the assets tree (output/assets is owned by the assets
+    # ritual, not the ledger), volatile dirs, and emit only regular files
+    done < <(find "$dir" \( -type d -a \( -path "${dir}assets" -o -name "tmp" -o -name "logs" -o -name "archive" -o -name "reports" -o -name "book-reports" \) -prune \) -o \( -type f -print \))
   done
   echo "[INFO] Disk scan completed"
 fi
 
 #
 # --- Step 3: Compare Manifest vs Disk ---
-# Determine missing and orphaned files by comparing normalized manifest paths.
+# Determine missing (ledger entries absent from disk) and orphaned files
+# (output-tree files the ledger does not list) against normalized paths.
 missing=(); orphans=()
 manifest_paths=()
 
@@ -220,11 +234,11 @@ for rel_f in ${manifest_paths[@]+"${manifest_paths[@]}"}; do
   [[ ! -e "$rel_f" && ! -e "$ROOT_DIR/$rel_f" ]] && missing+=("$rel_f")
 done
 
-# Add fallback for disk_list in case it is unexpectedly unbound
-disk_list=("${disk_list[@]:-}")
-
+# No padding fallback: disk_list stays a real (possibly empty) array so the
+# empty-walk warning below can actually fire (#292). Downstream loops use
+# guarded expansions under set -u.
 if [[ ${#disk_list[@]} -eq 0 ]]; then
-  log "WARN" "No files found during disk scan; disk_list is empty."
+  log "WARN" "No files found during the output-tree walk; orphan scope is empty."
 fi
 
 for f in ${disk_list[@]+"${disk_list[@]}"}; do
@@ -238,19 +252,17 @@ done
 
 #
 # --- Step 4: Generate File Metadata ---
-# Compute SHA256 checksums for each scanned file.
+# Compute SHA256 checksums for each manifest-listed file present on disk
+# (ledger verification; entries absent from disk are reported in missing[]).
 # Requires bash — file path to SHA256 digest
 declare -A file_checksums=()
-for f in ${disk_list[@]+"${disk_list[@]}"}; do
-  f_clean=$(echo "$f" | tr -d '\r')
-  [[ -z "$f_clean" ]] && continue
-  if [[ -f "$f_clean" ]]; then
-    sha=$(rk_sha256 "$f_clean" | awk '{print $1}')
-  else
-    log "WARN" "File not found for digest: $f_clean"
-    sha=""
+for f in ${manifest_paths[@]+"${manifest_paths[@]}"}; do
+  target="$f"
+  [[ -f "$target" ]] || target="$ROOT_DIR/$f"
+  if [[ -f "$target" ]]; then
+    sha=$(rk_sha256 "$target" | awk '{print $1}')
+    [[ -n "$sha" ]] && file_checksums["$f"]="$sha"
   fi
-  [[ -n "$sha" ]] && file_checksums["$f_clean"]="$sha"
 done
 
 #
@@ -288,7 +300,7 @@ if [[ "$JSON_MODE" == true ]]; then
   json_out="$TMP_DIR/scan-json-stdout.$$"
   {
     echo "{"
-    printf '  "schema": "rotkeeper.scan.v1",\n'
+    printf '  "schema": "rotkeeper.scan.v2",\n'
     printf '  "generated_at": "%s",\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
     printf '  "manifest": %s,\n' "$(printf '%s' "$MANIFEST_FILE" | jq -R .)"
     printf '  "counts": {"missing": %d, "orphans": %d},\n' "${#missing[@]}" "${#orphans[@]}"
