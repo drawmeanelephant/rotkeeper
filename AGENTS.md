@@ -50,6 +50,7 @@ The active layout is derived from `bones/config/rotkeeper.yaml` and `rc-env.sh`.
 - `.blessed` currently contains only the version tag `v0.2.0`. `rc-dip.sh` ignores non-path entries, so it presently protects no paths.
 - `bones/config/dip-whitelist.txt` exempts listed documentation pages from DIP's obsolete-document move check. It is not a general exemption from matrix reporting or pillar stitching.
 - `.shellcheckrc` has targeted exemptions: `SC1090`, `SC1091`, `SC2034`, `SC2317`, `SC2181`, `SC2076`, `SC2053`, `SC2155`, and `SC2269`.
+- `home/todo.md` is a **retired pointer**, not a tracking source: the task ledger moved to [GitHub issues](https://github.com/drawmeanelephant/rotkeeper/issues) (milestone `0.8.0`). Open work lives in issues only — do not maintain, extend, or reconcile this file.
 
 ## Required validation
 
