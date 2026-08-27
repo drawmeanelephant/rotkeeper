@@ -19,4 +19,4 @@ For feature requests: the workflow this would unlock. -->
 
 ## Related
 
-<!-- Issue/PR links, or the `home/todo.md` ledger item this tracks. -->
+<!-- Issue/PR links (tracking lives in GitHub issues; the `home/todo.md` ledger is retired). -->
