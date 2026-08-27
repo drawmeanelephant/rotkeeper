@@ -2,9 +2,9 @@
 title: "Theme Families"
 slug: themes
 template: "rotkeeper-doc.html"
-version: "1.0"
-updated: "2026-08-25"
-description: "The three Rotkeeper theme families — terminal-forward, balanced, reading-first — their members, and the readability guarantee each family carries."
+version: "1.1"
+updated: "2026-08-27"
+description: "The three Rotkeeper theme families — terminal-forward, balanced, reading-first — their members, the readability guarantee each family carries, and the special-purpose 404 theme (necropolis)."
 tags:
   - rotkeeper
   - themes
@@ -14,7 +14,7 @@ tags:
 
 # Theme Families
 
-Every template in `bones/templates/` belongs to one of three families. The family describes what the template puts *first*; the readability guarantee describes what it must never surrender to get there. Families feed the config-driven theme registry (#252) and are enforced by the static accessibility gate (`bash rotkeeper.sh a11y`, #258).
+Every template in `bones/templates/` belongs to one of three families — with one special-purpose exception, the dedicated 404 theme (`theme-necropolis.html`, below). The family describes what the template puts *first*; the readability guarantee describes what it must never surrender to get there. Families feed the config-driven theme registry (#252) and are enforced by the static accessibility gate (`bash rotkeeper.sh a11y`, #258).
 
 ## The families
 
@@ -23,6 +23,7 @@ Every template in `bones/templates/` belongs to one of three families. The famil
 | **terminal-forward** | `theme-phosphor.html`, `theme-brutal.html` (+ `mac` / `unix` / `pwsh` palette scopes) | Body text meets WCAG AA (4.5:1) on every shipped palette scope, CRT and prompt ornament stays outside the text column, and monospace-first typography never drops below the shared audit bar. |
 | **balanced** | `theme-spooky-dark.html` (+ xhtml profile variant), `theme-dark.html`, `theme-light.html`, `theme-kawaii.html` | General-purpose rendering with decoration kept subordinate: AA contrast for body, secondary, link, and code pairs; visible keyboard focus; wide tables and code scroll instead of overflowing. |
 | **reading-first** | `theme-spooky-light.html`, `theme-overgrown.html`, `theme-textpattern.html` | Longform comfort leads: serif or high-legibility prose faces, a capped measure (`--max-width` ≤ 900px), and the same AA contrast/focus/legibility bar as every other family. |
+| **special-purpose** | `theme-necropolis.html` | Dedicated Tomb-Not-Found page, not a general content renderer: the signature 404 treatment (looming ghost numeral, blood-red entry, cracked slab) is unconditional. Still carries the shared asset-meta footer slot and must pass the same a11y gate. |
 
 ## What the guarantee means
 
@@ -47,6 +48,10 @@ The site default (`theme-spooky-dark.html`) lives here alongside the XHTML profi
 ### reading-first
 
 Overgrown and Textpattern set Georgia-family serifs against muted grounds; Spooky-light is the declared light reading variant of the persistent Spooky experience. Each caps the measure so prose lines stay in the comfortable band on wide screens.
+
+### special-purpose
+
+Necropolis renders only the 404 page today: its `data-page-type` body hook is hardcoded to `404` because `$page_type$` is not part of the wrap dialect's token set (see the [Oliver contract](oliver-contract.md)) — so the haunting effects cannot be scoped per page yet. It wears the same footer slot and passes the same gate as every other theme, but its readability guarantee is the 404 page's, not a general document's. If a real `$page_type$` token ever lands in the dialect, necropolis can join a content family and scope the treatment per page.
 
 ## Shared skeleton (all members)
 

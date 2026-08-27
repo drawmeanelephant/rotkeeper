@@ -1,0 +1,1509 @@
+/* ==========================================================================
+   💀 theme-necropolis.css — The Over-the-Top Haunted Graveyard Experience
+   Pure CSS Vectors • Zero Images • Zero External Dependencies • Offline Eternal
+   ==========================================================================
+   Inspired by the Shikabane Rotasan mascot spirit: absurd, gothic, proud.
+   Every decorative element is CSS art — clip-paths, gradients, pseudo-elements,
+   box-shadows, and unicode glyphs. No raster images were harmed in the making.
+   ========================================================================== */
+
+/* ==========================================================================
+   1. CUSTOM PROPERTIES
+   ========================================================================== */
+
+@font-face {
+  font-family: "Fira Sans";
+  src: url("../fonts/fira-sans-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Fira Sans";
+  src: url("../fonts/fira-sans-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Fira Sans";
+  src: url("../fonts/fira-sans-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Fira Sans";
+  src: url("../fonts/fira-sans-900.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Fira Code";
+  src: url("../fonts/fira-code-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Fira Code";
+  src: url("../fonts/fira-code-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* ── Graveyard palette ── */
+  --necro-void:       #05060f;
+  --necro-shadow:     #0d1017;
+  --necro-stone:      #1a1e2e;
+  --necro-stone-light:#252a3a;
+  --necro-granite:    #8e919c;
+  --necro-ghost:      #c5c8d4;
+  --necro-bone:       #e8e6df;
+
+  /* ── Accent — phosphor glow ── */
+  --necro-glow:       #39ff14;
+  --necro-glow-dim:   #1a8a0a;
+  --necro-glow-aura:  rgba(57, 255, 20, 0.25);
+  --necro-glow-faint: rgba(57, 255, 20, 0.08);
+
+  /* ── Accent — blood ── */  --necro-blood:       #8b0000;
+  --necro-blood-bright:#d63a52;
+  --necro-blood-drip: #a51c1c;
+
+  /* ── Accent — amethyst ── */
+  --necro-amethyst:   #7b2d8e;
+  --necro-amethyst-dim:#4a1d55;
+
+  /* ── Accent — ghostly blue ── */
+  --necro-spectre:    #4a6fa5;
+
+  /* ── Accent — candle flame ── */
+  --necro-flame:      #ff9d00;
+  --necro-flame-core: #ffe066;
+
+  /* ── Typography ── */
+  --font-display:     "Fira Sans", Georgia, "Times New Roman", serif;
+  --font-body:        "Fira Sans", Georgia, "Times New Roman", serif;
+  --font-mono:        "Fira Code", ui-monospace, monospace;
+
+  /* ── Layout ── */
+  --max-width:        900px;
+  --spacing:          1rem;
+}
+
+/* ==========================================================================
+   2. RESET & BASE
+   ========================================================================== */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: var(--necro-glow);
+  color: var(--necro-void);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--necro-void);
+  color: var(--necro-ghost);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+  overflow-x: hidden;
+
+  /* Haunted graveyard atmosphere — gradient sky with subtle fog */
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(75, 0, 130, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 30%, rgba(139, 0, 0, 0.06) 0%, transparent 50%),
+    linear-gradient(to bottom, #05060f 0%, #0a0e1a 40%, #0d1017 100%);
+  background-attachment: fixed;
+}
+
+/* Accessibility: reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+:focus {
+  outline: 2px solid var(--necro-glow);
+  outline-offset: 4px;
+}
+
+/* ==========================================================================
+   3. NIGHT SKY SCENE (background atmosphere)
+   ========================================================================== */
+
+.necropolis-scene {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* ── Moon — pure CSS circle with glow ── */
+.scene-moon {
+  position: absolute;
+  top: 6vh;
+  right: 8vw;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%,
+    #ffe9c0 0%,
+    #f0d48a 30%,
+    #c8a050 70%,
+    #8a6a30 100%
+  );
+  box-shadow:
+    0 0 20px 10px rgba(255, 233, 192, 0.15),
+    0 0 60px 30px rgba(255, 233, 192, 0.08),
+    0 0 120px 60px rgba(255, 233, 192, 0.04);
+  animation: moon-pulse 8s ease-in-out infinite;
+}
+
+/* Moon crater shadows (pure CSS) */
+.scene-moon::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  left: 22px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(138, 106, 48, 0.3);
+  box-shadow:
+    25px 10px 0 4px rgba(138, 106, 48, 0.2),
+    10px 30px 0 2px rgba(138, 106, 48, 0.25),
+    35px 28px 0 5px rgba(138, 106, 48, 0.15);
+}
+
+@keyframes moon-pulse {
+  0%, 100% { opacity: 0.85; filter: brightness(1); }
+  50% { opacity: 1; filter: brightness(1.1); }
+}
+
+/* ── Stars — tiny CSS dots ── */
+.scene-star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #e8e6df;
+  animation: star-twinkle 4s ease-in-out infinite;
+}
+
+.scene-star--1 { top: 8vh; left: 15vw; animation-delay: 0s; width: 3px; height: 3px; }
+.scene-star--2 { top: 12vh; left: 45vw; animation-delay: 1.2s; }
+.scene-star--3 { top: 5vh; left: 70vw; animation-delay: 0.6s; width: 2px; height: 2px; }
+.scene-star--4 { top: 18vh; left: 25vw; animation-delay: 2.1s; }
+.scene-star--5 { top: 3vh; left: 88vw; animation-delay: 0.3s; width: 3px; height: 3px; }
+.scene-star--6 { top: 15vh; left: 55vw; animation-delay: 1.8s; }
+.scene-star--7 { top: 9vh; left: 35vw; animation-delay: 2.7s; }
+.scene-star--8 { top: 22vh; left: 78vw; animation-delay: 0.9s; width: 2px; height: 2px; }
+
+@keyframes star-twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+/* ── Lightning — a rare spectral flash across the whole sky ── */
+.scene-lightning {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 70% 0%,
+    rgba(196, 30, 58, 0.12) 0%,
+    rgba(74, 111, 165, 0.08) 40%,
+    transparent 70%);
+  opacity: 0;
+  animation: lightning-flash 16s linear infinite;
+}
+
+@keyframes lightning-flash {
+  0%, 88%, 92%, 100% { opacity: 0; }
+  89% { opacity: 0.55; }
+  90% { opacity: 0.15; }
+  91% { opacity: 0.4; }
+}
+
+/* ── Embers — candle-light motes drifting up from the graveyard ── */
+.scene-ember {
+  position: absolute;
+  bottom: -12px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--necro-flame);
+  box-shadow: 0 0 6px 2px rgba(255, 157, 0, 0.35);
+  opacity: 0;
+  animation: ember-rise 10s linear infinite;
+}
+
+.scene-ember--1 { left: 16%; animation-delay: 0s; }
+.scene-ember--2 { left: 52%; animation-delay: 3.5s; animation-duration: 12s; }
+.scene-ember--3 { left: 80%; animation-delay: 7s; }
+
+@keyframes ember-rise {
+  0%   { transform: translateY(0) translateX(0); opacity: 0; }
+  8%   { opacity: 0.75; }
+  60%  { transform: translateY(-55vh) translateX(24px); opacity: 0.5; }
+  100% { transform: translateY(-90vh) translateX(-12px); opacity: 0; }
+}
+
+/* ── Cobwebs — fine strands spun in the top corners ── */
+.scene-web {
+  position: absolute;
+  top: 0;
+  width: 130px;
+  height: 130px;
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+.scene-web--tl { left: 0; }
+.scene-web--tr { right: 0; transform: scaleX(-1); }
+
+.scene-web::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* anchor rays from the corner + concentric web strands */
+  background:
+    linear-gradient(135deg, transparent 49%, rgba(200, 203, 212, 0.35) 50%, transparent 51%),
+    linear-gradient(155deg, transparent 49%, rgba(200, 203, 212, 0.3) 50%, transparent 51%),
+    linear-gradient(120deg, transparent 49%, rgba(200, 203, 212, 0.3) 50%, transparent 51%),
+    linear-gradient(90deg, transparent 49.5%, rgba(200, 203, 212, 0.25) 50%, transparent 50.5%),
+    linear-gradient(180deg, transparent 49.5%, rgba(200, 203, 212, 0.25) 50%, transparent 50.5%),
+    radial-gradient(circle at 0 0,
+      transparent 0 12px,
+      rgba(200, 203, 212, 0.55) 12px 12.5px,
+      transparent 12.5px 30px,
+      rgba(200, 203, 212, 0.45) 30px 30.5px,
+      transparent 30.5px 52px,
+      rgba(200, 203, 212, 0.35) 52px 52.5px,
+      transparent 52.5px 78px,
+      rgba(200, 203, 212, 0.25) 78px 78.5px,
+      transparent 78.5px 108px,
+      rgba(200, 203, 212, 0.15) 108px 108.5px,
+      transparent 108.5px);
+}
+
+/* ── Fog — low mist creeping across the bottom of the scene ── */
+.scene-fog {
+  position: absolute;
+  bottom: -12%;
+  left: -15%;
+  right: -15%;
+  height: 38%;
+  pointer-events: none;
+  filter: blur(28px);
+  opacity: 0.55;
+}
+
+.scene-fog::before,
+.scene-fog::after {
+  content: "";
+  position: absolute;
+  top: 15%;
+  width: 65%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(142, 145, 156, 0.12), transparent 70%);
+  animation: fog-drift 45s ease-in-out infinite alternate;
+}
+
+.scene-fog::before { left: -8%; }
+.scene-fog::after { right: -8%; animation-delay: -22s; }
+
+@keyframes fog-drift {
+  0%   { transform: translateX(-40px) translateY(0); }
+  100% { transform: translateX(40px) translateY(-14px); }
+}
+
+/* ==========================================================================
+   4. MAIN CONTAINER
+   ========================================================================== */
+
+.necropolis-container {
+  position: relative;
+  z-index: 1;
+  max-width: var(--max-width);
+  margin: 60px auto;
+  padding: 0 20px;
+}
+
+/* ==========================================================================
+   5. TOMBSTONE TITLE HEADER
+   ========================================================================== */
+
+.tombstone-title {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+
+  /* Entrance — the stone rises out of the fog */
+  animation: tombstone-rise 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes tombstone-rise {
+  from { transform: translateY(48px) scale(0.98); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.tombstone-title__inner {
+  /* The tombstone shape */
+  position: relative;
+  text-align: center;
+  padding: 3rem 2.5rem 2rem;
+  background: linear-gradient(175deg, #2a2f40 0%, #1a1e2e 40%, #141822 100%);
+  color: var(--necro-glow);
+  clip-path: polygon(
+    0% 100%,
+    0% 30%,
+    3% 20%,
+    8% 12%,
+    15% 6%,
+    25% 2%,
+    35% 0.5%,
+    50% 0%,
+    65% 0.5%,
+    75% 2%,
+    85% 6%,
+    92% 12%,
+    97% 20%,
+    100% 30%,
+    100% 100%
+  );
+
+  /* Stone texture via subtle noise-like gradients */
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(255,255,255,0.015) 2px,
+      rgba(255,255,255,0.015) 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 3px,
+      rgba(255,255,255,0.01) 3px,
+      rgba(255,255,255,0.01) 6px
+    ),
+    linear-gradient(175deg, #2a2f40 0%, #1a1e2e 40%, #141822 100%);
+}
+
+/* Glow aura behind the tombstone */
+.tombstone-title__inner::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  clip-path: polygon(
+    0% 100%,
+    0% 30%,
+    3% 20%,
+    8% 12%,
+    15% 6%,
+    25% 2%,
+    35% 0.5%,
+    50% 0%,
+    65% 0.5%,
+    75% 2%,
+    85% 6%,
+    92% 12%,
+    97% 20%,
+    100% 30%,
+    100% 100%
+  );
+  background: var(--necro-glow);
+  opacity: 0.12;
+  filter: blur(12px);
+  z-index: -1;
+}
+
+/* Crack lines across the stone (pure CSS) */
+.tombstone-title__inner::after {
+  content: "";
+  position: absolute;
+  top: 25%;
+  left: 20%;
+  right: 30%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(142, 145, 156, 0.3) 20%,
+    rgba(142, 145, 156, 0.5) 40%,
+    rgba(142, 145, 156, 0.3) 60%,
+    transparent 100%
+  );
+  transform: rotate(-2deg);
+  box-shadow:
+    0 12px 0 0 rgba(142, 145, 156, 0.15),
+    5px 25px 0 0 rgba(142, 145, 156, 0.1);
+}
+
+.tombstone-title__text {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+
+  /* Phosphor glow effect */
+  text-shadow:
+    0 0 10px var(--necro-glow),
+    0 0 30px var(--necro-glow-aura),
+    0 0 60px rgba(57, 255, 20, 0.12);
+
+  /* Flickering epitaph lamp */
+  animation: neon-flicker 7s linear infinite;
+}
+
+@keyframes neon-flicker {
+  0%, 100% { opacity: 1; }
+  91%      { opacity: 1; }
+  92%      { opacity: 0.65; }
+  93%      { opacity: 1; }
+  96%      { opacity: 0.85; }
+  97%      { opacity: 1; }
+}
+
+.tombstone-title__cross {
+  display: block;
+  font-size: 1.5rem;
+  line-height: 1;
+  opacity: 0.6;
+  text-shadow: 0 0 8px var(--necro-glow);
+}
+
+/* ── Subtitle ── */
+.necropolis-subtitle {
+  text-align: center;
+  color: var(--necro-granite);
+  font-style: italic;
+  margin: 0 0 1rem 0;
+  font-size: 1.05rem;
+}
+
+/* ==========================================================================
+   6. DECORATIVE DIVIDERS
+   ========================================================================== */
+
+/* ── Ornate divider (skull between lines) ── */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 2rem 0;
+  user-select: none;
+}
+
+.divider--ornate {
+  justify-content: center;
+}
+
+.divider__line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--necro-granite) 20%,
+    var(--necro-glow-dim) 50%,
+    var(--necro-granite) 80%,
+    transparent 100%
+  );
+  opacity: 0.5;
+}
+
+.divider__icon {
+  font-size: 1.5rem;
+  filter: grayscale(0.3);
+  animation: skull-glow 3s ease-in-out infinite;
+}
+
+@keyframes skull-glow {
+  0%, 100% { filter: grayscale(0.3) drop-shadow(0 0 4px transparent); }
+  50% { filter: grayscale(0) drop-shadow(0 0 8px var(--necro-glow-aura)); }
+}
+
+/* ── Bones divider (crossed bones aesthetic) ── */
+.divider--bones {
+  justify-content: center;
+  margin: 3rem 0;
+}
+
+.divider__bone {
+  flex: 1;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--necro-bone) 30%,
+    var(--necro-granite) 50%,
+    var(--necro-bone) 70%,
+    transparent 100%
+  );
+  border-radius: 2px;
+  opacity: 0.4;
+  position: relative;
+}
+
+/* Bone knob ends */
+.divider__bone::before,
+.divider__bone::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--necro-granite);
+  transform: translateY(-50%);
+  opacity: 0.5;
+}
+
+.divider__bone--left::before { left: 0; }
+.divider__bone--left::after { right: 0; }
+.divider__bone--right::before { left: 0; }
+.divider__bone--right::after { right: 0; }
+
+.divider__skull {
+  font-size: 2rem;
+  animation: skull-glow 3s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   7. TOMBSTONE ENTRY BOXES
+   ========================================================================== */
+
+.tombstone-entry {
+  position: relative;
+  margin-bottom: 3rem;
+
+  /* Entrance — the slab emerges after the header stone */
+  animation: entry-emerge 1.1s ease-out 0.22s both;
+}
+
+.necropolis-graveyard {
+  animation: entry-emerge 1.2s ease-out 0.45s both;
+}
+
+@keyframes entry-emerge {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* The arched tombstone top — pure CSS clip-path */
+.tombstone-entry__top {
+  position: relative;
+  height: 60px;
+  background: linear-gradient(175deg, #252a3a 0%, #1e2232 100%);
+  clip-path: polygon(
+    0% 100%,
+    0% 40%,
+    2% 25%,
+    6% 15%,
+    12% 8%,
+    22% 3%,
+    35% 0.5%,
+    50% 0%,
+    65% 0.5%,
+    78% 3%,
+    88% 8%,
+    94% 15%,
+    98% 25%,
+    100% 40%,
+    100% 100%
+  );
+  margin-bottom: -2px;
+}
+
+/* Stone texture on the cap */
+.tombstone-entry__top::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(255,255,255,0.012) 3px,
+    rgba(255,255,255,0.012) 6px
+  );
+}
+
+/* Glow along the arch edge */
+.tombstone-entry__top::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(
+    0% 100%,
+    0% 40%,
+    2% 25%,
+    6% 15%,
+    12% 8%,
+    22% 3%,
+    35% 0.5%,
+    50% 0%,
+    65% 0.5%,
+    78% 3%,
+    88% 8%,
+    94% 15%,
+    98% 25%,
+    100% 40%,
+    100% 100%
+  );
+  background: transparent;
+  box-shadow: inset 0 2px 15px var(--necro-glow-aura);
+}
+
+/* The main stone slab body */
+.tombstone-entry__body {
+  background: linear-gradient(175deg, #1a1e2e 0%, #151925 60%, #111520 100%);
+  border: 1px solid rgba(142, 145, 156, 0.15);
+  border-top: none;
+  padding: 2rem 2.5rem;
+  position: relative;
+
+  /* Subtle stone texture */
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 4px,
+      rgba(255,255,255,0.008) 4px,
+      rgba(255,255,255,0.008) 8px
+    );
+}
+
+/* Left edge glow — spectral highlight */
+.tombstone-entry__body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--necro-glow-dim) 20%,
+    var(--necro-glow) 50%,
+    var(--necro-glow-dim) 80%,
+    transparent 100%
+  );
+  opacity: 0.3;
+}
+
+/* Blood drip decoration along the top edge */
+.tombstone-entry__body::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background:
+    radial-gradient(circle at 15% 0%, var(--necro-blood-bright) 2px, transparent 3px),
+    radial-gradient(circle at 40% 0%, var(--necro-blood) 3px, transparent 4px),
+    radial-gradient(circle at 65% 0%, var(--necro-blood-bright) 2px, transparent 3px),
+    radial-gradient(circle at 85% 0%, var(--necro-blood-drip) 4px, transparent 5px);
+  opacity: 0.6;
+}
+
+/* ── Entry header ── */
+.tombstone-entry__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(142, 145, 156, 0.15);
+}
+
+.tombstone-entry__title {
+  margin: 0 0 0.5rem 0;
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  color: var(--necro-glow);
+
+  /* Epitaph glow */
+  text-shadow:
+    0 0 8px var(--necro-glow-aura),
+    0 0 20px rgba(57, 255, 20, 0.1);
+}
+
+.tombstone-entry__date {
+  color: var(--necro-granite);
+  font-size: 0.9rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
+}
+
+.tombstone-entry__glyph {
+  font-size: 2.5rem;
+  line-height: 1;
+  opacity: 0.5;
+  flex-shrink: 0;
+  animation: glyph-float 6s ease-in-out infinite;
+}
+
+@keyframes glyph-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.5; }
+  25% { transform: translateY(-3px) rotate(2deg); opacity: 0.7; }
+  75% { transform: translateY(2px) rotate(-1deg); opacity: 0.4; }
+}
+
+/* ── Entry content ── */
+.tombstone-entry__content {
+  color: var(--necro-ghost);
+}
+
+.tombstone-entry__content > *:first-child { margin-top: 0; }
+.tombstone-entry__content > *:last-child { margin-bottom: 0; }
+
+/* ── Epitaph footer ── */
+.tombstone-entry__epitaph {
+  margin-top: 2rem;
+  padding: 1rem 1.25rem;
+  border-left: 3px solid var(--necro-amethyst);
+  background: rgba(123, 45, 142, 0.06);
+  font-size: 0.9rem;
+  color: var(--necro-granite);
+  font-style: italic;
+}
+
+.epitaph__label {
+  color: var(--necro-amethyst);
+  font-weight: 700;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.8rem;
+}
+
+/* ==========================================================================
+   8. TYPOGRAPHY — HEADINGS, LINKS, CODE, BLOCKS
+   ========================================================================== */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  color: var(--necro-bone);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 900;
+  margin-top: 2em;
+  margin-bottom: 0.75em;
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: 2.5rem;
+  border-bottom: 2px solid var(--necro-glow-dim);
+  padding-bottom: 0.5rem;
+}
+
+h2 {
+  font-size: 2rem;
+  border-bottom: 1px dashed var(--necro-stone-light);
+  padding-bottom: 0.4rem;
+}
+
+h3 {
+  font-size: 1.5rem;
+  color: var(--necro-glow);
+  text-shadow: 0 0 6px var(--necro-glow-aura);
+}
+
+h4 { font-size: 1.25rem; color: var(--necro-amethyst); }
+h5 { font-size: 1rem; color: var(--necro-granite); text-transform: uppercase; letter-spacing: 0.08em; }
+h6 { font-size: 0.875rem; color: var(--necro-granite); text-decoration: underline; text-decoration-color: var(--necro-stone-light); }
+
+p {
+  margin-top: 0;
+  margin-bottom: 1.5em;
+}
+
+/* ── Links ── */
+a {
+  color: var(--necro-glow);
+  text-decoration: none;
+  border-bottom: 2px solid var(--necro-glow-dim);
+  transition: all 0.2s ease;
+}
+
+a:hover {
+  background-color: var(--necro-glow);
+  color: var(--necro-void);
+  border-bottom-color: var(--necro-glow);
+  text-shadow: none;
+}
+
+/* ── Inline elements ── */
+strong, b {
+  font-weight: 700;
+  color: var(--necro-bone);
+}
+
+em, i {
+  font-style: italic;
+  color: var(--necro-granite);
+}
+
+del, s {
+  text-decoration: line-through;
+  color: var(--necro-stone-light);
+}
+
+mark {
+  background-color: var(--necro-glow);
+  color: var(--necro-void);
+  padding: 0 4px;
+}
+
+kbd {
+  background-color: var(--necro-stone);
+  border: 1px solid var(--necro-stone-light);
+  border-bottom: 3px solid var(--necro-stone-light);
+  color: var(--necro-glow);
+  padding: 2px 6px;
+  font-size: 0.85em;
+  font-family: var(--font-mono);
+}
+
+sub, sup { font-size: 75%; line-height: 0; position: relative; vertical-align: baseline; }
+sub { bottom: -0.25em; }
+sup { top: -0.5em; }
+
+/* ── Code & Preformatted ── */
+code, pre, kbd {
+  font-family: var(--font-mono);
+}
+
+code {
+  background-color: var(--necro-stone);
+  border: 1px solid var(--necro-stone-light);
+  color: var(--necro-glow);
+  padding: 2px 5px;
+  font-size: 0.9em;
+}
+
+pre {
+  background-color: var(--necro-shadow);
+  border: 1px solid var(--necro-stone-light);
+  border-left: 4px solid var(--necro-blood);
+  padding: 1.25rem;
+  overflow-x: auto;
+  margin-bottom: 1.5em;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
+pre code {
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  color: var(--necro-ghost);
+}
+
+/* ── Blockquotes — crypt inscription ── */
+blockquote {
+  margin: 1.5em 0;
+  padding: 1.25rem 1.5rem;
+  border-left: 4px solid var(--necro-amethyst);
+  background: rgba(123, 45, 142, 0.06);
+  color: var(--necro-granite);
+  font-style: italic;
+  position: relative;
+}
+
+/* Crypt keyhole decoration */
+blockquote::before {
+  content: "🗝";
+  position: absolute;
+  top: -0.75rem;
+  left: -0.5rem;
+  font-size: 1.2rem;
+  font-style: normal;
+  filter: grayscale(0.5);
+}
+
+blockquote p:last-child { margin-bottom: 0; }
+
+/* ── Lists ── */
+ul, ol {
+  margin-top: 0;
+  margin-bottom: 1.5em;
+  padding-left: 2em;
+}
+
+ul { list-style-type: square; }
+ul ul { list-style-type: circle; }
+ul ul ul { list-style-type: disc; }
+li { margin-bottom: 0.5em; }
+
+/* ── Definition Lists ── */
+dl { margin-bottom: 1.5em; }
+
+dt {
+  font-weight: 900;
+  color: var(--necro-glow);
+  text-transform: uppercase;
+  margin-top: 1em;
+  letter-spacing: 0.04em;
+}
+
+dd {
+  margin-left: 1.5em;
+  margin-bottom: 0.5em;
+  color: var(--necro-granite);
+  border-left: 2px dashed var(--necro-stone-light);
+  padding-left: 10px;
+}
+
+/* ── Tables — stone tablets ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5em;
+  border: 1px solid var(--necro-stone-light);
+}
+
+th, td {
+  padding: 10px 14px;
+  border: 1px solid var(--necro-stone-light);
+  text-align: left;
+}
+
+th {
+  background-color: var(--necro-stone);
+  color: var(--necro-glow);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  font-size: 0.9em;
+}
+
+tbody tr:nth-child(even) { background-color: rgba(26, 30, 46, 0.5); }
+tbody tr:hover { background-color: rgba(57, 255, 20, 0.03); }
+
+/* ── Media & Figures ── */
+img, video, canvas {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--necro-stone-light);
+  display: block;
+}
+
+figure {
+  margin: 1.5em 0;
+  padding: 10px;
+  border: 1px solid var(--necro-stone-light);
+  background-color: var(--necro-shadow);
+}
+
+figcaption {
+  margin-top: 10px;
+  font-size: 0.85em;
+  color: var(--necro-granite);
+  text-align: center;
+  font-style: italic;
+}
+
+/* ── Horizontal Rule ── */
+hr {
+  border: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--necro-stone-light) 15%,
+    var(--necro-glow-dim) 50%,
+    var(--necro-stone-light) 85%,
+    transparent 100%
+  );
+  margin: 2.5em 0;
+}
+
+/* ── Pandoc output hooks ── */
+.sourceCode { margin-bottom: 1.5em; }
+.footnotes {
+  border-top: 1px dashed var(--necro-stone-light);
+  margin-top: 2em;
+  padding-top: 1em;
+}
+.task-list { list-style: none; padding-left: 0; }
+.task-list-item input[type="checkbox"] { accent-color: var(--necro-glow); margin-right: .5em; }
+
+/* ==========================================================================
+   9. GRAVEYARD FOOTER SCENE
+   ========================================================================== */
+
+.necropolis-graveyard {
+  margin-top: 3rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Mini graveyard scene — all CSS vectors ── */
+.graveyard-scene {
+  position: relative;
+  height: 80px;
+  margin-bottom: 1.5rem;
+  border-bottom: 3px solid var(--necro-stone-light);
+}
+
+/* Mini tombstones — CSS clip-path shapes */
+.graveyard-tombstone {
+  position: absolute;
+  bottom: 0;
+  background: linear-gradient(175deg, #2a2f40 0%, #1a1e2e 100%);
+  border: 1px solid rgba(142, 145, 156, 0.2);
+}
+
+.graveyard-tombstone--1 {
+  left: 15%;
+  width: 40px;
+  height: 55px;
+  clip-path: polygon(
+    0% 100%, 0% 35%, 5% 20%, 15% 8%, 30% 1%, 50% 0%,
+    70% 1%, 85% 8%, 95% 20%, 100% 35%, 100% 100%
+  );
+}
+
+.graveyard-tombstone--2 {
+  left: 50%;
+  transform: translateX(-50%);
+  width: 35px;
+  height: 65px;
+  clip-path: polygon(
+    0% 100%, 0% 30%, 5% 18%, 15% 8%, 30% 1%, 50% 0%,
+    70% 1%, 85% 8%, 95% 18%, 100% 30%, 100% 100%
+  );
+}
+
+.graveyard-tombstone--3 {
+  right: 18%;
+  width: 38px;
+  height: 50px;
+  clip-path: polygon(
+    0% 100%, 0% 35%, 5% 20%, 15% 8%, 30% 1%, 50% 0%,
+    70% 1%, 85% 8%, 95% 20%, 100% 35%, 100% 100%
+  );
+}
+
+/* Crosses */
+.graveyard-cross {
+  position: absolute;
+  bottom: 0;
+}
+
+.graveyard-cross--1 {
+  left: 33%;
+  width: 3px;
+  height: 45px;
+  background: var(--necro-granite);
+  opacity: 0.5;
+}
+
+.graveyard-cross--1::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: -8px;
+  width: 19px;
+  height: 3px;
+  background: var(--necro-granite);
+}
+
+/* Bats — unicode with animation */
+.graveyard-bat {
+  position: absolute;
+  font-size: 1.2rem;
+  opacity: 0.4;
+}
+
+.graveyard-bat--1 {
+  top: 10px;
+  right: 25%;
+  animation: bat-fly 8s ease-in-out infinite;
+}
+
+.graveyard-bat--2 {
+  top: 25px;
+  left: 22%;
+  font-size: 0.9rem;
+  opacity: 0.3;
+  animation: bat-fly 10s ease-in-out infinite;
+  animation-delay: 3s;
+}
+
+@keyframes bat-fly {
+  0%, 100% { transform: translate(0, 0) scaleX(1); }
+  25% { transform: translate(15px, -10px) scaleX(-1); }
+  50% { transform: translate(-5px, -5px) scaleX(1); }
+  75% { transform: translate(10px, 5px) scaleX(-1); }
+}
+
+/* ── Footer text ── */
+.necropolis-footer-text {
+  padding: 1.5rem 0;
+}
+
+.footer-lore {
+  margin: 0 0 0.5rem 0;
+  color: var(--necro-granite);
+  font-size: 0.9rem;
+}
+
+.footer-lore--sub {
+  font-size: 0.8rem;
+  color: var(--necro-stone-light);
+  letter-spacing: 0.05em;
+}
+
+.footer-credit {
+  margin: 1rem 0 0 0;
+  font-size: 0.85rem;
+  color: var(--necro-stone-light);
+}
+
+.footer-credit strong {
+  color: var(--necro-glow);
+  text-shadow: 0 0 6px var(--necro-glow-aura);
+}
+
+/* Live asset-meta slot (shared skeleton, #245) */
+.footer-asset-meta,
+.footer-tags {
+  margin: 0.3rem 0 0 0;
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+  color: var(--necro-stone-light);
+}
+
+.footer-tags {
+  color: var(--necro-amethyst);
+}
+
+.lore-icon {
+  font-style: normal;
+  animation: candle-flicker 2s ease-in-out infinite alternate;
+}
+
+@keyframes candle-flicker {
+  0% { opacity: 0.6; filter: brightness(0.8); }
+  50% { opacity: 1; filter: brightness(1.2); }
+  100% { opacity: 0.8; filter: brightness(1); }
+}
+
+/* ==========================================================================
+   10. SHARED DOCUMENTATION / BLOG TEMPLATE HOOKS
+   ========================================================================== */
+
+.rk-shell {
+  max-width: var(--max-width);
+  margin: 60px auto;
+  padding: 0 20px;
+}
+
+.rk-header { margin-bottom: 40px; }
+.rk-title { margin-top: 0; }
+.rk-subtitle { color: var(--necro-granite); }
+.rk-article > *:first-child { margin-top: 0; }
+
+.rk-footer {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid var(--necro-stone-light);
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--necro-stone-light);
+}
+
+/* ==========================================================================
+   11. PAGE-TYPE OVERRIDES
+   ========================================================================== */
+
+/* ── 404: Tomb Not Found ── */
+body[data-page-type="404"] .necropolis-container {
+  padding-top: 0;
+}
+
+/* Giant ghostly 404 behind the tombstone — the signature effect */
+body[data-page-type="404"] .tombstone-title {
+  position: relative;
+  overflow: visible;
+}
+
+body[data-page-type="404"] .tombstone-title::before {
+  content: "404";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-display);
+  /* Big enough to loom past the stone on desktop — the signature effect */
+  font-size: clamp(14rem, 42vw, 28rem);
+  font-weight: 900;
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(57, 255, 20, 0.16);
+  text-shadow: 0 0 40px rgba(57, 255, 20, 0.06);
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 0;
+  animation: ghost-404-drift 12s ease-in-out infinite;
+}
+
+@keyframes ghost-404-drift {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  50% { transform: translate(-50%, -52%) scale(1.02); opacity: 0.6; }
+}
+
+/* Raised tombstone for404 — more prominent stone */
+body[data-page-type="404"] .tombstone-title__inner {
+  padding: 4rem 3rem 2.5rem;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+body[data-page-type="404"] .tombstone-title__inner::before {
+  background: var(--necro-glow);
+  opacity: 0.18;
+  filter: blur(18px);
+}
+
+/* Larger crosses for404 */
+body[data-page-type="404"] .tombstone-title__cross {
+  font-size: 2rem;
+  opacity: 0.8;
+}
+
+/*404 entry title glow intensifies */
+body[data-page-type="404"] .tombstone-entry__title {
+  color: var(--necro-blood-bright);
+  text-shadow:
+    0 0 10px rgba(196, 30, 58, 0.4),
+    0 0 30px rgba(196, 30, 58, 0.15);
+}
+
+/* Cracked border on the404 entry body */
+body[data-page-type="404"] .tombstone-entry__body {
+  border: 1px solid rgba(196, 30, 58, 0.2);
+}
+
+/* Crack lines across the404 slab */
+body[data-page-type="404"] .tombstone-entry__body::before {
+  width: 100%;
+  height: 100%;
+  background: none;
+  box-shadow: none;
+  top: 0;
+  left: 0;
+  opacity: 1;
+}
+
+body[data-page-type="404"] .tombstone-entry__body > .tombstone-entry__content::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background:
+    radial-gradient(circle at 12% 0%, var(--necro-blood-bright) 3px, transparent 4px),
+    radial-gradient(circle at 35% 0%, var(--necro-blood) 4px, transparent 5px),
+    radial-gradient(circle at 58% 0%, var(--necro-blood-bright) 2px, transparent 3px),
+    radial-gradient(circle at 82% 0%, var(--necro-blood-drip) 5px, transparent 6px);
+  opacity: 0.8;
+}
+
+/* The404 glyph shifts to a question mark */
+body[data-page-type="404"] .tombstone-entry__glyph {
+  font-size: 3.5rem;
+  opacity: 0.7;
+  color: var(--necro-blood-bright);
+  animation: glyph-float 4s ease-in-out infinite;
+}
+
+/* Footer lore changes for404 */
+body[data-page-type="404"] .footer-lore--sub {
+  color: var(--necro-blood-drip);
+}
+
+/*404 grave scene gets a broken tombstone */
+body[data-page-type="404"] .graveyard-tombstone--2 {
+  transform: translateX(-50%) rotate(-8deg);
+  height: 55px;
+}
+
+body[data-page-type="404"] .graveyard-tombstone--3 {
+  transform: rotate(3deg);
+  opacity: 0.7;
+}
+
+/* ==========================================================================
+   12. ACCESSIBILITY & RESPONSIVE
+   ========================================================================== */
+
+/* Narrow viewports: let wide tables scroll instead of blowing out layout. */
+table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Long inline code wraps instead of blowing out narrow viewports. */
+:not(pre) > code {
+  overflow-wrap: anywhere;
+}
+
+/* Honor GFM column alignment from the renderer. */
+th[align="center"],
+td[align="center"] {
+  text-align: center;
+}
+
+th[align="right"],
+td[align="right"] {
+  text-align: right;
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+  .necropolis-container {
+    margin: 30px auto;
+    padding: 0 12px;
+  }
+
+  .tombstone-title__inner {
+    padding: 2.5rem 1.5rem 1.5rem;
+  }
+
+  .tombstone-title__text {
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+  }
+
+  .tombstone-entry__body {
+    padding: 1.5rem;
+  }
+
+  .tombstone-entry__header {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .tombstone-entry__glyph {
+    display: none;
+  }
+
+  .scene-moon {
+    width: 50px;
+    height: 50px;
+    right: 5vw;
+    top: 3vh;
+  }
+
+  .graveyard-scene {
+    height: 60px;
+  }
+
+  .graveyard-tombstone--1,
+  .graveyard-tombstone--3 {
+    display: none;
+  }
+}
+
+/* Print: strip the spooky, keep the content readable. */
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  .necropolis-scene,
+  .graveyard-scene,
+  .tombstone-title__inner::before,
+  .divider__icon,
+  .divider__skull,
+  .tombstone-entry__glyph,
+  .tombstone-entry__body::before,
+  .tombstone-entry__body::after,
+  .tombstone-title__cross {
+    display: none;
+  }
+
+  .tombstone-title,
+  .tombstone-entry,
+  .necropolis-graveyard {
+    animation: none;
+  }
+
+  .tombstone-title__inner {
+    clip-path: none;
+    background: #f5f5f5;
+    color: #000;
+  }
+
+  .tombstone-title__text {
+    text-shadow: none;
+    color: #000;
+  }
+
+  .tombstone-entry__top {
+    clip-path: none;
+    background: #f5f5f5;
+  }
+
+  .tombstone-entry__body {
+    background: #fff;
+    border: 1px solid #ccc;
+    border-top: none;
+  }
+
+  .tombstone-entry__title {
+    color: #000;
+    text-shadow: none;
+  }
+
+  a { color: #000; border-bottom-color: #000; }
+  a:hover { background: transparent; color: #000; }
+
+  h3 { color: #000; text-shadow: none; }
+  h4 { color: #000; }
+  th { background: #eee; color: #000; }
+}
