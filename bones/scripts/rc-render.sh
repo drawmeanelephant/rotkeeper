@@ -30,20 +30,30 @@ IFS=$'\n\t'
 # ---
 show_help() {
   cat << EOF
-rc-render.sh — Render Markdown tombs into HTML (v$VERSION)
+rc-render.sh — Render Markdown tombs into HTML (v${VERSION:-unknown})
 
-Usage: rc-render.sh [options]
+Usage:
+  rotkeeper.sh render [options]
+
+Description:
+  Converts home/content sources (markdown, textile, cooklang) into
+  wrapped HTML tombs under output/ via the Oliver renderer.
 
 Options:
-  --version, -v    Show script version and quit
-  --help, -h       Show this help message and exit
+  --renderer NAME  Select renderer: oliver (the only supported renderer; pandoc was removed)
   --dry-run        Preview actions without invoking renderer
   --verbose        Show detailed logs
-  --renderer NAME  Select renderer: oliver (the only supported renderer; pandoc was removed)
+  --help, -h       Show this help message and exit
+  --version, -v    Show script version and quit
 
 Examples:
-  bash rotkeeper.sh render
+  bash rotkeeper.sh render                                            Render all content
+  bash rotkeeper.sh render --dry-run                                  Preview without rendering
   RK_OLIVER_BIN=/path/to/oliver bash rotkeeper.sh render --renderer oliver
+
+Exit codes:
+  0    Success
+  1    Render or validation failure
 EOF
   exit 0
 }

@@ -22,16 +22,31 @@ show_help() {
   cat <<'EOF'
 rc-links.sh — Audit rendered HTML links and local asset references
 
-Usage: rotkeeper.sh links [options]
+Usage:
+  rotkeeper.sh links [options]
+
+Description:
+  Audits rendered output for broken internal links and missing local
+  asset references; writes a markdown report under bones/reports/.
 
 Options:
   --root DIR       Rendered directory to scan; defaults to output/
   --report FILE    Report destination; defaults to bones/reports/link-report-*.md
-  --dry-run        Scan without writing a report
-  --verbose        Show detailed logs (line numbers + excerpts)
   --json           Emit machine-readable JSON to stdout (failures with line+excerpt)
   --fix-hint       Show suggested fixes for each failure (no auto-fix)
+  --dry-run        Scan without writing a report
+  --verbose        Show detailed logs (line numbers + excerpts)
   --help, -h       Show this help message
+  --version, -v    Show script version and quit
+
+Examples:
+  bash rotkeeper.sh links                     Audit and write report
+  bash rotkeeper.sh links --fix-hint          Audit with per-failure hints
+  bash rotkeeper.sh links --json | jq .       Machine-readable output
+
+Exit codes:
+  0    No broken links or missing assets found
+  1    Broken references found, or audit error
 EOF
   exit 0
 }

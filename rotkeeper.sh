@@ -55,9 +55,8 @@ Commands:
   pack        Archive rendered HTML into a versioned tarball
   preflight   Report Oliver renderer availability and compatibility
   release     Package the project into a single canonical framework zip file
-              Usage: ./rotkeeper.sh release [VERSION] [options]
   bump        Record a microrelease update and synchronize version markers
-  test        Run the integration test harness matrix
+  test        Run the integration test harness matrix (alias: smoke)
   scan        Verify manifest entries against actual files
   assets      Generate asset manifest
   autopsy     Catalog script help and output behavior
@@ -68,6 +67,16 @@ Commands:
   dip         Audit documentation coverage via DIP
   book        Generate aggregated documentation book targets
   status      Display environment health status reports
+
+Examples:
+  bash rotkeeper.sh init --full          Initialize sample env, assets, render, scan
+  bash rotkeeper.sh render               Render content tombs into HTML
+  bash rotkeeper.sh pack                 Archive rendered HTML into a tomb
+  bash rotkeeper.sh release 0.8.0        Package the canonical distribution
+
+Exit codes:
+  0    Success
+  1    Unknown command or ritual failure
 HELP_EOF
 }
 

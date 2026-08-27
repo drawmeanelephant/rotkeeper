@@ -26,21 +26,35 @@ IFS=$'\n\t'
 # ---
 show_help() {
   cat << EOF2
-rc-init.sh — Initialize environment
+rc-init.sh — Initialize environment (v${VERSION:-unknown})
 
-Usage: rc-init.sh [options]
+Usage:
+  rotkeeper.sh init [options]
+
+Description:
+  Prepares the Rotkeeper environment for the active layout style —
+  creates canonical bones directories, validates path alignment, and
+  optionally scaffolds starter content. Non-destructive.
 
 Options:
-  --version, -v    Show script version and quit
-  --help, -h       Show this help message and exit
-  --dry-run        Preview actions
-  --verbose        Show detailed logs
-
-Initialization Flags:
   --with-sample    Generate starter test-file.md
   --with-assets    Run assets generation
   --with-render    Run the render ritual
   --full           Perform full sample, assets, render, and scan
+  --profile=STYLE  Set layout style (crypt, busy, sterile)
+  --dry-run        Preview actions without writing
+  --verbose        Show detailed logs
+  --help, -h       Show this help message and exit
+  --version, -v    Show script version and quit
+
+Examples:
+  bash rotkeeper.sh init                        Initialize with defaults
+  bash rotkeeper.sh init --full                 Sample content + assets + render + scan
+  bash rotkeeper.sh init --with-sample --dry-run
+
+Exit codes:
+  0    Success
+  1    Initialization failure
 EOF2
   return 0
 }

@@ -154,7 +154,7 @@ This ledger tracks the backlog of work for Rotkeeper, explicitly structured for 
 *Broader architectural changes, UX polish, and experimental features.*
 
 ### UX & Logging
-- [x] Standardize `--help` output across rituals and add examples. *(2026-08-24: tracked in #236)*
+- [x] Standardize `--help` output across rituals and add examples. *(2026-08-26: done via #236 — every dispatcher command plus `rotkeeper.sh` itself now follows one shape (title + version, Usage, Description, Options, realistic Examples, Exit codes); `a11y` added to the harness contract matrix; rc-book's secondary binder help is now emitted on fd 3 so it stays visible under default quiet mode. Per-script `show_help` remains the source of truth for the #239 generator)*
 - [x] Improve error messages, warnings, and add explicit success/failure summaries. *(2026-08-24: tracked in #237)*
 - [x] Add `--json` for machine-readable reports where useful. *(2026-08-24: tracked in #238)*
 - [x] Unify log format, add timestamps, and log tomb version in `yougood.brah` on every invocation. *(timestamps are standard in `log()` (rc-utils.sh); the `yougood.brah` tomb-version line was legacy lore and is dropped)*

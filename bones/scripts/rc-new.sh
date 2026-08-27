@@ -67,10 +67,16 @@ show_help() {
   fi
 
   cat << EOF
-rc-new.sh — Scaffold a new markdown file with required YAML frontmatter
+rc-new.sh — Scaffold a new markdown file with required YAML frontmatter (v${VERSION:-unknown})
 
-Usage: rotkeeper.sh new <file> [options]
-       rotkeeper.sh new --list
+Usage:
+  rotkeeper.sh new <file> [options]
+  rotkeeper.sh new --list
+
+Description:
+  Creates a new markdown source with canonical YAML frontmatter under
+  home/content/, deriving title/slug defaults from the filename and
+  configuration.
 
 Options:
   --title "Title"        Override auto-derived title; skip slug-from-filename
@@ -83,10 +89,19 @@ Options:
   --subdir "path"        Directory under home/content/ to place the file
   --soul                 Also scaffold sidecar bones/meta/<path>.soul.md
   --list                 List available templates and exit
-  --version, -v          Show script version and quit
-  --help, -h             Show this help message and exit
   --dry-run              Preview actions without writing files
   --verbose              Enable detailed debug logging
+  --help, -h             Show this help message and exit
+  --version, -v          Show script version and quit
+
+Examples:
+  bash rotkeeper.sh new graveyard-shift                       Simple scaffold at content root
+  bash rotkeeper.sh new ember-report --subdir journal         Place under journal/
+  bash rotkeeper.sh new ember-report --title "Ember Report" --tags "news,ember" --dry-run
+
+Exit codes:
+  0    Success
+  1    Invalid usage or scaffold failure
 EOF
   if [[ -n "$tmpl_list" ]]; then
     echo

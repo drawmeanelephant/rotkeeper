@@ -30,15 +30,28 @@ IFS=$'\n\t'
 # ---
 show_help() {
   cat << EOF
-rc-assets.sh — Generate a selective YAML manifest of referenced assets
+rc-assets.sh — Generate a selective YAML manifest of referenced assets (v${VERSION:-unknown})
 
-Usage: rc-assets.sh [options]
+Usage:
+  rotkeeper.sh assets [options]
+
+Description:
+  Scans content sources for referenced local assets and writes a
+  selective YAML manifest so asset usage stays auditable.
 
 Options:
-  --version, -v    Show script version and quit
-  --help, -h       Show this help message and exit
   --dry-run        Preview actions without writing files
   --verbose        Show detailed logs
+  --help, -h       Show this help message and exit
+  --version, -v    Show script version and quit
+
+Examples:
+  bash rotkeeper.sh assets                Generate the asset manifest
+  bash rotkeeper.sh assets --dry-run      Preview without writing
+
+Exit codes:
+  0    Success
+  1    Manifest generation failure
 EOF
   exit 0
 }

@@ -30,17 +30,32 @@ IFS=$'\n\t'
 # ---
 show_help() {
   cat << EOF
-rc-pack.sh — Ritual Compression Packager (v$VERSION)
+rc-pack.sh — Ritual Compression Packager (v${VERSION:-unknown})
 
-Usage: rc-pack.sh [options]
+Usage:
+  rotkeeper.sh pack [options]
+
+Description:
+  Archives rendered output into a unique versioned tar.gz tomb.
+  Default mode packs output/; --self bundles the whole system;
+  --content preserves source content only.
 
 Options:
-  --version, -v    Show script version and quit
-  --help, -h       Show this help message and exit
-  --dry-run        Preview actions without writing files
   --self           Archive the full Rotkeeper system (rotkeeper.sh, bones/, home/, output/)
   --content        Archive only the home/content directory to preserve source files
+  --dry-run        Preview actions without writing files
   --verbose        Enable detailed debug logging
+  --help, -h       Show this help message and exit
+  --version, -v    Show script version and quit
+
+Examples:
+  bash rotkeeper.sh pack                    Archive rendered output into a tomb
+  bash rotkeeper.sh pack --self             Full-system bundle
+  bash rotkeeper.sh pack --content --dry-run
+
+Exit codes:
+  0    Success
+  1    Packaging or archive-validation failure
 EOF
   exit 0
 }

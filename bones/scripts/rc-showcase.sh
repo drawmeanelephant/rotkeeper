@@ -10,15 +10,30 @@ IFS=$'\n\t'
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 show_help() {
-  cat <<'EOF'
-rc-showcase.sh — Generate showcase content for every HTML template
+  cat <<EOF
+rc-showcase.sh — Generate showcase content for every HTML template (v${VERSION:-unknown})
 
-Usage: rotkeeper.sh showcase [options]
+Usage:
+  rotkeeper.sh showcase [options]
+
+Description:
+  Auto-scaffolds a test page per HTML template under
+  home/content/showcase/ and renders a gallery index, so every theme
+  has visible sample output.
 
 Options:
   --dry-run        Preview generated showcase pages without writing
   --verbose        Show detailed logs
   --help, -h       Show this help message
+  --version, -v    Show script version and quit
+
+Examples:
+  bash rotkeeper.sh showcase --dry-run      Preview gallery scaffolding
+  bash rotkeeper.sh showcase                Generate showcase content
+
+Exit codes:
+  0    Success
+  1    Generation failure
 EOF
   exit 0
 }

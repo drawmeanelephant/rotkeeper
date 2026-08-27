@@ -33,6 +33,14 @@ show_help() {
   cat <<'HELP_EOF'
 rc-book.sh — Aggregate documentation into bound book reports
 
+Usage:
+  rotkeeper.sh book <mode> [options]
+
+Description:
+  Binds retrieval artifacts under bones/book-reports/: filesystem
+  catalogs for DIP discovery, documentation/script/config books, and
+  content metadata. Outputs are generated retrieval aids, not policy.
+
 Modes:
   --fsbook          Filesystem catalog consumed by DIP for core-file discovery
   --docbook         Bind documentation pages
@@ -49,6 +57,16 @@ Options:
   --verbose      Detailed output
   --help, -h     Show help
   --version, -v  Show version and quit
+
+Examples:
+  bash rotkeeper.sh book --fsbook                          Filesystem catalog for DIP
+  bash rotkeeper.sh book --docbook-clean --strip-frontmatter
+  bash rotkeeper.sh book --configbook --dry-run            Preview config bind
+
+Exit codes:
+  0         Success
+  1         No mode selected or bind failure
+  3         Write-boundary violation
 HELP_EOF
 }
 
@@ -70,10 +88,18 @@ FORCE_BIND=false
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 showhelp() {
-  cat <<HELP_EOF
+  # Show secondary help on fd 3 (wired by rk_init_script) so it stays visible
+  # even when QUIET mode has rebound stdout to the per-run log file.
+  local body
+  body=$(cat <<HELP_EOF
 rc-book.sh — Documentation binder ritual
 
-Usage: rc-book.sh [mode] [options]
+Usage:
+  rotkeeper.sh book <mode> [options]
+
+Description:
+  Secondary binder help (shown when a bind mode was already selected).
+  Binds books under bones/book-reports/.
 
 Modes:
   --scriptbook-full   Bind all active rc-*.sh scripts dynamically
@@ -81,7 +107,6 @@ Modes:
   --docbook-clean     Bind docs, frontmatter stripped
   --configbook        Bind config/templates into rotkeeper-configbook.md
   --fsbook            Bind project file system catalog into rotkeeper-files.md
-  --force-bind        Bypass memory budget safeguards
   --contentbook       Bind all home/content markdown into rotkeeper-contentbook.md
   --contentmeta       Extract frontmatter YAML into rotkeeper-contentmeta.yaml
   --collapse          Collapse all rotkeeper-*.md into collapsed-content.yaml
@@ -89,11 +114,23 @@ Modes:
 
 Options:
   --config FILE       Optional config file
-  --dry-run           Show what would be done without making changes
   --strip-frontmatter Strip frontmatter from output where applicable
+  --force-bind        Bypass memory budget safeguards
+  --dry-run           Show what would be done without making changes
   --verbose           Enable verbose logging
   --help              Show this help message
+
+Examples:
+  bash rotkeeper.sh book --docbook                     Bind docs
+  bash rotkeeper.sh book --collapse --dry-run          Preview collapse
+
+Exit codes:
+  0         Success
+  1         No mode selected or bind failure
+  3         Write-boundary violation
 HELP_EOF
+)
+  printf '%s\n' "$body" >&3 2>/dev/null || printf '%s\n' "$body"
 }
 
 # ---

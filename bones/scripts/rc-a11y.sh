@@ -23,23 +23,24 @@ IFS=$'\n\t'
 # ---
 show_help() {
   cat << EOF
-rc-a11y.sh — Theme accessibility audit (v$VERSION)
+rc-a11y.sh — Theme accessibility audit (v${VERSION:-unknown})
 
-Usage: rotkeeper.sh a11y [options]
+Usage:
+  rotkeeper.sh a11y [options]
 
-Audits every theme stylesheet reachable from bones/templates/*.html:
-  1. WCAG 2.x contrast ratios for semantic color pairs (body text on page
-     background and surface, code text on code background, secondary text
-     and accent links on the page background) across every palette scope
-     the stylesheet declares: default, prefers-color-scheme: dark
-     overrides, and opt-in .palette-* terminal variants.
-  2. Focus states for interactive elements (:focus / :focus-visible rules
-     that paint a visible indicator).
-  3. Narrow-viewport legibility spot-checks for wide tables and code
-     blocks (overflow-x or pre-wrap strategy).
-
-Results are recorded per theme under bones/reports/. Exit status is
-nonzero when any theme fails, so new themes can be gated on passing.
+Description:
+  Audits every theme stylesheet reachable from bones/templates/*.html:
+    1. WCAG 2.x contrast ratios for semantic color pairs (body text on
+       page background and surface, code text on code background,
+       secondary text and accent links on the page background) across
+       every palette scope the stylesheet declares: default,
+       prefers-color-scheme: dark overrides, and opt-in .palette-*
+       terminal variants.
+    2. Focus states for interactive elements (:focus / :focus-visible
+       rules that paint a visible indicator).
+    3. Narrow-viewport legibility spot-checks for wide tables and code
+       blocks (overflow-x or pre-wrap strategy).
+  Results are recorded per theme under bones/reports/.
 
 Options:
   --css-dir DIR    Theme CSS directory; defaults to ASSETS_DIR/css
@@ -47,7 +48,16 @@ Options:
   --json           Emit machine-readable JSON instead of the markdown report
   --dry-run        Run the audit without writing the report
   --verbose        Show detailed log output
-  --help, -h       Show this help message
+  --help, -h       Show this help message and exit
+  --version, -v    Show script version and quit
+
+Examples:
+  bash rotkeeper.sh a11y                    Audit all themes, write reports
+  bash rotkeeper.sh a11y --json             Machine-readable findings
+
+Exit codes:
+  0    All themes pass
+  1    One or more themes fail, or audit error
 EOF
   exit 0
 }

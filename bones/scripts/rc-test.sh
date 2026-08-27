@@ -17,10 +17,26 @@ rc-test.sh — Integration test harness matrix
 Usage:
   rotkeeper.sh test|smoke [--dry-run]
 
+Description:
+  Builds temporary crypt, busy, and sterile fixtures, initializes each
+  with sample content, runs the full ritual matrix (init, render, pack,
+  scan, release, preflight), verifies archive properties, stale-output
+  pruning, dry-run non-mutation, command contracts (--help/--version),
+  and removed-command regressions. With --dry-run, runs only the
+  removed-command regression checks.
+
 Options:
   --dry-run      Run only the removed-command regression checks
   --help, -h     Show help
   --version, -v  Show version and quit
+
+Examples:
+  bash rotkeeper.sh test               Full multi-layout harness matrix
+  bash rotkeeper.sh test --dry-run     Removed-command regressions only
+
+Exit codes:
+  0         All harness assertions passed
+  nonzero   A harness assertion failed (the code identifies the suite)
 HELP_EOF
   exit 0
 fi
@@ -1754,7 +1770,7 @@ echo "======================================================================"
 echo "======================================================================"
 echo "--- Command contract: --help is non-mutating, --version is consistent ---"
 
-CONTRACT_COMMANDS=(init new render pack preflight release bump test scan assets autopsy glue links showcase dip book status)
+CONTRACT_COMMANDS=(init new render pack preflight release bump test scan assets autopsy glue links a11y showcase dip book status)
 
 # ---
 # tree_snapshot: Capture git status plus sorted logs/tmp file lists for mutation check.
