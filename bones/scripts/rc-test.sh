@@ -82,6 +82,8 @@ require_bins jq
 
 echo "--- Rotkeeper Single framework Release Assertion Test Matrix ---"
 
+TEST_START_TS=$(date +%s)
+
 TEST_DIR="$ROOT_DIR/bones/tmp/rotkeeper-test-env"
 cleanup_ran=false
 TEST_RELEASE_VERSION="${ROTKEEPER_VERSION:-}"
@@ -113,6 +115,14 @@ cleanup() {
     else
       echo "WARNING: Skipped test-env pruning; '$TEST_DIR' failed the deletion guard." >&2
     fi
+  fi
+
+  # Non-zero exits must leave a compact diagnosis behind: the first
+  # '❌ Assertion Failed' line above names the assertion, and the exit code
+  # identifies the failing suite (see 'rotkeeper.sh test --help').
+  if [[ "$status" -ne 0 ]]; then
+    _fail_ts=$(date +%s)
+    echo "✗ Test harness failed — status=$status after $((_fail_ts - ${TEST_START_TS:-_fail_ts}))s — see the first '❌ Assertion Failed' line above; the exit code identifies the failing suite ('rotkeeper.sh test --help')." >&2
   fi
 
   return "$status"
@@ -1866,5 +1876,8 @@ for cmd in ingest sync-inbox cleanup reseed; do
 done
 
 echo "✅ ALL REGRESSION ASSERTIONS COMPLETED SUCCESSFULLY."
+
+_test_end_ts=$(date +%s)
+echo "✓ Test harness complete — ${#LAYOUT_MODES[@]}/${#LAYOUT_MODES[@]} layouts + contract/DIP/regression suites passed in $((_test_end_ts - TEST_START_TS))s"
 
 exit 0

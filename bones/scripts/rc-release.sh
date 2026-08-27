@@ -80,7 +80,10 @@ for arg in "$@"; do
     --dry-run)   DRY_RUN=true ;;
     --verbose)   VERBOSE=true ;;
     --help|-h)   show_help ;;
-    -*) log "ERROR" "Unknown flag or legacy option deprecated: $arg"; exit 1 ;;
+    -*) log "ERROR" "Unknown flag or legacy option deprecated: $arg"
+        echo "ERROR: Unknown flag or legacy option deprecated: $arg" >&2
+        echo "Fix: run 'bash rotkeeper.sh release --help' for supported options (VERSION --dry-run --verbose)." >&2
+        exit 1 ;;
     *)
       if [[ -z "$TARGET_VERSION" ]]; then
         TARGET_VERSION="$arg"
@@ -96,6 +99,8 @@ fi
 
 if [[ -z "$VERSION" ]]; then
   log "ERROR" "No version specified. Usage: rc-release.sh <VERSION> [options]"
+  echo "ERROR: No version specified for release." >&2
+  echo "Fix: pass a semver-style version, e.g. bash rotkeeper.sh release 0.8.0" >&2
   exit 1
 fi
 
@@ -160,7 +165,9 @@ trap 'exit 143' TERM
 validate_boundary() {
   local target_path="$1"
   if [[ "$target_path" != "$STAGING_DIR"* && "$target_path" != "$RELEASE_DIR"* ]]; then
-    log "ERROR" "Boundary violation: Operation attempted outside staging or release bounds."
+    log "ERROR" "Boundary violation: Operation attempted outside staging or release bounds: $target_path"
+    echo "ERROR: Boundary violation: '$target_path' is outside the staging ($STAGING_DIR) or release ($RELEASE_DIR) bounds." >&2
+    echo "Fix: do not override STAGING/RELEASE path derivation; if RELEASE_DIR looks wrong, run 'bash rotkeeper.sh init' to repair path mappings." >&2
     exit 3
   fi
 }
@@ -276,6 +283,8 @@ verify_archive_contents() {
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 main() {
+    local start_ts end_ts duration rel_zip zip_size entry_count
+    start_ts=$(date +%s)
     log "INFO" "Collapsing package model down to canonical single framework distribution: version $VERSION"
 
     if [[ "$DRY_RUN" == false ]]; then
@@ -295,6 +304,10 @@ main() {
     if [[ "$DRY_RUN" == true ]]; then
         log "DRYRUN" "Would stage elements and filter exclusions into $CANONICAL_DIR"
         log "DRYRUN" "Would zip compiled architecture safely into $ZIP_PATH"
+        end_ts=$(date +%s)
+        duration=$((end_ts - start_ts))
+        rel_zip="${ZIP_PATH#"$ROOT_DIR"/}"
+        log "MARKER" "DRY-RUN: would package rotkeeper-$VERSION.zip — $rel_zip — in ${duration}s (no archive written)"
         return 0
     fi
 
@@ -342,14 +355,30 @@ main() {
     zip -rq "$ZIP_TMP" "rotkeeper"
     cd "$orig_dir"
 
-    zip -T "$ZIP_TMP" >/dev/null
-    verify_archive_contents "$ZIP_TMP"
+    if ! zip -T "$ZIP_TMP" >/dev/null; then
+        log "ERROR" "Release archive failed zip integrity test: $ZIP_TMP"
+        echo "ERROR: Release archive failed 'zip -T' integrity test: $ZIP_TMP" >&2
+        echo "Fix: inspect the staged tree under $STAGING_DIR; a tool or disk error likely corrupted the archive. Re-run the release." >&2
+        exit 1
+    fi
+    if ! verify_archive_contents "$ZIP_TMP"; then
+        log "ERROR" "Release archive rejected by allowlist verification: $ZIP_TMP"
+        echo "ERROR: Release archive rejected by allowlist verification (see the [ERROR] detail above)." >&2
+        echo "Fix: adjust the staging exclusions in rc-release.sh so forbidden trees are not copied, or extend bones/config allowlists deliberately, then re-run the release." >&2
+        exit 1
+    fi
     # SIDE EFFECT (write): promotes the verified temp zip to bones/archives/releases/rotkeeper-<version>.zip
     mv "$ZIP_TMP" "$ZIP_PATH"
     ZIP_TMP=""
 
-    log "INFO" "✅ Canonical single distribution created: $ZIP_PATH — $(du -sh "$ZIP_PATH" | cut -f1)"
-    echo "✅ Release packaging complete — see ${ARCHIVE_DIR#"$ROOT_DIR"/}/releases/rotkeeper-[VERSION].zip"
+    end_ts=$(date +%s)
+    duration=$((end_ts - start_ts))
+    rel_zip="${ZIP_PATH#"$ROOT_DIR"/}"
+    zip_size="$(du -h "$ZIP_PATH" | cut -f1)"
+    entry_count="$(zipinfo -1 "$ZIP_PATH" | grep -c . || true)"
+
+    log "INFO" "Canonical single distribution created: $ZIP_PATH — $zip_size, $entry_count entries, ${duration}s"
+    log "MARKER" "✓ Release complete — rotkeeper-$VERSION.zip — $rel_zip — $zip_size — $entry_count files in ${duration}s"
 }
 
 main "$@"

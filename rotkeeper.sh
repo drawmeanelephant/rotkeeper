@@ -172,7 +172,8 @@ case "$command" in
     bash "$BONES/rc-test.sh" "$@"
     ;;
   *)
-    echo "Unknown command: $command"
+    printf 'ERROR: Unknown command: %s\n' "$command" >&2
+    printf '       Run: bash rotkeeper.sh help  (lists all commands)\n' >&2
     exit 1
     ;;
 esac

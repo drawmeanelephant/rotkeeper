@@ -142,8 +142,7 @@ main() {
     log "INFO" "Running rc-render.sh (Renderer: $RENDERER)."
 
     if [[ ! -d "$OUTPUT_DIR" ]] || { [[ ! -f "$BONES_DIR/asset-manifest.yaml" ]] && [[ ! -f "$META_DIR/asset-manifest.yaml" ]]; }; then
-      log "WARN" "Workspace may not be initialized. Run ./rotkeeper.sh init first if assets are missing."
-      echo -e "\n⚠️  Warning: Workspace not initialized or missing core assets. Run './rotkeeper.sh init' first to avoid rendering issues.\n" >&2
+      log "WARN" "Workspace may not be initialized: $OUTPUT_DIR or the asset manifest is missing — fix: run 'bash rotkeeper.sh init' first, then re-render."
     fi
 
     pages_rendered=0
