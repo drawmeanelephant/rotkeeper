@@ -152,7 +152,11 @@ log() {
       fi
     fi
     if [[ "${RK_FD3_WIRED:-false}" == true ]]; then echo "$marker_out" >&3; else echo "$marker_out" >&2; fi
-  elif [[ "$QUIET" == true && ( "$level" == "INFO" || "$level" == "DEBUG" || "$level" == "WARN" || "$level" == "DRY-RUN" ) ]]; then
+  elif [[ "$level" == "WARN" ]]; then
+    # Warnings are user-facing diagnostics: never suppressed by --quiet, and
+    # always on stderr so stdout stays reserved for progress/success markers.
+    echo "$msg" >&2
+  elif [[ "$QUIET" == true && ( "$level" == "INFO" || "$level" == "DEBUG" || "$level" == "DRY-RUN" ) ]]; then
     : # Skip stdout
   elif [[ "$level" == "DEBUG" && "$DEBUG" != true ]]; then
     : # Skip stdout

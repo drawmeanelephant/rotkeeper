@@ -300,11 +300,35 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
     jq -n --arg title "$title" --arg desc "$desc" --arg author "$author" --arg date "$date" --arg palette "$palette" \
       '{title:$title, description:$desc, author:$author, date:$date, palette:$palette}' > "$wrap_meta" 2>/dev/null || echo "{\"title\":\"\",\"description\":\"\",\"author\":\"\",\"date\":\"\",\"palette\":\"\"}" > "$wrap_meta"
 
-    if ! "$oliver_bin" wrap --template "$template_path" --meta-json "$wrap_meta" --assets-root "$assets_root" --body "$body_rewritten" > "$dst_path" 2> "$TMP_DIR/oliver-wrap-$$.log"; then
-      log "ERROR" "Oliver wrap failed for '$src_path'"
-      cat "$TMP_DIR/oliver-wrap-$$.log" >&2
-        # SIDE EFFECT (delete): removes the partial output page and wrap scratch files on failure
-      rm -f "$wrap_meta" "$TMP_DIR/oliver-wrap-$$.log" "$dst_path"
+    wrap_status=0
+    "$oliver_bin" wrap --template "$template_path" --meta-json "$wrap_meta" --assets-root "$assets_root" --body "$body_rewritten" > "$dst_path" 2> "$TMP_DIR/oliver-wrap-$$.log" || wrap_status=$?
+    if [[ "$wrap_status" -ne 0 ]]; then
+      wrap_log="$TMP_DIR/oliver-wrap-$$.log"
+      wrap_why="$(head -n1 "$wrap_log" 2>/dev/null || true)"
+      wrap_fix=""
+      if [[ -n "$wrap_why" ]]; then
+        wrap_why="oliver: $wrap_why"
+      elif [[ -e "$dst_path" && ! -w "$dst_path" ]]; then
+        wrap_why="output page exists but is not writable: $dst_path"
+        wrap_fix="Fix: chmod u+w '$dst_path' (or delete it), then re-run render"
+      elif [[ -d "$(dirname "$dst_path")" && ! -w "$(dirname "$dst_path")" ]]; then
+        wrap_why="output directory is not writable: $(dirname "$dst_path")"
+        wrap_fix="Fix: chmod u+w '$(dirname "$dst_path")', then re-run render"
+      elif [[ ! -d "$(dirname "$dst_path")" ]]; then
+        wrap_why="output directory could not be created: $(dirname "$dst_path")"
+        wrap_fix="Fix: verify parent-directory permissions along '$dst_path', then re-run render"
+      else
+        wrap_why="oliver wrap exited $wrap_status with no stderr"
+        wrap_fix="Fix: check disk space and the template ('$template_path'), then re-run render"
+      fi
+      wrap_msg="Oliver wrap failed for page '$src_path' -> '$dst_path': $wrap_why"
+      if [[ -n "$wrap_fix" ]]; then
+        wrap_msg="$wrap_msg $wrap_fix"
+      fi
+      log "ERROR" "$wrap_msg"
+      echo "ERROR: $wrap_msg" >&2
+      # SIDE EFFECT (delete): removes the partial output page and wrap scratch files on failure
+      rm -f "$wrap_meta" "$wrap_log" "$dst_path"
       exit 1
     fi
     # SIDE EFFECT (delete): removes the wrap meta and stderr scratch files on success
