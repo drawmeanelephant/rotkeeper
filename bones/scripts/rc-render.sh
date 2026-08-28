@@ -177,21 +177,13 @@ main() {
       exit 1
     fi
 
-    DEFAULT_TEMPLATE=$(yq e '.default_template' "$CONFIG_FILE" 2>/dev/null || echo "")
+    # Theme registry (#252): theme_registry.default in config wins over the
+    # legacy default_template key; rk_resolve_default_template validates
+    # registered entries and falls back to the first available template.
+    DEFAULT_TEMPLATE=$(rk_resolve_default_template)
     if [[ -z "${DEFAULT_TEMPLATE:-}" ]]; then
-      choices=()
-      for tmpl in "$TEMPLATE_DIR"/*; do
-        if [[ -f "$tmpl" ]]; then
-          choices+=("$(basename "$tmpl")")
-        fi
-      done
-      if [[ ${#choices[@]} -gt 0 ]]; then
-        DEFAULT_TEMPLATE="${choices[0]}"
-        log "WARN" "No default_template in config; falling back to first available template: $DEFAULT_TEMPLATE"
-      else
-        log "ERROR" "No templates found in $TEMPLATE_DIR; cannot proceed"
-        exit 1
-      fi
+      log "ERROR" "No templates found in $TEMPLATE_DIR; cannot proceed"
+      exit 1
     fi
     log "INFO" "DEFAULT_TEMPLATE=$DEFAULT_TEMPLATE"
     log "INFO" "INPUT_FORMAT=$INPUT_FORMAT"
