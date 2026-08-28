@@ -2,7 +2,10 @@
 title: "Showcase — rotkeeper-blog"
 slug: "showcase-rotkeeper-blog"
 template: "rotkeeper-blog.html"
+asset_meta: "Dummy value for asset_meta"
 description: "Programmatic description for rotkeeper-blog"
+tags: "Dummy value for tags"
+version: "Dummy value for version"
 ---
 
 # Heading 1

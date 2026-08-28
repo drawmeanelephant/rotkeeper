@@ -69,6 +69,8 @@ The current workflow is deliberately small and local-first:
 - [`rotkeeper.yaml`](bones/config/rotkeeper.html)
 - [Schemas: asset-manifest, rotkeeper.yaml, release-manifest](rotkeeper-schemas.html)
 - [Template Expectations](bones/templates/index.html)
+- [Theme Families](themes.html)
+- [DaisyUI Primitive Map](daisyui-map.html)
 - [DIP Matrix](dip-matrix.html)
 
 ### 5. 🪵 Logs, Echoes & Reports

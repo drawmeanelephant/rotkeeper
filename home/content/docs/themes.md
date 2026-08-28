@@ -14,7 +14,7 @@ tags:
 
 # Theme Families
 
-Every template in `bones/templates/` belongs to one of three families — with one special-purpose exception, the dedicated 404 theme (`theme-necropolis.html`, below). The family describes what the template puts *first*; the readability guarantee describes what it must never surrender to get there. Families feed the config-driven theme registry (#252) and are enforced by the static accessibility gate (`bash rotkeeper.sh a11y`, #258).
+Every template in `bones/templates/` belongs to one of three families — with one special-purpose exception, the dedicated 404 theme (`theme-necropolis.html`, below), and one prototype that is deliberately *not yet* a family member: `theme-daisy.html`, the DaisyUI presentation-layer prototype (#248), whose primitive/token map lives in [DaisyUI Primitive Map](daisyui-map.md). The family describes what the template puts *first*; the readability guarantee describes what it must never surrender to get there. Families feed the config-driven theme registry (#252) and are enforced by the static accessibility gate (`bash rotkeeper.sh a11y`, #258).
 
 ## The families
 
@@ -24,6 +24,7 @@ Every template in `bones/templates/` belongs to one of three families — with o
 | **balanced** | `theme-spooky-dark.html` (+ xhtml profile variant), `theme-dark.html`, `theme-light.html`, `theme-kawaii.html` | General-purpose rendering with decoration kept subordinate: AA contrast for body, secondary, link, and code pairs; visible keyboard focus; wide tables and code scroll instead of overflowing. |
 | **reading-first** | `theme-spooky-light.html`, `theme-overgrown.html`, `theme-textpattern.html` | Longform comfort leads: serif or high-legibility prose faces, a capped measure (`--max-width` ≤ 900px), and the same AA contrast/focus/legibility bar as every other family. |
 | **special-purpose** | `theme-necropolis.html` | Dedicated Tomb-Not-Found page, not a general content renderer: the signature 404 treatment (looming ghost numeral, blood-red entry, cracked slab) keys off the `$page_type$` token (v3 generic hook, #269). Still carries the shared asset-meta footer slot and must pass the same a11y gate. |
+| **prototype (pending gate)** | `theme-daisy.html` | DaisyUI presentation-layer prototype (#248): vendored compiled DaisyUI 5.7.22 CSS (on-prem, no CDN/Node), dracula theme, navbar + config-driven `<site-nav>` nav, badge metadata, card article surface. Passes the same a11y gate but is not a family member until the decision gate approves broader adoption. Reference: [DaisyUI Primitive Map](daisyui-map.md). |
 
 ## What the guarantee means
 
@@ -58,7 +59,7 @@ Necropolis renders only the 404 page today: its `data-page-type` body hook is `$
 Every template follows the same base skeleton — the variation between themes lives in CSS, ornament, and surface treatment, not in divergent HTML structure:
 
 - **Header** — site/page title (`$title$`) plus optional deck (`$if(description)$`), per theme.
-- **Nav** — optional; only `theme-textpattern` ships one today, driven from the `navigation:` block in `bones/config/rotkeeper.yaml` via the raw-HTML `<site-nav></site-nav>` slot (see `oliver-contract.md`). Templates without a nav simply omit the region.
+- **Nav** — optional; `theme-textpattern` and the `theme-daisy` prototype ship one, driven from the `navigation:` block in `bones/config/rotkeeper.yaml` via the raw-HTML `<site-nav></site-nav>` slot (see `oliver-contract.md`). Templates without a nav simply omit the region.
 - **Main/article** — `$body$` wrapped in the theme's article element.
 - **Footer** — the standardized asset-meta slot, present on every theme:
 

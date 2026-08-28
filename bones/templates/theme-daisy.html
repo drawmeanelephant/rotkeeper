@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dracula">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>$title$</title>
+  $if(description)$
+  <meta name="description" content="$description$">
+  $endif$
+  <link rel="stylesheet" href="$assets_root$css/theme-daisy.css">
+</head>
+<body class="daisy-body">
+  <div class="daisy-shell">
+
+    <!-- DaisyUI navbar (vendored component) + config-driven nav slot.
+         The adapter fills <site-nav> post-wrap with the rendered <nav> from
+         bones/config/rotkeeper.yaml `navigation:`; theme-daisy.css styles the
+         generated structure with daisyUI tokens. -->
+    <header class="daisy-header">
+      <div class="navbar daisy-navbar">
+        <div class="navbar-start">
+          <a class="btn btn-ghost daisy-brand" href="$assets_root$../index.html">ROTKEEPER</a>
+        </div>
+        <div class="navbar-center daisy-nav">
+          <site-nav></site-nav>
+        </div>
+        <div class="navbar-end">
+          <span class="badge badge-primary">Oliver-native</span>
+        </div>
+      </div>
+
+      <div class="daisy-title-block">
+        <h1 class="daisy-title">$title$</h1>
+        $if(description)$
+        <p class="daisy-deck">$description$</p>
+        $endif$
+        <div class="daisy-meta-row">
+          $if(date)$
+          <span class="badge badge-outline">Filed: $date$</span>
+          $endif$
+          $if(author)$
+          <span class="badge badge-outline">$author$</span>
+          $endif$
+        </div>
+      </div>
+    </header>
+
+    <main class="daisy-main">
+      <article class="card daisy-article">
+        <div class="card-body">
+          $body$
+        </div>
+      </article>
+    </main>
+
+    <footer class="daisy-footer">
+      <p class="footer-credit">Rendered by Rotkeeper · v$version$</p>
+$if(asset_meta)$      <p class="footer-asset-meta">$asset_meta$</p>
+$endif$$if(tags)$      <p class="footer-tags">$tags$</p>
+$endif$    </footer>
+
+  </div>
+</body>
+</html>
