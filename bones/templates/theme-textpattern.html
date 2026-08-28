@@ -19,16 +19,13 @@
         <p class="txp-tagline">Immortal Flat-File Static Publishing in Pure Unix &amp; Humane Textile Markup</p>
       </div>
 
-      <!-- Classic Textpattern Horizontal Navigation Tabs -->
+      <!-- Classic Textpattern Horizontal Navigation Tabs
+           Nav is config-driven (bones/config/rotkeeper.yaml `navigation:`). The
+           adapter fills this literal placeholder with the rendered <nav> after
+           wrap so the markup stays raw (oliver html-escapes every non-literal
+           token). Config items carry the `txp-nav-link` class. -->
       <nav id="nav" class="txp-nav" aria-label="Primary Navigation">
-        <ul>
-          <li><a href="$assets_root$../index.html" class="txp-nav-link" id="nav-home">Home</a></li>
-          <li><a href="$assets_root$../docs/textile-guide.html" class="txp-nav-link" id="nav-textile">Textile Guide</a></li>
-          <li><a href="$assets_root$../docs/textile-showcase.html" class="txp-nav-link" id="nav-showcase">Textile Showcase</a></li>
-          <li><a href="$assets_root$../docs/oliver-contract.html" class="txp-nav-link" id="nav-contract">Oliver Contract</a></li>
-          <li><a href="$assets_root$../docs/workflow.html" class="txp-nav-link" id="nav-workflow">Workflow</a></li>
-          <li><a href="$assets_root$../docs/index.html" class="txp-nav-link" id="nav-docs">Docs Index</a></li>
-        </ul>
+        <site-nav></site-nav>
       </nav>
     </header>
 

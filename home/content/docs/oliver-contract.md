@@ -127,7 +127,7 @@ Templates are HTML files containing the following tokens:
 | `$subtitle$` | frontmatter `subtitle` (sidecar wins) | HTML-escaped |
 | `$tags$` | frontmatter `tags` list, adapter-joined with `, ` | HTML-escaped |
 | `$asset_meta$` | frontmatter `asset_meta` map, adapter-serialized (below) | HTML-escaped |
-| `$navigation$` | site nav from `bones/config/rotkeeper.yaml` | HTML-escaped |
+| `$navigation$` | site nav from `bones/config/rotkeeper.yaml` | raw HTML via `<site-nav>` placeholder (post-wrap) |
 | `$warnings$` | per-page renderer warnings | HTML-escaped |
 | `$assets_root$` | render batch (path prefix to the layout's assets dir) | literal, not escaped |
 | `$body$` | Oliver-rendered body fragment | literal, not escaped (it is trusted rendered HTML) |
@@ -149,7 +149,7 @@ oliver wrap --template bones/templates/theme-spooky-dark.html \
 # or: oliver render --template <file> --meta-json <json> (alternative, feature-detected)
 ```
 
-The extended tokens joined the dialect with the shared template contract v2 (rotkeeper #244, pin move `06dd640` → `8460f28`, oliver #126). `$version$` is not frontmatter — the adapter injects it from the canonical version source, the same single source `--version` and `@HELP` `{VERSION}` use. `$subtitle$`/`$tags$`/`$asset_meta$` are read from the source frontmatter by the adapter with `yq --front-matter extract` (see provenance below); `$navigation$` and `$warnings$` are reserved — no adapter feed exists yet, so they substitute empty. The **v3 generic hook** (rotkeeper #269, pin move `8460f28` → `3f05bac`, oliver #127): the adapter merges every other scalar frontmatter key into `wrap_meta` (typed keys win the merge), so templates can reference any frontmatter field as `$field$` — `$page_type$` on the necropolis 404 theme is the first consumer. Bash keeps `TEMPLATE_DIR` boundary checks; Oliver handles interpolation when `wrap` is present.
+The extended tokens joined the dialect with the shared template contract v2 (rotkeeper #244, pin move `06dd640` → `8460f28`, oliver #126). `$version$` is not frontmatter — the adapter injects it from the canonical version source, the same single source `--version` and `@HELP` `{VERSION}` use. `$subtitle$`/`$tags$`/`$asset_meta$` are read from the source frontmatter by the adapter with `yq --front-matter extract` (see provenance below); `$warnings$` is reserved — no adapter feed exists yet, so it substitutes empty. Site **navigation** is delivered as raw HTML through a literal `<site-nav></site-nav>` placeholder (below), not an escaped token, because every non-literal `wrap` token html-escapes and a real nav is markup. The **v3 generic hook** (rotkeeper #269, pin move `8460f28` → `3f05bac`, oliver #127): the adapter merges every other scalar frontmatter key into `wrap_meta` (typed keys win the merge), so templates can reference any frontmatter field as `$field$` — `$page_type$` on the necropolis 404 theme is the first consumer. Bash keeps `TEMPLATE_DIR` boundary checks; Oliver handles interpolation when `wrap` is present.
 
 ## Extended metadata provenance (v2 + v3, implemented)
 
@@ -163,8 +163,27 @@ The extended tokens are live since the shared template contract v2 landed (rotke
   - `subtitle` ← frontmatter `subtitle`, sidecar wins (the sidecar merge is adapter-owned; the soul file is read directly because `oliver meta` drops it).
   - `tags` ← frontmatter `tags` list joined with `, ` (deterministic order as authored).
   - `asset_meta` ← frontmatter map serialized deterministically: `name`, `version`, `author`, `project`, `license` joined with ` — `, empty fields omitted, `tracked` never rendered (it is retrieval metadata, not display content). Example for `home/content/index.md`: `index.md — 0.3.0.4 — Filed Systems — Rotkeeper — All Rights Reserved`.
-  - `navigation`/`warnings` are reserved tokens with no adapter feed yet; they substitute empty until a nav schema and an in-page warnings surface exist.
+  - `warnings` is a reserved token with no adapter feed yet; it substitutes empty until an in-page warnings surface exists.
 - **Frontmatter authority splits by design:** Oliver owns the seven S1 fields; yq (`--front-matter extract`, the same technique the harness uses) reads the extended v2 fields from the raw source because `oliver meta` drops lists/maps. A future `oliver meta` that emits every scalar key (and serializes `asset_meta`) would collapse the split back into Oliver.
+
+### Site navigation (`<site-nav>` raw-HTML slot)
+
+`$navigation$` is the config-driven site nav (topic #244). Because the recalled dialect html-escapes every non-literal token — and a nav is markup, not text — the adapter does not feed it through `wrap`. Instead a template declares a literal `<site-nav></site-nav>` placeholder and the adapter replaces it **after** `wrap` with nav rendered from `bones/config/rotkeeper.yaml`:
+
+```yaml
+# bones/config/rotkeeper.yaml
+navigation:
+  label: "Primary Navigation"
+  items:
+    - label: "Home"
+      target: "index.html"      # site-root-relative; the adapter prefixes the
+      class: "txp-nav-link"     # current page's depth (./ or ../) + optional class
+    - label: "Docs"
+      target: "docs/index.html"
+      class: "txp-nav-link"
+```
+
+`rc-utils.sh`'s `rk_render_navigation "$assets_root"` builds `<nav aria-label="…"><ul><li><a href="…">…</a></li></ul></nav>` with `href`s resolved to the current page's depth (`./assets/` → `./`; `../assets/` → `../`), then the adapter swaps `<site-nav></site-nav>` for it in the wrapped page (multi-line-safe via an `ENVIRON` AWK variable — `awk -v` errors on newlines). Omit the config block and the placeholder is left untouched, so unaffected themes never see it. `theme-textpattern` is the first consumer, replacing its hardcoded tabs. (`$navigation$` is not this slot; because it is a reserved token it currently substitutes empty.)
 
 ## Sidecar precedence
 

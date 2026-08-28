@@ -1126,6 +1126,62 @@ S2V3_FM_EOF
     fi
     echo "  [+] Pass: S5 manifest assertions ($mode)."
 
+    # --- S6: Config-driven site navigation (#244) ---
+    # The nav renderer (rc-utils rk_render_navigation) and the post-wrap
+    # <site-nav> injection (rc-oliver-adapter, newline-safe via ENVIRON) are
+    # pure Bash — no Oliver binary needed. Write a self-contained nav config so
+    # the assertions are deterministic regardless of the fixture layout, then
+    # assert renderer output and the placeholder substitution directly.
+    echo "  [+] Executing S6 site-navigation assertions ($mode)..."
+    s6_cfg="$pass_dir/bones/tmp/s6-nav-config"
+    mkdir -p "$s6_cfg"
+    cat > "$s6_cfg/rotkeeper.yaml" << 'S6_CFG_EOF'
+title: "S6 Nav Config"
+description: "Self-contained navigation config for harness assertions"
+NONAV_INTENT: "this block is intentionally self-contained"
+navigation:
+  label: "Primary Navigation"
+  items:
+    - label: "Home"
+      target: "index.html"
+      class: "txp-nav-link"
+    - label: "Docs"
+      target: "docs/index.html"
+      class: "txp-nav-link"
+S6_CFG_EOF
+    _nav_root="$(CONFIG_DIR="$s6_cfg" rk_render_navigation "./assets/" 2>/dev/null || true)"
+    _nav_nested="$(CONFIG_DIR="$s6_cfg" rk_render_navigation "../assets/" 2>/dev/null || true)"
+    if [[ -z "$_nav_root" || -z "$_nav_nested" ]]; then
+      echo "❌ Assertion Failed: S6 rk_render_navigation returned empty for a configured nav."
+      exit 240
+    fi
+    if ! printf '%s' "$_nav_root" | grep -q '<nav aria-label="Primary Navigation">'; then
+      echo "❌ Assertion Failed: S6 nav label/landmark missing."
+      exit 241
+    fi
+    if ! printf '%s' "$_nav_root" | grep -q 'href="\./index.html"' || ! printf '%s' "$_nav_nested" | grep -q 'href="../index.html"'; then
+      echo "❌ Assertion Failed: S6 nav depth resolution (./ vs ../) failed."
+      exit 242
+    fi
+    if ! printf '%s' "$_nav_root" | grep -q 'class="txp-nav-link"'; then
+      echo "❌ Assertion Failed: S6 config nav item class not emitted."
+      exit 243
+    fi
+    # Newline-safe placeholder substitution (awk -v cannot hold newlines).
+    printf '      <site-nav></site-nav>\n' > "$pass_dir/s6-nav-page.html"
+    RK_NAV="$_nav_root" awk '{ line=$0; if (match(line,/<site-nav><\/site-nav>/)) { line=substr(line,1,RSTART-1) ENVIRON["RK_NAV"] substr(line,RSTART+RLENGTH) } print line }' "$pass_dir/s6-nav-page.html" > "$pass_dir/s6-nav-out.html" 2>/dev/null
+    if grep -q '<site-nav>' "$pass_dir/s6-nav-out.html"; then
+      echo "❌ Assertion Failed: S6 <site-nav> placeholder not replaced."
+      exit 244
+    fi
+    if ! grep -q 'href="\./index.html"' "$pass_dir/s6-nav-out.html"; then
+      echo "❌ Assertion Failed: S6 injected nav missing link."
+      exit 245
+    fi
+    rm -rf "$s6_cfg"
+    rm -f "$pass_dir/s6-nav-page.html" "$pass_dir/s6-nav-out.html"
+    echo "  [+] Pass: S6 site-navigation assertions ($mode)."
+
     # --- Real Oliver renderer smoke pass (runs only when an executable binary
     # is discoverable; hermetic fixture binaries cover the rest) ---
     REAL_OLIVER="${RK_OLIVER_BIN:-}"
