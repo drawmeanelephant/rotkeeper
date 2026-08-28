@@ -255,6 +255,20 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
     if grep -q "RawHtmlNotXmlWellFormed" "$oliver_err" 2>/dev/null; then
       log "MARKER" "  hint: raw HTML is not allowed under --to xhtml — remove <b>/<i> etc. or switch page to render_profile: html"
     fi
+    # Structured failure channel (#290): persist the summary + raw oliver stderr to
+    # a render-known scratch file (first failure in the batch wins) so render can
+    # surface the reason without scraping logs. Render deletes it after reading.
+    if [[ -n "${RK_ADAPTER_FAILURE_FILE:-}" && ! -e "$RK_ADAPTER_FAILURE_FILE" ]]; then
+      {
+        printf '✗ Oliver failed for %s (exit %s): %s\n' "$(basename "$src_path")" "$oliver_status" "$first_err_line"
+        if [[ -f "$oliver_err" && -s "$oliver_err" ]]; then
+          cat "$oliver_err"
+        fi
+        if grep -q "RawHtmlNotXmlWellFormed" "$oliver_err" 2>/dev/null; then
+          printf '%s\n' "hint: raw HTML is not allowed under --to xhtml — remove <b>/<i> etc. or switch page to render_profile: html"
+        fi
+      } > "$RK_ADAPTER_FAILURE_FILE" 2>/dev/null || true
+    fi
     # SIDE EFFECT (delete): removes per-page scratch files on render failure (no output page is written)
     rm -f "$body_tmp" "$body_rewritten" "$oliver_err"
     exit 1

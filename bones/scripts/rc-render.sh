@@ -173,7 +173,7 @@ main() {
     }
 
     if [[ ! -f "$CONFIG_FILE" ]]; then
-      echo "❌ Missing config: $CONFIG_FILE"
+      log "ERROR" "Missing config: $CONFIG_FILE"
       exit 1
     fi
 
@@ -356,6 +356,7 @@ main() {
       else
         # SIDE EFFECT (delegated): rc-oliver-adapter.sh renders HTML into output/ and
         # writes per-run logs under bones/logs plus warning files under bones/tmp
+        export RK_ADAPTER_FAILURE_FILE="$LOG_DIR/rk-adapter-failure-$$.txt"
         set +e
         RK_RENDER_ID="$$" bash "$SCRIPT_DIR/rc-oliver-adapter.sh" "$batch_tsv"
         adapter_status=$?
@@ -377,6 +378,12 @@ main() {
             done
           }
           first_err=""
+          # Structured channel first (#290): the adapter wrote its failure summary +
+          # raw oliver stderr to RK_ADAPTER_FAILURE_FILE. Log scraping remains the
+          # fallback for adapter failures that occur before the write.
+          if [[ -n "${RK_ADAPTER_FAILURE_FILE:-}" && -f "$RK_ADAPTER_FAILURE_FILE" ]]; then
+            first_err=$(head -n1 "$RK_ADAPTER_FAILURE_FILE" 2>/dev/null || true)
+          fi
           # Prefer render's own log (contains adapter's >&3 MARKER) then adapter's log
           # Use ASCII pattern "Oliver failed" to avoid UTF-8 ✗ matching issues in C locale
             # Prefer ASCII "Oliver failed" (grep -a handles binary log safely; -m1 stops at first match)
@@ -410,7 +417,10 @@ main() {
             log "MARKER" "  $clean_err"
             # Also try to surface the raw oliver stderr first line if available (prefer render log)
             oliver_hint=""
-            if [[ -f "${LOG_FILE:-}" ]]; then
+            if [[ -n "${RK_ADAPTER_FAILURE_FILE:-}" && -f "$RK_ADAPTER_FAILURE_FILE" ]]; then
+              oliver_hint=$(grep -m1 "oliver:" "$RK_ADAPTER_FAILURE_FILE" 2>/dev/null | head -n1 || true)
+            fi
+            if [[ -z "$oliver_hint" && -f "${LOG_FILE:-}" ]]; then
               oliver_hint=$(grep -m1 "oliver:" "$LOG_FILE" 2>/dev/null | head -n1 || true)
             fi
             if [[ -z "$oliver_hint" && -n "$latest_adapter_log" && -f "$latest_adapter_log" ]]; then
@@ -425,7 +435,10 @@ main() {
             fi
             # Also surface hint for XHTML if present
             hint_line=""
-            if [[ -f "${LOG_FILE:-}" ]]; then
+            if [[ -n "${RK_ADAPTER_FAILURE_FILE:-}" && -f "$RK_ADAPTER_FAILURE_FILE" ]]; then
+              hint_line=$(grep -m1 "hint: raw HTML" "$RK_ADAPTER_FAILURE_FILE" 2>/dev/null | head -n1 || true)
+            fi
+            if [[ -z "$hint_line" && -f "${LOG_FILE:-}" ]]; then
               hint_line=$(grep -m1 "hint: raw HTML" "$LOG_FILE" 2>/dev/null | head -n1 || true)
             fi
             if [[ -z "$hint_line" && -n "$latest_adapter_log" && -f "$latest_adapter_log" ]]; then
@@ -436,6 +449,9 @@ main() {
               log "MARKER" "  $clean_hint2"
             fi
           fi
+          # SIDE EFFECT (delete): the structured channel is consumed; drop it so a
+          # stale file can never feed a later run.
+          rm -f "${RK_ADAPTER_FAILURE_FILE:-}"
           if [[ -n "$latest_adapter_log" && -f "$latest_adapter_log" ]]; then
             log "ERROR" "Render failed: Oliver adapter error — see $latest_adapter_log"
             echo "ERROR: Render failed — Oliver adapter error — see $latest_adapter_log" >&2
