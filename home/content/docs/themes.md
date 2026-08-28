@@ -2,7 +2,7 @@
 title: "Theme Families"
 slug: themes
 template: "rotkeeper-doc.html"
-version: "1.2"
+version: "1.3"
 updated: "2026-08-28"
 description: "The three Rotkeeper theme families — terminal-forward, balanced, reading-first — their members, the readability guarantee each family carries, and the special-purpose 404 theme (necropolis)."
 tags:
@@ -72,6 +72,52 @@ $endif$    </footer>
 ```
 
 `v$version$` is live from `bones/config/version` (the same single source `--version` uses); `$asset_meta$` and `$tags$` render the page's frontmatter asset meta and tags when present and are cleanly removed otherwise (the `$if$` markers sit at column 0 so a removed block leaves no blank line — keep that convention when adding gated lines). Lore lines (e.g. spooky's †-line, textpattern's colophon) are ornament and live above the slot. Because the footer is live, rendered goldens are version-sensitive: regenerate template goldens with `RK_REGEN_TEMPLATE_GOLDENS=1 bash rotkeeper.sh test` and update the smoke golden (`smoke-fixture-expected.html`) on version bumps.
+
+## Shared identity primitives (#251)
+
+The house voice — haunted, necrotic, candle-lit — is expressed through shared primitives in `home/assets/css/rk-identity.css` instead of copy-pasted CSS per theme. A theme opts in with one line at the top of its stylesheet (an `@import` must precede all other rules):
+
+```css
+@import url("rk-identity.css");
+```
+
+The primitives are token-driven: every color falls back to `inherit`/`currentColor`, and each theme re-skins by mapping the `--rk-*` tokens on its own `:root`. Because the a11y gate splices `@import` chains depth-first (importer-last), the shared file adds no contrast pairs of its own — the gate keeps reading the theme's own tokens.
+
+**Divider** — `.rk-divider` base, `.rk-divider--ornate` (rule + icon between lines) and `.rk-divider--bones` (crossed bone ends around a skull). Markup is pure ornament: keep `aria-hidden="true"` on the container.
+
+```html
+<div class="rk-divider rk-divider--ornate" aria-hidden="true">
+  <span class="rk-divider__line"></span>
+  <span class="rk-divider__icon">💀</span>
+  <span class="rk-divider__line"></span>
+</div>
+```
+
+**Lore blocks** — `.rk-lore` / `.rk-lore--sub` / `.rk-lore-icon` carry the standard colophon voice ("The Rotkeeper tends the necropolis…") with a candle-flicker on the icons:
+
+```html
+<p class="rk-lore">⚗ <em>The Rotkeeper tends the necropolis — what is buried here is not lost.</em> ⚗</p>
+<p class="rk-lore rk-lore--sub">
+  <span class="rk-lore-icon" aria-hidden="true">🕯️</span>
+  Abandon all hope, ye who enter here
+</p>
+```
+
+**Icon set** — the house glyphs `† ⚗ 🕯️ 💀 🦇 ✝ ☠`, wrapped in `.rk-icon` (static) or `.rk-lore-icon` (flicker), always `aria-hidden="true"` — ornament, never read aloud.
+
+**Token map** (`:root`, defaults shown; override only what you skin):
+
+| Token | Default | Role |
+| --- | --- | --- |
+| `--rk-line-color` | `currentColor` | divider rule / bone body |
+| `--rk-line-soft` | `currentColor` | gradient fade / bone knobs |
+| `--rk-glow` | `currentColor` | divider line midpoint glow |
+| `--rk-glow-aura` | `transparent` | skull-glow drop-shadow (opt-in) |
+| `--rk-icon-size` | `1.5rem` | glyph size |
+| `--rk-lore-color` | `inherit` | lore body text |
+| `--rk-lore-sub-color` | `inherit` | lore sub-line text |
+
+**Current consumers:** `theme-necropolis.css` (both dividers + full lore, mapped to the graveyard palette) and `theme-spooky.css` (lore block, mapped to the spooky dim tokens — covers spooky-dark, spooky-light, and the XHTML variant via its `@import`). A theme that doesn't want the haunted voice simply doesn't import the file.
 
 ## Choosing and comparing
 

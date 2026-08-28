@@ -1,0 +1,166 @@
+/* ==========================================================================
+   ROTKEEPER IDENTITY PRIMITIVES (#251)
+   --------------------------------------------------------------------------
+   The shared haunted-house primitives: dividers, lore blocks, and the icon
+   set. Theme stylesheets @import this file FIRST (an @import must precede
+   every other rule in the importer) and re-skin it by mapping the --rk-*
+   tokens on their own :root. Every color falls back to inherit/currentColor,
+   so importing alone is safe, and the a11y gate keeps reading each theme's
+   own tokens (it splices @import chains depth-first, importer-last).
+
+   Markup contracts:
+   - Divider (ornate):  <div class="rk-divider rk-divider--ornate" aria-hidden="true">
+                          <span class="rk-divider__line"></span>
+                          <span class="rk-divider__icon">💀</span>
+                          <span class="rk-divider__line"></span>
+                        </div>
+   - Divider (bones):   <div class="rk-divider rk-divider--bones" aria-hidden="true">
+                          <span class="rk-divider__bone rk-divider__bone--left"></span>
+                          <span class="rk-divider__skull">💀</span>
+                          <span class="rk-divider__bone rk-divider__bone--right"></span>
+                        </div>
+   - Lore block:        <p class="rk-lore">⚗ <em>The Rotkeeper tends…</em> ⚗</p>
+                        <p class="rk-lore rk-lore--sub">
+                          <span class="rk-lore-icon" aria-hidden="true">🕯️</span> … 
+                        </p>
+   - Icon:              <span class="rk-icon" aria-hidden="true">💀</span>
+
+   House glyphs (the iconography set): †  ⚗  🕯️  💀  🦇  ✝  ☠
+   Wrap them in .rk-icon (static) or .rk-lore-icon (candle-flicker) and keep
+   aria-hidden — they are ornament, never read aloud.
+   ========================================================================== */
+
+/* ── Token defaults (themes override on :root) ─────────────────────────── */
+:root {
+  --rk-line-color:     currentColor; /* divider rule / bone body            */
+  --rk-line-soft:      currentColor; /* divider gradient fade / bone knobs  */
+  --rk-glow:           currentColor; /* divider line midpoint glow          */
+  --rk-glow-aura:      transparent;  /* skull-glow drop-shadow (opt-in)     */
+  --rk-icon-size:      1.5rem;
+  --rk-lore-color:     inherit;      /* lore body text                      */
+  --rk-lore-sub-color: inherit;      /* lore sub-line text                  */
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   DIVIDERS
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.rk-divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 2rem 0;
+  user-select: none;
+}
+
+.rk-divider--ornate,
+.rk-divider--bones {
+  justify-content: center;
+}
+
+/* Ornate: a single rule fading to a glow midpoint, an icon between lines */
+.rk-divider__line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--rk-line-soft) 20%,
+    var(--rk-glow) 50%,
+    var(--rk-line-soft) 80%,
+    transparent 100%
+  );
+  opacity: 0.5;
+}
+
+.rk-divider__icon {
+  font-size: var(--rk-icon-size);
+  animation: rk-skull-glow 3s ease-in-out infinite;
+}
+
+/* Bones: crossed-bone ends around a skull, knob-tipped rules */
+.rk-divider--bones {
+  margin: 3rem 0;
+}
+
+.rk-divider__bone {
+  flex: 1;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--rk-line-color) 30%,
+    var(--rk-line-soft) 50%,
+    var(--rk-line-color) 70%,
+    transparent 100%
+  );
+  border-radius: 2px;
+  opacity: 0.4;
+  position: relative;
+}
+
+/* Bone knob ends */
+.rk-divider__bone::before,
+.rk-divider__bone::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--rk-line-soft);
+  transform: translateY(-50%);
+  opacity: 0.5;
+}
+
+.rk-divider__bone--left::before  { left: 0; }
+.rk-divider__bone--left::after   { right: 0; }
+.rk-divider__bone--right::before { left: 0; }
+.rk-divider__bone--right::after  { right: 0; }
+
+.rk-divider__skull {
+  font-size: calc(var(--rk-icon-size) * 1.33);
+  animation: rk-skull-glow 3s ease-in-out infinite;
+}
+
+@keyframes rk-skull-glow {
+  0%, 100% { filter: grayscale(0.3) drop-shadow(0 0 4px transparent); }
+  50%      { filter: grayscale(0)    drop-shadow(0 0 8px var(--rk-glow-aura)); }
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   LORE BLOCKS
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.rk-lore {
+  margin: 0 0 0.5rem 0;
+  color: var(--rk-lore-color, inherit);
+  font-size: var(--rk-lore-size, 0.9rem);
+}
+
+.rk-lore--sub {
+  font-size: var(--rk-lore-sub-size, 0.8rem);
+  color: var(--rk-lore-sub-color, inherit);
+  letter-spacing: 0.05em;
+}
+
+.rk-lore-icon {
+  font-style: normal;
+  animation: rk-candle-flicker 2s ease-in-out infinite alternate;
+}
+
+@keyframes rk-candle-flicker {
+  0%   { opacity: 0.6; filter: brightness(0.8); }
+  50%  { opacity: 1;   filter: brightness(1.2); }
+  100% { opacity: 0.8; filter: brightness(1); }
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   ICON SET
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.rk-icon {
+  font-size: var(--rk-icon-size);
+  line-height: 1;
+  font-style: normal;
+}
