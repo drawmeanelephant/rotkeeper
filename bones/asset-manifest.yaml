@@ -23,7 +23,7 @@
 - path: "css/theme-spooky-dark.css"
   sha256: "371d102f4aaf8377f89e5d6c8a7791bf87ab6aa5a6de00fc9551ada07e3b4d1b"
 - path: "css/theme-spooky-light.css"
-  sha256: "76feac7189f63118c5793795f3b1730106c60fe4bd49efaa80759a258185a21a"
+  sha256: "9c9add231769cdf38d74612ef461c6ace58bb6285bf66af47f5a8f13803a8df2"
 - path: "css/theme-spooky.css"
   sha256: "3ea839a310fe8f07c1ee5b05608ee96853eae1d76e3c7a87942dae6bc9b90d08"
 - path: "css/theme-textpattern.css"

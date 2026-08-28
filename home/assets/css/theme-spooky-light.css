@@ -17,6 +17,11 @@
   --hover-bg: #eee1e9;
 }
 
+/* Reading-first guarantee (#246): cap the measure at the family's 900px
+   ceiling — the inherited spooky shell is 1000px, tuned for the balanced
+   spooky-dark experience. */
+.rk-shell { max-width: 900px; }
+
 body { background-color: var(--bg-color); }
 strong, b { color: var(--strong-color); }
 del, s { color: var(--muted-color); }
