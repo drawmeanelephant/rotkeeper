@@ -58,7 +58,7 @@ Necropolis renders only the 404 page today: its `data-page-type` body hook is `$
 Every template follows the same base skeleton — the variation between themes lives in CSS, ornament, and surface treatment, not in divergent HTML structure:
 
 - **Header** — site/page title (`$title$`) plus optional deck (`$if(description)$`), per theme.
-- **Nav** — optional; only `theme-textpattern` ships one today (hardcoded). The reserved `$navigation$` token exists for a future config-driven nav (#244); templates without a nav simply omit the region.
+- **Nav** — optional; only `theme-textpattern` ships one today, driven from the `navigation:` block in `bones/config/rotkeeper.yaml` via the raw-HTML `<site-nav></site-nav>` slot (see `oliver-contract.md`). Templates without a nav simply omit the region.
 - **Main/article** — `$body$` wrapped in the theme's article element.
 - **Footer** — the standardized asset-meta slot, present on every theme:
 

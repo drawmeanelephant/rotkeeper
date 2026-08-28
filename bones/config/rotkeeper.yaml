@@ -2,3 +2,33 @@ title: "Rotkeeper Config"
 description: "Minimal valid config for rendering tests"
 default_template: "theme-spooky-dark.html"
 input_format: "markdown"
+
+# Site navigation rendered into the theme's <site-nav></site-nav>
+# placeholder (#244). Items are site-root-relative targets
+# (e.g. "docs/index.html"); the adapter resolves them to the current
+# page's depth via $assets_root$ and fills the raw-HTML placeholder
+# post-wrap (every non-literal oliver token html-escapes). The optional
+# `class` per item lets a theme reuse its own nav styling (textpattern
+# uses `txp-nav-link`). Omit this block (or leave items empty) and the
+# placeholder stays untouched.
+navigation:
+  label: "Primary Navigation"
+  items:
+    - label: "Home"
+      target: "index.html"
+      class: "txp-nav-link"
+    - label: "Textile Guide"
+      target: "docs/textile-guide.html"
+      class: "txp-nav-link"
+    - label: "Textile Showcase"
+      target: "docs/textile-showcase.html"
+      class: "txp-nav-link"
+    - label: "Oliver Contract"
+      target: "docs/oliver-contract.html"
+      class: "txp-nav-link"
+    - label: "Workflow"
+      target: "docs/workflow.html"
+      class: "txp-nav-link"
+    - label: "Docs Index"
+      target: "docs/index.html"
+      class: "txp-nav-link"

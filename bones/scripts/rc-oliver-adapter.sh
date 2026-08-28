@@ -368,6 +368,21 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
     fi
     # SIDE EFFECT (delete): removes the wrap meta and stderr scratch files on success
     rm -f "$wrap_meta" "$TMP_DIR/oliver-wrap-$$.log"
+    # Site navigation: render the config-driven nav (raw HTML) into the page by
+    # replacing a literal `<site-nav></site-nav>` placeholder after wrap. Wrapped
+    # after interpolation because every non-literal oliver token html-escapes;
+    # navigation must remain literal markup, like $body$/$assets_root$. The
+    # placeholder is a non-escaped element, so a page without the marker or with
+    # an empty navigation config is untouched.
+    if grep -q '<site-nav></site-nav>' "$dst_path" 2>/dev/null; then
+      nav_html="$(rk_render_navigation "$assets_root" 2>/dev/null || true)"
+      if [[ -n "$nav_html" ]]; then
+        after="${dst_path}.navpost"
+        # The rendered nav is multi-line, which awk's -v cannot hold ("newline
+        # in string" error). Pass it as an env var read via ENVIRON; emit `line`.
+        RK_NAV="$nav_html" awk '{ line=$0; if (match(line,/<site-nav><\/site-nav>/)) { line=substr(line,1,RSTART-1) ENVIRON["RK_NAV"] substr(line,RSTART+RLENGTH) } print line }' "$dst_path" > "$after" 2>/dev/null && mv "$after" "$dst_path"
+      fi
+    fi
     log "INFO" "Oliver wrap succeeded for '$src_path'"
     if [[ "$verbose" == "true" ]]; then
       # shellcheck disable=SC2295

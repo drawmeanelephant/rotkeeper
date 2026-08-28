@@ -144,6 +144,68 @@ rk_show_help() {
   return 0
 }
 
+# ---
+# rk_render_navigation: Render the config-driven site navigation (shared
+# template contract #244). Reads the `navigation` block from
+# `CONFIG_DIR/rotkeeper.yaml` (label + items, each `label`/`target` with targets
+# site-root-relative and an optional per-item `class`) and emits a
+# `<nav aria-label="…"><ul>…</ul></nav>` fragment. The link prefix derives from
+# the current page's `$assets_root` so nav hrefs resolve from any depth:
+# `./assets/` → `./`, `../assets/` → `../`.
+# Returns the fragment on stdout (never a partial), or empty when the block/items
+# are absent so the caller (rc-oliver-adapter) leaves a `<site-nav></site-nav>`
+# placeholder untouched. Navigation is raw HTML injected post-wrap, NOT an
+# escaped `wrap` token — every non-literal token html-escapes, and a nav is markup.
+# Inputs: $1 (assets_root — the wrap `--assets-root` value for this page)
+# Env: Reads CONFIG_DIR (via rk_load_env); requires yq + jq + base64
+# CWD: No assumption — config path via CONFIG_DIR
+# ---
+rk_render_navigation() {
+  local assets_root="${1:-}"
+  local cfg="$CONFIG_DIR/rotkeeper.yaml"
+  [[ -f "$cfg" ]] || return 0
+
+  local has_nav
+  has_nav=$(yq e 'has("navigation")' "$cfg" 2>/dev/null || echo "false")
+  [[ "$has_nav" != "true" ]] && return 0
+
+  local label
+  label=$(yq e '.navigation.label // "Site Navigation"' "$cfg" 2>/dev/null || echo "Site Navigation")
+  local items_count
+  items_count=$(yq e '.navigation.items | length' "$cfg" 2>/dev/null || echo "0")
+  [[ "${items_count:-0}" -gt 0 ]] || return 0
+
+  # Derive the site-relative back-prefix from this page's assets root.
+  # `./assets/` → `./`; `../assets/` → `../`; unknown → `` (root-relative link).
+  local prefix=""
+  case "$assets_root" in
+    *assets/) prefix="${assets_root%assets/}" ;;
+    *)       prefix="" ;;
+  esac
+
+  # Build the fragment with real newlines (readable rendered HTML, and the
+  # `$if(navigation)$` gate removes it cleanly when there are no items).
+  printf '<nav aria-label="%s">\n  <ul>\n' "$label"
+  local items_json
+  items_json=$(yq -o=json '.navigation.items' "$cfg" 2>/dev/null || echo "[]")
+  local lines nl label2 target2 cls2
+  lines=$(printf '%s' "$items_json" | jq -r '.[] | @base64' 2>/dev/null || echo "")
+  [[ -z "$lines" ]] && return 0
+  while IFS= read -r nl; do
+    [[ -n "$nl" ]] || continue
+    label2=$(printf '%s' "$nl" | base64 --decode 2>/dev/null | jq -er '.label // ""' 2>/dev/null || echo "")
+    target2=$(printf '%s' "$nl" | base64 --decode 2>/dev/null | jq -er '.target // ""' 2>/dev/null || echo "")
+    cls2=$(printf '%s' "$nl" | base64 --decode 2>/dev/null | jq -er '.class // ""' 2>/dev/null || echo "")
+    [[ -n "$label2" && -n "$target2" ]] || continue
+    if [[ -n "$cls2" ]]; then
+      printf '    <li><a href="%s%s" class="%s">%s</a></li>\n' "$prefix" "$target2" "$cls2" "$label2"
+    else
+      printf '    <li><a href="%s%s">%s</a></li>\n' "$prefix" "$target2" "$label2"
+    fi
+  done <<< "$lines"
+  printf '  </ul>\n</nav>'
+}
+
 # Default help handler (can be overridden by scripts)
 # ---
 # show_help: Emit the script's canonical help block via rk_show_help, or the
