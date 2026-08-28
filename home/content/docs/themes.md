@@ -2,8 +2,8 @@
 title: "Theme Families"
 slug: themes
 template: "rotkeeper-doc.html"
-version: "1.1"
-updated: "2026-08-27"
+version: "1.2"
+updated: "2026-08-28"
 description: "The three Rotkeeper theme families — terminal-forward, balanced, reading-first — their members, the readability guarantee each family carries, and the special-purpose 404 theme (necropolis)."
 tags:
   - rotkeeper
@@ -24,7 +24,7 @@ Every template in `bones/templates/` belongs to one of three families — with o
 | **balanced** | `theme-spooky-dark.html` (+ xhtml profile variant), `theme-dark.html`, `theme-light.html`, `theme-kawaii.html` | General-purpose rendering with decoration kept subordinate: AA contrast for body, secondary, link, and code pairs; visible keyboard focus; wide tables and code scroll instead of overflowing. |
 | **reading-first** | `theme-spooky-light.html`, `theme-overgrown.html`, `theme-textpattern.html` | Longform comfort leads: serif or high-legibility prose faces, a capped measure (`--max-width` ≤ 900px), and the same AA contrast/focus/legibility bar as every other family. |
 | **special-purpose** | `theme-necropolis.html` | Dedicated Tomb-Not-Found page, not a general content renderer: the signature 404 treatment (looming ghost numeral, blood-red entry, cracked slab) keys off the `$page_type$` token (v3 generic hook, #269). Still carries the shared asset-meta footer slot and must pass the same a11y gate. |
-| **prototype (pending gate)** | `theme-daisy.html`, `theme-daisy-vanilla.html` | DaisyUI presentation-layer prototype (#248) plus its zero-dependency vanilla twin (#250): `theme-daisy` renders the dracula-skinned skeleton through vendored compiled DaisyUI 5.7.22 CSS (on-prem, no CDN/Node); `theme-daisy-vanilla` shares a byte-identical DOM (only the stylesheet href differs) styled entirely by hand-written CSS. Both carry the navbar + config-driven `<site-nav>` nav, badge metadata, and card article surface, and both pass the same a11y gate — neither is a family member until the decision gate approves broader adoption, but both are registered in the theme registry (`daisy` / `daisy-vanilla`) and selectable per-site. Reference: [DaisyUI Primitive Map](daisyui-map.md). |
+| **prototype (gate 2026-08-28: stays prototype)** | `theme-daisy.html`, `theme-daisy-vanilla.html` | DaisyUI presentation-layer prototype (#248) plus its zero-dependency vanilla twin (#250): `theme-daisy` renders the dracula-skinned skeleton through vendored compiled DaisyUI 5.7.22 CSS (on-prem, no CDN/Node); `theme-daisy-vanilla` shares a byte-identical DOM (only the stylesheet href differs) styled entirely by hand-written CSS. Both carry the navbar + config-driven `<site-nav>` nav, badge metadata, and card article surface, and both pass the same a11y gate. The decision gate ran 2026-08-28 and kept the pair in prototype status — the vendored build's ~1.16 MB payload and raw-HTML-in-content model don't clear family-grade weight or markdown-first bars — while naming the vanilla twin the graduation candidate (family-weight ~16 KB, zero deps). Both remain registered in the theme registry (`daisy` / `daisy-vanilla`) and selectable per-site; reopen conditions are in the [DaisyUI Primitive Map](daisyui-map.md). |
 
 ## What the guarantee means
 
