@@ -4,6 +4,7 @@ slug: "showcase-textpattern"
 template: "theme-textpattern.html"
 asset_meta: "Dummy value for asset_meta"
 author: "Dummy value for author"
+description: "Programmatic description for textpattern"
 tags: "Dummy value for tags"
 version: "Dummy value for version"
 ---

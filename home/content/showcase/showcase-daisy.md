@@ -4,6 +4,7 @@ slug: "showcase-daisy"
 template: "theme-daisy.html"
 asset_meta: "Dummy value for asset_meta"
 author: "Dummy value for author"
+description: "Programmatic description for daisy"
 tags: "Dummy value for tags"
 version: "Dummy value for version"
 ---

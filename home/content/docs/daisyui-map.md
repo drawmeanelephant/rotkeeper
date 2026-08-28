@@ -15,9 +15,9 @@ tags:
 
 # DaisyUI Primitive Map
 
-This is the reference table for issue #249: which DaisyUI component or token implements each Rotkeeper UI primitive. Its consumers are the [DaisyUI prototype theme](#248) (`theme-daisy.html`) and the vanilla fallback that shares the exact same DOM (#250). The map records what the prototype does today, so the fallback (and any later theme) can target the same primitives with the same markup.
+This is the reference table for issue #249: which DaisyUI component or token implements each Rotkeeper UI primitive. Its consumers are the [DaisyUI prototype theme](#248) (`theme-daisy.html`) and the vanilla fallback that shares the exact same DOM (#250, `theme-daisy-vanilla.html`). The map records what the prototype does today, so the fallback (and any later theme) can target the same primitives with the same markup.
 
-The live proof is the [showcase page for the theme](../showcase/showcase-daisy.html) — the same scaffolded body every theme renders, through the DaisyUI presentation layer.
+The live proof is the [showcase page for the theme](../showcase/showcase-daisy.html) and its [zero-dependency twin](../showcase/showcase-daisy-vanilla.html) — the same scaffolded body every theme renders, through the DaisyUI presentation layer and through hand-written CSS respectively.
 
 ## The catch-22, resolved on-prem
 
@@ -62,6 +62,10 @@ Refreshing the vendor is a deliberate, documented act (checksums below), the sam
 All audited pairs pass WCAG AA on the default scope: body 17.5:1, surface 17.6:1, secondary 6.5:1, accent links 5.9:1, code 17.7:1.
 
 Because every surface keys off DaisyUI's `--color-*` tokens, re-skinning is a one-attribute change (`data-theme="synthwave"`, `"night"`, `"black"`, … — all 35 shipped themes). Exposing that through `palette:` frontmatter via the v3 generic hook is a trivial follow-up if the decision gate approves the direction.
+
+## Vanilla fallback (#250) — implemented
+
+`theme-daisy-vanilla.html` is the zero-dependency twin of the prototype: its template is **byte-identical to `theme-daisy.html` except the stylesheet href** (one line), and `theme-daisy-vanilla.css` is entirely hand-written — no vendored daisyUI, no `@import`, no CDN, no build step. Rendering the same source through both themes diffs to a single line (the `<link>`). The hand-written stylesheet defines the same `--color-*` token names with the dracula hex values, hand-rolls the component classes the shared DOM carries (`.navbar`, `.btn`, `.badge`, `.card`), and passes the same a11y gate. Swap the template link and the page keeps its look with zero dependencies — the "internet thing that doesn't need the internet" counterpart to the prototype.
 
 ## Prototype status (decision gate)
 
