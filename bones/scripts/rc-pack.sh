@@ -170,7 +170,7 @@ main() {
         if [[ "$DRY_RUN" == true ]]; then
           log "DRYRUN" "No output directory to pack: $OUTPUT_DIR (skipping exit)"
         else
-          echo "❌ No output directory to pack: $OUTPUT_DIR"
+          log "ERROR" "No output directory to pack: $OUTPUT_DIR"
           exit 1
         fi
       fi

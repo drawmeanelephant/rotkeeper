@@ -129,6 +129,8 @@ fi
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 main() {
+    local start_ts end_ts duration
+    start_ts=$(date +%s)
     # Verify required tools (config serialization is yq-driven)
     require_bins bash
     require_yq_version
@@ -219,7 +221,13 @@ EOF_HELLO
         fi
     fi
 
-    log "INFO" "✅ Initialization complete."
+    end_ts=$(date +%s)
+    duration=$((end_ts - start_ts))
+    if [[ "$DRY_RUN" == true ]]; then
+      log "DRY-RUN" "Would initialize layout (sample=$WITH_SAMPLE assets=$WITH_ASSETS render=$WITH_RENDER full=$FULL) in ${duration}s"
+    else
+      log "MARKER" "✓ Initialization complete — layout + config ready (sample=$WITH_SAMPLE assets=$WITH_ASSETS render=$WITH_RENDER full=$FULL) in ${duration}s"
+    fi
 }
 
 # Only run main if executed directly
