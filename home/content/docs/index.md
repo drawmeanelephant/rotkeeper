@@ -77,6 +77,9 @@ The current workflow is deliberately small and local-first:
 - [Archive Reports](bones/archive/index.html)
 - [DIP Matrix](dip-matrix.html)
 
+### 5½. 🌐 Hosting the Generated Docs
+- [Publishing the Docs](publishing.html) — the docs are portable output; publish the bytes anywhere
+
 ### 6. 🌀 Advanced Flags & Edge Cases
 - [Rotkeeper Reference](rotkeeper-reference.html)
 - [Rotkeeper Rituals](rotkeeper-rituals.html)
