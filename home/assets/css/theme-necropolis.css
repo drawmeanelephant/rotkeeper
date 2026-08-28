@@ -7,6 +7,11 @@
    box-shadows, and unicode glyphs. No raster images were harmed in the making.
    ========================================================================== */
 
+/* Shared identity primitives (#251): dividers, lore blocks, icon set. This
+   import must precede all other rules; the --rk-* token map in :root below
+   re-skins the primitives onto the graveyard palette. */
+@import url("rk-identity.css");
+
 /* ==========================================================================
    1. CUSTOM PROPERTIES
    ========================================================================== */
@@ -93,6 +98,15 @@
   /* ── Layout ── */
   --max-width:        900px;
   --spacing:          1rem;
+
+  /* ── Identity primitives (#251): map shared --rk-* tokens ── */
+  --rk-line-color:     var(--necro-bone);
+  --rk-line-soft:      var(--necro-granite);
+  --rk-glow:           var(--necro-glow-dim);
+  --rk-glow-aura:      var(--necro-glow-aura);
+  --rk-icon-size:      1.5rem;
+  --rk-lore-color:     var(--necro-granite);
+  --rk-lore-sub-color: var(--necro-stone-light);
 }
 
 /* ==========================================================================
@@ -507,93 +521,9 @@ body {
   font-size: 1.05rem;
 }
 
-/* ==========================================================================
-   6. DECORATIVE DIVIDERS
-   ========================================================================== */
-
-/* ── Ornate divider (skull between lines) ── */
-.divider {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin: 2rem 0;
-  user-select: none;
-}
-
-.divider--ornate {
-  justify-content: center;
-}
-
-.divider__line {
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--necro-granite) 20%,
-    var(--necro-glow-dim) 50%,
-    var(--necro-granite) 80%,
-    transparent 100%
-  );
-  opacity: 0.5;
-}
-
-.divider__icon {
-  font-size: 1.5rem;
-  filter: grayscale(0.3);
-  animation: skull-glow 3s ease-in-out infinite;
-}
-
-@keyframes skull-glow {
-  0%, 100% { filter: grayscale(0.3) drop-shadow(0 0 4px transparent); }
-  50% { filter: grayscale(0) drop-shadow(0 0 8px var(--necro-glow-aura)); }
-}
-
-/* ── Bones divider (crossed bones aesthetic) ── */
-.divider--bones {
-  justify-content: center;
-  margin: 3rem 0;
-}
-
-.divider__bone {
-  flex: 1;
-  height: 3px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--necro-bone) 30%,
-    var(--necro-granite) 50%,
-    var(--necro-bone) 70%,
-    transparent 100%
-  );
-  border-radius: 2px;
-  opacity: 0.4;
-  position: relative;
-}
-
-/* Bone knob ends */
-.divider__bone::before,
-.divider__bone::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--necro-granite);
-  transform: translateY(-50%);
-  opacity: 0.5;
-}
-
-.divider__bone--left::before { left: 0; }
-.divider__bone--left::after { right: 0; }
-.divider__bone--right::before { left: 0; }
-.divider__bone--right::after { right: 0; }
-
-.divider__skull {
-  font-size: 2rem;
-  animation: skull-glow 3s ease-in-out infinite;
-}
+/* DECORATIVE DIVIDERS moved to the shared identity primitives (#251): see
+   rk-identity.css — .rk-divider--ornate / .rk-divider--bones, token-mapped
+   in :root above. The template carries the .rk-divider* markup. */
 
 /* ==========================================================================
    7. TOMBSTONE ENTRY BOXES
@@ -1179,17 +1109,8 @@ hr {
   padding: 1.5rem 0;
 }
 
-.footer-lore {
-  margin: 0 0 0.5rem 0;
-  color: var(--necro-granite);
-  font-size: 0.9rem;
-}
-
-.footer-lore--sub {
-  font-size: 0.8rem;
-  color: var(--necro-stone-light);
-  letter-spacing: 0.05em;
-}
+/* Lore blocks are the shared .rk-lore / .rk-lore--sub primitives (#251),
+   token-mapped in :root above; the 404-scoped sub-line override below. */
 
 .footer-credit {
   margin: 1rem 0 0 0;
@@ -1216,16 +1137,8 @@ hr {
   color: var(--necro-amethyst);
 }
 
-.lore-icon {
-  font-style: normal;
-  animation: candle-flicker 2s ease-in-out infinite alternate;
-}
-
-@keyframes candle-flicker {
-  0% { opacity: 0.6; filter: brightness(0.8); }
-  50% { opacity: 1; filter: brightness(1.2); }
-  100% { opacity: 0.8; filter: brightness(1); }
-}
+/* Lore icons are the shared .rk-lore-icon primitive (rk-candle-flicker in
+   rk-identity.css). */
 
 /* ==========================================================================
    10. SHARED DOCUMENTATION / BLOG TEMPLATE HOOKS
@@ -1361,7 +1274,7 @@ body[data-page-type="404"] .tombstone-entry__glyph {
 }
 
 /* Footer lore changes for404 */
-body[data-page-type="404"] .footer-lore--sub {
+body[data-page-type="404"] .rk-lore--sub {
   color: var(--necro-blood-drip);
 }
 
@@ -1458,8 +1371,8 @@ td[align="right"] {
   .necropolis-scene,
   .graveyard-scene,
   .tombstone-title__inner::before,
-  .divider__icon,
-  .divider__skull,
+  .rk-divider__icon,
+  .rk-divider__skull,
   .tombstone-entry__glyph,
   .tombstone-entry__body::before,
   .tombstone-entry__body::after,
