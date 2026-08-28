@@ -1223,6 +1223,13 @@ S7C_CFG_EOF
       echo "❌ Assertion Failed: S7 dangling default did not fall back to an available template (got '$_s7_fb')."
       exit 248
     fi
+    # Daisy/vanilla template parity (#250): the twin must differ only in the
+    # stylesheet href — a palette:/data-theme change lands identically in both.
+    if ! diff <(grep -v 'stylesheet' "$ROOT_DIR/bones/templates/theme-daisy.html") \
+              <(grep -v 'stylesheet' "$ROOT_DIR/bones/templates/theme-daisy-vanilla.html") >/dev/null 2>&1; then
+      echo "❌ Assertion Failed: S7 daisy/vanilla template DOM parity broken."
+      exit 249
+    fi
     rm -rf "$s7_cfg"
     echo "  [+] Pass: S7 theme-registry assertions ($mode)."
 

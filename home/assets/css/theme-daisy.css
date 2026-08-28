@@ -39,6 +39,34 @@
   --daisy-radius:    var(--radius-box);
 }
 
+/* Palette-driven themes: `palette:` frontmatter becomes data-theme (template
+   `$if(palette)$ data-theme="$palette$"$endif$`), and the vendored
+   daisyui-5.7.22-themes.css provides every [data-theme=…] palette. When a page
+   has no palette, no attribute is emitted — without a guard that would fall
+   back to the vendored build's bare `:root` (light) palette, so redeclare the
+   dracula defaults here for the absent/empty case. Registered theme names are
+   the 35 in vendor/daisyui-5.7.22-themes.css (synthwave, night, dim, black,
+   business, …); an unknown name falls back to the vendored base palette. */
+html:not([data-theme]),
+html[data-theme=""] {
+  color-scheme: dark;
+  --color-base-100: #050609;
+  --color-base-200: #040507;
+  --color-base-300: #030406;
+  --color-base-content: #efefe4;
+  --color-primary: #ff3190;
+  --color-primary-content: #020001;
+  --color-warning: #e0f443;
+  --color-warning-content: #020201;
+  --color-error: #ff1717;
+  --color-error-content: #020000;
+  --radius-selector: 0.5rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+  --border: 1px;
+  --depth: 1;
+}
+
 /* ============================================================================
    2. BASE
    ============================================================================ */

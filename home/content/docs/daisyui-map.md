@@ -61,7 +61,19 @@ Refreshing the vendor is a deliberate, documented act (checksums below), the sam
 
 All audited pairs pass WCAG AA on the default scope: body 17.5:1, surface 17.6:1, secondary 6.5:1, accent links 5.9:1, code 17.7:1.
 
-Because every surface keys off DaisyUI's `--color-*` tokens, re-skinning is a one-attribute change (`data-theme="synthwave"`, `"night"`, `"black"`, … — all 35 shipped themes). Exposing that through `palette:` frontmatter via the v3 generic hook is a trivial follow-up if the decision gate approves the direction.
+Because every surface keys off DaisyUI's `--color-*` tokens, re-skinning is a one-attribute change — and it is now wired to `palette:` frontmatter (the same field the terminal-forward family uses for its palette scopes). The daisy templates emit `data-theme="$palette$"` when `palette:` is present, so any of the **35 vendored theme names** is selectable per page:
+
+`light`, `dark`, `cupcake`, `bumblebee`, `emerald`, `corporate`, `synthwave`, `retro`, `cyberpunk`, `valentine`, `halloween`, `garden`, `forest`, `aqua`, `lofi`, `pastel`, `fantasy`, `wireframe`, `black`, `luxury`, `dracula`, `cmyk`, `autumn`, `business`, `acid`, `lemonade`, `night`, `coffee`, `winter`, `dim`, `nord`, `sunset`, `caramellatte`, `abyss`, `silk`
+
+```yaml
+---
+title: "Synthwave Interlude"
+template: "theme-daisy.html"
+palette: "synthwave"
+---
+```
+
+No `palette:` means the page keeps the dracula default (the `html:not([data-theme])` guard in `theme-daisy.css` redeclares dracula so an absent attribute never falls through to the vendored build's bare light base). An unknown palette name falls back to that base palette. The vanilla twin accepts the same frontmatter but ships only its hand-written dracula palette — any other value still renders dracula, since registering a palette there is a hand-written exercise.
 
 ## Vanilla fallback (#250) — implemented
 
