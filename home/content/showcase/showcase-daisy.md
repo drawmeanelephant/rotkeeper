@@ -1,8 +1,9 @@
 ---
-title: "Showcase — rotkeeper-doc"
-slug: "showcase-rotkeeper-doc"
-template: "rotkeeper-doc.html"
+title: "Showcase — daisy"
+slug: "showcase-daisy"
+template: "theme-daisy.html"
 asset_meta: "Dummy value for asset_meta"
+author: "Dummy value for author"
 tags: "Dummy value for tags"
 version: "Dummy value for version"
 ---
