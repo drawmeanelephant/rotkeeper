@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dracula">
+<!-- palette: frontmatter selects a daisyUI theme via data-theme (#252 follow-up):
+     any of the 35 vendored theme names (e.g. palette: synthwave). Absent palette
+     falls back to dracula via the html:not([data-theme]) guard in theme-daisy.css. -->
+<html lang="en"$if(palette)$ data-theme="$palette$"$endif$>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">

@@ -53,6 +53,32 @@
   --daisy-radius:    var(--radius-box);
 }
 
+/* Palette-driven themes: the twin template emits `data-theme="$palette$"` when
+   `palette:` frontmatter is present (DOM parity with theme-daisy.html). This
+   stylesheet ships one hand-written palette (dracula), so any palette value
+   still renders dracula — the guard below makes the absent/empty case explicit
+   and parallel to theme-daisy.css. Registering more palettes here is a
+   hand-written exercise, deliberately out of scope for the zero-dep twin. */
+html:not([data-theme]),
+html[data-theme=""] {
+  color-scheme: dark;
+  --color-base-100: #050609;
+  --color-base-200: #040507;
+  --color-base-300: #030406;
+  --color-base-content: #efefe4;
+  --color-primary: #ff3190;
+  --color-primary-content: #020001;
+  --color-warning: #e0f443;
+  --color-warning-content: #020201;
+  --color-error: #ff1717;
+  --color-error-content: #020000;
+  --radius-selector: 0.5rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+  --border: 1px;
+  --depth: 1;
+}
+
 /* ============================================================================
    2. BASE
    ============================================================================ */
