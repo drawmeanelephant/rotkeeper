@@ -70,6 +70,7 @@ The current workflow is deliberately small and local-first:
 - [Schemas: asset-manifest, rotkeeper.yaml, release-manifest](rotkeeper-schemas.html)
 - [Template Expectations](bones/templates/index.html)
 - [Theme Families](themes.html)
+- [Creating a Theme](creating-themes.html)
 - [DaisyUI Primitive Map](daisyui-map.html)
 - [DIP Matrix](dip-matrix.html)
 

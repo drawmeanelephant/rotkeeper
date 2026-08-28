@@ -51,6 +51,14 @@ Standard warning pattern (as used in docs):
 
 > **Note:** This is a note/warning block — check that code legibility holds inside.
 
+##### Heading 5 — Deep Levels
+
+Fifth-level heading for measure and hierarchy checks: it must keep the same legibility bar as every other level, with no unexpected size collapse on any theme.
+
+###### Heading 6 — Deepest
+
+Sixth-level heading — the bottom of the outline, included because “all levels” means all six. Same contrast, same rhythm.
+
 ## Tables — GFM with Alignment and Escapes
 
 Table tests cover the GFM pipe table surface that Oliver ships (alignment colons, escaped pipes):
