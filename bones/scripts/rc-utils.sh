@@ -206,6 +206,66 @@ rk_render_navigation() {
   printf '  </ul>\n</nav>'
 }
 
+# ---
+# rk_resolve_default_template: Resolve the per-site default template from the
+# config-driven theme registry (#252). `theme_registry` in
+# `CONFIG_DIR/rotkeeper.yaml` maps mode names → template files; the `default`
+# entry selects the site-wide theme and wins over the legacy `default_template`
+# key. Registered entries are validated at resolution (each value must exist
+# under `$TEMPLATE_DIR`, WARN on a dangling entry), and a missing or
+# unresolvable default falls back to the first available template in
+# `$TEMPLATE_DIR`. Per-page `template:` frontmatter is resolved separately by
+# the render adapter and still wins over this default.
+# Returns the resolved template file name on stdout (never empty when
+# TEMPLATE_DIR holds templates).
+# Inputs: none
+# Env: Reads CONFIG_DIR + TEMPLATE_DIR (via rk_load_env); requires yq
+# CWD: No assumption — config path via CONFIG_DIR
+# ---
+rk_resolve_default_template() {
+  local tpl_dir="${TEMPLATE_DIR:-}"
+  if [[ -z "$tpl_dir" ]]; then
+    log "WARN" "TEMPLATE_DIR unset; cannot resolve a default template"
+    return 0
+  fi
+
+  local cfg="$CONFIG_DIR/rotkeeper.yaml"
+  local tpl=""
+
+  if [[ -f "$cfg" ]]; then
+    # Validate registered entries: every theme_registry value must exist.
+    local name value
+    while IFS= read -r name; do
+      [[ -n "$name" ]] || continue
+      value=$(yq e ".theme_registry[\"$name\"] // \"\"" "$cfg" 2>/dev/null || echo "")
+      if [[ -n "$value" && ! -f "$tpl_dir/$value" ]]; then
+        log "WARN" "theme_registry entry '$name' -> '$value' missing in $tpl_dir; ignoring"
+      fi
+    done < <(yq e '.theme_registry | keys[]' "$cfg" 2>/dev/null || true)
+
+    # Registry default wins; the legacy key is the fallback.
+    tpl=$(yq e '.theme_registry.default // .default_template // ""' "$cfg" 2>/dev/null || echo "")
+  fi
+
+  if [[ -z "$tpl" || ! -f "$tpl_dir/$tpl" ]]; then
+    [[ -n "$tpl" ]] && log "WARN" "Default template '$tpl' missing in $tpl_dir; falling back to first available"
+    local choices=()
+    local f
+    while IFS= read -r f; do
+      [[ -f "$f" ]] && choices+=("$(basename "$f")")
+    done < <(find "$tpl_dir" -maxdepth 1 -name '*.html' 2>/dev/null | sort)
+    if [[ ${#choices[@]} -gt 0 ]]; then
+      tpl="${choices[0]}"
+    else
+      log "ERROR" "No templates found in $tpl_dir; cannot resolve a default"
+      tpl=""
+    fi
+  fi
+
+  log "INFO" "Resolved default template: $tpl"
+  printf '%s' "$tpl"
+}
+
 # Default help handler (can be overridden by scripts)
 # ---
 # show_help: Emit the script's canonical help block via rk_show_help, or the

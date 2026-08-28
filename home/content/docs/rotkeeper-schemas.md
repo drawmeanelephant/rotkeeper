@@ -54,10 +54,13 @@ paths:                       # optional serialized path cache (init writes it)
 | `author` | string | status, new, glue | `[not set]` / empty |
 | `version` | string | status | `[not set]` (the authoritative version is `bones/config/version`) |
 | `license` | string | status | `[not set]` |
-| `default_template` | string | render, glue, new, bootstrap | `theme-spooky-dark.html` |
+| `default_template` | string | render, glue, new, bootstrap | `theme-spooky-dark.html` (legacy key; `theme_registry.default` wins over it) |
+| `theme_registry` | map | render, glue, new, status | mode names → template files; `default` selects the site-wide theme (#252) |
 | `input_format` | string | env, render, preflight, adapter | `markdown`; valid values `markdown` \| `textile` (anything else warns and falls back to `markdown`) |
 | `layout_style` | string | env | `crypt`; valid profiles `crypt` \| `busy` \| `sterile` |
 | `paths` | map | env | derived per layout style when absent |
+
+**`theme_registry` semantics (#252):** maps mode names to template files (e.g. `daisy: "theme-daisy.html"`, `daisy-vanilla: "theme-daisy-vanilla.html"`). The `default` entry is the per-site theme and wins over the legacy `default_template` key; per-page `template:` frontmatter wins over both. `rk_resolve_default_template` (rc-utils.sh) validates every registered value exists under `bones/templates` on resolution and falls back to the first available template when the default is missing.
 
 **`paths` cache semantics:** a serialized `paths` block is validated against the active layout and repository root on load (`validate_layout_alignment` in rc-utils.sh). `init` deliberately forces an environment reload after writing it; do not hand-edit a `paths` block without re-running `init` or the alignment check will report the mismatch.
 
