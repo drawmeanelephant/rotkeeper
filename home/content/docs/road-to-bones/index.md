@@ -20,6 +20,7 @@ their exact Git commit. Where the source is silent, the ledger stays silent.
 
 ## Living Buildlog
 <!-- LIVING_BUILDLOG_START -->
+* `v0.8.0` - (2026-08-28 11:08) - Release 0.8.0: Phase 6 completion (Oliver pin 06dd640, adapter direct), theme registry + config nav, DaisyUI trio + palette switching, UX sweep 2, identity primitives, docs trio
 * `v0.7.0` - (2026-08-15 11:45) - Release 0.7.0: Oliver pinned to 6edb520c with download-first install from upstream builds release
 * `v0.6.0` - (2026-08-13 07:12) - 0.6.0 engineering pass — shell safety, hardening, hygiene
 * `v0.5.3` - (2026-08-13 00:08) - Oliver renderer swap: rc-oliver-adapter, preflight gating, hermetic GFM contract fixtures, CI matrix hardening
