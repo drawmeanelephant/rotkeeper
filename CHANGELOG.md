@@ -1,3 +1,7 @@
+## [0.8.0] - 2026-08-28
+
+- Release 0.8.0: Phase 6 completion (Oliver pin 06dd640, adapter direct), theme registry + config nav, DaisyUI trio + palette switching, UX sweep 2, identity primitives, docs trio
+
 ## [0.7.0] - 2026-08-15
 
 - Release 0.7.0: Oliver pinned to 6edb520c with download-first install from upstream builds release
