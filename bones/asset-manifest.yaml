@@ -2,6 +2,8 @@
   sha256: "118d3a662d3d091fa277e7bab2b435bd4d13f4cb50119926a7abd2d69ddc7093"
 - path: "css/theme-brutal.css"
   sha256: "b2bc2f7cdb5274eb20bae9973157978b44ce150e7d73cb166f7cdc569f2a08e0"
+- path: "css/theme-daisy-vanilla.css"
+  sha256: "96fda7e41fa500cbef20b4c1ad48ed16c8a88b72b9e1a08fcae00cac5dab5492"
 - path: "css/theme-daisy.css"
   sha256: "4b758d663dba6c89c689fb40cce7f12e5173c84760b2dbed9778e176ae7397dc"
 - path: "css/theme-dark.css"

@@ -1,8 +1,9 @@
 ---
-title: "Showcase — light"
-slug: "showcase-light"
-template: "theme-light.html"
+title: "Showcase — daisy-vanilla"
+slug: "showcase-daisy-vanilla"
+template: "theme-daisy-vanilla.html"
 asset_meta: "Dummy value for asset_meta"
+author: "Dummy value for author"
 tags: "Dummy value for tags"
 version: "Dummy value for version"
 ---
