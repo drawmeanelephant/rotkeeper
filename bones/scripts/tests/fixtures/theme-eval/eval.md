@@ -10,9 +10,10 @@ tags:
   - fixture
   - theme-eval
   - template-contract-v2
+page_type: "tomb-not-found"
 asset_meta:
   name: "eval.md"
-  version: "0.7.0"
+  version: "0.7.0-fixture"
   author: "Fixture Harness"
   project: "Rotkeeper"
   tracked: true
@@ -123,12 +124,12 @@ Horizontal rule is open — the divider primitive will be visible below if templ
 
 ## Frontmatter Contract Check
 
-This fixture exercises the template dialect from `oliver-contract.md`: the typed metadata tokens (`title`, `description`, `author`, `date`, `palette`), the v2 extended tokens (`version`, `subtitle`, `tags`, `asset_meta`), the raw `$assets_root$`/`$body$` pair, and `$if$/$endif$` gating. Rendering through `theme-kawaii.html` (subset tokens) and `theme-brutal.html` (full set) should both succeed; unknown `$tokens$$` must pass through verbatim.
+This fixture exercises the template dialect from `oliver-contract.md`: the typed metadata tokens (`title`, `description`, `author`, `date`, `palette`), the v2 extended tokens (`version`, `subtitle`, `tags`, `asset_meta`), the raw `$assets_root$`/`$body$` pair, and `$if$/$endif$` gating. Rendering through `theme-kawaii.html` (subset tokens) and `theme-brutal.html` (full set) should both succeed; unknown `$tokens$` must pass through verbatim.
 
 - `version` is adapter-injected from `bones/config/version` — footer stamps (`v$version$`) must read the current release, not frontmatter.
 - `tags` joins as `fixture, theme-eval, template-contract-v2` — themes with a `$if(tags)$` footer slot show it; others omit cleanly.
-- `asset_meta` serializes as `eval.md — 0.7.0 — Fixture Harness — Rotkeeper — All Rights Reserved` (name, version, author, project, license joined with ` — `, `tracked` never rendered).
-- The v3 generic hook (#269): any extra scalar frontmatter key is interpolatable as `$field$`; `theme-necropolis.html`'s `page_type` is the reference consumer.
+- `asset_meta` serializes as `eval.md — 0.7.0-fixture — Fixture Harness — Rotkeeper — All Rights Reserved` (name, version, author, project, license joined with ` — `, `tracked` never rendered). The `-fixture` suffix distinguishes page provenance from the engine's `v$version$` stamp by default.
+- The v3 generic hook (#269): any extra scalar frontmatter key is interpolatable as `$field$`. This fixture carries `page_type: tomb-not-found`, so rendering through `theme-necropolis.html` self-exercises the hook — expect `data-page-type="tomb-not-found"` on `<body>` (the 404 scene CSS still keys on the literal `404`, which stays owned by `home/content/404.md`).
 - Site navigation (#244) renders through the literal `<site-nav></site-nav>` placeholder, not an escaped token — themes without the slot are unaffected.
 - `$warnings$` is reserved with no adapter feed yet; it substitutes empty.
 
