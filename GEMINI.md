@@ -2,7 +2,7 @@
 
 If you are a Gemini agent (or a specialized subagent spawned by Antigravity) working within this workspace, these are your core directives for modifying or assisting with the Rotkeeper project.
 
-**Current Version:** `v0.5.0`
+**Current Version:** `v0.8.0`
 
 ## Context
 
@@ -13,18 +13,15 @@ Rotkeeper is a terminal-driven flat-file system for compiling markdown "tombs" i
 1. **Do not break the Bash Scripts**: The core of Rotkeeper is its `.sh` scripts. When editing them, always preserve the `set -euo pipefail` architecture, the `trap_err` / `cleanup` trap mechanics defined in `rc-utils.sh`, and the `main()` guard pattern.
 
 2. **Respect the Subdirectories**:
-   - `home/content/` — Strictly for user markdown input. Write `.md` files here.
-   - `home/content/messages/` — Ingested content from decentralized payloads. Don't write here directly.
+   - `home/content/` — Strictly for user markdown input. Write `.md`, `.textile`, or `.cook` files here.
+   - `home/content/messages/` — Preserved payloads and messages. Don't write here directly.
    - `home/assets/` — Static assets (CSS, images, JS). Copied to `output/assets/` during `assets`.
    - `output/` — Strictly for generated HTML. Never edit files here manually; edit source markdown or templates instead.
    - `bones/scripts/` — Where the system logic lives. All scripts source `rc-utils.sh` → `rc-env.sh`.
-   - `bones/config/` — System configuration. Don't edit `rotkeeper.yaml` directly unless needed.
+   - `bones/config/` — System configuration (`rotkeeper.yaml`, `version`, `dip-whitelist.txt`).
    - `bones/templates/` — HTML templates used during render.
    - `bones/archive/` — Pack archives (tomb tarballs).
-   - `bones/releases/` — Release distributions.
-   - `bones/ingested/` — Ingested archive vault.
    - `bones/tmp/` — Temporary staging.
-   - `messages-from-my-friends/` — Decentralized inbox for `.tar.gz` payloads to be ingested.
 
 3. **Use the Dispatcher**: Never invoke `bones/scripts/rc-*.sh` directly. Always run `./rotkeeper.sh <command>`. Use `./rotkeeper.sh help` to see available actions.
 
@@ -34,40 +31,50 @@ Rotkeeper is a terminal-driven flat-file system for compiling markdown "tombs" i
 
 | Command | Purpose |
 |---------|---------|
-| `init` | Full workspace initialization (reseed + assets + render + scan) |
-| `render` | Convert Markdown → HTML via Oliver |
+| `init` | Full workspace initialization (paths + assets + render + scan) |
+| `render` | Convert Markdown / Textile / Cooklang → HTML via Oliver |
 | `pack` | Archive output as `.tar.gz` tomb & export `source_markdown` JSON (also: `--content`, `--self`) |
-| `release` | Create `lite` and `full` distribution `.zip` files |
-| `ingest` | Unpack `.tar.gz` from `messages-from-my-friends/` into content |
+| `preflight` | Report Oliver renderer availability and compatibility |
+| `release` | Package canonical framework distribution `.zip` |
 | `scan` | Audit files against manifest |
-| `verify` | Check asset SHA256 integrity |
 | `assets` | Generate asset manifest and copy to output |
-| `index` | Build HTML index of rendered output |
-| `templates` | List available HTML templates |
-| `book` | Aggregate docs into binders (`--all`, `--scriptbook-full`, `--docbook`, etc.) |
-| `meta` | Extract frontmatter metadata from content |
-| `cleanup` | Back up and prune `bones/` (⚠️ destructive) |
-| `reseed` | Reconstruct files from archive or bound markdown |
+| `autopsy` | Catalog script help and file-write behavior into reports |
+| `glue` | Auto-generate navigation glue for unindexed content directories |
+| `links` | Audit rendered HTML links and local asset references |
+| `a11y` | Audit theme accessibility (contrast, focus states, legibility) |
+| `showcase` | Generate showcase preview pages for every HTML template |
+| `dip` | Audit documentation coverage via DIP |
+| `book` | Aggregate docs into binders (`--docbook`, `--scriptbook-full`, etc.) |
 | `status` | Display system state summary |
 | `bump` | Explicit semver bump (--major/--minor/--patch/--to) + changelog + git commit |
-| `test` | Dry-run all scripts + Bats tests |
+| `test` | Multi-layout integration test harness matrix (alias: `smoke`) |
 
 ## Available Templates
 
-Use in frontmatter as `template: <name>`:
+Use in frontmatter as `template: <name>` (or select via `theme_registry` in `rotkeeper.yaml`):
 
-- `rotkeeper-blog.html` — Blog-style layout
-- `rotkeeper-doc.html` — Documentation with navigation
-- `theme-dark.html` — Clean, flat dark theme layout
 - `theme-spooky-dark.html` — Fira Sans/Fira Code journal-terminal theme (default)
 - `theme-spooky-light.html` — Light reading variant of the Spooky theme
+- `theme-spooky-dark-xhtml.html` — Strict XHTML variant of Spooky Dark
+- `theme-dark.html` — Clean, flat dark theme layout
+- `theme-light.html` — Academic parchment light theme
+- `theme-brutal.html` — High-contrast monospaced brutalist layout
+- `theme-kawaii.html` — Pastel playful theme
+- `theme-overgrown.html` — Forest decay mossy aesthetic
+- `theme-phosphor.html` — Amber phosphor CRT terminal aesthetic
+- `theme-textpattern.html` — Classic editorial layout with site navigation
+- `theme-necropolis.html` — Dedicated 404 Tomb-Not-Found theme
+- `theme-daisy.html` — DaisyUI presentation layer prototype
+- `theme-daisy-vanilla.html` — Zero-dependency twin of DaisyUI theme
+- `rotkeeper-blog.html` — Blog-style layout
+- `rotkeeper-doc.html` — Documentation with navigation
 
-## Decentralized Content Pipeline
+## Preserving Content
 
 When generating content that should be preserved:
 1. Write `.md` files with YAML frontmatter in `home/content/`.
 2. Run `./rotkeeper.sh pack --content` to bundle into a `.tar.gz`.
-3. The archive lands in `bones/archive/` and can be copied to another repo's `messages-from-my-friends/` for ingestion via `./rotkeeper.sh ingest`.
+3. The archive lands in `bones/archive/`.
 
 ## Workflow Example: Building a New Feature
 

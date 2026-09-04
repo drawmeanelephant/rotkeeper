@@ -30,6 +30,7 @@ This folder contains the core shell scripts that run Rotkeeper's commands.
 
 <!-- ROTKEEPER-GLUE-START -->
 - [tests/](<tests/index.html>)
+- [rc-a11y](<rc-a11y.html>)
 - [rc-assets](<rc-assets.html>)
 - [rc-autopsy](<rc-autopsy.html>)
 - [rc-book](<rc-book.html>)

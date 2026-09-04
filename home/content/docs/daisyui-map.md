@@ -15,7 +15,7 @@ tags:
 
 # DaisyUI Primitive Map
 
-This is the reference table for issue #249: which DaisyUI component or token implements each Rotkeeper UI primitive. Its consumers are the [DaisyUI prototype theme](#248) (`theme-daisy.html`) and the vanilla fallback that shares the exact same DOM (#250, `theme-daisy-vanilla.html`). The map records what the prototype does today, so the fallback (and any later theme) can target the same primitives with the same markup.
+This is the reference table for issue #249: which DaisyUI component or token implements each Rotkeeper UI primitive. Its consumers are the [DaisyUI prototype theme](https://github.com/drawmeanelephant/rotkeeper/issues/248) (`theme-daisy.html`) and the vanilla fallback that shares the exact same DOM (#250, `theme-daisy-vanilla.html`). The map records what the prototype does today, so the fallback (and any later theme) can target the same primitives with the same markup.
 
 The live proof is the [showcase page for the theme](../showcase/showcase-daisy.html) and its [zero-dependency twin](../showcase/showcase-daisy-vanilla.html) — the same scaffolded body every theme renders, through the DaisyUI presentation layer and through hand-written CSS respectively.
 

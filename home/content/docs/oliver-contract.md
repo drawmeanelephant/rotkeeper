@@ -151,7 +151,7 @@ oliver wrap --template bones/templates/theme-spooky-dark.html \
 
 The extended tokens joined the dialect with the shared template contract v2 (rotkeeper #244, pin move `06dd640` → `8460f28`, oliver #126). `$version$` is not frontmatter — the adapter injects it from the canonical version source, the same single source `--version` and `@HELP` `{VERSION}` use. `$subtitle$`/`$tags$`/`$asset_meta$` are read from the source frontmatter by the adapter with `yq --front-matter extract` (see provenance below); `$warnings$` is reserved — no adapter feed exists yet, so it substitutes empty. Site **navigation** is delivered as raw HTML through a literal `<site-nav></site-nav>` placeholder (below), not an escaped token, because every non-literal `wrap` token html-escapes and a real nav is markup. The **v3 generic hook** (rotkeeper #269, pin move `8460f28` → `3f05bac`, oliver #127): the adapter merges every other scalar frontmatter key into `wrap_meta` (typed keys win the merge), so templates can reference any frontmatter field as `$field$` — `$page_type$` on the necropolis 404 theme is the first consumer. Bash keeps `TEMPLATE_DIR` boundary checks; Oliver handles interpolation when `wrap` is present.
 
-## Extended metadata provenance (v2 + v3, implemented)
+## Extended metadata provenance (v2 + v3, implemented) <a id="extended-metadata-provenance-v2-implemented"></a>
 
 The extended tokens are live since the shared template contract v2 landed (rotkeeper #244): `oliver wrap` interpolates them on pins `8460f28`/`3f05bac` (oliver #126/#127, the latter adding the v3 generic hook), and the adapter feeds them into `wrap_meta`:
 

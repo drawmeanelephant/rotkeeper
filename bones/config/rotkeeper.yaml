@@ -1,3 +1,5 @@
+project: "Rotkeeper"
+author: "draw me an elephant"
 title: "Rotkeeper Config"
 description: "Minimal valid config for rendering tests"
 default_template: "theme-spooky-dark.html"

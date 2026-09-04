@@ -31,7 +31,7 @@ Strikethrough uses a single hyphen pair: -like this-. Underline uses a plus pair
 
 h2. Links
 
-A link is "label":target. A title in parentheses after the label becomes the hover title. Parentheses in the URL itself clash with the title syntax and get eaten — keep link URLs parenthetical-free.
+A link is @"label":target@. A title in parentheses after the label becomes the hover title. Parentheses in the URL itself clash with the title syntax and get eaten — keep link URLs parenthetical-free.
 
 "Textile on Wikipedia":https://en.wikipedia.org/wiki/Textile is external. Bare URLs are links without ceremony: https://opencode.ai
 
