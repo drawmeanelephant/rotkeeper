@@ -13,7 +13,7 @@ tags:
 
 This guide walks the full Rotkeeper cycle from a cold checkout to a shipped framework zip. Every operation runs through the dispatcher: `bash rotkeeper.sh <command>` (or `./rotkeeper.sh`).
 
-The cycle is: **preflight → init → author → render → verify → archive → release**, finished by the release-day checklist in section 8 below.
+The cycle is: **preflight → init → author → render → verify → archive → release**, finished by the [release-day checklist](#8-release-day-checklist) in section 8 below.
 
 ## 1. Preflight — is the renderer ready?
 
