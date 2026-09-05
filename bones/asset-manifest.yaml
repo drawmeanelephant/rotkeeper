@@ -22,6 +22,8 @@
   sha256: "e4dfc4f8af0430b3b09e34ca879d1f76bd77903b09fdb7260bb54e674eb10182"
 - path: "css/theme-phosphor.css"
   sha256: "272575be3f92ff60b2b1506fd1d6700269ba8692ac7108e1e93d474288b7e6eb"
+- path: "css/theme-pride.css"
+  sha256: "8a6ac7d77f2db3fd70ac8b7da7b151a467f07fee5f1df002e93140d93b6e5a21"
 - path: "css/theme-spooky-dark.css"
   sha256: "371d102f4aaf8377f89e5d6c8a7791bf87ab6aa5a6de00fc9551ada07e3b4d1b"
 - path: "css/theme-spooky-light.css"

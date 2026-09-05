@@ -26,6 +26,7 @@ theme_registry:
   daisy: "theme-daisy.html"
   daisy-vanilla: "theme-daisy-vanilla.html"
   flash: "theme-flash.html"
+  pride: "theme-pride.html"
 
 # Site navigation rendered into the theme's <site-nav></site-nav>
 # placeholder (#244). Items are site-root-relative targets
