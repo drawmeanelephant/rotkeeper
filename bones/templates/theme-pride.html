@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en"$if(palette)$ class="palette-$palette$"$endif$>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>$title$</title>
+$if(description)$
+  <meta name="description" content="$description$">
+$endif$
+  <link rel="stylesheet" href="$assets_root$css/theme-pride.css">
+</head>
+<body class="pride-theme">
+  <div class="pride-scroll-indicator" aria-hidden="true"></div>
+  <div class="pride-ambient-mesh" aria-hidden="true">
+    <div class="pride-aurora"></div>
+    <div class="pride-spark-node pride-spark-node--1"></div>
+    <div class="pride-spark-node pride-spark-node--2"></div>
+    <div class="pride-spark-node pride-spark-node--3"></div>
+    <div class="pride-spark-node pride-spark-node--4"></div>
+    <div class="pride-spark-node pride-spark-node--5"></div>
+    <div class="pride-spark-node pride-spark-node--6"></div>
+  </div>
+  <div class="pride-container">
+
+    <header class="pride-header">
+      <div class="pride-topbar">
+        <div class="pride-brand">
+          <span class="pride-spark" aria-hidden="true">🌈</span>
+          <span class="pride-brand-name">ROTKEEPER</span>
+          <span class="pride-badge">PRIDE 3.8</span>
+        </div>
+        <div class="pride-nav">
+          <site-nav></site-nav>
+        </div>
+        <div class="pride-telemetry" aria-label="System telemetry">
+          <span class="telemetry-pill"><span class="pulse-dot"></span>0.0ms JOY</span>
+        </div>
+      </div>
+
+      <div class="pride-hero">
+        <h1 class="pride-title">$title$</h1>
+$if(description)$
+        <p class="pride-deck">$description$</p>
+$endif$
+        <div class="pride-meta">
+$if(date)$
+          <span class="meta-pill"><span class="meta-label">Celebrated:</span> $date$</span>
+$endif$
+$if(author)$
+          <span class="meta-pill"><span class="meta-label">Interred by:</span> $author$</span>
+$endif$
+$if(palette)$
+          <span class="meta-pill"><span class="meta-label">Palette:</span> $palette$</span>
+$endif$
+        </div>
+      </div>
+    </header>
+
+    <div class="pride-divider" aria-hidden="true">
+      <span class="pride-divider__line"></span>
+      <span class="pride-divider__glyph">🌈</span>
+      <span class="pride-divider__line"></span>
+    </div>
+
+    <main class="pride-main">
+      <article class="pride-card">
+        <div class="pride-card-inner">
+          $body$
+        </div>
+      </article>
+    </main>
+
+    <footer class="pride-footer">
+      <div class="pride-lore">
+        <p class="rk-lore">🌈 <em>What is celebrated here is never lost — living brightly in every hue.</em> 🌈</p>
+      </div>
+      <p class="footer-credit">Rendered by Rotkeeper · v$version$</p>
+$if(asset_meta)$      <p class="footer-asset-meta">$asset_meta$</p>
+$endif$$if(tags)$      <p class="footer-tags">$tags$</p>
+$endif$    </footer>
+
+  </div>
+</body>
+</html>

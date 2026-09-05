@@ -1182,6 +1182,57 @@ S6_CFG_EOF
     rm -f "$pass_dir/s6-nav-page.html" "$pass_dir/s6-nav-out.html"
     echo "  [+] Pass: S6 site-navigation assertions ($mode)."
 
+    # --- S7: Config-driven theme registry (#252) ---
+    # rk_resolve_default_template is pure Bash + yq — no Oliver binary needed.
+    # Self-contained configs keep the assertions deterministic across layouts:
+    # registry default wins over the legacy key, a legacy-only config resolves,
+    # and a dangling default falls back to a template that actually exists.
+    echo "  [+] Executing S7 theme-registry assertions ($mode)..."
+    s7_cfg="$pass_dir/bones/tmp/s7-registry-config"
+    mkdir -p "$s7_cfg"
+    cat > "$s7_cfg/rotkeeper.yaml" << 'S7_CFG_EOF'
+title: "S7 Registry Config"
+default_template: "theme-light.html"
+theme_registry:
+  default: "theme-spooky-dark.html"
+  daisy: "theme-daisy.html"
+  daisy-vanilla: "theme-daisy-vanilla.html"
+  ghost: "theme-does-not-exist.html"
+S7_CFG_EOF
+    _s7_reg=$(CONFIG_DIR="$s7_cfg" rk_resolve_default_template 2>/dev/null || true)
+    if [[ "$_s7_reg" != "theme-spooky-dark.html" ]]; then
+      echo "❌ Assertion Failed: S7 registry default did not win over default_template (got '$_s7_reg')."
+      exit 246
+    fi
+    cat > "$s7_cfg/rotkeeper.yaml" << 'S7B_CFG_EOF'
+title: "S7 Legacy Config"
+default_template: "theme-light.html"
+S7B_CFG_EOF
+    _s7_leg=$(CONFIG_DIR="$s7_cfg" rk_resolve_default_template 2>/dev/null || true)
+    if [[ "$_s7_leg" != "theme-light.html" ]]; then
+      echo "❌ Assertion Failed: S7 legacy default_template fallback failed (got '$_s7_leg')."
+      exit 247
+    fi
+    cat > "$s7_cfg/rotkeeper.yaml" << 'S7C_CFG_EOF'
+title: "S7 Dangling Config"
+theme_registry:
+  default: "theme-ghost.html"
+S7C_CFG_EOF
+    _s7_fb=$(CONFIG_DIR="$s7_cfg" rk_resolve_default_template 2>/dev/null || true)
+    if [[ -z "$_s7_fb" || ! -f "$TEMPLATE_DIR/$_s7_fb" ]]; then
+      echo "❌ Assertion Failed: S7 dangling default did not fall back to an available template (got '$_s7_fb')."
+      exit 248
+    fi
+    # Daisy/vanilla template parity (#250): the twin must differ only in the
+    # stylesheet href — a palette:/data-theme change lands identically in both.
+    if ! diff <(grep -v 'stylesheet' "$ROOT_DIR/bones/templates/theme-daisy.html") \
+              <(grep -v 'stylesheet' "$ROOT_DIR/bones/templates/theme-daisy-vanilla.html") >/dev/null 2>&1; then
+      echo "❌ Assertion Failed: S7 daisy/vanilla template DOM parity broken."
+      exit 249
+    fi
+    rm -rf "$s7_cfg"
+    echo "  [+] Pass: S7 theme-registry assertions ($mode)."
+
     # --- Real Oliver renderer smoke pass (runs only when an executable binary
     # is discoverable; hermetic fixture binaries cover the rest) ---
     REAL_OLIVER="${RK_OLIVER_BIN:-}"

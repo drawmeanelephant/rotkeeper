@@ -127,7 +127,7 @@ list_templates() {
   local td="${TEMPLATE_DIR:-$BONES_DIR/templates}"
   [[ -d "$td" ]] || td="$BONES_DIR/templates"
   local default_tmpl
-  default_tmpl=$(yq e '.default_template // "theme-spooky-dark.html"' "$CONFIG_DIR/rotkeeper.yaml" 2>/dev/null || echo "theme-spooky-dark.html")
+  default_tmpl=$(rk_resolve_default_template)
   local found=false
   for tmpl in "$td"/*.html; do
     [[ -f "$tmpl" ]] || continue
@@ -320,7 +320,7 @@ main() {
         TITLE="${TITLE%.cook}"
     fi
     if [[ -z "$TEMPLATE_OVERRIDE" ]]; then
-        TEMPLATE_OVERRIDE=$(yq e '.default_template // "theme-spooky-dark.html"' "$CONFIG_DIR/rotkeeper.yaml" 2>/dev/null || echo "theme-spooky-dark.html")
+        TEMPLATE_OVERRIDE=$(rk_resolve_default_template)
     fi
     # slugify title
     SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed -e 's/[^a-z0-9]/-/g' -e 's/-\+/-/g' -e 's/^-//' -e 's/-$//')

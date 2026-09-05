@@ -69,11 +69,17 @@ The current workflow is deliberately small and local-first:
 - [`rotkeeper.yaml`](bones/config/rotkeeper.html)
 - [Schemas: asset-manifest, rotkeeper.yaml, release-manifest](rotkeeper-schemas.html)
 - [Template Expectations](bones/templates/index.html)
+- [Theme Families](themes.html)
+- [Creating a Theme](creating-themes.html)
+- [DaisyUI Primitive Map](daisyui-map.html)
 - [DIP Matrix](dip-matrix.html)
 
 ### 5. 🪵 Logs, Echoes & Reports
 - [Archive Reports](bones/archive/index.html)
 - [DIP Matrix](dip-matrix.html)
+
+### 5½. 🌐 Hosting the Generated Docs
+- [Publishing the Docs](publishing.html) — the docs are portable output; publish the bytes anywhere
 
 ### 6. 🌀 Advanced Flags & Edge Cases
 - [Rotkeeper Reference](rotkeeper-reference.html)
@@ -113,6 +119,7 @@ Sora prompt: “A glitching wiki carved into obsidian, with glowing CLI runes et
 - [scripts/](<scripts/index.html>)
 - [.agentignore](<.agentignore.html>)
 - [.blessed](<.blessed.html>)
+- [.editorconfig](<.editorconfig.html>)
 - [.gitignore](<.gitignore.html>)
 - [.shellcheckrc](<.shellcheckrc.html>)
 - [AGENTS](<AGENTS.html>)
@@ -122,17 +129,22 @@ Sora prompt: “A glitching wiki carved into obsidian, with glowing CLI runes et
 - [GEMINI](<GEMINI.html>)
 - [README](<README.html>)
 - [architecture](<architecture.html>)
+- [creating-themes](<creating-themes.html>)
+- [daisyui-map](<daisyui-map.html>)
 - [dip-matrix](<dip-matrix.html>)
 - [new-ritual](<new-ritual.html>)
 - [oliver-contract](<oliver-contract.html>)
 - [onboarding](<onboarding.html>)
 - [patch](<patch.html>)
 - [pre-commit](<pre-commit.html>)
+- [publishing](<publishing.html>)
 - [rotkeeper-reference](<rotkeeper-reference.html>)
 - [rotkeeper-rituals](<rotkeeper-rituals.html>)
 - [rotkeeper-schemas](<rotkeeper-schemas.html>)
 - [rotkeeper](<rotkeeper.html>)
 - [textile-guide](<textile-guide.html>)
 - [textile-showcase](<textile-showcase.html>)
+- [themes](<themes.html>)
 - [workflow](<workflow.html>)
+- [xhtml-profile](<xhtml-profile.html>)
 <!-- ROTKEEPER-GLUE-END -->

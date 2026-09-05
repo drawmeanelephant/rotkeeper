@@ -2,6 +2,9 @@
 title: "Showcase — phosphor"
 slug: "showcase-phosphor"
 template: "theme-phosphor.html"
+asset_meta: "Dummy value for asset_meta"
+tags: "Dummy value for tags"
+version: "Dummy value for version"
 ---
 
 # Heading 1

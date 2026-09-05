@@ -2,7 +2,11 @@
 title: "Showcase — spooky-dark"
 slug: "showcase-spooky-dark"
 template: "theme-spooky-dark.html"
+asset_meta: "Dummy value for asset_meta"
 author: "Dummy value for author"
+description: "Programmatic description for spooky-dark"
+tags: "Dummy value for tags"
+version: "Dummy value for version"
 ---
 
 # Heading 1

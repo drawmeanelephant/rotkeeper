@@ -1,7 +1,32 @@
+project: "Rotkeeper"
+author: "draw me an elephant"
 title: "Rotkeeper Config"
 description: "Minimal valid config for rendering tests"
 default_template: "theme-spooky-dark.html"
 input_format: "markdown"
+
+# Config-driven theme registry (#252): mode names -> template files.
+# `default` selects the per-site theme and wins over the legacy
+# `default_template` key above; per-page `template:` frontmatter still wins
+# over both. rk_resolve_default_template (rc-utils.sh) validates that every
+# registered entry exists under bones/templates at load time.
+theme_registry:
+  default: "theme-spooky-dark.html"
+  spooky-dark: "theme-spooky-dark.html"
+  spooky-dark-xhtml: "theme-spooky-dark-xhtml.html"
+  spooky-light: "theme-spooky-light.html"
+  dark: "theme-dark.html"
+  light: "theme-light.html"
+  kawaii: "theme-kawaii.html"
+  overgrown: "theme-overgrown.html"
+  phosphor: "theme-phosphor.html"
+  brutal: "theme-brutal.html"
+  textpattern: "theme-textpattern.html"
+  necropolis: "theme-necropolis.html"
+  daisy: "theme-daisy.html"
+  daisy-vanilla: "theme-daisy-vanilla.html"
+  flash: "theme-flash.html"
+  pride: "theme-pride.html"
 
 # Site navigation rendered into the theme's <site-nav></site-nav>
 # placeholder (#244). Items are site-root-relative targets

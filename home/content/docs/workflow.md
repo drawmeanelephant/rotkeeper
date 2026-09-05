@@ -13,7 +13,7 @@ tags:
 
 This guide walks the full Rotkeeper cycle from a cold checkout to a shipped framework zip. Every operation runs through the dispatcher: `bash rotkeeper.sh <command>` (or `./rotkeeper.sh`).
 
-The cycle is: **preflight → init → author → render → verify → archive → release**, finished by the release-day checklist in section 8 below.
+The cycle is: **preflight → init → author → render → verify → archive → release**, finished by the [release-day checklist](#8-release-day-checklist) in section 8 below.
 
 ## 1. Preflight — is the renderer ready?
 
@@ -86,7 +86,7 @@ Archives the rendered HTML and metadata into a versioned tarball under `bones/ar
 
 `release` stages the repository against an explicit root-entry allowlist, excludes dev-only and forbidden trees (caches, logs, temp, output, credentials), generates `bones/config/release-manifest.txt` inside the archive, and fails fast on unexpected root entries, missing required files, or forbidden artifacts. The zip lands at `bones/archive/releases/rotkeeper-<VERSION>.zip`.
 
-## 8. Release-day checklist
+## 8. Release-day checklist <a id="8-release-day-checklist"></a>
 
 Run the full loop before tagging a version — a release is only real when a clean environment reproduces the advertised workflow:
 

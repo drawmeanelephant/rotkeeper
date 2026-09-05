@@ -1,3 +1,9 @@
+/* Shared identity primitives (#251): lore blocks (and the opt-in divider /
+   icon primitives) from rk-identity.css. Must precede all other rules; the
+   --rk-* token map in :root below re-skins the lore block onto the spooky
+   palette. Imported by spooky-dark, spooky-light, and the XHTML variant. */
+@import url("rk-identity.css");
+
 @font-face {
   font-family: "Fira Sans";
   src: url("../fonts/fira-sans-400.woff2") format("woff2");
@@ -56,6 +62,10 @@
   --row-alt-bg: #050505;
   --hover-bg: #111111;
   --font-mono: "Fira Code", ui-monospace, monospace;
+
+  /* Identity primitives (#251): map shared --rk-* tokens (lore block) */
+  --rk-lore-color:     var(--dim-text);
+  --rk-lore-sub-color: var(--muted-color);
 }
 
 body {

@@ -159,11 +159,13 @@ mkdir -p "$REPORT_DIR" "$LOG_DIR"
 
 # --dry-run must stay non-mutating: the per-run scan log is only opened for
 # real runs.
+start_ts=$(date +%s)
+
 if [[ "${DRY_RUN:-false}" != true ]]; then
   # SIDE EFFECT (write): opens a fresh per-run scan log under bones/logs (real runs only)
   LOG_FILE="$LOG_DIR/rc-scan-$(date +%Y%m%d_%H%M%S).log"
 
-  echo "[INFO] rc-scan started at $(date)"
+  log "INFO" "rc-scan started at $(date)"
 fi
 
 #
@@ -177,7 +179,7 @@ if [[ -f "$MANIFEST_FILE" ]]; then
   done < "$MANIFEST_FILE"
   log "INFO" "Loaded ${#manifest_list[@]} entries from $MANIFEST_FILE"
 elif [[ "${MANIFEST_ONLY:-false}" == true ]]; then
-  echo "[ERROR] Manifest file not found: $MANIFEST_FILE"; exit 2
+  log "ERROR" "Manifest file not found: $MANIFEST_FILE"; exit 2
 fi
 
 #
@@ -212,7 +214,7 @@ if [[ "${MANIFEST_ONLY:-false}" != true ]]; then
     # ritual, not the ledger), volatile dirs, and emit only regular files
     done < <(find "$dir" \( -type d -a \( -path "${dir}assets" -o -name "tmp" -o -name "logs" -o -name "archive" -o -name "reports" -o -name "book-reports" \) -prune \) -o \( -type f -print \))
   done
-  echo "[INFO] Disk scan completed"
+  log "INFO" "Disk scan completed"
 fi
 
 #
@@ -459,8 +461,15 @@ fi
 # --- Completion ---
 # Final log entry and exit.
 #
-log "INFO" "rc-scan.sh completed successfully."
-echo "[INFO] rc-scan completed at $(date)"
+end_ts=$(date +%s)
+duration=$((end_ts - start_ts))
+# JSON mode keeps fd 3 pure machine-readable output (Step 4b contract): the
+# summary goes to the log only, so the envelope stays jq-able.
+if [[ "$JSON_MODE" == true ]]; then
+  log "INFO" "Scan complete — ${#missing[@]} missing, ${#orphans[@]} orphans, ${#digest_mismatches[@]} digest mismatches in ${duration}s"
+else
+  log "MARKER" "✓ Scan complete — ${#missing[@]} missing, ${#orphans[@]} orphans, ${#digest_mismatches[@]} digest mismatches in ${duration}s"
+fi
 exit 0
 }
 

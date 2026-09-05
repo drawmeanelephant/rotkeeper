@@ -150,7 +150,8 @@ main() {
 
     # Initialize frontmatter template baseline mappings
     SAFE_TITLE="${DIR_NAME//\"/\\\"}"
-    DEFAULT_TEMPLATE=$(yq eval '.default_template // "theme-spooky-dark.html"' "$CONFIG_DIR/rotkeeper.yaml" 2>/dev/null || echo "theme-spooky-dark.html")
+    # Theme registry (#252): registry default wins over the legacy key.
+    DEFAULT_TEMPLATE=$(rk_resolve_default_template)
     SAFE_TEMPLATE="${DEFAULT_TEMPLATE//\"/\\\"}"
     DEFAULT_YAML="title: \"Index of $SAFE_TITLE\"
 template: \"$SAFE_TEMPLATE\"

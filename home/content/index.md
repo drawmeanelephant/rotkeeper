@@ -87,5 +87,6 @@ Sora prompt: "A decayed tombstone interface for Rotkeeper.com—ghostly monospac
 - [recipes/](<recipes/index.html>)
 - [rotkeeper/](<rotkeeper/index.html>)
 - [showcase/](<showcase/index.html>)
+- [404](<404.html>)
 - [my-first-page](<my-first-page.html>)
 <!-- ROTKEEPER-GLUE-END -->
