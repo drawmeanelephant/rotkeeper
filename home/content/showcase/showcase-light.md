@@ -3,6 +3,7 @@ title: "Showcase — light"
 slug: "showcase-light"
 template: "theme-light.html"
 asset_meta: "Dummy value for asset_meta"
+description: "Programmatic description for light"
 tags: "Dummy value for tags"
 version: "Dummy value for version"
 ---

@@ -4,6 +4,7 @@ slug: "showcase-spooky-dark-xhtml"
 template: "theme-spooky-dark-xhtml.html"
 asset_meta: "Dummy value for asset_meta"
 author: "Dummy value for author"
+description: "Programmatic description for spooky-dark-xhtml"
 tags: "Dummy value for tags"
 version: "Dummy value for version"
 ---

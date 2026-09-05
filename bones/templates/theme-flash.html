@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en"$if(palette)$ class="palette-$palette$"$endif$>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>$title$</title>
+$if(description)$
+  <meta name="description" content="$description$">
+$endif$
+  <link rel="stylesheet" href="$assets_root$css/theme-flash.css">
+</head>
+<body class="flash-theme">
+  <div class="flash-scroll-indicator" aria-hidden="true"></div>
+  <div class="flash-ambient-mesh" aria-hidden="true">
+    <div class="flash-aurora"></div>
+    <div class="flash-spark-node flash-spark-node--1"></div>
+    <div class="flash-spark-node flash-spark-node--2"></div>
+    <div class="flash-spark-node flash-spark-node--3"></div>
+    <div class="flash-spark-node flash-spark-node--4"></div>
+    <div class="flash-spark-node flash-spark-node--5"></div>
+  </div>
+  <div class="flash-container">
+
+    <header class="flash-header">
+      <div class="flash-topbar">
+        <div class="flash-brand">
+          <span class="flash-spark" aria-hidden="true">⚡</span>
+          <span class="flash-brand-name">ROTKEEPER</span>
+          <span class="flash-badge">FLASH 3.8</span>
+        </div>
+        <div class="flash-nav">
+          <site-nav></site-nav>
+        </div>
+        <div class="flash-telemetry" aria-label="System telemetry">
+          <span class="telemetry-pill"><span class="pulse-dot"></span>0.0ms</span>
+        </div>
+      </div>
+
+      <div class="flash-hero">
+        <h1 class="flash-title">$title$</h1>
+$if(description)$
+        <p class="flash-deck">$description$</p>
+$endif$
+        <div class="flash-meta">
+$if(date)$
+          <span class="meta-pill"><span class="meta-label">Filed:</span> $date$</span>
+$endif$
+$if(author)$
+          <span class="meta-pill"><span class="meta-label">Interred by:</span> $author$</span>
+$endif$
+$if(palette)$
+          <span class="meta-pill"><span class="meta-label">Palette:</span> $palette$</span>
+$endif$
+        </div>
+      </div>
+    </header>
+
+    <div class="flash-divider" aria-hidden="true">
+      <span class="flash-divider__line"></span>
+      <span class="flash-divider__glyph">⚡</span>
+      <span class="flash-divider__line"></span>
+    </div>
+
+    <main class="flash-main">
+      <article class="flash-card">
+        <div class="flash-card-inner">
+          $body$
+        </div>
+      </article>
+    </main>
+
+    <footer class="flash-footer">
+      <div class="flash-lore">
+        <p class="rk-lore">⚡ <em>The spark awakens what was buried — thought moves swifter than decay.</em> ⚡</p>
+      </div>
+      <p class="footer-credit">Rendered by Rotkeeper · v$version$</p>
+$if(asset_meta)$      <p class="footer-asset-meta">$asset_meta$</p>
+$endif$$if(tags)$      <p class="footer-tags">$tags$</p>
+$endif$    </footer>
+
+  </div>
+</body>
+</html>

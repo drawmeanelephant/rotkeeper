@@ -1,9 +1,10 @@
 ---
-title: "Showcase — spooky-dark"
-slug: "showcase-spooky-dark"
-template: "theme-spooky-dark.html"
+title: "Showcase — flash"
+slug: "showcase-flash"
+template: "theme-flash.html"
 asset_meta: "Dummy value for asset_meta"
 author: "Dummy value for author"
+description: "Programmatic description for flash"
 tags: "Dummy value for tags"
 version: "Dummy value for version"
 ---
