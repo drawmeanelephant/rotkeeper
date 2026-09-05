@@ -239,12 +239,25 @@ body.flash-theme {
 .flash-nav {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
 }
 
 .flash-nav nav {
   display: flex;
-  gap: 0.75rem;
+}
+
+.flash-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 0.35rem;
+}
+
+.flash-nav li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .flash-nav a {
