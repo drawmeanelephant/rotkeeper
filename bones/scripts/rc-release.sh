@@ -186,6 +186,7 @@ verify_archive_contents() {
     )
     local -a allowed_root=(
         "rotkeeper.sh"
+        "rotatui.sh"
         "bones/"
         "home/"
         "docs/"
