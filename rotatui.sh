@@ -43,6 +43,23 @@ if ! command -v gum >/dev/null 2>&1; then
   exit 1
 fi
 
+# Soft-check optional Charm stack companions (graceful degradation)
+missing_stack=()
+command -v glow >/dev/null 2>&1 || missing_stack+=("glow")
+command -v skate >/dev/null 2>&1 || missing_stack+=("skate")
+
+show_stack_notice() {
+  if [[ ${#missing_stack[@]} -gt 0 ]]; then
+    gum style --foreground "$COLOR_SLATE" --border rounded --border-foreground "$COLOR_SLATE" \
+      --padding "0 2" --width 72 \
+      "Optional Charm companions not found: ${missing_stack[*]}" \
+      "  glow  → tomb peek (render markdown in-terminal)" \
+      "  skate → memory   (remember last scaffold choices)" \
+      "Install the missing bones:  brew install ${missing_stack[*]}"
+    echo ""
+  fi
+}
+
 # Verify root dispatcher exists
 if [[ ! -f "$DISPATCHER" ]]; then
   gum style --foreground "$COLOR_CRIMSON" --border double --border-foreground "$COLOR_CRIMSON" \
@@ -88,6 +105,18 @@ drain_input() {
     while read -r -t 0.05 -n 1000 discard 2>/dev/null; do :; done
   elif [[ -r /dev/tty ]]; then
     while read -r -t 0.05 -n 1000 discard < /dev/tty 2>/dev/null; do :; done
+  fi
+}
+
+skate_get() {
+  if command -v skate >/dev/null 2>&1; then
+    skate get "$1" 2>/dev/null || true
+  fi
+}
+
+skate_set() {
+  if command -v skate >/dev/null 2>&1; then
+    skate set "$1" "$2" 2>/dev/null || true
   fi
 }
 
@@ -179,6 +208,33 @@ run_with_spin() {
 
 # --- Action Handlers ---
 
+handle_peek() {
+  show_banner
+  if ! command -v glow >/dev/null 2>&1; then
+    gum style --foreground "$COLOR_AMBER" \
+      "Tomb peek requires glow. Install it:  brew install glow"
+    pause_prompt
+    return 0
+  fi
+
+  gum style --foreground "$COLOR_GREEN" --bold "👁️  Peek At A Tomb (Glow Markdown Preview)"
+  echo ""
+
+  local tomb
+  tomb=$(gum file --cursor "☠ " \
+    --cursor.foreground "$COLOR_VIOLET" \
+    --directory.foreground "$COLOR_GREEN" \
+    --height 15 \
+    "$ROOT_DIR/home/content")
+
+  if [[ -z "$tomb" ]]; then
+    return 0
+  fi
+
+  glow -p "$tomb"
+  pause_prompt
+}
+
 handle_render() {
   show_banner
   local mode
@@ -235,13 +291,23 @@ handle_new() {
     [[ "$line" =~ \.html ]] && raw_templates+=("$(echo "$line" | awk '{print $1}')")
   done < <("$DISPATCHER" new --list 2>/dev/null || true)
   if [[ ${#raw_templates[@]} -eq 0 ]]; then
-    raw_templates=("theme-spooky-dark.html" "theme-spooky-light.html" "theme-dark.html" "theme-light.html" "rotkeeper-blog.html" "rotkeeper-doc.html")
+    while IFS= read -r tpl; do
+      raw_templates+=("$(basename "$tpl")")
+    done < <(find "$ROOT_DIR/bones/templates" -maxdepth 1 -name '*.html' 2>/dev/null | sort || true)
+  fi
+  if [[ ${#raw_templates[@]} -eq 0 ]]; then
+    gum style --foreground "$COLOR_CRIMSON" "No theme templates found under bones/templates/."
+    pause_prompt
+    return 0
   fi
 
   local template
-  template=$(gum choose --header "Select HTML Theme Template:" \
-    --cursor.foreground "$COLOR_VIOLET" \
-    --header.foreground "$COLOR_GREEN" \
+  template=$(gum filter --placeholder "Filter theme templates..." \
+    --prompt "> " \
+    --prompt.foreground "$COLOR_VIOLET" \
+    --indicator.foreground "$COLOR_VIOLET" \
+    --match.foreground "$COLOR_GREEN" \
+    --height 10 \
     "${raw_templates[@]}")
 
   # 4. Target Directory
@@ -256,9 +322,12 @@ handle_new() {
     "custom...")
 
   local subdir_arg=""
+  local last_subdir
+  last_subdir=$(skate_get "rotatui/last_subdir")
   if [[ "$target_dir" == "custom..." ]]; then
     local custom_dir
     custom_dir=$(gum input --placeholder "e.g. lore/whispers" \
+      --value "$last_subdir" \
       --prompt.foreground "$COLOR_VIOLET" \
       --prompt "Subdirectory > ")
     [[ -n "$custom_dir" ]] && subdir_arg="$custom_dir"
@@ -307,7 +376,10 @@ handle_new() {
 
   echo ""
   if gum confirm --prompt.foreground "$COLOR_GREEN" "Create new tomb '$slug'?"; then
-    run_with_spin "Engraving tomb into home/content/..." "${cmd[@]}"
+    if run_with_spin "Engraving tomb into home/content/..." "${cmd[@]}"; then
+      [[ -n "$subdir_arg" ]] && skate_set "rotatui/last_subdir" "$subdir_arg"
+      skate_set "rotatui/last_slug" "$slug"
+    fi
   else
     gum style --foreground "$COLOR_AMBER" "Scaffold aborted."
   fi
@@ -770,15 +842,18 @@ handle_test() {
 # --- Main Event Loop ---
 
 main_menu() {
+  show_stack_notice
   while true; do
     show_banner
 
     local choice
-    choice=$(gum choose --header "Select a Ritual or System Audit:" \
-      --cursor.foreground "$COLOR_VIOLET" \
-      --header.foreground "$COLOR_GREEN" \
-      --item.foreground "$COLOR_WHITE" \
-      --selected.foreground "$COLOR_VIOLET" \
+    choice=$(gum filter --placeholder "Type to filter rituals..." \
+      --prompt "> " \
+      --prompt.foreground "$COLOR_VIOLET" \
+      --indicator.foreground "$COLOR_VIOLET" \
+      --match.foreground "$COLOR_GREEN" \
+      --height 20 \
+      "👁️  Peek At A Tomb    (Glow markdown preview from home/content)" \
       "🔨  Render Site         (Compile markdown into HTML tombs)" \
       "📝  New Tomb            (Interactive tomb scaffold wizard)" \
       "📦  Pack Archive        (Archive rendered output or source into .tar.gz)" \
@@ -796,9 +871,10 @@ main_menu() {
       "🏷️   Version Bump        (Update semver version: patch/minor/major)" \
       "📦  Release Package     (Package canonical framework distribution zip)" \
       "🧪  Test Suite          (Run integration test matrix: dry-run or full)" \
-      "🚪  Exit                (Leave the necropolis)")
+      "🚪  Exit                (Leave the necropolis)") || true
 
     case "$choice" in
+      "👁️  Peek At A Tomb"*) handle_peek ;;
       "🔨  Render Site"*) handle_render ;;
       "📝  New Tomb"*) handle_new ;;
       "📦  Pack Archive"*) handle_pack ;;
