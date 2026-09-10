@@ -156,33 +156,6 @@ drain_input() {
   fi
 }
 
-# Short-lived Bubble Tea programs (notably `gum spin`) probe terminal capabilities
-# and can leave the reply in flight after they exit; once echo is restored the tty
-# prints it as junk like ^[[?1u (bubbletea #1627/#1749). Turn echo off briefly and
-# drain so those late replies are swallowed.
-settle_terminal() {
-  local tty_dev="/dev/tty"
-  if [[ ! -r "$tty_dev" ]]; then
-    if [[ -t 0 ]]; then
-      tty_dev="/dev/stdin"
-    else
-      return 0
-    fi
-  fi
-
-  local saved
-  saved=$( { stty -g < "$tty_dev"; } 2>/dev/null ) || return 0
-
-  (
-    trap 'stty "$saved" < "$tty_dev" 2>/dev/null || true' EXIT
-    trap 'stty "$saved" < "$tty_dev" 2>/dev/null || true; exit 130' INT TERM
-    stty -echo < "$tty_dev" 2>/dev/null || exit 0
-    sleep 0.15
-    local discard
-    while read -r -t 0.05 -n 1000 discard < "$tty_dev" 2>/dev/null; do :; done
-  )
-}
-
 skate_get() {
   if command -v skate >/dev/null 2>&1; then
     skate get "$1" 2>/dev/null || true
@@ -224,22 +197,48 @@ spooky_spin() {
   esac
   spinner="${RK_SPINNER:-$spinner}"
 
-  # gum spin owns the cursor and the animation; the command's output is captured
-  # to the log through an exported path so it does not fight the spinner.
-  export RK_SPIN_LOG="$log_tmp"
+  # gum 2.0 (Bubble Tea v2) probes terminal capabilities on startup; on some
+  # terminals the replies land while echo is still on and get printed as junk
+  # (^[[?2026;2$y, ^[[?2027;4$y, ^[[?1u). Hold echo off for the whole spin and
+  # drain late replies before restoring the tty (bubbletea #1627/#1749).
+  local tty_dev="/dev/tty"
+  local saved=""
+  saved=$( { stty -g < "$tty_dev"; } 2>/dev/null ) || saved=""
+
   local exit_code=0
-  # shellcheck disable=SC2016  # $@/$RK_SPIN_LOG must expand inside the child bash
-  gum spin \
-    --spinner "$spinner" \
-    --spinner.foreground "$COLOR_VIOLET" \
-    --title.foreground "$COLOR_WHITE" \
-    --title "$title" \
-    --align left \
-    --padding "0 0" \
-    -- bash -c '"$@" > "$RK_SPIN_LOG" 2>&1' _ "$@" || exit_code=$?
+  export RK_SPIN_LOG="$log_tmp"
+  # shellcheck disable=SC2016  # $@/$RK_SPIN_LOG expand inside the child bash
+  local -a spin_cmd=(
+    gum spin
+    --spinner "$spinner"
+    --spinner.foreground "$COLOR_VIOLET"
+    --title.foreground "$COLOR_WHITE"
+    --title "$title"
+    --align left
+    --padding "0 0"
+    --
+    bash -c '"$@" > "$RK_SPIN_LOG" 2>&1' _
+    "$@"
+  )
+
+  if [[ -n "$saved" ]]; then
+    (
+      trap 'stty "$saved" < "$tty_dev" 2>/dev/null || true' EXIT
+      trap 'stty "$saved" < "$tty_dev" 2>/dev/null || true; exit 130' INT TERM
+      stty -echo < "$tty_dev" 2>/dev/null || exit 0
+      "${spin_cmd[@]}" || ec=$?
+      sleep 0.15
+      local discard
+      while read -r -t 0.05 -n 1000 discard < "$tty_dev" 2>/dev/null; do :; done
+      exit "${ec:-0}"
+    )
+    exit_code=$?
+  else
+    # No controlling tty (tests/CI): run the spin without terminal handling.
+    "${spin_cmd[@]}" || exit_code=$?
+  fi
   unset RK_SPIN_LOG
 
-  settle_terminal
   return "$exit_code"
 }
 
