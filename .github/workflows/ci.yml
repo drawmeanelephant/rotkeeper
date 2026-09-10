@@ -96,6 +96,8 @@ jobs:
         run: |
           echo "Running ShellCheck on dispatcher..."
           shellcheck rotkeeper.sh
+          echo "Running ShellCheck on Rotatui companion..."
+          shellcheck rotatui.sh
           echo "Running ShellCheck on all ritual scripts..."
           find bones/scripts -name "rc-*.sh" -exec shellcheck {} +
 

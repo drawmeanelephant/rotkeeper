@@ -27,6 +27,11 @@ COLOR_SLATE="242"
 COLOR_WHITE="254"
 COLOR_CRIMSON="196"
 
+# Framing — every panel shares one double-ruled necropolis border
+BORDER="double"
+PANEL_WIDTH=72
+RITUAL_STATUS=0
+
 # Check for gum dependency
 if ! command -v gum >/dev/null 2>&1; then
   printf '\033[1;35m'
@@ -49,15 +54,20 @@ command -v glow >/dev/null 2>&1 || missing_stack+=("glow")
 command -v skate >/dev/null 2>&1 || missing_stack+=("skate")
 
 show_stack_notice() {
-  if [[ ${#missing_stack[@]} -gt 0 ]]; then
-    gum style --foreground "$COLOR_SLATE" --border rounded --border-foreground "$COLOR_SLATE" \
-      --padding "0 2" --width 72 \
-      "Optional Charm companions not found: ${missing_stack[*]}" \
-      "  glow  → tomb peek (render markdown in-terminal)" \
-      "  skate → memory   (remember last scaffold choices)" \
-      "Install the missing bones:  brew install ${missing_stack[*]}"
-    echo ""
-  fi
+  [[ ${#missing_stack[@]} -eq 0 ]] && return 0
+  gum log --level warn --prefix "rotatui" \
+    --level.foreground "$COLOR_AMBER" --prefix.foreground "$COLOR_VIOLET" \
+    --message.foreground "$COLOR_WHITE" \
+    "Optional Charm companions not found: ${missing_stack[*]}"
+  gum log --level info --prefix "rotatui" \
+    --level.foreground "$COLOR_SLATE" --prefix.foreground "$COLOR_VIOLET" \
+    --message.foreground "$COLOR_SLATE" \
+    "glow → tomb peek (falls back to gum format)   skate → remember last scaffold choices"
+  gum log --level info --prefix "rotatui" \
+    --level.foreground "$COLOR_SLATE" --prefix.foreground "$COLOR_VIOLET" \
+    --message.foreground "$COLOR_SLATE" \
+    "Install the missing bones:  brew install ${missing_stack[*]}"
+  echo ""
 }
 
 # Verify root dispatcher exists
@@ -76,16 +86,53 @@ trap 'cleanup_tui; echo ""; exit 0' INT TERM
 
 # --- UI Helpers ---
 
+# Double-ruled panel with a colored border; an optional numeric width follows <color>,
+# then any extra gum style flags.
+panel() {
+  local color="$1"
+  shift
+  local width="$PANEL_WIDTH"
+  if [[ "${1:-}" =~ ^[0-9]+$ ]]; then
+    width="$1"
+    shift
+  fi
+  gum style \
+    --border "$BORDER" \
+    --border-foreground "$color" \
+    --padding "0 2" \
+    --margin "0 1" \
+    --width "$width" \
+    "$@"
+}
+
+# Centered double-ruled section header shown at the top of every ritual screen.
+section_header() {
+  gum style \
+    --border "$BORDER" \
+    --border-foreground "$COLOR_VIOLET" \
+    --foreground "$COLOR_GREEN" \
+    --bold \
+    --align center \
+    --padding "0 2" \
+    --margin "0 1" \
+    --width "$PANEL_WIDTH" \
+    "$1"
+}
+
+# Map a Rotkeeper template name to a shared glow + gum-format (glamour) style.
+theme_style_for() {
+  case "$1" in
+    *light*) echo "light" ;;
+    *pride*|*kawaii*|*flash*|*daisy*) echo "pink" ;;
+    *spooky*|*necropolis*|*dark*|*brutal*|*phosphor*|*overgrown*) echo "dracula" ;;
+    *) echo "dark" ;;
+  esac
+}
+
 show_banner() {
   clear 2>/dev/null || true
-  gum style \
-    --border double \
-    --border-foreground "$COLOR_VIOLET" \
-    --foreground "$COLOR_WHITE" \
+  panel "$COLOR_VIOLET" \
     --align center \
-    --width 72 \
-    --margin "0 0" \
-    --padding "0 2" \
     "💀  R O T A T U I  💀" \
     "Static Necropolis & Content Terminal"
 
@@ -94,7 +141,8 @@ show_banner() {
   gum style \
     --foreground "$COLOR_SLATE" \
     --align center \
-    --width 72 \
+    --width "$PANEL_WIDTH" \
+    --margin "0 1" \
     "⚰️  $pulse"
   echo ""
 }
@@ -138,41 +186,59 @@ spooky_spin() {
   local log_tmp="$1"
   shift
 
-  "$@" > "$log_tmp" 2>&1 &
-  local pid=$!
+  # Pick a spinner that fits the ritual; RK_SPINNER overrides.
+  local spinner="moon"
+  case "$title" in
+    *"test matrix"*|*assertions*) spinner="meter" ;;
+    *"Binding retrieval"*|*"bound report"*) spinner="ellipsis" ;;
+    *Initializ*|*initializ*|*Scaffolding*) spinner="globe" ;;
+    *asset*|*Asset*) spinner="pulse" ;;
+    *autopsy*|*Autopsy*) spinner="monkey" ;;
+  esac
+  spinner="${RK_SPINNER:-$spinner}"
 
-  spin_trap() {
-    kill -TERM "$pid" 2>/dev/null || true
-    wait "$pid" 2>/dev/null || true
-    printf '\r\033[K\033[?25h'
-    exit 130
-  }
-  trap spin_trap INT TERM
+  # gum 2.0 (Bubble Tea v2) probes terminal capabilities on startup; on some
+  # terminals the replies land while echo is still on and get printed as junk
+  # (^[[?2026;2$y, ^[[?2027;4$y, ^[[?1u). Hold echo off for the whole spin and
+  # drain late replies before restoring the tty (bubbletea #1627/#1749).
+  local tty_dev="/dev/tty"
+  local saved=""
+  saved=$( { stty -g < "$tty_dev"; } 2>/dev/null ) || saved=""
 
-  local -a frames=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏")
-  local i=0
+  local exit_code=0
+  export RK_SPIN_LOG="$log_tmp"
+  # shellcheck disable=SC2016  # $@/$RK_SPIN_LOG expand inside the child bash
+  local -a spin_cmd=(
+    gum spin
+    --spinner "$spinner"
+    --spinner.foreground "$COLOR_VIOLET"
+    --title.foreground "$COLOR_WHITE"
+    --title "$title"
+    --align left
+    --padding "0 0"
+    --
+    bash -c '"$@" > "$RK_SPIN_LOG" 2>&1' _
+    "$@"
+  )
 
-  # Hide cursor
-  printf '\033[?25l'
+  if [[ -n "$saved" ]]; then
+    (
+      trap 'stty "$saved" < "$tty_dev" 2>/dev/null || true' EXIT
+      trap 'stty "$saved" < "$tty_dev" 2>/dev/null || true; exit 130' INT TERM
+      stty -echo < "$tty_dev" 2>/dev/null || exit 0
+      "${spin_cmd[@]}" || ec=$?
+      sleep 0.15
+      local discard
+      while read -r -t 0.05 -n 1000 discard < "$tty_dev" 2>/dev/null; do :; done
+      exit "${ec:-0}"
+    )
+    exit_code=$?
+  else
+    # No controlling tty (tests/CI): run the spin without terminal handling.
+    "${spin_cmd[@]}" || exit_code=$?
+  fi
+  unset RK_SPIN_LOG
 
-  while kill -0 "$pid" 2>/dev/null; do
-    local frame="${frames[$((i % ${#frames[@]}))]}"
-    printf '\r\033[38;5;%sm%s\033[0m \033[38;5;%sm%s\033[0m\033[K' "$COLOR_VIOLET" "$frame" "$COLOR_WHITE" "$title"
-    i=$((i + 1))
-    sleep 0.08
-  done
-
-  set +e
-  wait "$pid" 2>/dev/null
-  local exit_code=$?
-  set -e
-
-  trap cleanup_tui EXIT
-  trap 'cleanup_tui; echo ""; exit 0' INT TERM
-
-  # Clear line and restore cursor
-  printf '\r\033[K\033[?25h'
-  drain_input
   return "$exit_code"
 }
 
@@ -182,61 +248,71 @@ run_with_spin() {
   local log_tmp
   log_tmp=$(mktemp)
 
-  spooky_spin "$title" "$log_tmp" "$@"
-  local exit_code=$?
+  local exit_code=0
+  spooky_spin "$title" "$log_tmp" "$@" || exit_code=$?
+  RITUAL_STATUS=$exit_code
 
   if [[ $exit_code -eq 0 ]]; then
-    gum style --foreground "$COLOR_GREEN" --border rounded --border-foreground "$COLOR_GREEN" --padding "0 2" \
-      "✓ RITUAL COMPLETE"
+    panel "$COLOR_GREEN" --foreground "$COLOR_GREEN" "✓ RITUAL COMPLETE"
     if [[ -s "$log_tmp" ]]; then
       echo ""
       tail -n 12 "$log_tmp"
     fi
   else
-    gum style --foreground "$COLOR_CRIMSON" --border rounded --border-foreground "$COLOR_CRIMSON" --padding "0 2" \
-      "❌ RITUAL FAILED (exit code: $exit_code)"
+    panel "$COLOR_CRIMSON" --foreground "$COLOR_CRIMSON" "❌ RITUAL FAILED (exit code: $exit_code)"
     echo ""
     tail -n 15 "$log_tmp"
-    if gum confirm --prompt.foreground "$COLOR_AMBER" "Inspect complete log in pager?"; then
+    if gum confirm --prompt.foreground "$COLOR_AMBER" --affirmative "Inspect" --negative "Dismiss" \
+      "Open complete log in pager?"; then
       gum pager < "$log_tmp"
     fi
   fi
 
   rm -f "$log_tmp"
-  return $exit_code
+  return 0
 }
 
 # --- Action Handlers ---
 
 handle_peek() {
   show_banner
-  if ! command -v glow >/dev/null 2>&1; then
-    gum style --foreground "$COLOR_AMBER" \
-      "Tomb peek requires glow. Install it:  brew install glow"
-    pause_prompt
-    return 0
-  fi
-
-  gum style --foreground "$COLOR_GREEN" --bold "👁️  Peek At A Tomb (Glow Markdown Preview)"
-  echo ""
+  section_header "👁️  Peek At A Tomb"
 
   local tomb
-  tomb=$(gum file --cursor "☠ " \
+  tomb=$(gum file --file --cursor "☠ " \
+    --header "Select a markdown tomb" \
     --cursor.foreground "$COLOR_VIOLET" \
     --directory.foreground "$COLOR_GREEN" \
+    --file.foreground "$COLOR_WHITE" \
     --height 15 \
-    "$ROOT_DIR/home/content")
+    "$ROOT_DIR/home/content" || true)
 
   if [[ -z "$tomb" ]]; then
     return 0
   fi
 
-  glow -p "$tomb"
+  # Match the preview style to the tomb's template (frontmatter wins, then config).
+  local tpl style
+  tpl=$(sed -n '1,20p' "$tomb" | grep -m1 '^template:' | sed -E 's/^template:[[:space:]]*//' | tr -d '"' || true)
+  if [[ -z "$tpl" ]]; then
+    tpl=$(sed -n 's/^default_template:[[:space:]]*//p' "$ROOT_DIR/bones/config/rotkeeper.yaml" | head -n1 | tr -d '"')
+  fi
+  style=$(theme_style_for "$tpl")
+
+  echo ""
+  if command -v glow >/dev/null 2>&1; then
+    glow -p -s "$style" "$tomb"
+  else
+    # Graceful degradation: gum (glamour) renders markdown when glow is absent.
+    gum format --type markdown --theme "$style" < "$tomb" | gum pager
+  fi
   pause_prompt
 }
 
 handle_render() {
   show_banner
+  section_header "🔨  Render Site"
+
   local mode
   mode=$(gum choose --header "Select Render Mode:" \
     --cursor.foreground "$COLOR_VIOLET" \
@@ -244,7 +320,7 @@ handle_render() {
     "⚡ Standard Render         (Compile all content to output/)" \
     "🔍 Dry-Run Preview        (Preview render actions without writing)" \
     "📜 Verbose Render         (Detailed execution telemetry)" \
-    "🔙 Return to Main Menu")
+    "🔙 Return to Main Menu" || true)
 
   case "$mode" in
     "⚡ Standard Render"*)
@@ -263,17 +339,18 @@ handle_render() {
 
 handle_new() {
   show_banner
-  gum style --foreground "$COLOR_GREEN" --bold "📝 Scaffold New Tomb (Document Wizard)"
-  echo ""
+  section_header "📝 Scaffold New Tomb"
 
   # 1. Slug
   local slug
   slug=$(gum input --placeholder "tomb-filename-or-slug (e.g. cemetery-dispatch)" \
     --prompt.foreground "$COLOR_VIOLET" \
     --prompt "Slug / Filename > " \
-    --width 60)
+    --char-limit 80 \
+    --width 60 || true)
   if [[ -z "$slug" ]]; then
-    gum style --foreground "$COLOR_AMBER" "Scaffold cancelled: slug cannot be empty."
+    gum log --level warn --prefix "rotatui" --level.foreground "$COLOR_AMBER" \
+      "Scaffold cancelled: slug cannot be empty."
     pause_prompt
     return 0
   fi
@@ -283,12 +360,13 @@ handle_new() {
   title=$(gum input --placeholder "Document Title (Leave blank to auto-derive from slug)" \
     --prompt.foreground "$COLOR_VIOLET" \
     --prompt "Title > " \
-    --width 60)
+    --char-limit 120 \
+    --width 60 || true)
 
   # 3. Template
   local raw_templates=()
   while IFS= read -r line; do
-    [[ "$line" =~ \.html ]] && raw_templates+=("$(echo "$line" | awk '{print $1}')")
+    [[ "$line" =~ \.html ]] && raw_templates+=("${line%% *}")
   done < <("$DISPATCHER" new --list 2>/dev/null || true)
   if [[ ${#raw_templates[@]} -eq 0 ]]; then
     while IFS= read -r tpl; do
@@ -296,7 +374,8 @@ handle_new() {
     done < <(find "$ROOT_DIR/bones/templates" -maxdepth 1 -name '*.html' 2>/dev/null | sort || true)
   fi
   if [[ ${#raw_templates[@]} -eq 0 ]]; then
-    gum style --foreground "$COLOR_CRIMSON" "No theme templates found under bones/templates/."
+    gum log --level error --prefix "rotatui" --level.foreground "$COLOR_CRIMSON" \
+      "No theme templates found under bones/templates/."
     pause_prompt
     return 0
   fi
@@ -307,8 +386,10 @@ handle_new() {
     --prompt.foreground "$COLOR_VIOLET" \
     --indicator.foreground "$COLOR_VIOLET" \
     --match.foreground "$COLOR_GREEN" \
+    --select-if-one \
+    --fuzzy \
     --height 10 \
-    "${raw_templates[@]}")
+    "${raw_templates[@]}" || true)
 
   # 4. Target Directory
   local target_dir
@@ -319,7 +400,7 @@ handle_new() {
     "docs" \
     "recipes" \
     "journal" \
-    "custom...")
+    "custom..." || true)
 
   local subdir_arg=""
   local last_subdir
@@ -329,9 +410,9 @@ handle_new() {
     custom_dir=$(gum input --placeholder "e.g. lore/whispers" \
       --value "$last_subdir" \
       --prompt.foreground "$COLOR_VIOLET" \
-      --prompt "Subdirectory > ")
+      --prompt "Subdirectory > " || true)
     [[ -n "$custom_dir" ]] && subdir_arg="$custom_dir"
-  elif [[ "$target_dir" != "root (home/content)" ]]; then
+  elif [[ -n "$target_dir" && "$target_dir" != "root (home/content)" ]]; then
     subdir_arg="$target_dir"
   fi
 
@@ -340,18 +421,21 @@ handle_new() {
   tags=$(gum input --placeholder "e.g. necropolis, occult, dispatch" \
     --prompt.foreground "$COLOR_VIOLET" \
     --prompt "Tags (comma-separated) > " \
-    --width 60)
+    --char-limit 200 \
+    --width 60 || true)
 
   # 6. Description
   local desc
   desc=$(gum input --placeholder "Brief frontmatter description / abstract" \
     --prompt.foreground "$COLOR_VIOLET" \
     --prompt "Description > " \
-    --width 60)
+    --char-limit 200 \
+    --width 60 || true)
 
   # 7. Soul Sidecar
-  local soul_flag=()
-  if gum confirm --prompt.foreground "$COLOR_AMBER" "Scaffold companion .soul.md sidecar metadata?"; then
+  local -a soul_flag=()
+  if gum confirm --prompt.foreground "$COLOR_AMBER" --affirmative "Add sidecar" --negative "Skip" \
+    "Scaffold companion .soul.md sidecar metadata?"; then
     soul_flag=("--soul")
   fi
 
@@ -362,7 +446,7 @@ handle_new() {
   body=$(gum write --placeholder "Markdown body content begins here..." \
     --prompt.foreground "$COLOR_VIOLET" \
     --width 72 \
-    --height 6)
+    --height 6 || true)
 
   # Build command
   local -a cmd=("$DISPATCHER" "new" "$slug")
@@ -375,19 +459,23 @@ handle_new() {
   [[ ${#soul_flag[@]} -gt 0 ]] && cmd+=("${soul_flag[@]}")
 
   echo ""
-  if gum confirm --prompt.foreground "$COLOR_GREEN" "Create new tomb '$slug'?"; then
-    if run_with_spin "Engraving tomb into home/content/..." "${cmd[@]}"; then
+  if gum confirm --prompt.foreground "$COLOR_GREEN" --affirmative "Engrave" --negative "Abort" \
+    "Create new tomb '$slug'?"; then
+    run_with_spin "Engraving tomb into home/content/..." "${cmd[@]}"
+    if [[ $RITUAL_STATUS -eq 0 ]]; then
       [[ -n "$subdir_arg" ]] && skate_set "rotatui/last_subdir" "$subdir_arg"
       skate_set "rotatui/last_slug" "$slug"
     fi
   else
-    gum style --foreground "$COLOR_AMBER" "Scaffold aborted."
+    gum log --level warn --prefix "rotatui" --level.foreground "$COLOR_AMBER" "Scaffold aborted."
   fi
   pause_prompt
 }
 
 handle_pack() {
   show_banner
+  section_header "📦  Pack Archive"
+
   local mode
   mode=$(gum choose --header "Select Pack Archive Target:" \
     --cursor.foreground "$COLOR_VIOLET" \
@@ -396,7 +484,7 @@ handle_pack() {
     "📜 Source Content Only    (--content: archive markdown/textile/cook source)" \
     "🏰 Full System Bundle     (--self: archive complete Rotkeeper framework)" \
     "🔍 Dry-Run Preview        (--dry-run: simulate archive packaging)" \
-    "🔙 Return to Main Menu")
+    "🔙 Return to Main Menu" || true)
 
   case "$mode" in
     "⚰️  Output Tomb Archive"*)
@@ -418,15 +506,14 @@ handle_pack() {
 
 handle_status() {
   show_banner
-  gum style --foreground "$COLOR_GREEN" --bold "📊 Necropolis State & Health Dashboard"
-  echo ""
+  section_header "📊  Necropolis State & Health"
 
   # Fetch JSON status
   local json_raw
   json_raw=$("$DISPATCHER" status --json 2>/dev/null || true)
 
   if [[ -n "$json_raw" ]] && command -v jq >/dev/null 2>&1; then
-    local version branch commit total_md total_textile total_cook html_fresh
+    local version branch commit total_md total_textile total_cook html_fresh html_status
     version=$(echo "$json_raw" | jq -r '.environment.canonical_version // "unknown"')
     branch=$(echo "$json_raw" | jq -r '.environment.branch // "unknown"')
     commit=$(echo "$json_raw" | jq -r '.environment.commit // "unknown"')
@@ -434,11 +521,27 @@ handle_status() {
     total_textile=$(echo "$json_raw" | jq -r '.content_pulse.total_textile // 0')
     total_cook=$(echo "$json_raw" | jq -r '.content_pulse.total_cook // 0')
     html_fresh=$(echo "$json_raw" | jq -r '.render_freshness.message // "unknown"')
+    html_status=$(echo "$json_raw" | jq -r '.render_freshness.status // "unknown"')
 
-    gum style --border rounded --border-foreground "$COLOR_VIOLET" --padding "0 2" --width 70 \
-      "Environment : v$version ($branch @ $commit)" \
-      "Pulse       : $total_md markdown • $total_textile textile • $total_cook cook" \
-      "Freshness   : $html_fresh"
+    # Two double-ruled cards, joined side by side (Lip Gloss under the hood).
+    local left right fresh_color fresh_line
+    left=$(panel "$COLOR_VIOLET" 32 \
+      "Environment" \
+      "v$version" \
+      "$branch @ $commit")
+    right=$(panel "$COLOR_GREEN" 32 \
+      "Content Pulse" \
+      "$total_md markdown" \
+      "$total_textile textile · $total_cook cook")
+    gum join --horizontal "$left" "$right"
+
+    fresh_color="$COLOR_GREEN"
+    [[ "$html_status" != "ok" && "$html_status" != "fresh" ]] && fresh_color="$COLOR_AMBER"
+    # Interpolated into the template, so strip template-breaking characters first.
+    fresh_line="${html_fresh//\\/}"
+    fresh_line="${fresh_line//\"/}"
+    gum format --type template \
+      "{{ Bold \"Freshness\" }} {{ Color \"$fresh_color\" \"$fresh_line\" }}"
   else
     "$DISPATCHER" status --short
   fi
@@ -450,7 +553,7 @@ handle_status() {
     --header.foreground "$COLOR_GREEN" \
     "📜 View Full Formatted Status Report in Pager" \
     "🩺 Inspect Script Health Table" \
-    "🔙 Return to Main Menu")
+    "🔙 Return to Main Menu" || true)
 
   case "$sub_action" in
     "📜 View Full Formatted Status Report"*)
@@ -458,14 +561,28 @@ handle_status() {
       ;;
     "🩺 Inspect Script Health Table"*)
       if [[ -n "$json_raw" ]] && command -v jq >/dev/null 2>&1; then
-        local table_data="Script,Version,Status\n"
-        while IFS= read -r row; do
-          table_data+="$row\n"
-        done < <(echo "$json_raw" | jq -r '.script_health.scripts[] | "\(.script),\(.version),\(if .matches_canonical then "MATCH" else "DRIFT" end)"')
-        printf '%b' "$table_data" | gum table --print --border rounded --border.foreground "$COLOR_VIOLET" --header.foreground "$COLOR_GREEN"
+        # Interactive: pick a script to open its doc page (or source) in the pager.
+        local rows selected doc src
+        rows=$(echo "$json_raw" | jq -r '.script_health.scripts[] | "\(.script),\(.version),\(if .matches_canonical then "MATCH" else "DRIFT" end)"')
+        selected=$(printf '%s\n' "$rows" | gum table \
+          --columns "Script,Version,Status" \
+          --return-column 1 \
+          --border "$BORDER" --border.foreground "$COLOR_VIOLET" --header.foreground "$COLOR_GREEN" || true)
+        if [[ -n "$selected" ]]; then
+          doc="$ROOT_DIR/home/content/docs/bones/scripts/${selected%.sh}.md"
+          src="$ROOT_DIR/bones/scripts/$selected"
+          if [[ -f "$doc" ]]; then
+            gum pager < "$doc"
+          elif [[ -f "$src" ]]; then
+            gum pager < "$src"
+          else
+            gum log --level warn --prefix "rotatui" --level.foreground "$COLOR_AMBER" \
+              "No doc or source found for $selected"
+          fi
+        fi
         pause_prompt
       else
-        "$DISPATCHER" status | grep -A 25 "Script Health" | gum pager
+        "$DISPATCHER" status | gum pager
       fi
       ;;
     *) return 0 ;;
@@ -474,13 +591,15 @@ handle_status() {
 
 handle_assets() {
   show_banner
+  section_header "🎨  Asset Pipeline"
+
   local mode
   mode=$(gum choose --header "Asset Pipeline Actions:" \
     --cursor.foreground "$COLOR_VIOLET" \
     --header.foreground "$COLOR_GREEN" \
     "⚡ Sync Assets & Generate Manifest  (assets)" \
     "🔍 Dry-Run Preview                 (assets --dry-run)" \
-    "🔙 Return to Main Menu")
+    "🔙 Return to Main Menu" || true)
 
   case "$mode" in
     "⚡ Sync Assets"*)
@@ -496,13 +615,15 @@ handle_assets() {
 
 handle_links() {
   show_banner
+  section_header "🔗  Link Audit"
+
   local mode
   mode=$(gum choose --header "Link & Asset Audit Actions:" \
     --cursor.foreground "$COLOR_VIOLET" \
     --header.foreground "$COLOR_GREEN" \
     "⚡ Audit Rendered HTML Links       (links)" \
     "🔍 Dry-Run Preview                 (links --dry-run)" \
-    "🔙 Return to Main Menu")
+    "🔙 Return to Main Menu" || true)
 
   case "$mode" in
     "⚡ Audit Rendered HTML Links"*)
@@ -518,27 +639,25 @@ handle_links() {
 
 handle_a11y() {
   show_banner
-  gum style --foreground "$COLOR_GREEN" --bold "♿ Theme Accessibility Audit"
-  echo ""
+  section_header "♿  Theme Accessibility Audit"
 
   local tmp_a11y
   tmp_a11y=$(mktemp)
 
-  spooky_spin "Auditing theme WCAG contrast and focus states..." "$tmp_a11y" "$DISPATCHER" a11y
-  local code=$?
+  local code=0
+  spooky_spin "Auditing theme WCAG contrast and focus states..." "$tmp_a11y" "$DISPATCHER" a11y || code=$?
 
   if [[ $code -eq 0 ]]; then
-    gum style --foreground "$COLOR_GREEN" --border rounded --border-foreground "$COLOR_GREEN" --padding "0 2" \
-      "✓ ALL THEME CONTRAST & FOCUS CHECKS PASSED"
+    panel "$COLOR_GREEN" --foreground "$COLOR_GREEN" "✓ ALL THEME CONTRAST & FOCUS CHECKS PASSED"
   else
-    gum style --foreground "$COLOR_AMBER" --border rounded --border-foreground "$COLOR_AMBER" --padding "0 2" \
-      "⚠️ ACCESSIBILITY WARNINGS DETECTED"
+    panel "$COLOR_AMBER" --foreground "$COLOR_AMBER" "⚠️ ACCESSIBILITY WARNINGS DETECTED"
   fi
 
   echo ""
   tail -n 14 "$tmp_a11y"
 
-  if gum confirm --prompt.foreground "$COLOR_AMBER" "Scroll complete accessibility report in pager?"; then
+  if gum confirm --prompt.foreground "$COLOR_AMBER" --affirmative "Scroll" --negative "Done" \
+    "Scroll complete accessibility report in pager?"; then
     gum pager < "$tmp_a11y"
   fi
   rm -f "$tmp_a11y"
@@ -547,22 +666,19 @@ handle_a11y() {
 
 handle_preflight() {
   show_banner
-  gum style --foreground "$COLOR_GREEN" --bold "🧪 Oliver Renderer Preflight Check"
-  echo ""
+  section_header "🧪  Oliver Renderer Preflight"
 
   local tmp_pf
   tmp_pf=$(mktemp)
-  spooky_spin "Checking Oliver binary & smoke render..." "$tmp_pf" "$DISPATCHER" preflight
-  local code=$?
+  local code=0
+  spooky_spin "Checking Oliver binary & smoke render..." "$tmp_pf" "$DISPATCHER" preflight || code=$?
 
   if [[ $code -eq 0 ]]; then
-    gum style --foreground "$COLOR_GREEN" --border rounded --border-foreground "$COLOR_GREEN" --padding "0 2" \
-      "✓ OLIVER RENDERER DISCOVERY: PASS"
+    panel "$COLOR_GREEN" --foreground "$COLOR_GREEN" "✓ OLIVER RENDERER DISCOVERY: PASS"
     echo ""
     cat "$tmp_pf"
   else
-    gum style --foreground "$COLOR_CRIMSON" --border rounded --border-foreground "$COLOR_CRIMSON" --padding "0 2" \
-      "❌ OLIVER PREFLIGHT FAILED"
+    panel "$COLOR_CRIMSON" --foreground "$COLOR_CRIMSON" "❌ OLIVER PREFLIGHT FAILED"
     echo ""
     cat "$tmp_pf"
   fi
@@ -572,13 +688,15 @@ handle_preflight() {
 
 handle_glue() {
   show_banner
+  section_header "🧭  Navigation Glue"
+
   local mode
   mode=$(gum choose --header "Navigation Glue Actions:" \
     --cursor.foreground "$COLOR_VIOLET" \
     --header.foreground "$COLOR_GREEN" \
     "⚡ Generate Navigation Glue         (glue)" \
     "🔍 Dry-Run Preview                 (glue --dry-run)" \
-    "🔙 Return to Main Menu")
+    "🔙 Return to Main Menu" || true)
 
   case "$mode" in
     "⚡ Generate Navigation Glue"*)
@@ -594,9 +712,12 @@ handle_glue() {
 
 handle_showcase() {
   show_banner
-  gum style --foreground "$COLOR_GREEN" --bold "🎭 HTML Template Showcase Generator"
-  echo ""
-  if gum confirm --prompt.foreground "$COLOR_VIOLET" "Generate preview pages under home/content/showcase/ for all 15 themes?"; then
+  section_header "🎭  Theme Showcase"
+
+  local theme_count
+  theme_count=$(find "$ROOT_DIR/bones/templates" -maxdepth 1 -name 'theme-*.html' 2>/dev/null | wc -l | tr -d ' ')
+  if gum confirm --prompt.foreground "$COLOR_VIOLET" --affirmative "Generate" --negative "Cancel" \
+    "Generate preview pages under home/content/showcase/ for all $theme_count themes?"; then
     run_with_spin "Generating showcase previews..." "$DISPATCHER" showcase
   fi
   pause_prompt
@@ -604,8 +725,22 @@ handle_showcase() {
 
 handle_book() {
   show_banner
-  local target
-  target=$(gum choose --header "Select Book Target to Compile:" \
+  section_header "📖  Book Binders"
+
+  local -a selected=()
+  while IFS= read -r line; do
+    case "$line" in
+      "📚 All Retrieval"*) selected+=("--all") ;;
+      "📖 Documentation"*) selected+=("--docbook") ;;
+      "🧹 Clean Doc"*) selected+=("--docbook-clean") ;;
+      "📜 Full Active"*) selected+=("--scriptbook-full") ;;
+      "⚙️  Config &"*) selected+=("--configbook") ;;
+      "🗂️  Filesystem"*) selected+=("--fsbook") ;;
+      "📝 Content Pages"*) selected+=("--contentbook") ;;
+      "🧬 Content Meta"*) selected+=("--contentmeta") ;;
+    esac
+  done < <(gum choose --no-limit \
+    --header "Select Book Targets (space toggles, enter binds):" \
     --cursor.foreground "$COLOR_VIOLET" \
     --header.foreground "$COLOR_GREEN" \
     "📚 All Retrieval Binders           (--all)" \
@@ -616,46 +751,41 @@ handle_book() {
     "🗂️  Filesystem Catalog Book        (--fsbook)" \
     "📝 Content Pages Binder            (--contentbook)" \
     "🧬 Content Metadata Matrix         (--contentmeta)" \
-    "🔙 Return to Main Menu")
+    "🔙 Return to Main Menu" || true)
 
-  local flag=""
-  case "$target" in
-    "📚 All Retrieval"*) flag="--all" ;;
-    "📖 Documentation"*) flag="--docbook" ;;
-    "🧹 Clean Doc"*) flag="--docbook-clean" ;;
-    "📜 Full Active"*) flag="--scriptbook-full" ;;
-    "⚙️  Config &"*) flag="--configbook" ;;
-    "🗂️  Filesystem"*) flag="--fsbook" ;;
-    "📝 Content Pages"*) flag="--contentbook" ;;
-    "🧬 Content Meta"*) flag="--contentmeta" ;;
-    *) return 0 ;;
-  esac
-
-  local tmp_book
-  tmp_book=$(mktemp)
-  spooky_spin "Binding retrieval volume..." "$tmp_book" "$DISPATCHER" book "$flag"
-  local code=$?
-
-  if [[ $code -eq 0 ]]; then
-    gum style --foreground "$COLOR_GREEN" --border rounded --border-foreground "$COLOR_GREEN" --padding "0 2" \
-      "✓ BOOK BOUND IN bones/book-reports/"
-    echo ""
-    tail -n 8 "$tmp_book"
-    if gum confirm --prompt.foreground "$COLOR_AMBER" "Open bound report in pager?"; then
-      gum pager < "$tmp_book"
-    fi
-  else
-    gum style --foreground "$COLOR_CRIMSON" --border rounded --border-foreground "$COLOR_CRIMSON" --padding "0 2" \
-      "❌ BINDER FAILED"
-    echo ""
-    tail -n 12 "$tmp_book"
+  if [[ ${#selected[@]} -eq 0 ]]; then
+    return 0
   fi
-  rm -f "$tmp_book"
+
+  local last_log=""
+  local flag code
+  for flag in "${selected[@]}"; do
+    [[ -n "$last_log" ]] && rm -f "$last_log"
+    last_log=$(mktemp)
+    code=0
+    spooky_spin "Binding retrieval volume ($flag)..." "$last_log" "$DISPATCHER" book "$flag" || code=$?
+
+    if [[ $code -eq 0 ]]; then
+      panel "$COLOR_GREEN" --foreground "$COLOR_GREEN" "✓ BOUND $flag IN bones/book-reports/"
+    else
+      panel "$COLOR_CRIMSON" --foreground "$COLOR_CRIMSON" "❌ BINDER FAILED $flag (exit code: $code)"
+    fi
+    echo ""
+    tail -n 8 "$last_log"
+  done
+
+  if gum confirm --prompt.foreground "$COLOR_AMBER" --affirmative "Open" --negative "Done" \
+    "Open the last bound report in pager?"; then
+    gum pager < "$last_log"
+  fi
+  rm -f "$last_log"
   pause_prompt
 }
 
 handle_scan() {
   show_banner
+  section_header "🔎  Manifest Scan"
+
   local mode
   mode=$(gum choose --header "Manifest Scan Actions:" \
     --cursor.foreground "$COLOR_VIOLET" \
@@ -663,7 +793,7 @@ handle_scan() {
     "⚡ Full Manifest & Orphan Audit    (scan)" \
     "📜 Manifest Check Only             (scan --manifest-only)" \
     "🔍 Dry-Run Preview                 (scan --dry-run)" \
-    "🔙 Return to Main Menu")
+    "🔙 Return to Main Menu" || true)
 
   local -a args=()
   case "$mode" in
@@ -675,11 +805,12 @@ handle_scan() {
 
   local tmp_scan
   tmp_scan=$(mktemp)
-  spooky_spin "Scanning render ledger against disk..." "$tmp_scan" "$DISPATCHER" scan "${args[@]}"
-  local code=$?
+  local code=0
+  spooky_spin "Scanning render ledger against disk..." "$tmp_scan" "$DISPATCHER" scan "${args[@]}" || code=$?
 
   tail -n 12 "$tmp_scan"
-  if gum confirm --prompt.foreground "$COLOR_AMBER" "Inspect full scan audit report in pager?"; then
+  if gum confirm --prompt.foreground "$COLOR_AMBER" --affirmative "Inspect" --negative "Done" \
+    "Inspect full scan audit report in pager?"; then
     gum pager < "$tmp_scan"
   fi
   rm -f "$tmp_scan"
@@ -688,13 +819,15 @@ handle_scan() {
 
 handle_autopsy() {
   show_banner
+  section_header "🩺  Script Autopsy"
+
   local mode
   mode=$(gum choose --header "Script Autopsy Actions:" \
     --cursor.foreground "$COLOR_VIOLET" \
     --header.foreground "$COLOR_GREEN" \
     "⚡ Catalog Script Help & Writes    (autopsy)" \
     "🔍 Dry-Run Preview                 (autopsy --dry-run)" \
-    "🔙 Return to Main Menu")
+    "🔙 Return to Main Menu" || true)
 
   case "$mode" in
     "⚡ Catalog Script"*)
@@ -710,16 +843,16 @@ handle_autopsy() {
 
 handle_dip() {
   show_banner
-  gum style --foreground "$COLOR_GREEN" --bold "📋 DIP (Document Improvement Project) Audit"
-  echo ""
+  section_header "📋  DIP Documentation Audit"
 
   local tmp_dip
   tmp_dip=$(mktemp)
-  spooky_spin "Auditing documentation coverage and matrix..." "$tmp_dip" "$DISPATCHER" dip
-  local code=$?
+  local code=0
+  spooky_spin "Auditing documentation coverage and matrix..." "$tmp_dip" "$DISPATCHER" dip || code=$?
 
   tail -n 14 "$tmp_dip"
-  if gum confirm --prompt.foreground "$COLOR_AMBER" "Inspect full DIP matrix report in pager?"; then
+  if gum confirm --prompt.foreground "$COLOR_AMBER" --affirmative "Inspect" --negative "Done" \
+    "Inspect full DIP matrix report in pager?"; then
     gum pager < "$tmp_dip"
   fi
   rm -f "$tmp_dip"
@@ -728,8 +861,7 @@ handle_dip() {
 
 handle_bump() {
   show_banner
-  gum style --foreground "$COLOR_GREEN" --bold "🏷️  Semver Release Version Bump"
-  echo ""
+  section_header "🏷️   Semver Version Bump"
 
   local current_ver
   current_ver=$(tr -d '[:space:]' < "$ROOT_DIR/bones/config/version" 2>/dev/null || echo "unknown")
@@ -744,31 +876,38 @@ handle_bump() {
     "🔸 Minor Bump   (--minor: new rituals or major features)" \
     "🔺 Major Bump   (--major: breaking architectural shifts)" \
     "✏️  Custom Semver (--to <version>)" \
-    "🔙 Return to Main Menu")
+    "🔙 Return to Main Menu" || true)
 
-  local flag=""
+  local -a bump_args=()
   case "$bump_type" in
-    "🔹 Patch"*) flag="--patch" ;;
-    "🔸 Minor"*) flag="--minor" ;;
-    "🔺 Major"*) flag="--major" ;;
+    "🔹 Patch"*) bump_args=("--patch") ;;
+    "🔸 Minor"*) bump_args=("--minor") ;;
+    "🔺 Major"*) bump_args=("--major") ;;
     "✏️  Custom"*)
       local to_ver
-      to_ver=$(gum input --placeholder "e.g. 0.9.0" --prompt "Target Version > ")
-      [[ -z "$to_ver" ]] && return 0
-      flag="--to $to_ver"
+      to_ver=$(gum input --placeholder "e.g. 0.9.0" --prompt "Target Version > " || true)
+      if [[ ! "$to_ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        gum log --level error --prefix "rotatui" --level.foreground "$COLOR_CRIMSON" \
+          "Expected semver MAJOR.MINOR.PATCH (got: ${to_ver:-<empty>})."
+        pause_prompt
+        return 0
+      fi
+      bump_args=("--to" "$to_ver")
       ;;
     *) return 0 ;;
   esac
 
-  if gum confirm --prompt.foreground "$COLOR_AMBER" "Execute version bump ($flag) and record changelog?"; then
-    # shellcheck disable=SC2086
-    run_with_spin "Recording microrelease update..." "$DISPATCHER" bump $flag
+  if gum confirm --prompt.foreground "$COLOR_AMBER" --affirmative "Bump" --negative "Cancel" \
+    "Execute version bump (${bump_args[*]}) and record changelog?"; then
+    run_with_spin "Recording microrelease update..." "$DISPATCHER" bump "${bump_args[@]}"
   fi
   pause_prompt
 }
 
 handle_release() {
   show_banner
+  section_header "📦  Release Package"
+
   local current_ver
   current_ver=$(tr -d '[:space:]' < "$ROOT_DIR/bones/config/version" 2>/dev/null || echo "0.8.0")
   current_ver="${current_ver#v}"
@@ -779,14 +918,15 @@ handle_release() {
     --header.foreground "$COLOR_GREEN" \
     "🔍 Dry-Run Preview        (Simulate packaging and verify allowlists)" \
     "📦 Build Canonical Zip    (Package rotkeeper-$current_ver.zip)" \
-    "🔙 Return to Main Menu")
+    "🔙 Return to Main Menu" || true)
 
   case "$mode" in
     "🔍 Dry-Run Preview"*)
       run_with_spin "Simulating canonical framework package..." "$DISPATCHER" release "$current_ver" --dry-run
       ;;
     "📦 Build Canonical Zip"*)
-      if gum confirm --prompt.foreground "$COLOR_VIOLET" "Package canonical distribution for v$current_ver?"; then
+      if gum confirm --prompt.foreground "$COLOR_VIOLET" --affirmative "Package" --negative "Cancel" \
+        "Package canonical distribution for v$current_ver?"; then
         run_with_spin "Packaging canonical framework zip..." "$DISPATCHER" release "$current_ver"
       fi
       ;;
@@ -797,13 +937,15 @@ handle_release() {
 
 handle_test() {
   show_banner
+  section_header "🧪  Integration Test Suite"
+
   local mode
   mode=$(gum choose --header "Integration Test Suite Options:" \
     --cursor.foreground "$COLOR_VIOLET" \
     --header.foreground "$COLOR_GREEN" \
     "⚡ Dry-Run Regression Tests       (Instant: checks legacy command regressions)" \
     "🏋️ Full Multi-Layout Test Matrix  (Comprehensive: crypt, busy, sterile fixtures)" \
-    "🔙 Return to Main Menu")
+    "🔙 Return to Main Menu" || true)
 
   local -a args=()
   case "$mode" in
@@ -818,24 +960,61 @@ handle_test() {
 
   local tmp_test
   tmp_test=$(mktemp)
-  spooky_spin "Executing test matrix assertions..." "$tmp_test" "$DISPATCHER" test "${args[@]}"
-  local code=$?
+  local code=0
+  spooky_spin "Executing test matrix assertions..." "$tmp_test" "$DISPATCHER" test "${args[@]}" || code=$?
 
   if [[ $code -eq 0 ]]; then
-    gum style --foreground "$COLOR_GREEN" --border rounded --border-foreground "$COLOR_GREEN" --padding "0 2" \
-      "✓ ALL TEST ASSERTIONS COMPLETED SUCCESSFULLY"
+    panel "$COLOR_GREEN" --foreground "$COLOR_GREEN" "✓ ALL TEST ASSERTIONS COMPLETED SUCCESSFULLY"
   else
-    gum style --foreground "$COLOR_CRIMSON" --border rounded --border-foreground "$COLOR_CRIMSON" --padding "0 2" \
-      "❌ TEST ASSERTIONS FAILED (exit code: $code)"
+    panel "$COLOR_CRIMSON" --foreground "$COLOR_CRIMSON" "❌ TEST ASSERTIONS FAILED (exit code: $code)"
   fi
 
   echo ""
   tail -n 14 "$tmp_test"
 
-  if gum confirm --prompt.foreground "$COLOR_AMBER" "Scroll full test output in pager?"; then
+  if gum confirm --prompt.foreground "$COLOR_AMBER" --affirmative "Scroll" --negative "Done" \
+    "Scroll full test output in pager?"; then
     gum pager < "$tmp_test"
   fi
   rm -f "$tmp_test"
+  pause_prompt
+}
+
+handle_init() {
+  show_banner
+  section_header "⚙️   Initialize Environment"
+
+  local mode
+  mode=$(gum choose --header "Initialization Depth:" \
+    --cursor.foreground "$COLOR_VIOLET" \
+    --header.foreground "$COLOR_GREEN" \
+    "⚡ Full Setup      (init --full: sample content + assets + render + scan)" \
+    "🌱 Scaffold Only   (init: create missing directories and sample content)" \
+    "🔍 Dry-Run Preview (init --full --dry-run: no writes)" \
+    "🔙 Return to Main Menu" || true)
+
+  case "$mode" in
+    "⚡ Full Setup"*)
+      if gum confirm --prompt.foreground "$COLOR_AMBER" --affirmative "Initialize" --negative "Cancel" \
+        "Run full initialization (sample content + assets + render + scan)?"; then
+        run_with_spin "Initializing the necropolis..." "$DISPATCHER" init --full
+      fi
+      ;;
+    "🌱 Scaffold Only"*)
+      run_with_spin "Scaffolding missing bones..." "$DISPATCHER" init
+      ;;
+    "🔍 Dry-Run Preview"*)
+      run_with_spin "Previewing initialization..." "$DISPATCHER" init --full --dry-run
+      ;;
+    *) return 0 ;;
+  esac
+  pause_prompt
+}
+
+handle_help() {
+  show_banner
+  section_header "❓  Ritual Reference"
+  "$DISPATCHER" help 2>&1 | gum pager
   pause_prompt
 }
 
@@ -853,9 +1032,10 @@ main_menu() {
       --indicator.foreground "$COLOR_VIOLET" \
       --match.foreground "$COLOR_GREEN" \
       --height 20 \
-      "👁️  Peek At A Tomb    (Glow markdown preview from home/content)" \
+      "👁️  Peek At A Tomb      (Glow markdown preview from home/content)" \
       "🔨  Render Site         (Compile markdown into HTML tombs)" \
       "📝  New Tomb            (Interactive tomb scaffold wizard)" \
+      "⚙️  Initialize Env      (First-run setup: scaffold, assets, render, scan)" \
       "📦  Pack Archive        (Archive rendered output or source into .tar.gz)" \
       "📊  System Status       (Environment health, script checks, token counts)" \
       "🎨  Asset Pipeline      (Audit and copy static theme assets)" \
@@ -868,15 +1048,17 @@ main_menu() {
       "🔎  Manifest Scan       (Verify disk files against render ledger)" \
       "🩺  Script Autopsy      (Catalog script CLI help and file-write behavior)" \
       "📋  DIP Docs Audit      (Document Improvement Project coverage audit)" \
-      "🏷️   Version Bump        (Update semver version: patch/minor/major)" \
+      "🏷️  Version Bump        (Update semver version: patch/minor/major)" \
       "📦  Release Package     (Package canonical framework distribution zip)" \
       "🧪  Test Suite          (Run integration test matrix: dry-run or full)" \
+      "❓  Ritual Help         (Show the dispatcher command reference)" \
       "🚪  Exit                (Leave the necropolis)") || true
 
     case "$choice" in
       "👁️  Peek At A Tomb"*) handle_peek ;;
       "🔨  Render Site"*) handle_render ;;
       "📝  New Tomb"*) handle_new ;;
+      *"Initialize Env"*) handle_init ;;
       "📦  Pack Archive"*) handle_pack ;;
       "📊  System Status"*) handle_status ;;
       "🎨  Asset Pipeline"*) handle_assets ;;
@@ -889,16 +1071,17 @@ main_menu() {
       "🔎  Manifest Scan"*) handle_scan ;;
       "🩺  Script Autopsy"*) handle_autopsy ;;
       "📋  DIP Docs Audit"*) handle_dip ;;
-      "🏷️   Version Bump"*) handle_bump ;;
+      "🏷️  Version Bump"*) handle_bump ;;
       "📦  Release Package"*) handle_release ;;
       "🧪  Test Suite"*) handle_test ;;
+      *"Ritual Help"*) handle_help ;;
       "🚪  Exit"*|"")
         clear 2>/dev/null || true
         gum style --foreground "$COLOR_SLATE" "The tombs fall silent once more. Until next time."
         echo ""
         exit 0
         ;;
-    esac
+    esac || true
   done
 }
 
