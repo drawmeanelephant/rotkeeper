@@ -86,16 +86,22 @@ trap 'cleanup_tui; echo ""; exit 0' INT TERM
 
 # --- UI Helpers ---
 
-# Double-ruled panel with a colored border; extra gum style flags may follow <color>.
+# Double-ruled panel with a colored border; an optional numeric width follows <color>,
+# then any extra gum style flags.
 panel() {
   local color="$1"
   shift
+  local width="$PANEL_WIDTH"
+  if [[ "${1:-}" =~ ^[0-9]+$ ]]; then
+    width="$1"
+    shift
+  fi
   gum style \
     --border "$BORDER" \
     --border-foreground "$color" \
     --padding "0 2" \
     --margin "0 1" \
-    --width "$PANEL_WIDTH" \
+    --width "$width" \
     "$@"
 }
 
@@ -111,6 +117,16 @@ section_header() {
     --margin "0 1" \
     --width "$PANEL_WIDTH" \
     "$1"
+}
+
+# Map a Rotkeeper template name to a shared glow + gum-format (glamour) style.
+theme_style_for() {
+  case "$1" in
+    *light*) echo "light" ;;
+    *pride*|*kawaii*|*flash*|*daisy*) echo "pink" ;;
+    *spooky*|*necropolis*|*dark*|*brutal*|*phosphor*|*overgrown*) echo "dracula" ;;
+    *) echo "dark" ;;
+  esac
 }
 
 show_banner() {
@@ -170,13 +186,24 @@ spooky_spin() {
   local log_tmp="$1"
   shift
 
+  # Pick a spinner that fits the ritual; RK_SPINNER overrides.
+  local spinner="moon"
+  case "$title" in
+    *"test matrix"*|*assertions*) spinner="meter" ;;
+    *"Binding retrieval"*|*"bound report"*) spinner="ellipsis" ;;
+    *Initializ*|*initializ*|*Scaffolding*) spinner="globe" ;;
+    *asset*|*Asset*) spinner="pulse" ;;
+    *autopsy*|*Autopsy*) spinner="monkey" ;;
+  esac
+  spinner="${RK_SPINNER:-$spinner}"
+
   # gum spin owns the cursor and the animation; the command's output is captured
   # to the log through an exported path so it does not fight the spinner.
   export RK_SPIN_LOG="$log_tmp"
   local exit_code=0
   # shellcheck disable=SC2016  # $@/$RK_SPIN_LOG must expand inside the child bash
   gum spin \
-    --spinner moon \
+    --spinner "$spinner" \
     --spinner.foreground "$COLOR_VIOLET" \
     --title.foreground "$COLOR_WHITE" \
     --title "$title" \
@@ -238,12 +265,20 @@ handle_peek() {
     return 0
   fi
 
+  # Match the preview style to the tomb's template (frontmatter wins, then config).
+  local tpl style
+  tpl=$(sed -n '1,20p' "$tomb" | grep -m1 '^template:' | sed -E 's/^template:[[:space:]]*//' | tr -d '"' || true)
+  if [[ -z "$tpl" ]]; then
+    tpl=$(sed -n 's/^default_template:[[:space:]]*//p' "$ROOT_DIR/bones/config/rotkeeper.yaml" | head -n1 | tr -d '"')
+  fi
+  style=$(theme_style_for "$tpl")
+
   echo ""
   if command -v glow >/dev/null 2>&1; then
-    glow -p "$tomb"
+    glow -p -s "$style" "$tomb"
   else
-    # Graceful degradation: gum renders markdown when glow is absent.
-    gum format --type markdown --theme dark < "$tomb" | gum pager
+    # Graceful degradation: gum (glamour) renders markdown when glow is absent.
+    gum format --type markdown --theme "$style" < "$tomb" | gum pager
   fi
   pause_prompt
 }
@@ -452,7 +487,7 @@ handle_status() {
   json_raw=$("$DISPATCHER" status --json 2>/dev/null || true)
 
   if [[ -n "$json_raw" ]] && command -v jq >/dev/null 2>&1; then
-    local version branch commit total_md total_textile total_cook html_fresh
+    local version branch commit total_md total_textile total_cook html_fresh html_status
     version=$(echo "$json_raw" | jq -r '.environment.canonical_version // "unknown"')
     branch=$(echo "$json_raw" | jq -r '.environment.branch // "unknown"')
     commit=$(echo "$json_raw" | jq -r '.environment.commit // "unknown"')
@@ -460,11 +495,27 @@ handle_status() {
     total_textile=$(echo "$json_raw" | jq -r '.content_pulse.total_textile // 0')
     total_cook=$(echo "$json_raw" | jq -r '.content_pulse.total_cook // 0')
     html_fresh=$(echo "$json_raw" | jq -r '.render_freshness.message // "unknown"')
+    html_status=$(echo "$json_raw" | jq -r '.render_freshness.status // "unknown"')
 
-    panel "$COLOR_VIOLET" \
-      "Environment : v$version ($branch @ $commit)" \
-      "Pulse       : $total_md markdown • $total_textile textile • $total_cook cook" \
-      "Freshness   : $html_fresh"
+    # Two double-ruled cards, joined side by side (Lip Gloss under the hood).
+    local left right fresh_color fresh_line
+    left=$(panel "$COLOR_VIOLET" 32 \
+      "Environment" \
+      "v$version" \
+      "$branch @ $commit")
+    right=$(panel "$COLOR_GREEN" 32 \
+      "Content Pulse" \
+      "$total_md markdown" \
+      "$total_textile textile · $total_cook cook")
+    gum join --horizontal "$left" "$right"
+
+    fresh_color="$COLOR_GREEN"
+    [[ "$html_status" != "ok" && "$html_status" != "fresh" ]] && fresh_color="$COLOR_AMBER"
+    # Interpolated into the template, so strip template-breaking characters first.
+    fresh_line="${html_fresh//\\/}"
+    fresh_line="${fresh_line//\"/}"
+    gum format --type template \
+      "{{ Bold \"Freshness\" }} {{ Color \"$fresh_color\" \"$fresh_line\" }}"
   else
     "$DISPATCHER" status --short
   fi
@@ -484,13 +535,25 @@ handle_status() {
       ;;
     "🩺 Inspect Script Health Table"*)
       if [[ -n "$json_raw" ]] && command -v jq >/dev/null 2>&1; then
-        local table_data=""
-        while IFS= read -r row; do
-          table_data+="$row\n"
-        done < <(echo "$json_raw" | jq -r '.script_health.scripts[] | "\(.script),\(.version),\(if .matches_canonical then "MATCH" else "DRIFT" end)"')
-        printf '%b' "$table_data" | gum table --print \
+        # Interactive: pick a script to open its doc page (or source) in the pager.
+        local rows selected doc src
+        rows=$(echo "$json_raw" | jq -r '.script_health.scripts[] | "\(.script),\(.version),\(if .matches_canonical then "MATCH" else "DRIFT" end)"')
+        selected=$(printf '%s\n' "$rows" | gum table \
           --columns "Script,Version,Status" \
-          --border "$BORDER" --border.foreground "$COLOR_VIOLET" --header.foreground "$COLOR_GREEN"
+          --return-column 1 \
+          --border "$BORDER" --border.foreground "$COLOR_VIOLET" --header.foreground "$COLOR_GREEN" || true)
+        if [[ -n "$selected" ]]; then
+          doc="$ROOT_DIR/home/content/docs/bones/scripts/${selected%.sh}.md"
+          src="$ROOT_DIR/bones/scripts/$selected"
+          if [[ -f "$doc" ]]; then
+            gum pager < "$doc"
+          elif [[ -f "$src" ]]; then
+            gum pager < "$src"
+          else
+            gum log --level warn --prefix "rotatui" --level.foreground "$COLOR_AMBER" \
+              "No doc or source found for $selected"
+          fi
+        fi
         pause_prompt
       else
         "$DISPATCHER" status | gum pager
