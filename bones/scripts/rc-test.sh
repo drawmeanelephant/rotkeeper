@@ -2118,6 +2118,12 @@ XHTML_RAW_EOF
     ./rotkeeper.sh pack --dry-run > /dev/null
     ./rotkeeper.sh scan --dry-run > /dev/null
     ./rotkeeper.sh release "$TEST_RELEASE_VERSION" --dry-run > /dev/null
+    ./rotkeeper.sh assets --dry-run > /dev/null
+    # Documented flag order (mode then --dry-run): parseflags must set DRY_RUN
+    # after rk_init_script's parse_flags stops at the mode flag.
+    ./rotkeeper.sh book --configbook --dry-run > /dev/null
+    ./rotkeeper.sh book --contentmeta --dry-run > /dev/null
+    ./rotkeeper.sh book --collapse --dry-run > /dev/null
     _tmp_post=$(mktemp)
     _find_post="find"; if command -v gfind >/dev/null 2>&1; then _find_post="gfind"; elif [[ -x "/opt/homebrew/opt/findutils/libexec/gnubin/find" ]]; then _find_post="/opt/homebrew/opt/findutils/libexec/gnubin/find"; fi
     "$_find_post" . -path './bones/logs' -prune -o -type f -print > "$_tmp_post" 2>/dev/null || true
