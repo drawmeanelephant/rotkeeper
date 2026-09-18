@@ -103,7 +103,11 @@ main() {
     # SIDE EFFECT (delete+write): rotates the previous asset-manifest.yaml into bones/archives (removes it from bones/)
     if [[ -f "$MANIFEST" ]]; then
         run mv "$MANIFEST" "$ARCHIVE_DIR/asset-manifest-$TIMESTAMP.yaml"
-        log "INFO" "Archived old manifest"
+        if [[ "$DRY_RUN" == true ]]; then
+            log "DRY-RUN" "Would archive old manifest"
+        else
+            log "INFO" "Archived old manifest"
+        fi
     fi
 
     # Enumerate assets: find excludes .DS_Store, sed strips prefix for relpaths, sort for determinism.
@@ -135,10 +139,14 @@ main() {
 
     if [[ "$asset_count" -eq 0 ]]; then
         log "WARN" "No assets found under $ASSETS_DIR"
-        # SIDE EFFECT (write): records an empty manifest entry in the report
-        echo "# assets: []" > "$REPORT"
-        run cp "$REPORT" "$MANIFEST"
-        log "INFO" "Empty manifest generated at: $MANIFEST"
+        if [[ "$DRY_RUN" == true ]]; then
+            log "DRY-RUN" "Would generate empty manifest at: $MANIFEST"
+        else
+            # SIDE EFFECT (write): records an empty manifest entry in the report
+            echo "# assets: []" > "$REPORT"
+            run cp "$REPORT" "$MANIFEST"
+            log "INFO" "Empty manifest generated at: $MANIFEST"
+        fi
     else
         while IFS= read -r relpath; do
             src="$ASSETS_DIR/$relpath"
@@ -151,21 +159,29 @@ main() {
                 # SIDE EFFECT (write): copies each source asset into output/assets via rsync
                 run mkdir -p "$(dirname "$dest")"
                 run rsync -a "$src" "$dest"
-                # Checksum: rk_sha256 prints "<hash>  <file>"; awk extracts hash.
-                checksum=$(rk_sha256 "$src" | awk '{print $1}')
-                log "INFO" "Copied asset: $relpath"
-                # SIDE EFFECT (write): appends path/sha256 entries to bones/reports/asset-report-<ts>.yaml
-                {
-                    echo "- path: \"$relpath\""
-                    echo "  sha256: \"$checksum\""
-                } >> "$REPORT"
+                if [[ "$DRY_RUN" == true ]]; then
+                    log "DRY-RUN" "Would copy asset: $relpath"
+                else
+                    # Checksum: rk_sha256 prints "<hash>  <file>"; awk extracts hash.
+                    checksum=$(rk_sha256 "$src" | awk '{print $1}')
+                    log "INFO" "Copied asset: $relpath"
+                    # SIDE EFFECT (write): appends path/sha256 entries to bones/reports/asset-report-<ts>.yaml
+                    {
+                        echo "- path: \"$relpath\""
+                        echo "  sha256: \"$checksum\""
+                    } >> "$REPORT"
+                fi
             else
                 log "WARN" "Missing asset file unexpectedly: $relpath"
             fi
         done <<< "$ASSET_PATHS"
-        # SIDE EFFECT (write): publishes the report as bones/asset-manifest.yaml
-        run cp "$REPORT" "$MANIFEST"
-        log "INFO" "Full asset manifest generated at: $MANIFEST"
+        if [[ "$DRY_RUN" == true ]]; then
+            log "DRY-RUN" "Would generate full asset manifest at: $MANIFEST"
+        else
+            # SIDE EFFECT (write): publishes the report as bones/asset-manifest.yaml
+            run cp "$REPORT" "$MANIFEST"
+            log "INFO" "Full asset manifest generated at: $MANIFEST"
+        fi
     fi
 
     mark_output_generated

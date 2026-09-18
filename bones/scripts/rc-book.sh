@@ -61,6 +61,16 @@ source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&
 #   3         Write-boundary violation
 # @END-HELP
 
+# --dry-run may follow a mode flag; parse_flags only consumes leading common
+# flags, so detect it before bootstrap so QUIET is lifted the same as
+# `book --dry-run --configbook`.
+for _arg in "$@"; do
+  if [[ "$_arg" == "--dry-run" ]]; then
+    DRY_RUN=true
+    break
+  fi
+done
+
 rk_init_script "rc-book" "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR TEMPLATE_DIR LOG_DIR TMP_DIR REPORT_DIR BOOK_REPORT_DIR DOCS_DIR CONTENT_DIR
 
@@ -145,7 +155,7 @@ parseflags() {
       --contentbook)       MODE=contentbook; shift ;;
       --contentmeta)       MODE=contentmeta; shift ;;
       --config)            CONFIG="$2"; shift 2 ;;
-      --dry-run)           shift ;;
+      --dry-run)           DRY_RUN=true; shift ;;
       --strip-frontmatter) STRIPMODE=true; shift ;;
       --force-bind)        FORCE_BIND=true; shift ;;
       --verbose)           shift ;;
@@ -309,10 +319,14 @@ rundocbookclean() {
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 runconfigbook() {
-  # SIDE EFFECT (write): creates bones/book-reports if missing (this mode ignores DRY_RUN)
+  # SIDE EFFECT (write): creates bones/book-reports if missing
   mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-configbook.md"
   validate_boundary "$OUT"
+  if [[ "$DRY_RUN" == true ]]; then
+    log "DRY-RUN" "Would generate configbook at $OUT"
+    return 0
+  fi
   {
     echo "---"
     echo "title: Rotkeeper Configbook"
@@ -394,6 +408,10 @@ runcontentmeta() {
   mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-contentmeta.yaml"
   validate_boundary "$OUT"
+  if [[ "$DRY_RUN" == true ]]; then
+    log "DRY-RUN" "Would extract content metadata to $OUT"
+    return 0
+  fi
   log "INFO" "Extracting frontmatter YAML from content files..."
   # SIDE EFFECT (write): overwrites bones/book-reports/rotkeeper-contentmeta.yaml; entries appended below
   echo "" > "$OUT"
@@ -473,6 +491,10 @@ collapse() {
   mkdir -p "$BOOK_REPORT_DIR"
   local OUTPUT="$BOOK_REPORT_DIR/collapsed-content.yaml"
   validate_boundary "$OUTPUT"
+  if [[ "$DRY_RUN" == true ]]; then
+    log "DRY-RUN" "Would collapse reports into $OUTPUT"
+    return 0
+  fi
   log "INFO" "Collapsing reports into YAML..."
   # SIDE EFFECT (write): overwrites bones/book-reports/collapsed-content.yaml; bodies appended below
   echo "" > "$OUTPUT"
