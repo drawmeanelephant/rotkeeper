@@ -43,7 +43,9 @@ if ! command -v gum >/dev/null 2>&1; then
   printf '\033[31m[ERROR]\033[0m Charm Gum is required to run this TUI companion.\n'
   printf 'Install Gum via Homebrew:\n'
   printf '  \033[32mbrew install gum\033[0m\n\n'
-  printf 'Or download from Charm:\n'
+  printf 'On Debian/Ubuntu Linux, via the Charm apt repo:\n'
+  printf '  \033[32msudo mkdir -p /etc/apt/keyrings && curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg && echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee /etc/apt/sources.list.d/charm.list && sudo apt update && sudo apt install gum\033[0m\n\n'
+  printf 'Or see all install options:\n'
   printf '  https://github.com/charmbracelet/gum#installation\n\n'
   exit 1
 fi
