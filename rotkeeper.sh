@@ -10,7 +10,7 @@
 #  Project : Rotkeeper
 #  Script  : rotkeeper.sh
 #  Purpose : CLI dispatcher for aligned single framework release structures
-#  Version : 0.5.1
+#  Version : 0.8.0
 # ============================================================
 
 set -euo pipefail

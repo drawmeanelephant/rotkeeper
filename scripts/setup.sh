@@ -42,8 +42,33 @@ BINARY="yq_${OS_TYPE}_${ARCH}"
 echo "🤖 Provisioning environment for system profile: $BINARY"
 
 if [[ "$OS_TYPE" == "linux" ]]; then
-  if command -v apt-get >/dev/null 2>&1; then
-    $SUDO apt-get update && $SUDO apt-get install -y jq rsync zip gawk wget curl git libxml2-utils
+  # --no-apt (or RK_SKIP_APT=1) skips the apt-get route for users who install
+  # dependencies themselves. A stalled apt mirror otherwise hangs setup with
+  # no feedback, so the apt calls below are also time-bounded when the
+  # `timeout` utility is available.
+  SKIP_APT="${RK_SKIP_APT:-0}"
+  for _rk_arg in "$@"; do
+    case "$_rk_arg" in
+      --no-apt) SKIP_APT=1 ;;
+    esac
+  done
+  unset _rk_arg
+  if [[ "$SKIP_APT" != "1" ]] && command -v apt-get >/dev/null 2>&1; then
+    _RK_APT_TIMEOUT=()
+    if command -v timeout >/dev/null 2>&1; then
+      _RK_APT_TIMEOUT=(timeout 120)
+    fi
+    if ! "${_RK_APT_TIMEOUT[@]}" $SUDO apt-get update; then
+      echo "WARN: 'apt-get update' failed or timed out after 120s; skipping apt dependency install."
+      echo "      Install manually: jq rsync zip gawk wget curl git libxml2-utils,"
+      echo "      then re-run setup (or pass --no-apt to skip this step entirely)."
+    elif ! "${_RK_APT_TIMEOUT[@]}" $SUDO apt-get install -y jq rsync zip gawk wget curl git libxml2-utils; then
+      echo "WARN: 'apt-get install' failed; install manually: jq rsync zip gawk wget curl git libxml2-utils."
+    fi
+    unset _RK_APT_TIMEOUT
+  elif [[ "$SKIP_APT" == "1" ]]; then
+    echo "Skipping apt dependency install (--no-apt / RK_SKIP_APT=1)."
+    echo "Ensure these are present: jq rsync zip gawk wget curl git libxml2-utils."
   fi
   YQ_TMP="$(mktemp /tmp/yq.XXXXXX)"
   wget -q "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${BINARY}" -O "$YQ_TMP"
@@ -64,7 +89,7 @@ fi
 
 echo "2. Installing Oliver renderer..."
 # Oliver has no stable release yet, so Rotkeeper pins an exact source commit:
-# the binary built from $OLIVER_PIN is the renderer contract for 0.7.x.
+# the binary built from $OLIVER_PIN is the renderer contract for 0.8.x.
 # Move the pin deliberately (see oliver-contract.md) — never on a whim.
 # 2026-08-21: bumped to 06dd640 — wrap fix #115 via 06dd6403c505b4863a54c548c978e494b55eb759 (PR #116, parseArgs missing wrap)
 # 2026-08-27: bumped to 8460f28 — shared template contract v2 (rotkeeper #244):
@@ -85,7 +110,12 @@ echo "2. Installing Oliver renderer..."
 # (error.RawHtmlNotXmlWellFormed), plus audit fixes #55-#58 (NUL -> U+FFFD
 # under the XHTML profile, CLI subcommand grammar with --to render-only);
 # the 2026-08-13 pin (e314dbbe) added the Cooklang frontend (CK1) plus CK2-CK5.
-OLIVER_PIN="3f05bacb188ab28ad797430c82d9ee20080c5ed6"
+# 2026-09-22: bumped to b84f636 — rolling `builds` release now serves oliver
+# 1.1.0 (commit b84f6368181079b9df2fc2c28646ffcb29ffd2ff); the previous pin
+# no longer matches the downloadable binary, which forced every fresh setup
+# onto the Zig source-build fallback. Verified on Linux: render/preflight
+# and the full test matrix pass with 1.1.0.
+OLIVER_PIN="b84f6368181079b9df2fc2c28646ffcb29ffd2ff"
 
 install_oliver_binary() {
   # Prebuilt-binary fast path: upstream publishes a rolling `builds` release.
