@@ -55,6 +55,27 @@ missing_stack=()
 command -v glow >/dev/null 2>&1 || missing_stack+=("glow")
 command -v skate >/dev/null 2>&1 || missing_stack+=("skate")
 
+# gum 2.0.2 ships the Bubble Tea v2.0.10 fix that skips terminal capability
+# queries when input is disabled (bubbletea #1801). gum spin runs with
+# WithInput(nil), so on a fixed gum no probes are sent and there are no
+# replies to swallow — the echo-off wrapper in spooky_spin can be skipped.
+gum_has_noinput_query_fix() {
+  local version major minor patch
+  version=$(gum --version 2>/dev/null | awk '{print $NF}')
+  [[ "$version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+) ]] || return 1
+  major="${BASH_REMATCH[1]}"
+  minor="${BASH_REMATCH[2]}"
+  patch="${BASH_REMATCH[3]}"
+  if (( major > 2 )); then
+    return 0
+  elif (( major == 2 && minor > 0 )); then
+    return 0
+  elif (( major == 2 && minor == 0 && patch >= 2 )); then
+    return 0
+  fi
+  return 1
+}
+
 show_stack_notice() {
   [[ ${#missing_stack[@]} -eq 0 ]] && return 0
   gum log --level warn --prefix "rotatui" \
@@ -199,10 +220,12 @@ spooky_spin() {
   esac
   spinner="${RK_SPINNER:-$spinner}"
 
-  # gum 2.0 (Bubble Tea v2) probes terminal capabilities on startup; on some
-  # terminals the replies land while echo is still on and get printed as junk
-  # (^[[?2026;2$y, ^[[?2027;4$y, ^[[?1u). Hold echo off for the whole spin and
-  # drain late replies before restoring the tty (bubbletea #1627/#1749).
+  # Legacy gum (< 2.0.2, Bubble Tea v2) probes terminal capabilities on startup;
+  # on some terminals the replies land while echo is still on and get printed
+  # as junk (^[[?2026;2$y, ^[[?2027;4$y, ^[[?1u). Hold echo off for the whole
+  # spin and drain late replies before restoring the tty (bubbletea
+  # #1627/#1749). Fixed gum (2.0.2+, bubbletea #1801) skips the probes when
+  # input is disabled, so the wrapper below is skipped for it.
   local tty_dev="/dev/tty"
   local saved=""
   saved=$( { stty -g < "$tty_dev"; } 2>/dev/null ) || saved=""
@@ -223,7 +246,12 @@ spooky_spin() {
     "$@"
   )
 
-  if [[ -n "$saved" ]]; then
+  if gum_has_noinput_query_fix || [[ -z "$saved" ]]; then
+    # Fixed gum sends no queries — nothing to swallow — or there is no
+    # controlling tty (tests/CI): run the spin without terminal handling.
+    "${spin_cmd[@]}" || exit_code=$?
+  else
+    # Legacy gum: hold echo off across the spin, then drain late replies.
     (
       trap 'stty "$saved" < "$tty_dev" 2>/dev/null || true' EXIT
       trap 'stty "$saved" < "$tty_dev" 2>/dev/null || true; exit 130' INT TERM
@@ -235,9 +263,6 @@ spooky_spin() {
       exit "${ec:-0}"
     )
     exit_code=$?
-  else
-    # No controlling tty (tests/CI): run the spin without terminal handling.
-    "${spin_cmd[@]}" || exit_code=$?
   fi
   unset RK_SPIN_LOG
 
