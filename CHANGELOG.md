@@ -1,3 +1,7 @@
+## [0.8.1] - 2026-09-24
+
+- Small release: rotatui spin wrapper gated on fixed gum, Linux review nits, charm stack + pride/flash themes
+
 ## [0.8.0] - 2026-08-28
 
 - Release 0.8.0: Phase 6 completion (Oliver pin 06dd640, adapter direct), theme registry + config nav, DaisyUI trio + palette switching, UX sweep 2, identity primitives, docs trio
