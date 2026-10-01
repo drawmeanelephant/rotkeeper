@@ -48,5 +48,5 @@ This file lives at:
 
 - Dependabot PRs still require the standard CI workflow (`ci.yml`) to pass before merging.
 
-## Necromancer's Notes
+## Notes
 <!-- DIP-SOUL-EXTRACTED: 2026-07-03T00:00:00Z -->

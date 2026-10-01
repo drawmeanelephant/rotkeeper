@@ -1,88 +1,85 @@
 ---
-target_file: "bones/scripts/rc-oliver-adapter.sh"
-date: "2026-08-26"
-template: "rotkeeper-doc.html"
-status: "active"
-version: "0.7.0"
-author: "Rotkeeper Ritual Council"
-project: "Rotkeeper"
-description: "Pure-Bash batch adapter for the Oliver renderer: per-page metadata extraction, soul-sidecar dominance, boundary checks, and template interpolation — driven by rc-render's TSV manifest."
-tags:
-  - rotkeeper
-  - scripts
-  - rendering
-  - oliver
+reference_contract: rotkeeper.command-reference.v1
+title: rc-oliver-adapter.sh
+slug: rc-oliver-adapter
+target_file: bones/scripts/rc-oliver-adapter.sh
+template: rotkeeper-doc.html
+status: active
+version: 0.8.1
+author: Rotkeeper DIP
+project: Rotkeeper
+description: |-
+  Pure Bash batch adapter for Oliver renderer.
+  Zero Python requirement. Enforces path boundaries and
+  orchestrates Oliver `meta`/`render`/`wrap` for frontmatter,
+  link rewriting, and template interpolation.
 ---
 
-# rc-oliver-adapter
-
-**Script Path:** `bones/scripts/rc-oliver-adapter.sh`
+# rc-oliver-adapter.sh
 
 ## Overview
 
-`rc-oliver-adapter.sh` is the execution half of the render pipeline — an internal batch worker, not a user-facing ritual. `rc-render.sh` plans a batch with `oliver plan` and invokes this adapter with a TSV manifest; one row describes one page (source, destination, template, assets root, soul sidecar, Oliver binary, directory layout, dry-run/verbose flags).
+Pure Bash batch adapter for Oliver renderer.
+Zero Python requirement. Enforces path boundaries and
+orchestrates Oliver `meta`/`render`/`wrap` for frontmatter,
+link rewriting, and template interpolation.
 
-Per row, in order:
+Source: `bones/scripts/rc-oliver-adapter.sh`.
 
-1. **Boundary assertions** — source must resolve inside `CONTENT_DIR`, destination inside `OUTPUT_DIR`, sidecar inside `META_DIR`, template inside `TEMPLATE_DIR`; any escape aborts the whole batch. The Oliver binary must exist and be executable.
-2. **Metadata extraction** — `oliver meta --from <format> --format json` reads frontmatter fields (title, description, author, date, template, palette, render_profile). Input format derives from the source extension (`.textile`, `.cook`) overriding the config default for that file.
-3. **Soul dominance** — when a soul sidecar exists, its metadata overrides the page's own fields.
-4. **Template resolution** — the page's `template:` field selects within `TEMPLATE_DIR`; unresolved or out-of-bounds templates are fatal.
-5. **Body render** — `oliver render --from <format> --frontmatter yaml` produces the body HTML snippet (plus `--to xhtml` when the profile — config default overridden by per-page `render_profile:` — selects XHTML). Failures abort with the first stderr line; the XHTML-specific raw-HTML rejection gets an explicit remediation hint (`RawHtmlNotXmlWellFormed`). Warnings are logged and accumulated into shared files keyed by `RK_RENDER_ID` so the parent render can summarize them.
-6. **Interpolation** — `oliver wrap` applies the template with merged metadata (`$title$`, `$body$`, `$assets_root$`, `$if$/$endif$` gating) and writes the final HTML to the destination. Under dry-run, writes are skipped.
+## Usage
 
-The authoritative renderer contract lives in `home/content/docs/oliver-contract.md`.
+Not documented in the script help block. Consult the source; no command behavior is inferred.
 
-## CLI Usage
+## Options
 
-```bash
-# Internal — invoked by rc-render.sh, not run by hand:
-rc-oliver-adapter.sh <batch_manifest.tsv>
-```
+Not documented in the script help block. Consult the source; no command behavior is inferred.
 
-### Environment assumptions
+## Examples
 
-- **Reads:** the TSV batch manifest; `INPUT_FORMAT` and `RENDER_PROFILE` from the environment as defaults; `TMP_DIR` for scratch.
-- **Writes:** rendered pages under `OUTPUT_DIR`; short-lived scratch files under `TMP_DIR` (metadata JSON, body snippets, error logs), removed per row; warning accumulators shared with the parent render.
-- **CWD:** none — all paths arrive via the manifest and are canonicalized before checks.
+Not documented in the script help block. Consult the source; no command behavior is inferred.
 
-## Dangerous operations
+## Exit codes
 
-- Writes HTML only at the destination paths asserted to be inside `OUTPUT_DIR`; every other mutation is confined to `TMP_DIR` scratch that the adapter deletes itself.
-- Any boundary violation, missing binary, invalid metadata JSON, or failed Oliver stage exits nonzero immediately — the parent render treats that as a failed batch and surfaces the first error line.
+Not documented in the script help block. Consult the source; no command behavior is inferred.
 
-###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
+## Reads and writes
 
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
+**Environment:** reads INPUT_FORMAT, RENDER_PROFILE, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 
-## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-08-13T10:51:03Z -->
+**Working directory:** No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
 
-- - Replaced the Apex renderer with [Oliver](https://github.com/drawmeanelephant/oliver): the adapter (`rc-apex-adapter.sh` → `rc-oliver-adapter.sh`) now drives `oliver render --from markdown` (stdin → stdout body HTML, stderr = warnings) and strips a leading YAML frontmatter block before the Markdown reaches Oliver, a pure CommonMark renderer; the environment override is `RK_OLIVER_BIN` (was `RK_APEX_BIN`), and the authoritative contract moved from `apex-contract.md` to `oliver-contract.md`.
+**Inputs and outputs:** internal batch worker invoked by render, not a dispatcher command. Reads a TSV manifest with source/destination/template/assets-root/sidecar/binary/layout/flag fields per row; rejects paths outside content/output/template/meta boundaries and unavailable renderer binaries.
+Oliver meta extracts frontmatter; sidecar metadata overrides page fields. Source extension selects Textile/Cooklang over the configured input default. Per-page render_profile overrides the site HTML/XHTML profile; invalid or escaping templates abort.
+Oliver render produces the body and Oliver wrap applies the template with merged metadata and link rewriting. Writes pages only under OUTPUT_DIR and short-lived metadata/body/error scratch files under TMP_DIR, plus warning accumulators keyed by RK_RENDER_ID.
+Failures stop the batch with the underlying error and XHTML raw-HTML guidance when applicable. Manifest dry-run rows skip page writes. See `home/content/docs/oliver-contract.md`.
 
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-08-12T00:38:36Z -->
+## Side effects
 
-*Not found: no soul sidecar for `bones/scripts/rc-oliver-adapter.sh`.*
+- **write:** captures oliver meta JSON into a bones/tmp scratch file
+- **delete:** removes the doc-meta scratch file
+- **write:** captures sidecar oliver meta JSON into a bones/tmp scratch file
+- **delete:** removes the soul-meta scratch file
+- **write:** creates bones/tmp and pre-cleans per-page body/err scratch files
+- **delete:** removes stale per-page body/err scratch files before rendering
+- **write:** renders the body HTML snippet into a bones/tmp scratch file; stderr captured alongside
+- **delete:** removes per-page scratch files on render failure (no output page is written)
+- **write:** appends warnings to the shared bones/tmp warning list for the batch
+- **write:** accumulates the per-page warning count into the shared batch tally under bones/tmp
+- **delete:** removes the stderr scratch file after warnings are harvested
+- **write:** duplicates the body HTML into the rewrite-stage scratch file
+- **write:** creates the page's output directory and writes the final HTML into output/
+- **delete:** removes the partial output page and wrap scratch files on failure
+- **delete:** removes the wrap meta and stderr scratch files on success
+- **delete:** removes the body/rewrite scratch files for this page
 
-## Environment
-<!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
+## Notes
+<!-- DIP-SOUL-EXTRACTED: command-reference.v1 -->
 
-- **$ROOT_DIR**: .
-- **$OUTPUT_DIR**: output
-- **$CONTENT_DIR**: home/content
-- **$ASSETS_DIR**: home/assets
-- **$DOCS_DIR**: home/content/docs
-- **$HELP_DIR**: home/content/help
-- **$BONES_DIR**: bones
-- **$SCRIPT_DIR**: bones/scripts
-- **$CONFIG_DIR**: bones/config
-- **$LOG_DIR**: bones/logs
-- **$TMP_DIR**: bones/tmp
-- **$ARCHIVE_DIR**: bones/archive
-- **$REPORT_DIR**: bones/reports
-- **$BOOK_REPORT_DIR**: bones/book-reports
-- **$TEMPLATE_DIR**: bones/templates
-- **$META_DIR**: bones/meta
-- **$WEB_DIR**: output
+No sidecar notes are documented for `bones/scripts/rc-oliver-adapter.sh`.
+
+## History
+<!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->
+
+### [0.5.3] - 2026-08-13
+
+- Replaced the Apex renderer with [Oliver](https://github.com/drawmeanelephant/oliver): the adapter (`rc-apex-adapter.sh` → `rc-oliver-adapter.sh`) now drives `oliver render --from markdown` (stdin → stdout body HTML, stderr = warnings) and strips a leading YAML frontmatter block before the Markdown reaches Oliver, a pure CommonMark renderer; the environment override is `RK_OLIVER_BIN` (was `RK_APEX_BIN`), and the authoritative contract moved from `apex-contract.md` to `oliver-contract.md`.

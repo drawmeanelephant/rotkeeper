@@ -15,34 +15,16 @@ Documentation for `bones/templates/theme-phosphor.html`. This file was auto-gene
 <!-- DIP-GENERATED-MARKER: Overview -->
 HTML template for the retro-brutalist CRT terminal overlay theme.
 
-###### CLI Usage
-TODO: Stitch extracted help block.
 
-## Environment
-<!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
+## Reads and writes
+<!-- DIP-ENV-EXTRACTED: 2026-10-01T21:17:26Z -->
 
-- **$ROOT_DIR**: .
-- **$OUTPUT_DIR**: output
-- **$CONTENT_DIR**: home/content
-- **$ASSETS_DIR**: home/assets
-- **$DOCS_DIR**: home/content/docs
-- **$HELP_DIR**: home/content/help
-- **$BONES_DIR**: bones
-- **$SCRIPT_DIR**: bones/scripts
-- **$CONFIG_DIR**: bones/config
-- **$LOG_DIR**: bones/logs
-- **$TMP_DIR**: bones/tmp
-- **$ARCHIVE_DIR**: bones/archive
-- **$REPORT_DIR**: bones/reports
-- **$BOOK_REPORT_DIR**: bones/book-reports
-- **$TEMPLATE_DIR**: bones/templates
-- **$META_DIR**: bones/meta
-- **$WEB_DIR**: output
-## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
+This file is not a script; no script environment contract applies.
+## History
+<!-- DIP-HISTORY-EXTRACTED: 2026-10-01T21:17:26Z -->
 
-*Not found: no changelog/history entries matching `theme-phosphor.html`.*
-## Necromancer's Notes
+No matching entries in CHANGELOG.md.
+## Notes
 <!-- DIP-SOUL-EXTRACTED: 2026-07-23T10:54:47Z -->
 
 
@@ -54,7 +36,7 @@ Provides a retro-brutalist CRT terminal layout block for users or agents checkin
 ## Directory / File Schema Expectations
 - Requires accompanying layout styling in `home/assets/css/theme-phosphor.css`.
 - Must parse template flags dynamically without fracturing the common `$body$` structure.
-###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
+## Usage
+<!-- DIP-HELP-EXTRACTED: 2026-10-01T21:17:26Z -->
 
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
+This file has no command-line interface.

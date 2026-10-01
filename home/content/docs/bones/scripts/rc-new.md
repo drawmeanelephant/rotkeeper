@@ -1,70 +1,85 @@
 ---
-title: "✨ rc-new.sh Reference"
+reference_contract: rotkeeper.command-reference.v1
+title: rc-new.sh
 slug: rc-new
-target_file: "bones/scripts/rc-new.sh"
-date: "2026-08-26"
-template: "rotkeeper-doc.html"
-status: "active"
-version: "0.5.1"
-author: "Rotkeeper Ritual Council"
-project: "Rotkeeper"
-description: "Scaffolds a new markdown, Textile, or Cooklang source file with valid YAML frontmatter — plus an optional soul sidecar — ready for the render ritual."
-tags:
-  - rotkeeper
-  - scripts
-  - scaffold
-  - content
+target_file: bones/scripts/rc-new.sh
+template: rotkeeper-doc.html
+status: active
+version: 0.8.1
+author: Rotkeeper DIP
+project: Rotkeeper
+description: Scaffold a Markdown, Textile, or Cooklang source with YAML frontmatter.
 ---
 
-# `rc-new.sh`
-
-**Script Path:** `bones/scripts/rc-new.sh`
+# rc-new.sh
 
 ## Overview
 
-`rc-new.sh` backs the `new <file>` dispatcher command: it scaffolds a fresh content source with correct frontmatter so the page renders on the next pass. Invoking it with no file (or `--list`) prints the available templates instead of erroring, marking the configured default and any `$palette$` support.
+Scaffold a Markdown, Textile, or Cooklang source with YAML frontmatter.
 
-Scaffold behavior:
+Source: `bones/scripts/rc-new.sh`.
 
-- **Format-aware** — `.md`, `.textile`, and `.cook` are accepted as-is (a bare name gets `.md`). Markdown sources get a `#` heading, Textile an `h1.`, and Cooklang none (a recipe body is its own heading; a sample ingredient line is provided instead).
-- **Frontmatter** — always `title` (from `--title` or derived from the filename), `slug` (slugified title), and `template` (`--template` or `default_template` from config, fallback `theme-spooky-dark.html`). Optional keys appear only when supplied: `description` (multi-line values become a YAML block scalar), `author` (`--author` or config `author`), `tags` (`--tags`, rendered as a quoted YAML list), and `source_url`.
-- **URL skeletons** — with `--url`, the body becomes a research template (`## Source` / `## Notes` / `## Summary`) with the URL embedded.
-- **Souls** — `--soul` also scaffolds the DIP sidecar at `META_DIR/<relative-path>.soul.md` via the traversal-guarded sidecar mapping; an existing sidecar is warned about, never overwritten.
-- **Safety** — parent-directory traversal in the filename or `--subdir` is rejected, and the final path must canonicalize inside `CONTENT_DIR`. Existing files abort with an error; nothing is ever overwritten.
-
-## CLI Usage
+## Usage
 
 ```bash
 rotkeeper.sh new <file> [options]
 rotkeeper.sh new --list
-
-# Options:
-#   --title "Title"        Override auto-derived title
-#   --author "Name"        Override config-derived author
-#   --tags "tag1,tag2"     Comma-separated tags; rendered as YAML list
-#   --template "file.html" Override the configured default template
-#   --description "text"   Frontmatter description field
-#   --body "text"          Starting body content
-#   --url "https://..."    Embed a URL (creates Source/Notes/Summary skeleton)
-#   --subdir "path"        Directory under $CONTENT_DIR to place the file
-#   --soul                 Also scaffold bones/meta/<path>.soul.md
-#   --list                 List available templates and exit
-#   --dry-run              Preview without writing files
 ```
 
-### Environment assumptions
+## Options
 
-- **Reads:** `CONTENT_DIR` (destination root), `META_DIR` (soul sidecars), `CONFIG_DIR/rotkeeper.yaml` (`default_template`, `author`), `TEMPLATE_DIR` (for `--list`).
-- **Writes:** exactly one new source file under `CONTENT_DIR`; with `--soul`, one new sidecar under `META_DIR`.
-- **CWD:** none — relative names resolve against `CONTENT_DIR`.
+```text
+--title "Title"        Override auto-derived title; skip slug-from-filename
+--author "Name"        Override config-derived author
+--tags "tag1,tag2"     Comma-separated tags; rendered as YAML list
+--template "file.html" Override the configured default template
+--description "text"   Frontmatter description field
+--body "text"          Starting body content
+--url "https://..."    A URL to embed in the document (creates source skeleton)
+--subdir "path"        Directory under home/content/ to place the file
+--soul                 Also scaffold sidecar bones/meta/<path>.soul.md
+--list                 List available templates and exit
+--dry-run              Preview actions without writing files
+--verbose              Enable detailed debug logging
+--help, -h             Show this help message and exit
+--version, -v          Show script version and quit
+```
 
-## Dangerous operations
+## Examples
 
-None destructive: the ritual only creates files and refuses to overwrite either the target page or an existing sidecar. Its guards (traversal rejection, canonical containment inside `CONTENT_DIR`) are fail-closed.
+```bash
+bash rotkeeper.sh new graveyard-shift                       # Simple scaffold at content root
+bash rotkeeper.sh new ember-report --subdir journal         # Place under journal/
+bash rotkeeper.sh new ember-report --title "Ember Report" --tags "news,ember" --dry-run
+```
 
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
+## Exit codes
 
+```text
+0    Success
+1    Invalid usage or scaffold failure
+```
+
+## Reads and writes
+
+**Environment:** reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, DRY_RUN, LOG_DIR, META_DIR, QUIET, ROOT_DIR, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, VERBOSE (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+
+**Working directory:** No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+
+**Inputs and outputs:** creates one new `.md`, `.textile`, or `.cook` source under `CONTENT_DIR`; bare names get `.md`. No filename or `--list` lists templates, marking the configured default and palette support.
+YAML fields include title, slug, and template; optional description, author, tags, and source_url are emitted when supplied. Multiline descriptions use a block scalar and tags use a quoted YAML list. Template selection uses the shared registry/default resolution.
+Markdown gets a `#` heading, Textile an `h1.` heading, and Cooklang a sample recipe body without a heading. `--url` creates Source/Notes/Summary sections. `--soul` requests a sidecar through the traversal-guarded metadata mapping.
+Filename/subdirectory traversal and destinations outside `CONTENT_DIR` are rejected. Existing content is never overwritten; existing sidecars are warned about and kept. Dry-run previews the scaffold without publishing files.
+
+## Side effects
+
+- **write:** creates the target directory under content/ if missing
+- **write:** creates the new content page (frontmatter + body appended below);
+  earlier existence check guarantees this never overwrites an existing file
+- **write:** creates bones/meta/<rel>.soul.md sidecar scaffold
+
+## Notes
+<!-- DIP-SOUL-EXTRACTED: command-reference.v1 -->
 
 ### Bones of the Code
 A glorified form filler that generates new markdown 'tombs' and slaps YAML frontmatter on them. It takes user input and attempts to coerce it into a valid filename.
@@ -75,33 +90,7 @@ It is hopelessly naive about character escaping. Feed it a title with quotes, co
 ### Ritual Warnings
 Stick to alphanumeric titles unless you enjoy manually untangling broken YAML and shell-escaped horrors.
 
-## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
+## History
+<!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->
 
-*Not found: no changelog/history entries matching `rc-new.sh`.*
-
-## Environment
-<!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
-
-- **$ROOT_DIR**: .
-- **$OUTPUT_DIR**: output
-- **$CONTENT_DIR**: home/content
-- **$ASSETS_DIR**: home/assets
-- **$DOCS_DIR**: home/content/docs
-- **$HELP_DIR**: home/content/help
-- **$BONES_DIR**: bones
-- **$SCRIPT_DIR**: bones/scripts
-- **$CONFIG_DIR**: bones/config
-- **$LOG_DIR**: bones/logs
-- **$TMP_DIR**: bones/tmp
-- **$ARCHIVE_DIR**: bones/archive
-- **$REPORT_DIR**: bones/reports
-- **$BOOK_REPORT_DIR**: bones/book-reports
-- **$TEMPLATE_DIR**: bones/templates
-- **$META_DIR**: bones/meta
-- **$WEB_DIR**: output
-
-###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
-
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
+No matching entries in CHANGELOG.md.

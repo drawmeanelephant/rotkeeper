@@ -11,7 +11,9 @@ IFS=$'\n\t'
 # ============================================================
 # Env assumptions: reads BONES_DIR, CONFIG_DIR, DRY_RUN, LOG_DIR, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TMP_DIR, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
-# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
+# Input/Output contracts: reads scripts under `SCRIPT_DIR` and the root dispatcher. With no mode, or `--all`, rewrites both `REPORT_DIR/autopsy-help.md` and `REPORT_DIR/autopsy-outputs.md`.
+#   Help extraction invokes only PERMITTED_RITUALS with `ROT_SKIP_ENV=true`, falling back to flag-string extraction for empty help. Output analysis catalogs writes, copies, moves, tee, and tar operations with line numbers and environment-resolved paths.
+#   DIP may use the output report for artifact exclusions, but command help is harvested directly from script comments and does not require the help report. Dry-run previews report writes.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-autopsy.sh
@@ -47,8 +49,8 @@ IFS=$'\n\t'
 #   --version, -v    Show script version and quit
 #
 # Examples:
-#   bash rotkeeper.sh autopsy                  Both reports (default)
-#   bash rotkeeper.sh autopsy --help-report    Help catalog only
+#   bash rotkeeper.sh autopsy                  # Both reports (default)
+#   bash rotkeeper.sh autopsy --help-report    # Help catalog only
 #
 # Exit codes:
 #   0    Success

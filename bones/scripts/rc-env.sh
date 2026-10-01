@@ -16,7 +16,9 @@ IFS=$'\n\t'
 # ============================================================
 # Env assumptions: reads ARCHIVE_DIR, ASSETS_DIR, BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, HELP_DIR, INPUT_FORMAT, LAYOUT_STYLE, LOG_DIR, META_DIR, OUTPUT_DIR, RELEASE_DIR, RENDER_PROFILE, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, WEB_DIR (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
-# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
+# Input/Output contracts: internal environment library reached through `rk_load_env`, not a dispatcher command. Derives the canonical paths from `BASH_SOURCE` and configuration, exports the layout/renderer variables, and does not write files.
+#   Reuses a paths cache only for the same root; relocation invalidates it with a warning. Crypt, busy, and sterile select their respective content/templates/assets/output paths. Unsupported input/profile values fall back to Markdown/HTML.
+#   `ROTKEEPER_ENV_LOADED` makes repeated loading for the same root idempotent; `FORCE_ENV_RELOAD` is reserved for init after cache writes. Strict validation in rc-utils rejects corrupted caches or escaping paths.
 
 
 [[ -n "$BASH_VERSION" ]] || {

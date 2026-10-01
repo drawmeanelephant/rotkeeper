@@ -11,7 +11,9 @@ IFS=$'\n\t'
 # ============================================================
 # Env assumptions: reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, DRY_RUN, LOG_DIR, META_DIR, QUIET, ROOT_DIR, SCRIPT_DIR, TMP_DIR, VERBOSE (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
-# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
+# Input/Output contracts: reads directories and immediate `.md`, `.textile`, and `.cook` children under `CONTENT_DIR`, or a canonicalized `--path` subtree. Requires yq v4+ and GNU awk; destinations outside the content boundary are rejected.
+#   Creates missing `index.md` files using the resolved default template and directory-sidecar frontmatter, with child links between ROTKEEPER-GLUE-START/END markers. Generated indexes carry `rotkeeper_glued: true`; `--force` removes and regenerates only those marked indexes.
+#   Custom indexes keep their authored prose. An ordered single marker pair is replaced through a temporary file; otherwise glue is appended. Rewrite failures preserve the original. Dry-run previews writes without changing indexes.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-glue.sh
@@ -40,9 +42,9 @@ FORCE_GLUE=false
 #   --version, -v    Show script version and quit
 #
 # Examples:
-#   bash rotkeeper.sh glue                                Glue all unindexed directories
-#   bash rotkeeper.sh glue --path journal                 One directory
-#   bash rotkeeper.sh glue --force --dry-run              Preview refresh
+#   bash rotkeeper.sh glue                                # Glue all unindexed directories
+#   bash rotkeeper.sh glue --path journal                 # One directory
+#   bash rotkeeper.sh glue --force --dry-run              # Preview refresh
 #
 # Exit codes:
 #   0    Success

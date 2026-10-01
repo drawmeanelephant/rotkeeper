@@ -11,11 +11,14 @@ IFS=$'\n\t'
 # ============================================================
 # Env assumptions: reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, DRY_RUN, LOG_DIR, META_DIR, QUIET, ROOT_DIR, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, VERBOSE (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
-# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
+# Input/Output contracts: creates one new `.md`, `.textile`, or `.cook` source under `CONTENT_DIR`; bare names get `.md`. No filename or `--list` lists templates, marking the configured default and palette support.
+#   YAML fields include title, slug, and template; optional description, author, tags, and source_url are emitted when supplied. Multiline descriptions use a block scalar and tags use a quoted YAML list. Template selection uses the shared registry/default resolution.
+#   Markdown gets a `#` heading, Textile an `h1.` heading, and Cooklang a sample recipe body without a heading. `--url` creates Source/Notes/Summary sections. `--soul` requests a sidecar through the traversal-guarded metadata mapping.
+#   Filename/subdirectory traversal and destinations outside `CONTENT_DIR` are rejected. Existing content is never overwritten; existing sidecars are warned about and kept. Dry-run previews the scaffold without publishing files.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-new.sh
-#  Purpose : Scaffold a new markdown file with YAML frontmatter
+#  Purpose : Scaffold a Markdown, Textile, or Cooklang source with YAML frontmatter.
 #  Version : 0.5.1
 #  Updated : 2026-03-23
 # ------------------------------------------------------------
@@ -51,8 +54,8 @@ IFS=$'\n\t'
 #   --version, -v          Show script version and quit
 #
 # Examples:
-#   bash rotkeeper.sh new graveyard-shift                       Simple scaffold at content root
-#   bash rotkeeper.sh new ember-report --subdir journal         Place under journal/
+#   bash rotkeeper.sh new graveyard-shift                       # Simple scaffold at content root
+#   bash rotkeeper.sh new ember-report --subdir journal         # Place under journal/
 #   bash rotkeeper.sh new ember-report --title "Ember Report" --tags "news,ember" --dry-run
 #
 # Exit codes:

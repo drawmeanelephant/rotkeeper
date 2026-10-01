@@ -12,7 +12,8 @@ IFS=$'\n\t'
 # ============================================================
 # Env assumptions: reads ASSETS_DIR, BONES_DIR, CONFIG_DIR, DRY_RUN, LOG_DIR, LOG_FILE, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
-# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
+# Input/Output contracts: statically reads theme templates and their stylesheets, following CSS imports inside the asset CSS tree. Audits semantic/hardcoded color pairs across default, dark, and palette scopes, focus indicators, and overflow/pre-wrap strategies for wide tables and code.
+#   Body/code text pairs fail below 4.5:1; softer pairs warn between 3.0:1 and 4.5:1 and fail below 3.0:1. Missing focus-visible replacements for suppressed outlines are flagged. Writes a per-theme report or emits JSON; failed themes return nonzero. No browser is required.
 
 # @HELP
 # rc-a11y.sh — Theme accessibility audit (v{VERSION})
@@ -44,8 +45,8 @@ IFS=$'\n\t'
 #   --version, -v    Show script version and quit
 #
 # Examples:
-#   bash rotkeeper.sh a11y                    Audit all themes, write reports
-#   bash rotkeeper.sh a11y --json             Machine-readable findings
+#   bash rotkeeper.sh a11y                    # Audit all themes, write reports
+#   bash rotkeeper.sh a11y --json             # Machine-readable findings
 #
 # Exit codes:
 #   0    All themes pass

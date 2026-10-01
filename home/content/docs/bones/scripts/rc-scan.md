@@ -1,92 +1,86 @@
 ---
-title: "🔍 rc-scan.sh Reference"
+reference_contract: rotkeeper.command-reference.v1
+title: rc-scan.sh
 slug: rc-scan
-target_file: "bones/scripts/rc-scan.sh"
-date: "2026-08-27"
-template: "rotkeeper-doc.html"
-status: "active"
-version: "0.5.1"
-author: "Rotkeeper Ritual Council"
-project: "Rotkeeper"
-description: "Audits the render ledger (bones/manifest.txt) against disk — missing entries, output-tree orphans (assets tree exempt), ledger digests, and digest mismatches — and emits JSON plus Markdown scan reports."
-tags:
-  - rotkeeper
-  - scripts
-  - scan
-  - digests
+target_file: bones/scripts/rc-scan.sh
+template: rotkeeper-doc.html
+status: active
+version: 0.8.1
+author: Rotkeeper DIP
+project: Rotkeeper
+description: 'Audit the render ledger vs disk: missing, output-tree orphans, ledger digests, and digest mismatches'
 ---
 
-# 🔍 rc-scan.sh
-
-<!-- The sacred rite of tomb inspection -->
-
-**Script Path:** `bones/scripts/rc-scan.sh`
+# rc-scan.sh
 
 ## Overview
 
-`rc-scan.sh` is the integrity auditor: it reconciles what the manifest claims exists against what is actually on disk, then files a report of the discrepancies. It runs at the end of `init --full` and can be invoked any time an audit is wanted.
+Audit the render ledger vs disk: missing, output-tree orphans, ledger digests, and digest mismatches
 
-The audit, in order:
+Source: `bones/scripts/rc-scan.sh`.
 
-1. **Manifest load** — reads `bones/manifest.txt` (blank lines and `#` comments skipped), normalizing each entry to a root-relative path.
-2. **Output walk** — scans `OUTPUT_DIR` only, pruning noisy subtrees (`tmp`, `logs`, `archive`, `reports`, `book-reports`) and the assets tree (`output/assets/` — owned by the assets ritual, not the ledger), filtered by extension (default allowlist: `png jpg svg css js md html json yaml`; override with `--include`, tighten further with repeatable `--exclude` glob patterns).
-3. **Classification** — *missing* = listed in the ledger but absent on disk; *orphan* = under the output tree but absent from the ledger.
-4. **Digests** — SHA256 for every ledger-listed file present on disk (via the portable checksum helper); entries absent from disk are already reported as missing.
-5. **Integrity** — `digest_mismatches` verifies manifest lines recorded by pack as `<path>  <sha256>` (two-space format) against the on-disk digest: existence, tamper/drift, and foreign-file checks make the scan a real ledger auditor (`actual: null` when the file is missing).
-6. **Reports** — timestamped JSON (`scan-report-<ts>.json`) and Markdown (`scan-report-<ts>.md`) under `bones/reports/`, each containing missing, orphans, digests, and digest mismatches. `--json-only` / `--md-only` restrict output to one form; `--manifest-only` skips the disk walk entirely. `--json` additionally prints a schema-tagged summary object (`rotkeeper.scan.v2`) on stdout — report files, human output, and exit codes are unchanged.
-
-## CLI Usage
+## Usage
 
 ```bash
-rotkeeper.sh scan [options]
-
-# Options:
-#   --manifest-only   Read only the manifest file, skip the disk scan
-#   --include <ext>   Comma-separated extensions to include
-#   --exclude <pat>   Glob pattern to exclude (can repeat)
-#   --json            Emit machine-readable JSON on stdout (reports unchanged)
-#   --json-only       Write only the JSON report
-#   --md-only         Write only the Markdown report
-#   --dry-run         Show actions without writing reports or logs
-#   --verbose         Print detailed logs
-#   --help, -h        Show usage help
+rotkeeper.sh scan [flags]
 ```
 
-### Environment assumptions
+## Options
 
-- **Reads:** `bones/manifest.txt` (the render ledger — not the asset manifest), plus `CONTENT_DIR`, `BONES_DIR`, `OUTPUT_DIR`.
-- **Writes:** two timestamped reports under `REPORT_DIR`; a per-run log under `LOG_DIR` (real runs only — `--dry-run` stays non-mutating).
-- **Dependencies:** `bash`, `jq`, and a SHA-256 tool; exits 2 if `--manifest-only` is set but the manifest file is missing.
+```text
+Flags:
+--manifest-only   Read only manifest file, skip the output-tree walk.
+--include <ext>   Comma-separated extensions to include in the orphan walk.
+--exclude <pat>   Glob pattern to exclude from the orphan walk (can repeat).
+--json            Emit machine-readable JSON to stdout (report files unchanged).
+--json-only       Output only JSON report.
+--md-only         Output only Markdown report.
+--dry-run         Show actions without writing reports.
+--verbose         Print detailed logs.
+-h, --help        Show this help message and exit.
+--version, -v     Show script version and quit.
+```
 
-## Dangerous operations
+## Examples
 
-None destructive — the ritual is read-only except for its own reports and logs. Its findings are advisory: missing/orphan classifications inform cleanup decisions but never trigger deletions themselves.
+```bash
+bash rotkeeper.sh scan                                     # Full audit
+bash rotkeeper.sh scan --manifest-only                     # Manifest check only
+bash rotkeeper.sh scan --include md,textile --dry-run      # Filtered preview
+bash rotkeeper.sh scan --json | jq .                       # Machine-readable output
+```
 
-## 🛣️ Navigation
-<!-- Quick navigation links -->
-- [Scripts Index](index.html)
-- [Scan Reference](rc-scan.html)
-- [Bones Home](index.html)
+## Exit codes
 
-<!--
-Limerick 1:
-In shadows where orphaned files roam,
-rc-scan ushers them back home.
-It marks each lone soul,
-In a checksum scroll,
-And guards the tomb’s spectral dome.
+```text
+0    Success
+1    Environment failure
+2    Manifest file missing
+```
 
-Limerick 2:
-When manifests call out the lost,
-rc-scan measures true arc cost.
-With hashes in hand,
-It restores the land,
-Ensuring no file is at frost.
--->
+## Reads and writes
 
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
+**Environment:** reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DRY_RUN, LOG_DIR, LOG_FILE, OUTPUT_DIR, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TMP_DIR, VERBOSE, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 
+**Working directory:** No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+
+**Inputs and outputs:** reads `bones/manifest.txt`, ignoring blank/comment lines and normalizing paths relative to the root. Requires Bash, jq, and a SHA-256 tool. Writes timestamped Markdown/JSON reports under `REPORT_DIR`; findings never delete source or output files.
+The output-tree walk excludes generated support directories and `output/assets`; its default extensions are `png jpg svg css js md html json yaml`, adjustable through `--include` and repeatable `--exclude`.
+Reports classify missing ledger entries, output orphans, SHA-256 digests, and mismatches against pack entries in `<path>  <sha256>` format. Missing digest targets have `actual: null`. `--manifest-only` skips the output walk.
+`--json` also emits `rotkeeper.scan.v2` on stdout without changing report files or exit codes. `--json-only` and `--md-only` select report formats. Dry-run writes neither reports nor a run log; a missing manifest with `--manifest-only` exits 2.
+
+## Side effects
+
+- **write:** creates bones/reports and bones/logs if missing
+- **write:** opens a fresh per-run scan log under bones/logs (real runs only)
+- **write:** creates a bones/tmp scratch file for stdout JSON assembly
+- **write:** appends the stdout JSON object to the per-run log
+- **delete:** removes the stdout JSON scratch file after emit
+- **write:** writes bones/reports/scan-report-<ts>.json (real runs only)
+- **write:** writes bones/reports/scan-report-<ts>.md (real runs only)
+
+## Notes
+<!-- DIP-SOUL-EXTRACTED: command-reference.v1 -->
 
 ### Bones of the Code
 The paranoid auditor. It checks files against `bones/manifest.txt` to see what has been stolen or what has crawled in uninvited.
@@ -97,37 +91,17 @@ Its reporting mechanism for missing or orphaned files is easily confused by syml
 ### Ritual Warnings
 Do not treat its manifest as absolute truth. It is easily fooled by the slightest deviation in the physical realm.
 
-## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
+## History
+<!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->
 
-- - Optimize rc-scan.sh to run faster on large filesystems.
-- - Improve rc-scan.sh orphaned file reporting format.
-- - Optimize rc-scan.sh to quickly analyze missing references.
-- tarballs, improved `rc-scan.sh` orphan reporting, `rc-ingest.sh` validation,
-- `CHANGELOG.md` records faster `rc-scan.sh`, multiple ingest sources,
+### [0.4.0.4] - 2026-07-01
 
-## Environment
-<!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
+- Optimize rc-scan.sh to run faster on large filesystems.
 
-- **$ROOT_DIR**: .
-- **$OUTPUT_DIR**: output
-- **$CONTENT_DIR**: home/content
-- **$ASSETS_DIR**: home/assets
-- **$DOCS_DIR**: home/content/docs
-- **$HELP_DIR**: home/content/help
-- **$BONES_DIR**: bones
-- **$SCRIPT_DIR**: bones/scripts
-- **$CONFIG_DIR**: bones/config
-- **$LOG_DIR**: bones/logs
-- **$TMP_DIR**: bones/tmp
-- **$ARCHIVE_DIR**: bones/archive
-- **$REPORT_DIR**: bones/reports
-- **$BOOK_REPORT_DIR**: bones/book-reports
-- **$TEMPLATE_DIR**: bones/templates
-- **$META_DIR**: bones/meta
-- **$WEB_DIR**: output
+### [0.4.0.5] - 2026-07-01
 
-###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
+- Improve rc-scan.sh orphaned file reporting format.
 
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
+### [0.4.0.3] - 2026-06-30
+
+- Optimize rc-scan.sh to quickly analyze missing references.

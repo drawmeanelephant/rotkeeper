@@ -1,73 +1,86 @@
 ---
-title: "🔗 rc-links.sh Reference"
+reference_contract: rotkeeper.command-reference.v1
+title: rc-links.sh
 slug: rc-links
-target_file: "bones/scripts/rc-links.sh"
-date: "2026-07-23"
-template: "rotkeeper-doc.html"
-status: "active"
-version: "0.5.0"
-author: "Rotkeeper Ritual Council"
-project: "Rotkeeper"
-description: "Audit rendered HTML tombs for broken relative hyperlinks, local asset references, and angle-bracket link compatibility."
-tags:
-  - rotkeeper
-  - scripts
-  - audit
-  - links
+target_file: bones/scripts/rc-links.sh
+template: rotkeeper-doc.html
+status: active
+version: 0.8.1
+author: Rotkeeper DIP
+project: Rotkeeper
+description: Audit rendered HTML links and local asset references
 ---
 
-# 🔗 rc-links.sh
-
-**Script Path:** `bones/scripts/rc-links.sh`
+# rc-links.sh
 
 ## Overview
-`rc-links.sh` audits rendered HTML pages in `output/` to verify:
-1. Relative HTML hyperlinks target existing pages.
-2. Local asset references (`href` and `src`) exist under `output/assets/`.
-3. Hyperlinks wrapped in angle brackets or Markdown formatting render without broken paths.
 
-## CLI Usage
+Audit rendered HTML links and local asset references
+
+Source: `bones/scripts/rc-links.sh`.
+
+## Usage
 
 ```bash
 rotkeeper.sh links [options]
-
-# Options:
-#   --root DIR       Rendered directory to scan (defaults to output/)
-#   --report FILE    Report destination (defaults to bones/reports/link-report-*.md)
-#   --dry-run        Scan without writing a report
-#   --verbose        Show detailed log output
-#   --help, -h       Show usage help
 ```
 
-## Environment
-<!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
+## Options
 
-- **$ROOT_DIR**: .
-- **$OUTPUT_DIR**: output
-- **$CONTENT_DIR**: home/content
-- **$ASSETS_DIR**: home/assets
-- **$DOCS_DIR**: home/content/docs
-- **$HELP_DIR**: home/content/help
-- **$BONES_DIR**: bones
-- **$SCRIPT_DIR**: bones/scripts
-- **$CONFIG_DIR**: bones/config
-- **$LOG_DIR**: bones/logs
-- **$TMP_DIR**: bones/tmp
-- **$ARCHIVE_DIR**: bones/archive
-- **$REPORT_DIR**: bones/reports
-- **$BOOK_REPORT_DIR**: bones/book-reports
-- **$TEMPLATE_DIR**: bones/templates
-- **$META_DIR**: bones/meta
-- **$WEB_DIR**: output
-###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
+```text
+--root DIR       Rendered directory to scan; defaults to output/
+--report FILE    Report destination; defaults to bones/reports/link-report-*.md
+--json           Emit machine-readable JSON to stdout (failures with line+excerpt)
+--fix-hint       Show suggested fixes for each failure (no auto-fix)
+--dry-run        Scan without writing a report
+--verbose        Show detailed logs (line numbers + excerpts)
+--help, -h       Show this help message
+--version, -v    Show script version and quit
+```
 
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
-## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-08-12T00:38:36Z -->
+## Examples
 
-- - Added dispatcher link audit tool (`rc-links.sh` / `./rotkeeper.sh links`) for link checking and local asset verification with angle-bracket compatibility.
+```bash
+bash rotkeeper.sh links                     # Audit and write report
+bash rotkeeper.sh links --fix-hint          # Audit with per-failure hints
+bash rotkeeper.sh links --json | jq .       # Machine-readable output
+```
 
-<!-- DIP-SOUL-EXTRACTED: 2026-08-12T00:39:14Z -->
+## Exit codes
 
-*Not found: no soul sidecar for `bones/scripts/rc-links.sh`.*
+```text
+0    No broken links or missing assets found
+1    Broken references found, or audit error
+```
+
+## Reads and writes
+
+**Environment:** reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DRY_RUN, LOG_DIR, LOG_FILE, OUTPUT_DIR, QUIET, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TMP_DIR, VERBOSE (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+
+**Working directory:** No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+
+**Inputs and outputs:** reads rendered HTML under the selected root and audits local href/src targets and anchors, including local asset references. Writes the selected report under the report boundary or emits JSON according to flags; dry-run scans without publishing a report.
+
+## Side effects
+
+- **delete:** removes the bones/tmp scan-result scratch file on exit
+- **write:** mktemp creates a bones/tmp scratch file that captures the Python scan TSV (cleaned up on exit)
+- **write:** creates a bones/tmp scratch file for JSON assembly (deleted below)
+- **write:** serializes the assembled JSON into the scratch file
+- **delete:** removes the JSON scratch file before failing
+- **write:** appends the JSON report to the per-run log under bones/logs
+- **delete:** removes the JSON scratch file after emit
+- **write:** overwrites the link-audit markdown report
+- **write:** overwrites the link-audit markdown report
+
+## Notes
+<!-- DIP-SOUL-EXTRACTED: command-reference.v1 -->
+
+No sidecar notes are documented for `bones/scripts/rc-links.sh`.
+
+## History
+<!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->
+
+### [0.5.0] - 2026-07-23
+
+- Added dispatcher link audit tool (`rc-links.sh` / `./rotkeeper.sh links`) for link checking and local asset verification with angle-bracket compatibility.

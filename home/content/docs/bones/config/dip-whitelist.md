@@ -15,7 +15,7 @@ Configuration file containing a whitelist of files to be audited by the Document
 ## Details
 Configuration file intended to be manually edited or read by Rotkeeper scripts.
 
-## Necromancer's Notes
+## Notes
 <!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
 
 
@@ -25,31 +25,15 @@ A simple plain-text configuration file containing a newline-delimited list of fi
 ### Directory / File Schema Expectations
 If an invalid filename or path containing a typo is added here, it fails silently, leaving the target file vulnerable to DIP sweeps. Do not add wildcard characters or directory globs unless supported by the parsing logic in `rc-dip.sh`. Keep comments prefixed with `#` to avoid parsing errors.
 
-## Environment
-<!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
+## Reads and writes
+<!-- DIP-ENV-EXTRACTED: 2026-10-01T21:17:26Z -->
 
-- **$ROOT_DIR**: .
-- **$OUTPUT_DIR**: output
-- **$CONTENT_DIR**: home/content
-- **$ASSETS_DIR**: home/assets
-- **$DOCS_DIR**: home/content/docs
-- **$HELP_DIR**: home/content/help
-- **$BONES_DIR**: bones
-- **$SCRIPT_DIR**: bones/scripts
-- **$CONFIG_DIR**: bones/config
-- **$LOG_DIR**: bones/logs
-- **$TMP_DIR**: bones/tmp
-- **$ARCHIVE_DIR**: bones/archive
-- **$REPORT_DIR**: bones/reports
-- **$BOOK_REPORT_DIR**: bones/book-reports
-- **$TEMPLATE_DIR**: bones/templates
-- **$META_DIR**: bones/meta
-- **$WEB_DIR**: output
-###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
+This file is not a script; no script environment contract applies.
+## Usage
+<!-- DIP-HELP-EXTRACTED: 2026-10-01T21:17:26Z -->
 
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
-## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
+This file has no command-line interface.
+## History
+<!-- DIP-HISTORY-EXTRACTED: 2026-10-01T21:17:26Z -->
 
-*Not found: no changelog/history entries matching `dip-whitelist.txt`.*
+No matching entries in CHANGELOG.md.

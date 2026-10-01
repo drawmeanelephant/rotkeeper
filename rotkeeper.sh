@@ -10,6 +10,9 @@
 #  Project : Rotkeeper
 #  Script  : rotkeeper.sh
 #  Purpose : CLI dispatcher for aligned single framework release structures
+# Env assumptions: reads `ROTKEEPER_VERSION` or `bones/config/version`; requires Bash and the command scripts under `bones/scripts`.
+# CWD assumptions: none; the repository root is derived from the dispatcher location.
+# Input/Output contracts: reads command arguments and delegates to the selected script. `--help` and `--version` write only stdout; other commands have their own read/write contracts. Unknown and removed commands exit nonzero.
 #  Version : 0.8.0
 # ============================================================
 

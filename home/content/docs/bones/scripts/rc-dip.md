@@ -1,75 +1,82 @@
 ---
-title: "🧬 rc-dip.sh Reference"
-target_file: "bones/scripts/rc-dip.sh"
-date: "2026-08-27"
-template: "rotkeeper-doc.html"
-status: "active"
-version: "0.5.1"
-author: "Rotkeeper Ritual Council"
-project: "Rotkeeper"
-description: "The Document Improvement Project audit: discovers docs, classifies ownership and staleness, stubs missing reference pages, stitches dynamic pillars, and emits the DIP matrix."
-tags:
-  - rotkeeper
-  - scripts
-  - documentation
-  - audit
+reference_contract: rotkeeper.command-reference.v1
+title: rc-dip.sh
+slug: rc-dip
+target_file: bones/scripts/rc-dip.sh
+template: rotkeeper-doc.html
+status: active
+version: 0.8.1
+author: Rotkeeper DIP
+project: Rotkeeper
+description: Document Improvement Project - audits and fixes docs
 ---
 
 # rc-dip.sh
 
-**Script Path:** `bones/scripts/rc-dip.sh`
-
 ## Overview
 
-`rc-dip.sh` backs the `dip` dispatcher command — the documentation lifecycle engine. One pass performs four audits over every page under `DOCS_DIR`:
+Document Improvement Project - audits and fixes docs
 
-1. **Discovery & classification.** Core-file inventory comes from the FSBook catalog (`bones/book-reports/rotkeeper-files.md`, via `book --fsbook`); without it, discovery degrades and no moves/stubs are decided. Each doc is classified as *generated* (has a `target_file`), *authored* (hand-written conceptual page), *stub* (still carrying TODO placeholders), *stale* (source newer than doc), or *unowned* (reported, never silently discarded).
-2. **Obsolete handling.** A generated doc whose explicit `target_file` is no longer in the core inventory is moved to the obsolete tree — but only on that strong evidence. Ambiguous cases are reported as unowned, not moved.
-3. **Stub generation.** Missing expected reference pages are scaffolded with frontmatter (including `target_file`) and the canonical section skeleton.
-4. **Pillar stitching & matrix.** Four dynamic pillars per page are idempotently rewritten from live extraction: `## Environment` (variable listing), `###### CLI Usage` (from the autopsy help report), `## Ritual History` (CHANGELOG entries naming the script), and Necromancer's Notes (soul sidecars under `META_DIR`). Authored prose outside those pillars is preserved untouched. Finally `dip-matrix.md` summarizes the audit, and `dip --json` mirrors it as a schema-tagged machine-readable object (`rotkeeper.dip-matrix.v1`) on stdout without changing the matrix, human output, or exit codes.
+Source: `bones/scripts/rc-dip.sh`.
 
-The obsolete-document move check honors `bones/config/dip-whitelist.txt` exemptions (that whitelist is not an exemption from matrix reporting or pillar stitching).
-
-## CLI Usage
+## Usage
 
 ```bash
 rotkeeper.sh dip [options]
-
-# Options:
-#   --dry-run      Preview actions without moving or writing docs
-#   --verbose      Detailed output
-#   --quiet        Suppress informational output
-#   --json         Emit a machine-readable DIP matrix JSON on stdout
-#   --help, -h     Show usage help
 ```
 
-### Environment assumptions
-
-- **Reads:** the FSBook catalog and autopsy reports (degrading gracefully with `[WARN]` when absent), soul sidecars under `META_DIR`, `CHANGELOG.md`, `bones/config/dip-whitelist.txt`.
-- **Writes:** stub/moved docs under `DOCS_DIR` (obsolete destination: sibling `obsolete/docs/` tree), stitched pillars in existing docs, and `DOCS_DIR/dip-matrix.md`.
-- **CWD:** none.
-
-## Dangerous operations
-
-- **Moves and creates files inside the content tree** (`home/content/docs/`) — stub creation, pillar rewrites, and obsolete moves all mutate author-visible pages. `--dry-run` previews every such action; run it first.
-- Obsolete moves happen only with an explicit `target_file` pointing outside the current inventory; anything uncertain is reported instead.
-- Stitching rewrites only marker-bounded pillar blocks; authored sections are structurally off-limits to the engine.
-
-## Details
-
-### CLI Usage
+## Options
 
 ```text
---dry-run
---verbose
---quiet
---json
---version
+--dry-run      Preview actions without moving or writing docs
+--verbose      Detailed output
+--quiet        Suppress informational output
+--json         Emit a machine-readable DIP matrix JSON on stdout
+--help, -h     Show help
+--version, -v  Show version and quit
 ```
 
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
+## Examples
 
+```bash
+bash rotkeeper.sh dip --dry-run     # Audit without moving or writing docs
+bash rotkeeper.sh dip               # Full audit and matrix publication
+bash rotkeeper.sh dip --json | jq . # Machine-readable matrix output
+```
+
+## Exit codes
+
+```text
+0         Audit completed (findings live in the matrix report)
+nonzero   Audit could not complete
+```
+
+## Reads and writes
+
+**Environment:** reads ARCHIVE_DIR, ASSETS_DIR, BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DEBUG, DOCS_DIR, DRY_RUN, HELP_DIR, LOG_DIR, META_DIR, OUTPUT_DIR, QUIET, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, WEB_DIR (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+
+**Working directory:** No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+
+**Inputs and outputs:** reads the fsbook core inventory, script headers/static help/side-effect annotations, sidecars, CHANGELOG, and documentation ownership. Generates a missing catalog on demand; a degraded inventory cannot authorize obsolete moves.
+Rebuilds missing or explicitly owned script references under `DOCS_DIR` with the command-reference v1 contract. Authored task guides are not replaced. Non-command mirrors retain authored prose while Notes/History and marker-owned runtime sections are migrated.
+Obsolete moves require explicit target_file evidence and honor the whitelist; ambiguous pages are reported unowned. Publishes `DOCS_DIR/dip-matrix.md`; `--json` adds the unchanged `rotkeeper.dip-matrix.v1` envelope to stdout. Dry-run previews doc/matrix mutations; shared bootstrap logging still writes.
+
+## Side effects
+
+- **write:** creates the destination directory, writes <dest>.tmp.$$, then
+  replaces <dest> atomically via mv; removes the temp file on write failure.
+- **delete+write:** drops the extracted-content scratch file and replaces the
+  stitched doc in place with the rewritten temp file
+- **delete/move:** relocates an obsolete doc under bones/obsolete (source is
+  consumed by the move); never clobbers an existing destination
+- **write:** creates the doc directory and writes a stub doc in place
+- **write:** creates a bones/tmp scratch file for stdout JSON assembly
+- **write:** appends the stdout JSON object to the per-run log
+- **delete:** removes the stdout JSON scratch file after emit
+- **delete:** discards the identical matrix scratch copy
+
+## Notes
+<!-- DIP-SOUL-EXTRACTED: command-reference.v1 -->
 
 ### Bones of the Code
 The so-called Document Improvement Project engine. It ingests path-mirrored Necronotes to 'improve' things. It's a parasitic entity that feeds on sidecar files to alter the behavior or documentation of the host scripts.
@@ -80,39 +87,22 @@ The newly refactored ingestion logic is a snake eating its own tail. It is highl
 ### Ritual Warnings
 Do not feed it self-referential sidecars. Handle empty notes with care, or the engine will lock itself in a state of endless contemplation.
 
-## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
+## History
+<!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->
 
--   `rc-book.sh`, `rc-dip.sh`, and `rc-glue.sh`.
-- - Fix rc-dip.sh to properly stitch empty sidecars.
-- - Streamline rc-dip.sh parsing logic.
-- - Refactor rc-dip.sh to extract ritual history reliably.
-- streamlined `rc-dip.sh` parsing, and removal of redundant `rc-env.sh`
-- stitching in `rc-dip.sh`, and revised `rc-env.sh` resolution order.
--   `rc-book.sh`, `rc-dip.sh`, and `rc-glue.sh`.
+### [0.4.1] - 2026-07-22
 
-## Environment
-<!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
+- Hardened strict-mode and quoting behavior across `rc-assets.sh`,
+  `rc-book.sh`, `rc-dip.sh`, and `rc-glue.sh`.
 
-- **$ROOT_DIR**: .
-- **$OUTPUT_DIR**: output
-- **$CONTENT_DIR**: home/content
-- **$ASSETS_DIR**: home/assets
-- **$DOCS_DIR**: home/content/docs
-- **$HELP_DIR**: home/content/help
-- **$BONES_DIR**: bones
-- **$SCRIPT_DIR**: bones/scripts
-- **$CONFIG_DIR**: bones/config
-- **$LOG_DIR**: bones/logs
-- **$TMP_DIR**: bones/tmp
-- **$ARCHIVE_DIR**: bones/archive
-- **$REPORT_DIR**: bones/reports
-- **$BOOK_REPORT_DIR**: bones/book-reports
-- **$TEMPLATE_DIR**: bones/templates
-- **$META_DIR**: bones/meta
-- **$WEB_DIR**: output
+### [0.4.0.4] - 2026-07-01
 
-###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
+- Fix rc-dip.sh to properly stitch empty sidecars.
 
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
+### [0.4.0.5] - 2026-07-01
+
+- Streamline rc-dip.sh parsing logic.
+
+### [0.4.0.3] - 2026-06-30
+
+- Refactor rc-dip.sh to extract ritual history reliably.

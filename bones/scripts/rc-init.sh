@@ -11,7 +11,9 @@ IFS=$'\n\t'
 # ============================================================
 # Env assumptions: reads ARCHIVE_DIR, ASSETS_DIR, BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, DRY_RUN, HELP_DIR, LAYOUT_STYLE, LOG_DIR, META_DIR, OUTPUT_DIR, RELEASE_DIR, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, VERBOSE, WEB_DIR (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
-# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
+# Input/Output contracts: requires Bash and mikefarah yq v4+, marks command scripts/tests executable, and creates the content, output, and configuration directories without deleting existing content.
+#   Writes `bones/config/rotkeeper.yaml`: seeds missing configuration, applies the selected layout, and serializes the full paths cache in one yq transaction, followed by a forced strict environment reload. This repairs relocation/layout-cache validation failures.
+#   `--with-sample` creates `CONTENT_DIR/test-file.md` only if absent; `--with-assets` and `--with-render` delegate to those commands. `--full` includes sample, assets, render, and scan. Delegated commands retain their own write/delete contracts. Dry-run previews changes.
 #  Project : Rotkeeper
 #  Script  : rc-init.sh
 #  Purpose : Minimal, non-destructive environment initialization
@@ -40,8 +42,8 @@ IFS=$'\n\t'
 #   --version, -v    Show script version and quit
 #
 # Examples:
-#   bash rotkeeper.sh init                        Initialize with defaults
-#   bash rotkeeper.sh init --full                 Sample content + assets + render + scan
+#   bash rotkeeper.sh init                        # Initialize with defaults
+#   bash rotkeeper.sh init --full                 # Sample content + assets + render + scan
 #   bash rotkeeper.sh init --with-sample --dry-run
 #
 # Exit codes:

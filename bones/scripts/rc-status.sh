@@ -11,7 +11,9 @@ IFS=$'\n\t'
 # ============================================================
 # Env assumptions: reads ARCHIVE_DIR, BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, LOG_DIR, LOG_FILE, OUTPUT_DIR, ROOT_DIR, ROTKEEPER_VERSION, SCRIPT_DIR, TMP_DIR, VERBOSE, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
-# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
+# Input/Output contracts: reads version/configuration, Git context, scripts, content, output, archives, and book reports. Requires Bash, jq, and yq v4. Apart from its run log, it does not mutate the workspace.
+#   Reports environment/version provenance, script syntax health, binder exports, releases, recent archives, per-format content counts, render freshness, and configuration. Freshness compares source/HTML mtimes and reports current, stale, or empty output.
+#   Default output is a human-readable report; `--short` emits version/pages/freshness/branch on one line and `--json` emits the same sections as JSON. Restores caller stdout/stderr after bootstrap so quiet mode does not hide the report; colors respect `NO_COLOR`.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-status.sh
@@ -59,9 +61,9 @@ source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&
 #   --version, -v  Show version and quit
 #
 # Examples:
-#   bash rotkeeper.sh status           Full health report
-#   bash rotkeeper.sh status --short   One-line summary
-#   bash rotkeeper.sh status --json    Machine-readable report
+#   bash rotkeeper.sh status           # Full health report
+#   bash rotkeeper.sh status --short   # One-line summary
+#   bash rotkeeper.sh status --json    # Machine-readable report
 #
 # Exit codes:
 #   0         Success

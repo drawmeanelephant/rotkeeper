@@ -11,11 +11,14 @@ IFS=$'\n\t'
 # ============================================================
 # Env assumptions: reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, DRY_RUN, INPUT_FORMAT, LOG_DIR, LOG_FILE, META_DIR, OLIVER_BIN, OUTPUT_DIR, QUIET, RK_OLIVER_BIN, RK_RENDERER, ROOT_DIR, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, VERBOSE, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
-# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
+# Input/Output contracts: discovers `.md`, `.textile`, and `.cook` sources under `CONTENT_DIR` with NUL-delimited paths, plans a TSV batch with Oliver, and executes the adapter to write mirrored HTML under `OUTPUT_DIR`.
+#   Oliver discovery uses `RK_OLIVER_BIN` then `PATH` and the shared live preflight. Theme registry/default-template resolution chooses the site template; per-page metadata can override it. Missing templates and source-basename collisions abort the render.
+#   With `render_system_docs: false`, discovery excludes `docs`, `messages`, and `help` directories. Stale pages and assets are pruned only from an output tree marked `.rotkeeper-generated`; real runs delegate asset synchronization.
+#   Each output is recorded through `oliver manifest --add` in `bones/manifest.txt`. Failures abort rather than desynchronize the ledger. Scratch files and warning accumulators live under `TMP_DIR`; logs summarize duration and warnings. Dry-run does not execute the adapter or publish output.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-render.sh
-#  Purpose : Render markdown tombs into HTML using Oliver
+#  Purpose : Render Markdown, Textile, and Cooklang sources into themed HTML using Oliver.
 #  Version : 0.7.0
 #  Updated : 2026-08-21
 # ------------------------------------------------------------
@@ -39,8 +42,8 @@ IFS=$'\n\t'
 #   --version, -v    Show script version and quit
 #
 # Examples:
-#   bash rotkeeper.sh render                                            Render all content
-#   bash rotkeeper.sh render --dry-run                                  Preview without rendering
+#   bash rotkeeper.sh render                                            # Render all content
+#   bash rotkeeper.sh render --dry-run                                  # Preview without rendering
 #   RK_OLIVER_BIN=/path/to/oliver bash rotkeeper.sh render --renderer oliver
 #
 # Exit codes:
@@ -163,7 +166,7 @@ main() {
         # SIDE EFFECT: creates bones/manifest.txt if missing (mkdir + touch)
         mkdir -p "$(dirname "$MANIFEST")"
         touch "$MANIFEST"
-        # SIDE EFFECT: appends $rel_entry entry to bones/manifest.txt via oliver manifest --add
+        # SIDE EFFECT (write): appends the output entry to `bones/manifest.txt` via `oliver manifest --add`
         if ! "$OLIVER_BIN" manifest --manifest "$MANIFEST" --add "$rel_entry" >/dev/null 2>&1; then
           log "ERROR" "Oliver manifest --add failed for '$rel_entry'"
           echo "ERROR: Oliver manifest --add failed for '$rel_entry'" >&2

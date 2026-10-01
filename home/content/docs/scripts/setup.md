@@ -1,76 +1,54 @@
 ---
-title: "setup.sh"
+reference_contract: rotkeeper.command-reference.v1
+title: setup.sh
 slug: setup
-version: "v0.3.1.4"
-updated: 2026-03-23
-description: "Reference for setup.sh script which installs dependencies and prepares the environment."
-tags:
-  - rotkeeper
-  - scripts
-  - init
-  - bootstrap
-asset_meta:
-  name: "setup.md"
-  version: "v0.3.1.4"
-  author: "Rotkeeper Ritual Council"
-  project: "Rotkeeper"
-  tracked: true
-  license: "All Rights Reserved"
+target_file: scripts/setup.sh
+template: rotkeeper-doc.html
+status: active
+version: 0.8.1
+author: Rotkeeper DIP
+project: Rotkeeper
+description: Deterministic environment prep (Ubuntu/macOS)
 ---
 
-# 🤖 setup.sh — Environment Prep
+# setup.sh
 
-The `setup.sh` script is designed to quickly provision a deterministic Ubuntu or macOS environment for new system instances working with Rotkeeper.
+## Overview
 
-This script lives at the root of the repository in the `scripts/` directory:
+Deterministic environment prep (Ubuntu/macOS)
 
-```
-scripts/setup.sh
-```
+Source: `scripts/setup.sh`.
 
----
+## Usage
 
-## 🛠️ What It Does
+Not documented in the script help block. Consult the source; no command behavior is inferred.
 
-1. **Installs APT dependencies**: Ensures `jq`, `rsync`, `zip`, `gawk`, `wget`, and `curl` are installed.
-2. **Installs yq**: Downloads and installs a pinned version (v4.40.5) of the Go-based `yq` binary to `/usr/local/bin/yq`.
-3. **Blesses scripts**: Makes the main `rotkeeper.sh` dispatcher and all `rc-*.sh`/`rc-*.bats` files in `bones/scripts` executable (`chmod +x`).
+## Options
 
----
+Not documented in the script help block. Consult the source; no command behavior is inferred.
 
-## 🔁 Behavior
+## Examples
 
-- Fails fast on any error (`set -euo pipefail`).
-- Auto-detects if running as root; uses `sudo` for `apt-get` and writes to `/usr/local/bin` if not running as root.
-- Requires no interactive input, making it perfectly suited for autonomous agents and CI workflows.
+Not documented in the script help block. Consult the source; no command behavior is inferred.
 
----
+## Exit codes
 
-## 🧪 Usage Examples
+Not documented in the script help block. Consult the source; no command behavior is inferred.
 
-Run from the root of your Rotkeeper repository:
+## Reads and writes
 
-```bash
-bash scripts/setup.sh
-```
+**Environment:** reads `RK_SKIP_APT`, architecture, OS, and `PATH`; requires network access and uses `sudo` for system installs when not running as root. Oliver is pinned by `OLIVER_PIN`; yq is pinned by `YQ_VERSION` on the download route.
 
-Once complete, your environment is ready for the smoke test or initialization:
+**Working directory:** none; project script permissions are updated relative to this script location.
 
-```bash
-./rotkeeper.sh smoke
-./rotkeeper.sh init
-```
+**Inputs and outputs:** accepts `--no-apt` on Linux; downloads dependencies to temporary directories, installs tools under `/usr/local/bin` or through Homebrew/apt, and marks existing project scripts executable. It has no help or dry-run parser. DIP reads annotations without executing setup.
 
----
+## Side effects
 
-## ⚠️ Notes & Caveats
+No side effects are documented in script annotations.
 
-- This script is currently designed specifically for **Ubuntu** or Debian-based systems that use `apt-get`.
-- Overwrites any existing `yq` installation at `/usr/local/bin/yq`. Ensure this doesn't conflict with system requirements before running.
-
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-23T10:54:47Z -->
-
+## Notes
+<!-- DIP-SOUL-EXTRACTED: command-reference.v1 -->
 
 ### Architectural Intent
 A deterministic environment setup script for Ubuntu and macOS. It installs necessary system packages (jq, gawk) and grabs the pinned `yq` CLI binary before making target shell scripts executable. This script prepares the environment for automated workflows and CI without manual intervention.
@@ -83,31 +61,8 @@ This script executes arbitrary commands and downloads binaries as root or sudo, 
 
 ### Ritual Warnings
 Do not run this script on developer local macOS/Windows environments as it expects `apt-get` and a Linux distribution. Ensure internet access is available to fetch the remote `yq` binary.
-## Environment
-<!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
 
-- **$ROOT_DIR**: .
-- **$OUTPUT_DIR**: output
-- **$CONTENT_DIR**: home/content
-- **$ASSETS_DIR**: home/assets
-- **$DOCS_DIR**: home/content/docs
-- **$HELP_DIR**: home/content/help
-- **$BONES_DIR**: bones
-- **$SCRIPT_DIR**: bones/scripts
-- **$CONFIG_DIR**: bones/config
-- **$LOG_DIR**: bones/logs
-- **$TMP_DIR**: bones/tmp
-- **$ARCHIVE_DIR**: bones/archive
-- **$REPORT_DIR**: bones/reports
-- **$BOOK_REPORT_DIR**: bones/book-reports
-- **$TEMPLATE_DIR**: bones/templates
-- **$META_DIR**: bones/meta
-- **$WEB_DIR**: output
-###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
+## History
+<!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->
 
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
-## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-08-15T15:43:55Z -->
-
-*Not found: no changelog/history entries matching `setup.sh`.*
+No matching entries in CHANGELOG.md.

@@ -11,7 +11,9 @@ IFS=$'\n\t'
 # ============================================================
 # Env assumptions: reads ARCHIVE_DIR, BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DRY_RUN, LOG_DIR, OUTPUT_DIR, RELEASE_DIR, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TMP_DIR, VERBOSE, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
-# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
+# Input/Output contracts: requires Bash, rsync, zip, and zipinfo. Reads the repository through exclusions and stages a framework distribution under `TMP_DIR`; it is not a full author-content backup.
+#   Generates `bones/config/release-manifest.txt` with version, model, ruleset, and sorted entries. Tests the zip and verifies a root allowlist, required framework spine, and forbidden paths/artifacts including output, caches, reports, credentials, and editor backups.
+#   Promotes only a verified archive to `RELEASE_DIR/rotkeeper-<version>.zip`, replacing an existing same-version archive. EXIT/INT/TERM cleanup uses `rk_guard_delete` to prune staging and removes the in-flight zip. Dry-run previews without archiving.
 #  Project : Rotkeeper
 #  Script  : rc-release.sh
 #  Purpose : Streamline multi-tier models down to a single-tier canonical framework distribution zip
@@ -51,8 +53,8 @@ source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&
 #   --version, -v  Show version and quit
 #
 # Examples:
-#   bash rotkeeper.sh release 0.8.0              Package the distribution
-#   bash rotkeeper.sh release 0.8.0 --dry-run    Preview without writing
+#   bash rotkeeper.sh release 0.8.0              # Package the distribution
+#   bash rotkeeper.sh release 0.8.0 --dry-run    # Preview without writing
 #
 # Exit codes:
 #   0    Success

@@ -1,85 +1,81 @@
 ---
-title: "📦 rc-release.sh Reference"
+reference_contract: rotkeeper.command-reference.v1
+title: rc-release.sh
 slug: rc-release
-target_file: "bones/scripts/rc-release.sh"
-date: "2026-08-26"
-template: "rotkeeper-doc.html"
-status: "active"
-version: "0.5.1"
-author: "Rotkeeper Ritual Council"
-project: "Rotkeeper"
-description: "Packages one canonical framework-distribution zip with an explicit allowlist, required spine, forbidden-path rules, and post-build archive verification."
-tags:
-  - rotkeeper
-  - scripts
-  - packaging
-  - distribution
+target_file: bones/scripts/rc-release.sh
+template: rotkeeper-doc.html
+status: active
+version: 0.8.1
+author: Rotkeeper DIP
+project: Rotkeeper
+description: Streamline multi-tier models down to a single-tier canonical framework distribution zip
 ---
 
-<!--
-🎨 Sora Prompt:
-"A conveyor belt in a dark factory dropping one heavy, perfectly sealed metal lockbox into a bottomless pit, stamped with a single canonical version."
--->
-
-# 📦 rc-release.sh
-
-<!-- The rite of distribution -->
-**Script Path:** `bones/scripts/rc-release.sh`
+# rc-release.sh
 
 ## Overview
 
-`rc-release.sh` backs `release <VERSION>`: it collapses every packaging model into **one canonical framework distribution zip** — dispatcher, bones system, templates, configuration, and project docs. A release is explicitly *not* a site-source archive or a full backup: author content outside the framework spine is out of contract, and caches/logs/temp/output/archives/reports/credentials are forbidden.
+Streamline multi-tier models down to a single-tier canonical framework distribution zip
 
-The pass:
+Source: `bones/scripts/rc-release.sh`.
 
-1. **Staging** — the repository is rsynced into a per-run staging directory under `TMP_DIR` with strict exclusions (`.git/`, `.github/`, `.vscode/`, output, logs, tmp, the whole bones archive/report/book-report trees, `content/messages/`, `.DS_Store`, `*_temp.md`).
-2. **Manifest generation** — the staged tree gets a generated `bones/config/release-manifest.txt`: version, model line, ruleset identifier, and the complete sorted entry list.
-3. **Archive & verify** — the staged `rotkeeper/` tree is zipped to a temp name, `zip -T`-tested, then verified against **allowlist v1**: every entry must live under `rotkeeper/`; root-level entries must match an explicit allowlist; five spine entries are required (`rotkeeper.sh`, `rotkeeper.yaml`, `version`, `release-manifest.txt`, `rc-utils.sh`); forbidden prefixes (git, output, logs, tmp, archives, reports, book-reports, messages) and forbidden artifacts (`.env`, keys, `.pem/.p12`, `.pyc`, `id_rsa`, `.npmrc`, editor backups) fail the build.
-4. **Install & cleanup** — only a fully verified archive is renamed into place at `$ARCHIVE_DIR/releases/rotkeeper-$VERSION.zip`. The EXIT/INT/TERM trap prunes staging through `rk_guard_delete`.
-
-## CLI Usage
+## Usage
 
 ```bash
 rotkeeper.sh release <VERSION> [options]
-
-# Arguments:
-#   VERSION       Semver-style version for the distribution name (e.g. 0.5.2)
-
-# Options:
-#   --dry-run     Preview the release without writing archives
-#   --verbose     Detailed output
-#   --help, -h    Show usage help
 ```
 
-### Environment assumptions
+## Options
 
-- **Reads:** the whole repository tree (subject to exclusions); requires `ROOT_DIR` … `RELEASE_DIR` canonical paths.
-- **Writes:** `bones/archive/releases/rotkeeper-$VERSION.zip` (installed atomically from a temp name) plus scratch space under `TMP_DIR`.
-- **Dependencies:** `bash`, `rsync`, `zip`, `zipinfo`.
-- **CWD:** none (staging-relative `cd` is internal).
+```text
+Arguments:
+VERSION        Semver-style version for the distribution name (e.g. 0.8.0)
 
-## Dangerous operations
+--dry-run      Preview the release without writing archives
+--verbose      Detailed output
+--help, -h     Show help
+--version, -v  Show version and quit
+```
 
-- **Overwrites any existing archive at the exact destination name** for the target version.
-- Deletes its own staging directory in the exit trap — guarded by `rk_guard_delete` against `$TMP_DIR`, so a refused guard skips cleanup rather than deleting unsafely.
-- Verification failures leave no artifact behind: the zip is installed only after integrity and allowlist checks pass.
+## Examples
 
-## 🛣️ Navigation
-- [Scripts Index](index.html)
-- [Bones Home](../index.html)
+```bash
+bash rotkeeper.sh release 0.8.0              # Package the distribution
+bash rotkeeper.sh release 0.8.0 --dry-run    # Preview without writing
+```
 
-<!--
-Limerick:
-The archives were growing too fat,
-So one canonical coffin was sat.
-The volatile dead,
-Were left out instead,
-And one versioned zip left the flat.
--->
+## Exit codes
 
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-23T10:54:47Z -->
+```text
+0    Success
+1    Invalid usage or packaging failure
+3    Write-boundary violation
+```
 
+## Reads and writes
+
+**Environment:** reads ARCHIVE_DIR, BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DRY_RUN, LOG_DIR, OUTPUT_DIR, RELEASE_DIR, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TMP_DIR, VERBOSE, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+
+**Working directory:** No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+
+**Inputs and outputs:** requires Bash, rsync, zip, and zipinfo. Reads the repository through exclusions and stages a framework distribution under `TMP_DIR`; it is not a full author-content backup.
+Generates `bones/config/release-manifest.txt` with version, model, ruleset, and sorted entries. Tests the zip and verifies a root allowlist, required framework spine, and forbidden paths/artifacts including output, caches, reports, credentials, and editor backups.
+Promotes only a verified archive to `RELEASE_DIR/rotkeeper-<version>.zip`, replacing an existing same-version archive. EXIT/INT/TERM cleanup uses `rk_guard_delete` to prune staging and removes the in-flight zip. Dry-run previews without archiving.
+
+## Side effects
+
+- **delete:** removes bones/tmp/release-staging-<pid> on any exit path
+- **delete:** removes the in-flight zip temp file (no-op after successful mv)
+- **write:** creates bones/archives/releases and bones/tmp/release-staging-<pid>
+- **write:** copies the repo (minus exclusions) into the staging tree
+- **write:** writes the entry list scratch file under bones/tmp
+- **write:** generates release-manifest.txt inside the staged tree
+- **delete:** removes the entry list scratch file
+- **archive:** zips the staged tree to <release>.zip.tmp.$$ (temp name)
+- **write:** promotes the verified temp zip to bones/archives/releases/rotkeeper-<version>.zip
+
+## Notes
+<!-- DIP-SOUL-EXTRACTED: command-reference.v1 -->
 
 ### Bones of the Code
 The merchant of death, packaging distribution zip files for the masses. It uses exclusion lists to decide what gets left behind in the crypt.
@@ -90,33 +86,7 @@ The exclusion lists are a brittle defense. If a sensitive file gets created that
 ### Ritual Warnings
 Audit the exclusion lists regularly. Never assume that 'lite' means 'safe'—sensitive data will slip through if you aren't paying attention.
 
-## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
+## History
+<!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->
 
-*Not found: no changelog/history entries matching `rc-release.sh`.*
-
-## Environment
-<!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
-
-- **$ROOT_DIR**: .
-- **$OUTPUT_DIR**: output
-- **$CONTENT_DIR**: home/content
-- **$ASSETS_DIR**: home/assets
-- **$DOCS_DIR**: home/content/docs
-- **$HELP_DIR**: home/content/help
-- **$BONES_DIR**: bones
-- **$SCRIPT_DIR**: bones/scripts
-- **$CONFIG_DIR**: bones/config
-- **$LOG_DIR**: bones/logs
-- **$TMP_DIR**: bones/tmp
-- **$ARCHIVE_DIR**: bones/archive
-- **$REPORT_DIR**: bones/reports
-- **$BOOK_REPORT_DIR**: bones/book-reports
-- **$TEMPLATE_DIR**: bones/templates
-- **$META_DIR**: bones/meta
-- **$WEB_DIR**: output
-
-###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
-
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
+No matching entries in CHANGELOG.md.
