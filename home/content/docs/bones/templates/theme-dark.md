@@ -15,7 +15,7 @@ HTML template for the high-contrast dark theme.
 ## Details
 Zero-hydration HTML template used for static rendering. It relies on standard CSS variables and structural classes.
 
-## Necromancer's Notes
+## Notes
 <!-- DIP-SOUL-EXTRACTED: 2026-07-23T10:54:47Z -->
 
 
@@ -26,31 +26,15 @@ Provides the standard dark presentation template designed to lower eye strain du
 
 ## Directory / File Schema Expectations
 - Must cleanly parse standard frontmatter objects passed by the hardened rc-pack.sh array structure.
-## Environment
-<!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
+## Reads and writes
+<!-- DIP-ENV-EXTRACTED: 2026-10-01T21:17:26Z -->
 
-- **$ROOT_DIR**: .
-- **$OUTPUT_DIR**: output
-- **$CONTENT_DIR**: home/content
-- **$ASSETS_DIR**: home/assets
-- **$DOCS_DIR**: home/content/docs
-- **$HELP_DIR**: home/content/help
-- **$BONES_DIR**: bones
-- **$SCRIPT_DIR**: bones/scripts
-- **$CONFIG_DIR**: bones/config
-- **$LOG_DIR**: bones/logs
-- **$TMP_DIR**: bones/tmp
-- **$ARCHIVE_DIR**: bones/archive
-- **$REPORT_DIR**: bones/reports
-- **$BOOK_REPORT_DIR**: bones/book-reports
-- **$TEMPLATE_DIR**: bones/templates
-- **$META_DIR**: bones/meta
-- **$WEB_DIR**: output
-###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
+This file is not a script; no script environment contract applies.
+## Usage
+<!-- DIP-HELP-EXTRACTED: 2026-10-01T21:17:26Z -->
 
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
-## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
+This file has no command-line interface.
+## History
+<!-- DIP-HISTORY-EXTRACTED: 2026-10-01T21:17:26Z -->
 
-*Not found: no changelog/history entries matching `theme-dark.html`.*
+No matching entries in CHANGELOG.md.

@@ -11,7 +11,10 @@ IFS=$'\n\t'
 # ============================================================
 # Env assumptions: reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DRY_RUN, LOG_DIR, LOG_FILE, OUTPUT_DIR, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TMP_DIR, VERBOSE, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
-# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
+# Input/Output contracts: reads `bones/manifest.txt`, ignoring blank/comment lines and normalizing paths relative to the root. Requires Bash, jq, and a SHA-256 tool. Writes timestamped Markdown/JSON reports under `REPORT_DIR`; findings never delete source or output files.
+#   The output-tree walk excludes generated support directories and `output/assets`; its default extensions are `png jpg svg css js md html json yaml`, adjustable through `--include` and repeatable `--exclude`.
+#   Reports classify missing ledger entries, output orphans, SHA-256 digests, and mismatches against pack entries in `<path>  <sha256>` format. Missing digest targets have `actual: null`. `--manifest-only` skips the output walk.
+#   `--json` also emits `rotkeeper.scan.v2` on stdout without changing report files or exit codes. `--json-only` and `--md-only` select report formats. Dry-run writes neither reports nor a run log; a missing manifest with `--manifest-only` exits 2.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-scan.sh
@@ -56,10 +59,10 @@ disk_list=()
 #   --version, -v     Show script version and quit.
 #
 # Examples:
-#   bash rotkeeper.sh scan                                     Full audit
-#   bash rotkeeper.sh scan --manifest-only                     Manifest check only
-#   bash rotkeeper.sh scan --include md,textile --dry-run      Filtered preview
-#   bash rotkeeper.sh scan --json | jq .                       Machine-readable output
+#   bash rotkeeper.sh scan                                     # Full audit
+#   bash rotkeeper.sh scan --manifest-only                     # Manifest check only
+#   bash rotkeeper.sh scan --include md,textile --dry-run      # Filtered preview
+#   bash rotkeeper.sh scan --json | jq .                       # Machine-readable output
 #
 # Exit codes:
 #   0    Success

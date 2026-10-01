@@ -10,6 +10,9 @@
 #  Project : Rotkeeper
 #  Script  : setup.sh
 #  Purpose : Deterministic environment prep (Ubuntu/macOS)
+# Env assumptions: reads `RK_SKIP_APT`, architecture, OS, and `PATH`; requires network access and uses `sudo` for system installs when not running as root. Oliver is pinned by `OLIVER_PIN`; yq is pinned by `YQ_VERSION` on the download route.
+# CWD assumptions: none; project script permissions are updated relative to this script location.
+# Input/Output contracts: accepts `--no-apt` on Linux; downloads dependencies to temporary directories, installs tools under `/usr/local/bin` or through Homebrew/apt, and marks existing project scripts executable. It has no help or dry-run parser. DIP reads annotations without executing setup.
 # ============================================================
 
 set -euo pipefail

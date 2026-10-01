@@ -15,34 +15,16 @@ Documentation for `bones/templates/theme-overgrown.html`. This file was auto-gen
 <!-- DIP-GENERATED-MARKER: Overview -->
 HTML template for the overgrown theme.
 
-###### CLI Usage
-TODO: Stitch extracted help block.
 
-## Environment
-<!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
+## Reads and writes
+<!-- DIP-ENV-EXTRACTED: 2026-10-01T21:17:26Z -->
 
-- **$ROOT_DIR**: .
-- **$OUTPUT_DIR**: output
-- **$CONTENT_DIR**: home/content
-- **$ASSETS_DIR**: home/assets
-- **$DOCS_DIR**: home/content/docs
-- **$HELP_DIR**: home/content/help
-- **$BONES_DIR**: bones
-- **$SCRIPT_DIR**: bones/scripts
-- **$CONFIG_DIR**: bones/config
-- **$LOG_DIR**: bones/logs
-- **$TMP_DIR**: bones/tmp
-- **$ARCHIVE_DIR**: bones/archive
-- **$REPORT_DIR**: bones/reports
-- **$BOOK_REPORT_DIR**: bones/book-reports
-- **$TEMPLATE_DIR**: bones/templates
-- **$META_DIR**: bones/meta
-- **$WEB_DIR**: output
-## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
+This file is not a script; no script environment contract applies.
+## History
+<!-- DIP-HISTORY-EXTRACTED: 2026-10-01T21:17:26Z -->
 
-*Not found: no changelog/history entries matching `theme-overgrown.html`.*
-## Necromancer's Notes
+No matching entries in CHANGELOG.md.
+## Notes
 <!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
 
 
@@ -55,7 +37,7 @@ The template file layout adheres to the following structural schema:
 - Includes Google Font imports to load the elegant serif `Cormorant Garamond` for headings and the highly readable `Lora` for body text.
 - The layout is structured using the `rk-shell` class, with the `$title$` variable populated inside the main header container, and the `$body$` variable populated within the `rk-article` container.
 
-###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
+## Usage
+<!-- DIP-HELP-EXTRACTED: 2026-10-01T21:17:26Z -->
 
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
+This file has no command-line interface.

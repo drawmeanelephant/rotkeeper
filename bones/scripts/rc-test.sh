@@ -30,8 +30,8 @@ fi
 #   --version, -v  Show version and quit
 #
 # Examples:
-#   bash rotkeeper.sh test               Full multi-layout harness matrix
-#   bash rotkeeper.sh test --dry-run     Removed-command regressions only
+#   bash rotkeeper.sh test               # Full multi-layout harness matrix
+#   bash rotkeeper.sh test --dry-run     # Removed-command regressions only
 #
 # Exit codes:
 #   0         All harness assertions passed
@@ -56,7 +56,9 @@ rk_load_env strict
 # ============================================================
 # Env assumptions: reads OUTPUT_DIR, RK_OLIVER_BIN, RK_RENDERER, ROOT_DIR, ROTKEEPER_VERSION, SCRIPT_DIR, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
-# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
+# Input/Output contracts: full test builds crypt/busy/sterile fixtures under `bones/tmp/rotkeeper-test-env`, runs the pipeline, verifies canonical release contents and absent legacy tiers, and checks renderer, JSON, command, DIP, and removed-command contracts.
+#   Reads the release version from `bones/config/version` or `ROTKEEPER_VERSION`; requires jq and the tested commands dependencies. EXIT/INT/TERM cleanup removes fixtures only through `rk_guard_delete`.
+#   `--dry-run` runs only the ingest/sync-inbox/cleanup/reseed removal checks, not the full matrix. The full harness also generates the fsbook retrieval catalog. Report macOS `realpath -m` portability failures without weakening assertions.
 #  Project : Rotkeeper
 #  Script  : rc-test.sh
 #  Purpose : Multi-Pass Layout Integration Test Suite aligned for single distribution zip archives
@@ -2354,6 +2356,148 @@ if ! grep -Fq 'Additional source review detail.' "$pilot_doc"; then
   exit 165
 fi
 echo "DIP command-reference pilot passed."
+
+echo "--- DIP engine: fresh discovery, legacy migration, and source-only harvesting ---"
+engine_root="$TEST_DIR/dip-engine"
+mkdir -p "$engine_root/bones/scripts" "$engine_root/bones/config" \
+  "$engine_root/bones/templates" "$engine_root/home/assets" \
+  "$engine_root/home/content/docs/bones/scripts" "$engine_root/scripts"
+cp "$ROOT_DIR/rotkeeper.sh" "$ROOT_DIR/rotatui.sh" "$engine_root/"
+cp "$ROOT_DIR/scripts/setup.sh" "$engine_root/scripts/"
+cp "$ROOT_DIR"/bones/scripts/rc-*.sh "$engine_root/bones/scripts/"
+cp "$ROOT_DIR/bones/config/version" "$engine_root/bones/config/"
+printf 'layout_style: "crypt"\n' > "$engine_root/bones/config/rotkeeper.yaml"
+cat > "$engine_root/bones/scripts/source-probe.sh" <<'SOURCE_PROBE'
+#!/usr/bin/env bash
+#  Purpose : Header overview.
+#            Purpose continuation.
+# @HELP
+# Usage:
+#   bash rotkeeper.sh render
+# Modes:
+#   --mode-one    Mode detail.
+# Flags:
+#   --probe       Flag detail.
+# Examples:
+#   bash rotkeeper.sh render --dry-run
+# Exit codes:
+#   0    Source version {VERSION}
+# @END-HELP
+# Env assumptions: reads PROBE_ENV only.
+#   Environment continuation after the help block.
+# CWD assumptions: no CWD assumption.
+# Input/Output contracts: reads a probe input.
+#   Contract continuation.
+SOURCE_PROBE
+printf '%s\n' '# SIDE EFFECT (write): documents a write without performing one' \
+  '# and its continuation.' 'exit 77' >> "$engine_root/bones/scripts/source-probe.sh"
+# No ownership means an authored page, even when it uses a reference path.
+engine_authored="$engine_root/home/content/docs/bones/scripts/rc-scan.md"
+cat > "$engine_authored" <<'AUTHORED_GUIDE'
+# Authored guide
+
+## Ritual History
+Keep this authored text.
+
+```markdown
+## Necromancer's Notes
+<!-- DIP-SOUL-EXTRACTED: example -->
+###### CLI Usage
+TODO: Stitch extracted help block.
+```
+
+## History
+<!-- DIP-HISTORY-EXTRACTED: old -->
+Keep this authored history, even with an existing marker.
+AUTHORED_GUIDE
+engine_authored_before=$(rk_sha256 "$engine_authored")
+engine_legacy="$engine_root/home/content/docs/bones/scripts/rc-new.md"
+cat > "$engine_legacy" <<'LEGACY_REFERENCE'
+---
+target_file: bones/scripts/rc-new.sh
+---
+# Legacy reference
+## Necromancer's Notes
+<!-- DIP-SOUL-EXTRACTED: old -->
+Discard the old generated copy.
+## Ritual History
+<!-- DIP-HISTORY-EXTRACTED: old -->
+- - Old fragment
+LEGACY_REFERENCE
+engine_config_doc="$engine_root/home/content/docs/bones/config/rotkeeper.md"
+mkdir -p "$(dirname "$engine_config_doc")"
+cat > "$engine_config_doc" <<'LEGACY_CONFIG'
+---
+target_file: bones/config/rotkeeper.yaml
+status: active
+---
+# Configuration reference
+Keep this authored introduction.
+###### CLI Usage
+TODO: Stitch extracted help block.
+## Necromancer's Notes
+<!-- DIP-SOUL-EXTRACTED: old -->
+Old notes.
+## Ritual History
+<!-- DIP-HISTORY-EXTRACTED: old -->
+- - Broken history.
+## Environment
+<!-- DIP-ENV-EXTRACTED: old -->
+- **$ROOT_DIR**: .
+###### CLI Usage
+<!-- DIP-HELP-EXTRACTED: old -->
+Missing autopsy report.
+LEGACY_CONFIG
+cat > "$engine_root/CHANGELOG.md" <<'ENGINE_HISTORY'
+# Changelog
+## [2.0.0] - 2026-10-01
+- Complete bullet for
+  source-probe.sh with its continuation.
+- Unrelated bullet.
+ENGINE_HISTORY
+# Exercise source discovery through the real dispatcher, not a hand inventory.
+"$engine_root/rotkeeper.sh" book --fsbook > /dev/null
+engine_legacy_before=$(rk_sha256 "$engine_legacy")
+"$engine_root/rotkeeper.sh" dip --dry-run > /dev/null
+if [[ "$engine_legacy_before" != "$(rk_sha256 "$engine_legacy")" ]]; then
+  echo "Assertion failed: dry-run migrated a legacy reference."
+  exit 166
+fi
+"$engine_root/rotkeeper.sh" dip > /dev/null
+while IFS= read -r engine_script; do
+  [[ "$engine_script" == "$engine_root/bones/scripts/rc-scan.sh" ]] && continue
+  engine_rel="${engine_script#"$engine_root"/}"
+  engine_page="$engine_root/home/content/docs/${engine_rel%.sh}.md"
+  if [[ ! -f "$engine_page" ]] || [[ "$(grep '^## ' "$engine_page")" != "$expected_sections" ]]; then
+    echo "Assertion failed: fresh DIP did not generate all sections for $engine_rel."
+    exit 167
+  fi
+done < <(find "$engine_root/bones/scripts" "$engine_root/scripts" -name '*.sh'; printf '%s\n' "$engine_root/rotkeeper.sh" "$engine_root/rotatui.sh")
+engine_probe="$engine_root/home/content/docs/bones/scripts/source-probe.md"
+for engine_fact in 'Purpose continuation.' 'Environment continuation after the help block.' \
+  'Contract continuation.' 'Modes:' '--mode-one' 'Flags:' '--probe' \
+  'and its continuation.' '  source-probe.sh with its continuation.'; do
+  if ! grep -Fq -- "$engine_fact" "$engine_probe"; then
+    echo "Assertion failed: DIP did not harvest source detail: $engine_fact"
+    exit 168
+  fi
+done
+if ! grep -Fq 'Not documented in the script help block.' "$engine_root/home/content/docs/rotatui.md" \
+  || [[ "$engine_authored_before" != "$(rk_sha256 "$engine_authored")" ]] \
+  || ! grep -Fq 'Keep this authored introduction.' "$engine_config_doc" \
+  || grep -Eq 'Necromancer|Ritual History|^- - |ROOT_DIR|Missing autopsy|###### CLI Usage|TODO: Stitch extracted help' "$engine_config_doc"; then
+  echo "Assertion failed: migration lost authored content or retained obsolete generated pillars."
+  exit 169
+fi
+engine_snapshot="$engine_root/before.sha256"
+find "$engine_root/home/content/docs" -name '*.md' -exec shasum -a 256 {} \; | LC_ALL=C sort > "$engine_snapshot"
+"$engine_root/rotkeeper.sh" dip > /dev/null
+find "$engine_root/home/content/docs" -name '*.md' -exec shasum -a 256 {} \; | LC_ALL=C sort > "$engine_root/after.sha256"
+if ! cmp -s "$engine_snapshot" "$engine_root/after.sha256"; then
+  echo "Assertion failed: a second DIP run changed the generated documentation tree."
+  exit 170
+fi
+echo "DIP engine migration passed."
 
 echo "======================================================================"
 echo "--- Regression tests for legacy rituals (ingest, sync-inbox, cleanup, reseed) ---"

@@ -15,7 +15,7 @@ Main configuration vault for validation parameters and runtime constraints.
 ## Details
 Configuration file intended to be manually edited or read by Rotkeeper scripts.
 
-## Necromancer's Notes
+## Notes
 <!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
 
 
@@ -25,31 +25,17 @@ The central configuration file for Rotkeeper's build process. It defines site va
 ### Directory / File Schema Expectations
 Errors or typos in the YAML syntax (such as indentation or missing quotes) will cause `yq` parsing to collapse, breaking script configurations and halts execution. Validate this file against standard YAML rules after editing. Ensure directory keys match the paths configured in the environment variables.
 
-## Environment
-<!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
+## Reads and writes
+<!-- DIP-ENV-EXTRACTED: 2026-10-01T21:17:26Z -->
 
-- **$ROOT_DIR**: .
-- **$OUTPUT_DIR**: output
-- **$CONTENT_DIR**: home/content
-- **$ASSETS_DIR**: home/assets
-- **$DOCS_DIR**: home/content/docs
-- **$HELP_DIR**: home/content/help
-- **$BONES_DIR**: bones
-- **$SCRIPT_DIR**: bones/scripts
-- **$CONFIG_DIR**: bones/config
-- **$LOG_DIR**: bones/logs
-- **$TMP_DIR**: bones/tmp
-- **$ARCHIVE_DIR**: bones/archive
-- **$REPORT_DIR**: bones/reports
-- **$BOOK_REPORT_DIR**: bones/book-reports
-- **$TEMPLATE_DIR**: bones/templates
-- **$META_DIR**: bones/meta
-- **$WEB_DIR**: output
-###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
+This file is not a script; no script environment contract applies.
+## Usage
+<!-- DIP-HELP-EXTRACTED: 2026-10-01T21:17:26Z -->
 
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
-## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
+This file has no command-line interface.
+## History
+<!-- DIP-HISTORY-EXTRACTED: 2026-10-01T21:17:26Z -->
 
-- - Strip frontmatter overrides and fix rc-render.sh to use rotkeeper.yaml
+### [0.3.0.14] - 2026-06-15
+
+- Strip frontmatter overrides and fix rc-render.sh to use rotkeeper.yaml

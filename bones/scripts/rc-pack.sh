@@ -11,7 +11,10 @@ IFS=$'\n\t'
 # ============================================================
 # Env assumptions: reads ARCHIVE_DIR, BONES_DIR, CONFIG_DIR, CONTENT_DIR, DEBUG, DOCS_DIR, DRY_RUN, LOG_DIR, OUTPUT_DIR, ROOT_DIR, SCRIPT_DIR, TMP_DIR, VERBOSE, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
-# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
+# Input/Output contracts: requires Bash, jq, tar, gzip, yq v4, and a SHA-256 tool. Default mode reads `OUTPUT_DIR`; `--content` reads content excluding `help` and `*_temp.md`; `--self` reads the dispatcher, bones, content, and output excluding the archive tree.
+#   Writes timestamped/random-tag `.tar.gz` archives under `ARCHIVE_DIR`, validates them with `gzip -t`, and appends archive entries to `bones/manifest.txt`. Default/self archives embed `metadata.json` with name, uncompressed-tar SHA-256, timestamp, mode, and file count.
+#   Default mode also exports every Markdown source to `tomb-export-<timestamp>.json`, with absolute_path, relative_path, parsed frontmatter, and full source_markdown fields; jq validates the export before publication.
+#   Scratch directories are removed through `rk_guard_delete`. Failure cleanup removes partial archives, not source files. Dry-run does not archive or export; shared bootstrap logging still writes. Content packing uses repository-relative tar paths, so run it from the repository root.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-pack.sh
@@ -41,8 +44,8 @@ IFS=$'\n\t'
 #   --version, -v    Show script version and quit
 #
 # Examples:
-#   bash rotkeeper.sh pack                    Archive rendered output into a tomb
-#   bash rotkeeper.sh pack --self             Full-system bundle
+#   bash rotkeeper.sh pack                    # Archive rendered output into a tomb
+#   bash rotkeeper.sh pack --self             # Full-system bundle
 #   bash rotkeeper.sh pack --content --dry-run
 #
 # Exit codes:

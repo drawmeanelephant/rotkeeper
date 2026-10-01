@@ -20,8 +20,8 @@ IFS=$'\n\t'
 #   --version, -v    Show script version and quit
 #
 # Examples:
-#   bash rotkeeper.sh showcase --dry-run      Preview gallery scaffolding
-#   bash rotkeeper.sh showcase                Generate showcase content
+#   bash rotkeeper.sh showcase --dry-run      # Preview gallery scaffolding
+#   bash rotkeeper.sh showcase                # Generate showcase content
 #
 # Exit codes:
 #   0    Success
@@ -35,7 +35,9 @@ IFS=$'\n\t'
 # ============================================================
 # Env assumptions: reads CONTENT_DIR, DRY_RUN, OLIVER_BIN, OUTPUT_DIR, RK_OLIVER_BIN, ROOT_DIR, SCRIPT_DIR, TEMPLATE_DIR (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
-# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
+# Input/Output contracts: reads every HTML template in `TEMPLATE_DIR`; overwrites generated `CONTENT_DIR/showcase/showcase-<theme>.md` sources, the gallery index source, and `OUTPUT_DIR/showcase/index.html`.
+#   Template variables get sample frontmatter values except internal tokens; descriptions alternate present/absent across themes. A fixed sample body exercises headings, emphasis, quotes, tables, and code. Available Oliver validates templates; without it the command warns and continues.
+#   The gallery HTML is a direct preview write, not a rendered page. Run `bash rotkeeper.sh render` after scaffolding to render showcase sources. Manual changes to generated showcase files are replaced on the next real run; dry-run previews only.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }

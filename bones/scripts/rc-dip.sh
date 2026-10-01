@@ -11,7 +11,9 @@ IFS=$'\n\t'
 # ============================================================
 # Env assumptions: reads ARCHIVE_DIR, ASSETS_DIR, BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DEBUG, DOCS_DIR, DRY_RUN, HELP_DIR, LOG_DIR, META_DIR, OUTPUT_DIR, QUIET, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, WEB_DIR (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
-# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
+# Input/Output contracts: reads the fsbook core inventory, script headers/static help/side-effect annotations, sidecars, CHANGELOG, and documentation ownership. Generates a missing catalog on demand; a degraded inventory cannot authorize obsolete moves.
+#   Rebuilds missing or explicitly owned script references under `DOCS_DIR` with the command-reference v1 contract. Authored task guides are not replaced. Non-command mirrors retain authored prose while Notes/History and marker-owned runtime sections are migrated.
+#   Obsolete moves require explicit target_file evidence and honor the whitelist; ambiguous pages are reported unowned. Publishes `DOCS_DIR/dip-matrix.md`; `--json` adds the unchanged `rotkeeper.dip-matrix.v1` envelope to stdout. Dry-run previews doc/matrix mutations; shared bootstrap logging still writes.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-dip.sh
@@ -57,9 +59,9 @@ source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&
 #   --version, -v  Show version and quit
 #
 # Examples:
-#   bash rotkeeper.sh dip --dry-run     Audit without moving or writing docs
-#   bash rotkeeper.sh dip               Full audit and matrix publication
-#   bash rotkeeper.sh dip --json | jq . Machine-readable matrix output
+#   bash rotkeeper.sh dip --dry-run     # Audit without moving or writing docs
+#   bash rotkeeper.sh dip               # Full audit and matrix publication
+#   bash rotkeeper.sh dip --json | jq . # Machine-readable matrix output
 #
 # Exit codes:
 #   0         Audit completed (findings live in the matrix report)
@@ -191,8 +193,8 @@ count_todo_lines() {
   awk '
     BEGIN { fence=0; soul=0; c=0 }
     /^```/ { fence = !fence; next }
-    /^##[[:space:]]+Necromancer/ { soul=1; next }
-    soul && /^##[[:space:]]+/ { soul=0 }
+    !fence && /^##[[:space:]]+(Notes([[:space:]]|$)|Necromancer)/ { soul=1; next }
+    !fence && soul && /^##[[:space:]]+/ { soul=0 }
     !fence && !soul && !/^>[[:space:]]*TODO:/ && /^TODO:/ { c++ }
     END { print c+0 }
   ' "$doc"
@@ -203,6 +205,8 @@ is_dip_section_header_line() {
   [[ "$1" =~ ^##[[:space:]]+Environment([[:space:]]|$) ]] \
     || [[ "$1" =~ ^##[[:space:]]+Ritual[[:space:]]+History ]] \
     || [[ "$1" =~ ^##[[:space:]]+Necromancer ]] \
+    || [[ "$1" =~ ^##[[:space:]]+(Notes|History)([[:space:]]|$) ]] \
+    || [[ "$1" =~ ^##[[:space:]]+(Usage|Reads[[:space:]]and[[:space:]]writes)([[:space:]]|$) ]] \
     || [[ "$1" =~ ^######[[:space:]]+CLI[[:space:]]+Usage ]] \
     || [[ "$1" =~ ^##[[:space:]]+Overview([[:space:]]|$) ]]
 }
@@ -231,6 +235,8 @@ extract_marker_body() {
       if (n > 0 && (body[n] ~ /^##[[:space:]]+Environment([[:space:]]|$)/ \
           || body[n] ~ /^##[[:space:]]+Ritual[[:space:]]+History/ \
           || body[n] ~ /^##[[:space:]]+Necromancer/ \
+          || body[n] ~ /^##[[:space:]]+(Notes|History)([[:space:]]|$)/ \
+          || body[n] ~ /^##[[:space:]]+(Usage|Reads[[:space:]]and[[:space:]]writes)([[:space:]]|$)/ \
           || body[n] ~ /^######[[:space:]]+CLI[[:space:]]+Usage/ \
           || body[n] ~ /^##[[:space:]]+Overview([[:space:]]|$)/)) n--
       while (n > 0 && body[n] ~ /^[[:space:]]*$/) n--
@@ -264,10 +270,10 @@ normalize_body() {
 # Map marker name → its section header pattern (for duplicate-section collapse).
 marker_section_regex() {
   case "$1" in
-    DIP-ENV-EXTRACTED) echo '^##[[:space:]]+Environment([[:space:]]|$)' ;;
-    DIP-HELP-EXTRACTED) echo '^######[[:space:]]+CLI[[:space:]]+Usage' ;;
-    DIP-HISTORY-EXTRACTED) echo '^##[[:space:]]+Ritual[[:space:]]+History' ;;
-    DIP-SOUL-EXTRACTED) echo '^##[[:space:]]+Necromancer' ;;
+    DIP-ENV-EXTRACTED) echo '^##[[:space:]]+(Reads[[:space:]]and[[:space:]]writes|Environment)([[:space:]]|$)' ;;
+    DIP-HELP-EXTRACTED) echo '^(##[[:space:]]+Usage([[:space:]]|$)|######[[:space:]]+CLI[[:space:]]+Usage)' ;;
+    DIP-HISTORY-EXTRACTED) echo '^##[[:space:]]+(History([[:space:]]|$)|Ritual[[:space:]]+History)' ;;
+    DIP-SOUL-EXTRACTED) echo '^##[[:space:]]+(Notes([[:space:]]|$)|Necromancer)' ;;
     *) echo '^$' ;;
   esac
 }
@@ -327,6 +333,8 @@ stitch_pillar() {
       return line ~ /^##[[:space:]]+Environment([[:space:]]|$)/ \
           || line ~ /^##[[:space:]]+Ritual[[:space:]]+History/ \
           || line ~ /^##[[:space:]]+Necromancer/ \
+          || line ~ /^##[[:space:]]+(Notes|History)([[:space:]]|$)/ \
+          || line ~ /^##[[:space:]]+(Usage|Reads[[:space:]]and[[:space:]]writes)([[:space:]]|$)/ \
           || line ~ /^######[[:space:]]+CLI[[:space:]]+Usage/ \
           || line ~ /^##[[:space:]]+Overview([[:space:]]|$)/
     }
@@ -739,89 +747,40 @@ rel_path() {
 }
 
 # ---
-# build_env_list: Render environment variable bullet list for stitching.
-# Inputs: none; reads ROOT_DIR and derived env vars
-# Outputs: Prints markdown list
-# Env: Reads ARCHIVE_DIR, ASSETS_DIR, BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
-# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
-# ---
-build_env_list() {
-  cat <<INNER_EOF
-- **\$ROOT_DIR**: $(rel_path "$ROOT_DIR")
-- **\$OUTPUT_DIR**: $(rel_path "${OUTPUT_DIR:-}")
-- **\$CONTENT_DIR**: $(rel_path "$CONTENT_DIR")
-- **\$ASSETS_DIR**: $(rel_path "${ASSETS_DIR:-}")
-- **\$DOCS_DIR**: $(rel_path "$DOCS_DIR")
-- **\$HELP_DIR**: $(rel_path "${HELP_DIR:-}")
-- **\$BONES_DIR**: $(rel_path "$BONES_DIR")
-- **\$SCRIPT_DIR**: $(rel_path "$SCRIPT_DIR")
-- **\$CONFIG_DIR**: $(rel_path "$CONFIG_DIR")
-- **\$LOG_DIR**: $(rel_path "$LOG_DIR")
-- **\$TMP_DIR**: $(rel_path "$TMP_DIR")
-- **\$ARCHIVE_DIR**: $(rel_path "${ARCHIVE_DIR:-}")
-- **\$REPORT_DIR**: $(rel_path "$REPORT_DIR")
-- **\$BOOK_REPORT_DIR**: $(rel_path "$BOOK_REPORT_DIR")
-- **\$TEMPLATE_DIR**: $(rel_path "${TEMPLATE_DIR:-}")
-- **\$META_DIR**: $(rel_path "$META_DIR")
-- **\$WEB_DIR**: $(rel_path "${WEB_DIR:-}")
-INNER_EOF
-}
-
-# ---
-# build_help_content: Extract help block for a script from autopsy-help.md.
-# Inputs: $1 (target script path)
-# Outputs: Prints help markdown or Not-found placeholder
-# Env: Reads BONES_DIR, DOCS_DIR, DRY_RUN, QUIET, REPORT_DIR, ROOT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
-# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
-# ---
-build_help_content() {
-  local target_script="$1"
-  local help_report="$REPORT_DIR/autopsy-help.md"
-  local script_name help_content
-
-  script_name=$(basename -- "$target_script")
-  if [[ ! -f "$help_report" ]]; then
-    printf '%s\n' "*Not found: autopsy help report missing (\`$(rel_path "$help_report")\`). Run: ./rotkeeper.sh autopsy --help-report*"
-    return 0
-  fi
-
-  # sed range extracts the ## <script> section; second sed trims leading/trailing blank lines
-  help_content=$(sed -n "/^## ${script_name}\$/,/^## /{ /^## /d; p; }" "$help_report" 2>/dev/null \
-    | sed -e '1{/^$/d;}' -e '${/^$/d;}' || true)
-
-  if [[ -z "${help_content//[[:space:]]/}" ]]; then
-    printf '%s\n' "*Not found: no help block for \`$script_name\` in autopsy help report.*"
-  else
-    printf '%s\n' "$help_content"
-  fi
-}
-
-# ---
-# build_history_content: Search CHANGELOG and road-to-bones for script history.
+# build_history_content: Read whole matching CHANGELOG bullets with release headings.
 # Inputs: $1 (script basename)
 # Outputs: Prints bullet list or Not-found placeholder
 # Env: Reads BONES_DIR, DOCS_DIR, DRY_RUN, QUIET, ROOT_DIR, VERBOSE (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 build_history_content() {
-  local script_name="$1"
-  local history_content="" matches
-  local log_file
-
-  for log_file in "$ROOT_DIR/CHANGELOG.md" "$DOCS_DIR/road-to-bones/index.md"; do
-    if [[ -f "$log_file" ]]; then
-      matches=$(grep -i -- "$script_name" "$log_file" | sed 's/^/- /' || true)
-      if [[ -n "$matches" ]]; then
-        history_content+="$matches"$'\n'
-      fi
-    fi
-  done
-  history_content=$(printf '%s' "$history_content" | grep -v '^$' || true)
-  if [[ -z "${history_content//[[:space:]]/}" ]]; then
-    printf '%s\n' "*Not found: no changelog/history entries matching \`$script_name\`.*"
-  else
-    printf '%s\n' "$history_content"
+  if [[ ! -f "$ROOT_DIR/CHANGELOG.md" ]]; then
+    printf 'CHANGELOG.md is unavailable.\n'
+    return
   fi
+  awk -v script="$1" '
+    function emit() {
+      if (index(tolower(bullet), tolower(script))) {
+        if (heading != previous) {
+          print "#" heading "\n"; previous=heading
+        }
+        printf "%s\n", bullet; found=1
+      }
+      bullet=""
+    }
+    /^## / { emit(); heading=$0; next }
+    /^#/ { emit(); next }
+    /^[-*+] / { emit(); bullet=$0 "\n"; next }
+    bullet != "" && /^[[:space:]]+[^[:space:]]/ {
+      bullet=bullet $0 "\n"; next
+    }
+    /^[[:space:]]*$/ { next }
+    { emit() }
+    END {
+      emit()
+      if (!found) print "No matching entries in CHANGELOG.md."
+    }
+  ' "$ROOT_DIR/CHANGELOG.md"
 }
 
 # ---
@@ -857,28 +816,63 @@ build_soul_content() {
         for (i=1; i<=NR; i++) if (lines[i] ~ /^<!-- DIP-[A-Z0-9-]+-EXTRACTED:/) { stop=i-1; break }
         if (stop==0) stop=NR
         while (stop>0 && lines[stop] ~ /^[[:space:]]*$/) stop--
-        if (stop>0 && lines[stop] ~ /^##[[:space:]]+Necromancer/) stop--
+        if (stop>0 && lines[stop] ~ /^##[[:space:]]+(Notes([[:space:]]|$)|Necromancer)/) stop--
         while (stop>0 && lines[stop] ~ /^[[:space:]]*$/) stop--
         for (i=1; i<=stop; i++) print lines[i]
       }
     ')
   fi
   if [[ -z "${soulbody//[[:space:]]/}" ]]; then
-    printf '%s\n' "*Not found: no soul sidecar for \`$target_file\`.*"
+    printf '%s\n' "No sidecar notes are documented for \`$target_file\`."
   else
     printf '%s\n' "$soulbody"
   fi
 }
 
-# Command-reference v1 pilot (#326). Opt-in pages are rebuilt from sources;
-# legacy pages retain their existing pillars until the migration in #327.
+# Read an annotated header field and its indented comment continuation lines.
+script_header_field() {
+  awk -v field="$2" '
+    $0 ~ ("^#[[:space:]]+" field "[[:space:]]*:") {
+      sub("^#[[:space:]]+" field "[[:space:]]*:[[:space:]]*", "")
+      print; grab=1; next
+    }
+    grab && /^#[[:space:]][[:space:]][[:space:]]+[^[:space:]]/ {
+      sub(/^#[[:space:]]+/, ""); print; next
+    }
+    grab { exit }
+  ' "$ROOT_DIR/$1"
+}
+
+# Read static help without executing the script. Additional help sections are
+# kept under Options, including Flags, Modes, Arguments, and shared options.
+script_help_section() {
+  awk -v section="$2" -v version="$VERSION" '
+    /^# @HELP[[:space:]]*$/ { help=1; next }
+    /^# @END-HELP[[:space:]]*$/ { exit }
+    help {
+      sub(/^#[[:space:]]?/, "")
+      if ($0 ~ /^[A-Za-z][A-Za-z /-]*:$/) {
+        name=substr($0, 1, length($0)-1)
+        selected=(name == section)
+        if (section == "Options") {
+          selected=(name !~ /^(Usage|Description|Examples|Exit codes)$/)
+          if (selected && name != "Options") print name ":"
+        }
+        next
+      }
+      if (selected) {
+        sub(/^  /, ""); gsub(/\{VERSION\}/, version); print
+      }
+    }
+  ' "$ROOT_DIR/$1"
+}
+
+# Command-reference v1 (#326): rebuild owned script references from source.
 build_command_reference() {
   local target_file="$1"
-  local script_name purpose section content
+  local script_name purpose section content label field
   script_name=$(basename -- "$target_file")
-  purpose=$(awk '/^#[[:space:]]+Purpose[[:space:]]*:/ {
-    sub(/^#[[:space:]]+Purpose[[:space:]]*:[[:space:]]*/, ""); print; exit
-  }' "$ROOT_DIR/$target_file")
+  purpose=$(script_header_field "$target_file" Purpose)
   [[ -n "${purpose//[[:space:]]/}" ]] || purpose="Purpose is not documented in the script header."
 
   printf '%s\n' '---'
@@ -893,25 +887,14 @@ build_command_reference() {
       .version = strenv(RK_REF_VERSION) |
       .author = "Rotkeeper DIP" |
       .project = "Rotkeeper" |
-      .description = strenv(RK_REF_PURPOSE)'
+      .description = strenv(RK_REF_PURPOSE)' || return 1
   printf '%s\n\n' '---' "# $script_name" '## Overview'
   printf '%s\n\n' "$purpose"
   printf "Source: \`%s\`.\n\n" "$target_file"
 
   for section in Usage Options Examples 'Exit codes'; do
-    content=$(awk -v section="$section" -v version="$VERSION" '
-      /^# @HELP[[:space:]]*$/ { help=1; next }
-      /^# @END-HELP[[:space:]]*$/ { exit }
-      help {
-        sub(/^#[[:space:]]?/, "")
-        if ($0 ~ /^[A-Za-z][A-Za-z ]*:$/) {
-          selected=($0 == section ":"); next
-        }
-        if (selected) {
-          sub(/^  /, ""); gsub(/\{VERSION\}/, version); print
-        }
-      }
-    ' "$ROOT_DIR/$target_file")
+    content=$(script_help_section "$target_file" "$section")
+    content=$(normalize_body "$content")
     printf '## %s\n\n' "$section"
     if [[ -n "${content//[[:space:]]/}" ]]; then
       case "$section" in
@@ -919,64 +902,46 @@ build_command_reference() {
         *) printf "\`\`\`text\n%s\n\`\`\`\n\n" "$content" ;;
       esac
     else
-      printf 'Not documented in the script help block.\n\n'
+      printf 'Not documented in the script help block. Consult the source; no command behavior is inferred.\n\n'
     fi
   done
 
   printf '## Reads and writes\n\n'
-  awk '
-    /^# @HELP[[:space:]]*$/ { exit }
-    /^# (Env assumptions|CWD assumptions|Input\/Output contracts):/ {
-      sub(/^# /, "")
-      sub(/^Env assumptions:/, "**Environment:**")
-      sub(/^CWD assumptions:/, "**Working directory:**")
-      sub(/^Input\/Output contracts:/, "**Inputs and outputs:**")
-      print $0 "\n"; found=1
-    }
-    END { if (!found) print "Read/write contracts are not documented in the script header.\n" }
-  ' "$ROOT_DIR/$target_file"
+  for field in 'Env assumptions' 'CWD assumptions' 'Input/Output contracts'; do
+    case "$field" in
+      'Env assumptions') label=Environment ;;
+      'CWD assumptions') label='Working directory' ;;
+      *) label='Inputs and outputs' ;;
+    esac
+    content=$(script_header_field "$target_file" "$field")
+    [[ -n "${content//[[:space:]]/}" ]] || content="Not documented in the script header."
+    printf '**%s:** %s\n\n' "$label" "$content"
+  done
   printf '## Side effects\n\n'
   awk '
     /^[[:space:]]*# SIDE EFFECT \(/ {
       sub(/^[[:space:]]*# SIDE EFFECT \(/, "- **")
       sub(/\):[[:space:]]*/, ":** ")
-      print; found=1
+      print; found=1; grab=1; next
     }
+    grab && /^[[:space:]]*#[[:space:]]+[^[:space:]]/ {
+      sub(/^[[:space:]]*#[[:space:]]*/, ""); print "  " $0; next
+    }
+    { grab=0 }
     END { if (!found) print "No side effects are documented in script annotations." }
   ' "$ROOT_DIR/$target_file"
   printf '\n## Notes\n<!-- DIP-SOUL-EXTRACTED: command-reference.v1 -->\n\n'
   content=$(build_soul_content "$target_file")
+  # Older sidecars use H2 body headings. Nest those under Notes without
+  # modifying the sidecar sources being reviewed separately in #329.
+  content=$(printf '%s\n' "$content" | awk '
+    /^```/ { fence=!fence }
+    !fence && /^## / { sub(/^## /, "### ") }
+    { print }
+  ')
   normalize_body "$content"
   printf '\n## History\n<!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->\n\n'
-  if [[ -f "$ROOT_DIR/CHANGELOG.md" ]]; then
-    # Match whole bullets, including mentions on continuation lines. Do not
-    # append road-to-bones fragments or add another bullet prefix.
-    awk -v script="$script_name" '
-      function emit() {
-        if (index(tolower(bullet), tolower(script))) {
-          if (heading != previous) {
-            print "#" heading "\n"; previous=heading
-          }
-          printf "%s\n", bullet; found=1
-        }
-        bullet=""
-      }
-      /^## / { emit(); heading=$0; next }
-      /^#/ { emit(); next }
-      /^- / { emit(); bullet=$0 "\n"; next }
-      bullet != "" && /^[[:space:]]+[^[:space:]]/ {
-        bullet=bullet $0 "\n"; next
-      }
-      /^[[:space:]]*$/ { next }
-      { emit() }
-      END {
-        emit()
-        if (!found) print "No matching entries in CHANGELOG.md."
-      }
-    ' "$ROOT_DIR/CHANGELOG.md"
-  else
-    printf 'CHANGELOG.md is unavailable.\n'
-  fi
+  build_history_content "$script_name"
 }
 
 # Ensure required marker scaffolding exists without clobbering authored body.
@@ -1004,16 +969,16 @@ ensure_dip_markers() {
   for n in "${needs[@]}"; do
     case "$n" in
       env)
-        append+=$'\n## Environment\n<!-- DIP-ENV-EXTRACTED: 0000-00-00T00:00:00Z -->\n*Not found: environment not yet stitched.*\n'
+        append+=$'\n## Reads and writes\n<!-- DIP-ENV-EXTRACTED: 0000-00-00T00:00:00Z -->\n*Not found: contracts not yet stitched.*\n'
         ;;
       help)
-        append+=$'\n###### CLI Usage\n<!-- DIP-HELP-EXTRACTED: 0000-00-00T00:00:00Z -->\n*Not found: help not yet stitched.*\n'
+        append+=$'\n## Usage\n<!-- DIP-HELP-EXTRACTED: 0000-00-00T00:00:00Z -->\n*Not found: help not yet stitched.*\n'
         ;;
       history)
-        append+=$'\n## Ritual History\n<!-- DIP-HISTORY-EXTRACTED: 0000-00-00T00:00:00Z -->\n*Not found: history not yet stitched.*\n'
+        append+=$'\n## History\n<!-- DIP-HISTORY-EXTRACTED: 0000-00-00T00:00:00Z -->\n*Not found: history not yet stitched.*\n'
         ;;
       soul)
-        append+=$'\n## Necromancer'\''s Notes\n<!-- DIP-SOUL-EXTRACTED: 0000-00-00T00:00:00Z -->\n*Not found: soul not yet stitched.*\n'
+        append+=$'\n## Notes\n<!-- DIP-SOUL-EXTRACTED: 0000-00-00T00:00:00Z -->\n*Not found: notes not yet stitched.*\n'
         ;;
     esac
   done
@@ -1024,6 +989,62 @@ ensure_dip_markers() {
     printf '%s' "$append"
   } | atomic_write "$doc_path"
 }
+
+# Rename only marker-owned headings. A task guide with an authored heading
+# that happens to use the same words must remain byte-identical.
+migrate_pillar_names() {
+  local doc="$1" migrated
+  [[ -f "$doc" ]] || return 0
+  migrated=$(awk '
+    { lines[NR]=$0 }
+    END {
+      for (i=1; i<=NR; i++) {
+        if (lines[i] ~ /^(```|~~~)/) {
+          fence=!fence; print lines[i]; continue
+        }
+        if (fence) { print lines[i]; continue }
+        j=i+1
+        while (j<=NR && lines[j] ~ /^[[:space:]]*$/) j++
+        # Older stubs sometimes lost their help marker. Remove only this
+        # exact generated placeholder, not an authored CLI Usage section.
+        if (lines[i] ~ /^######[[:space:]]+CLI[[:space:]]+Usage/ &&
+            lines[j] == "TODO: Stitch extracted help block.") {
+          i=j; continue
+        }
+        if (lines[j] ~ /^<!-- DIP-SOUL-EXTRACTED:/ &&
+            lines[i] ~ /^##[[:space:]]+Necromancer/) lines[i]="## Notes"
+        if (lines[j] ~ /^<!-- DIP-HISTORY-EXTRACTED:/ &&
+            lines[i] ~ /^##[[:space:]]+Ritual[[:space:]]+History/) lines[i]="## History"
+        if (lines[j] ~ /^<!-- DIP-ENV-EXTRACTED:/ &&
+            lines[i] ~ /^##[[:space:]]+Environment([[:space:]]|$)/) lines[i]="## Reads and writes"
+        if (lines[j] ~ /^<!-- DIP-HELP-EXTRACTED:/ &&
+            lines[i] ~ /^######[[:space:]]+CLI[[:space:]]+Usage/) lines[i]="## Usage"
+        print lines[i]
+      }
+    }
+  ' "$doc")
+  if [[ "$migrated" != "$(cat "$doc")" ]]; then
+    if [[ "${DRY_RUN:-false}" == true ]]; then
+      log "DRY-RUN" "Would migrate DIP headings: $doc"
+    else
+      printf '%s\n' "$migrated" | atomic_write "$doc"
+    fi
+  fi
+}
+
+for doc in ${EXISTING_DOCS[@]+"${EXISTING_DOCS[@]}"}; do
+  migrate_pillar_names "$doc"
+  [[ -f "$doc" ]] || continue
+  tf=$(read_target_file "$doc")
+  # Remove the old command-only dumps from non-command mirrors as well,
+  # including whitelisted generated pages outside the current core inventory.
+  if [[ -n "$tf" && "$tf" != *.sh ]]; then
+    stitch_pillar "$doc" "DIP-ENV-EXTRACTED" "This file is not a script; no script environment contract applies."
+    stitch_pillar "$doc" "DIP-HELP-EXTRACTED" "This file has no command-line interface."
+    history_content=$(build_history_content "$(basename -- "$tf")")
+    stitch_pillar "$doc" "DIP-HISTORY-EXTRACTED" "$history_content"
+  fi
+done
 
 # --- 4. Stub missing or empty docs ------------------------------------------
 #  Stub policy (#241): a doc page is stub-eligible only when it does not exist
@@ -1051,6 +1072,13 @@ for doc_path in "${!EXPECTED_DOCS[@]}"; do
     continue
   fi
 
+  if [[ "$target_file" == *.sh && -f "$ROOT_DIR/$target_file" ]]; then
+    reference_content=$(build_command_reference "$target_file")
+    printf '%s\n' "$reference_content" | atomic_write "$doc_path"
+    log "INFO" "Generated command reference: $doc_path"
+    continue
+  fi
+
   # SIDE EFFECT (write): creates the doc directory and writes a stub doc in place
   mkdir -p "$(dirname -- "$doc_path")"
   TITLE=$(basename -- "$doc_path" .md)
@@ -1074,31 +1102,29 @@ Documentation for \`$target_file\`. This file was auto-generated by the Document
 <!-- DIP-GENERATED-MARKER: Overview -->
 TODO: Provide a brief overview of what this file does.
 
-###### CLI Usage
+## Usage
 <!-- DIP-HELP-EXTRACTED: 0000-00-00T00:00:00Z -->
 TODO: Stitch extracted help block.
 
-## Environment
+## Reads and writes
 <!-- DIP-ENV-EXTRACTED: 0000-00-00T00:00:00Z -->
 TODO: Stitch environment variables.
 
-## Ritual History
+## History
 <!-- DIP-HISTORY-EXTRACTED: 0000-00-00T00:00:00Z -->
-TODO: Stitch ritual history.
+TODO: Stitch history.
 
-## Necromancer's Notes
+## Notes
 <!-- DIP-SOUL-EXTRACTED: 0000-00-00T00:00:00Z -->
-TODO: Stitch necromancer notes.
+TODO: Stitch notes.
 STUB
   mv -f "$stub_tmp" "$doc_path"
   log "INFO" "Stubbed missing doc: $doc_path"
 done
 
-# --- 5. Stitch Frankenstein pillars ----------------------------------------
+# --- 5. Generate script references and stitch non-command reference pillars --
 
-log "INFO" "Stitching dynamic content into Frankenstein pillars..."
-
-ENV_LIST_CONTENT=$(build_env_list)
+log "INFO" "Generating source-driven command references and reference pillars..."
 
 for doc_path in "${!EXPECTED_DOCS[@]}"; do
   [[ -f "$doc_path" ]] || continue
@@ -1110,17 +1136,20 @@ for doc_path in "${!EXPECTED_DOCS[@]}"; do
   target_file="${EXPECTED_DOCS[$doc_path]}"
   script_name=$(basename -- "$target_file")
 
-  if [[ "$target_file" == *.sh \
-    && "$(read_target_file "$doc_path")" == "$target_file" \
-    && "$(rk_frontmatter_field reference_contract "$doc_path")" == "rotkeeper.command-reference.v1" ]]; then
-    reference_content=$(build_command_reference "$target_file")
-    if [[ "$reference_content" != "$(cat "$doc_path")" ]]; then
-      if [[ "${DRY_RUN:-false}" == true ]]; then
-        log "DRY-RUN" "Would regenerate command reference: $doc_path"
-      else
-        printf '%s\n' "$reference_content" | atomic_write "$doc_path"
+  if [[ "$target_file" == *.sh ]]; then
+    if [[ -f "$ROOT_DIR/$target_file" \
+      && "$(read_target_file "$doc_path")" == "$target_file" ]]; then
+      reference_content=$(build_command_reference "$target_file")
+      if [[ "$reference_content" != "$(cat "$doc_path")" ]]; then
+        if [[ "${DRY_RUN:-false}" == true ]]; then
+          log "DRY-RUN" "Would regenerate command reference: $doc_path"
+        else
+          printf '%s\n' "$reference_content" | atomic_write "$doc_path"
+        fi
       fi
     fi
+    # An unowned script page is not a non-command mirror. Preserve it
+    # instead of inserting false no-script/no-CLI fallback claims.
     continue
   fi
 
@@ -1140,12 +1169,11 @@ for doc_path in "${!EXPECTED_DOCS[@]}"; do
     ensure_dip_markers "$doc_path"
   fi
 
-  help_content=$(build_help_content "$target_file")
   history_content=$(build_history_content "$script_name")
   soul_content=$(build_soul_content "$target_file")
 
-  stitch_pillar "$doc_path" "DIP-ENV-EXTRACTED" "$ENV_LIST_CONTENT"
-  stitch_pillar "$doc_path" "DIP-HELP-EXTRACTED" "$help_content"
+  stitch_pillar "$doc_path" "DIP-ENV-EXTRACTED" "This file is not a script; no script environment contract applies."
+  stitch_pillar "$doc_path" "DIP-HELP-EXTRACTED" "This file has no command-line interface."
   stitch_pillar "$doc_path" "DIP-HISTORY-EXTRACTED" "$history_content"
   stitch_pillar "$doc_path" "DIP-SOUL-EXTRACTED" "$soul_content"
 done

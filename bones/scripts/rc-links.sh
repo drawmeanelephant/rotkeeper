@@ -9,7 +9,7 @@ IFS=$'\n\t'
 # ============================================================
 # Env assumptions: reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DRY_RUN, LOG_DIR, LOG_FILE, OUTPUT_DIR, QUIET, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TMP_DIR, VERBOSE (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
-# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
+# Input/Output contracts: reads rendered HTML under the selected root and audits local href/src targets and anchors, including local asset references. Writes the selected report under the report boundary or emits JSON according to flags; dry-run scans without publishing a report.
 
 # @HELP
 # rc-links.sh — Audit rendered HTML links and local asset references
@@ -32,9 +32,9 @@ IFS=$'\n\t'
 #   --version, -v    Show script version and quit
 #
 # Examples:
-#   bash rotkeeper.sh links                     Audit and write report
-#   bash rotkeeper.sh links --fix-hint          Audit with per-failure hints
-#   bash rotkeeper.sh links --json | jq .       Machine-readable output
+#   bash rotkeeper.sh links                     # Audit and write report
+#   bash rotkeeper.sh links --fix-hint          # Audit with per-failure hints
+#   bash rotkeeper.sh links --json | jq .       # Machine-readable output
 #
 # Exit codes:
 #   0    No broken links or missing assets found

@@ -9,6 +9,9 @@
 # ============================================================
 #  Script  : rotatui.sh
 #  Purpose : Standalone Gum-powered interactive TUI companion for Rotkeeper
+# Env assumptions: requires `gum`; optionally uses `glow` for previews and `skate` for saved choices. Reads `RK_SPINNER`, terminal state, and the dispatcher beside this file.
+# CWD assumptions: none for command execution; dispatcher paths resolve against this script location.
+# Input/Output contracts: reads interactive terminal input and invokes dispatcher commands selected by the user. Writes temporary command logs and may save scaffold choices through `skate`. Selected commands perform their own filesystem changes. This script has no command-line help or dry-run parser; DIP documents missing help sections explicitly.
 #  Aesthetic: Spooky Dark / Necropolis terminal
 # ============================================================
 

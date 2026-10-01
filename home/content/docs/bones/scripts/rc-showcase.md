@@ -1,71 +1,72 @@
 ---
-target_file: "bones/scripts/rc-showcase.sh"
-date: "2026-08-26"
-template: "rotkeeper-doc.html"
-status: "active"
-version: "0.5.1"
-author: "Rotkeeper Ritual Council"
-project: "Rotkeeper"
-description: "Scaffolds a showcase page per HTML template into content/showcase/ and generates the static Theme Gallery index for side-by-side theme comparison."
-tags:
-  - rotkeeper
-  - scripts
-  - templates
-  - showcase
+reference_contract: rotkeeper.command-reference.v1
+title: rc-showcase.sh
+slug: rc-showcase
+target_file: bones/scripts/rc-showcase.sh
+template: rotkeeper-doc.html
+status: active
+version: 0.8.1
+author: Rotkeeper DIP
+project: Rotkeeper
+description: Auto-scaffolds test pages for all HTML templates
 ---
 
-# rc-showcase
-
-**Script Path:** `bones/scripts/rc-showcase.sh`
+# rc-showcase.sh
 
 ## Overview
 
-`rc-showcase.sh` backs the `showcase` dispatcher command — the template quality-assurance ritual, nicknamed the *Gallery of the Damned*. It gives every theme layout the same synthetic body so layout differences are directly comparable.
+Auto-scaffolds test pages for all HTML templates
 
-Per pass it:
+Source: `bones/scripts/rc-showcase.sh`.
 
-1. Ensures `CONTENT_DIR/showcase/` exists.
-2. For every `TEMPLATE_DIR/*.html`: scaffolds `showcase-<theme>.md` (the `theme-` prefix is stripped for the name). The frontmatter sets `title`/`slug`/`template` and adds **dummy values for every `$variable$` the template references** (except internal tokens like `body`, `endif`, `palette`, `assets_root`; `description` alternates on/off across themes so both states get exercised). The body is a fixed sample document — headings 1–6, bold/italic, blockquotes, tables, and code fences.
-3. Structurally validates each template when an Oliver binary is available (`RK_OLIVER_BIN` or `PATH`): an empty template fails the run; without Oliver it warns and continues.
-4. Regenerates the **Theme Gallery**: a grid-style `index.md` source in `content/showcase/` (one card per theme with a color swatch) plus a standalone hand-CSS copy written directly to `OUTPUT_DIR/showcase/index.html`.
-
-Run `bash rotkeeper.sh render` afterwards to turn fresh showcase sources into viewable pages.
-
-## CLI Usage
+## Usage
 
 ```bash
 rotkeeper.sh showcase [options]
-
-# Options:
-#   --dry-run        Preview generated showcase pages without writing
-#   --verbose        Show detailed logs
-#   --help, -h       Show usage help
 ```
 
-### Environment assumptions
+## Options
 
-- **Reads:** `TEMPLATE_DIR` (every `.html`), `CONTENT_DIR`, optional `RK_OLIVER_BIN`.
-- **Writes:** `CONTENT_DIR/showcase/showcase-<theme>.md` and `CONTENT_DIR/showcase/index.md` — inside the author-managed content tree; `OUTPUT_DIR/showcase/index.html` directly.
-- **CWD:** none.
+```text
+--dry-run        Preview generated showcase pages without writing
+--verbose        Show detailed logs
+--help, -h       Show this help message
+--version, -v    Show script version and quit
+```
 
-## Dangerous operations
+## Examples
 
-- **Rewrites all showcase files on every run** — manual edits made to `content/showcase/*.md` are crushed by the next invocation; treat that directory as generated.
-- The direct write to `OUTPUT_DIR/showcase/index.html` bypasses the render pipeline (it is a preview convenience, refreshed by this ritual alone).
+```bash
+bash rotkeeper.sh showcase --dry-run      # Preview gallery scaffolding
+bash rotkeeper.sh showcase                # Generate showcase content
+```
 
-###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
+## Exit codes
 
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
+```text
+0    Success
+1    Generation failure
+```
 
-## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
+## Reads and writes
 
-*Not found: no changelog/history entries matching `rc-showcase.sh`.*
+**Environment:** reads CONTENT_DIR, DRY_RUN, OLIVER_BIN, OUTPUT_DIR, RK_OLIVER_BIN, ROOT_DIR, SCRIPT_DIR, TEMPLATE_DIR (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
+**Working directory:** No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
 
+**Inputs and outputs:** reads every HTML template in `TEMPLATE_DIR`; overwrites generated `CONTENT_DIR/showcase/showcase-<theme>.md` sources, the gallery index source, and `OUTPUT_DIR/showcase/index.html`.
+Template variables get sample frontmatter values except internal tokens; descriptions alternate present/absent across themes. A fixed sample body exercises headings, emphasis, quotes, tables, and code. Available Oliver validates templates; without it the command warns and continues.
+The gallery HTML is a direct preview write, not a rendered page. Run `bash rotkeeper.sh render` after scaffolding to render showcase sources. Manual changes to generated showcase files are replaced on the next real run; dry-run previews only.
+
+## Side effects
+
+- **write:** creates home/content/showcase if missing
+- **write:** overwrites home/content/showcase/showcase-<theme>.md (frontmatter + demo body)
+- **write:** overwrites home/content/showcase/index.md gallery source
+- **write:** creates output/showcase/ and overwrites its index.html
+
+## Notes
+<!-- DIP-SOUL-EXTRACTED: command-reference.v1 -->
 
 ### Bones of the Code
 The template showcase generator. It loops through all theme templates under `bones/templates/` and spits out a static markdown file `showcase-${theme}.md` filled with nested headers, list elements, table patterns, and code fences. Its main purpose is to feed the rendering machine synthetic bodies to test layout aesthetics.
@@ -76,23 +77,7 @@ This script is a vanity project for templates. It naively assumes `TEMPLATE_DIR`
 ### Ritual Warnings
 Ensure `TEMPLATE_DIR` contains valid `.html` layouts. The output markdown is rewritten each run, meaning manual annotations added to the showcase files will be crushed.
 
-## Environment
-<!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
+## History
+<!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->
 
-- **$ROOT_DIR**: .
-- **$OUTPUT_DIR**: output
-- **$CONTENT_DIR**: home/content
-- **$ASSETS_DIR**: home/assets
-- **$DOCS_DIR**: home/content/docs
-- **$HELP_DIR**: home/content/help
-- **$BONES_DIR**: bones
-- **$SCRIPT_DIR**: bones/scripts
-- **$CONFIG_DIR**: bones/config
-- **$LOG_DIR**: bones/logs
-- **$TMP_DIR**: bones/tmp
-- **$ARCHIVE_DIR**: bones/archive
-- **$REPORT_DIR**: bones/reports
-- **$BOOK_REPORT_DIR**: bones/book-reports
-- **$TEMPLATE_DIR**: bones/templates
-- **$META_DIR**: bones/meta
-- **$WEB_DIR**: output
+No matching entries in CHANGELOG.md.

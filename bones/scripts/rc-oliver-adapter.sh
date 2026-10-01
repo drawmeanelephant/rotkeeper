@@ -14,7 +14,10 @@ IFS=$'\n\t'
 # ============================================================
 # Env assumptions: reads INPUT_FORMAT, RENDER_PROFILE, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
-# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
+# Input/Output contracts: internal batch worker invoked by render, not a dispatcher command. Reads a TSV manifest with source/destination/template/assets-root/sidecar/binary/layout/flag fields per row; rejects paths outside content/output/template/meta boundaries and unavailable renderer binaries.
+#   Oliver meta extracts frontmatter; sidecar metadata overrides page fields. Source extension selects Textile/Cooklang over the configured input default. Per-page render_profile overrides the site HTML/XHTML profile; invalid or escaping templates abort.
+#   Oliver render produces the body and Oliver wrap applies the template with merged metadata and link rewriting. Writes pages only under OUTPUT_DIR and short-lived metadata/body/error scratch files under TMP_DIR, plus warning accumulators keyed by RK_RENDER_ID.
+#   Failures stop the batch with the underlying error and XHTML raw-HTML guidance when applicable. Manifest dry-run rows skip page writes. See `home/content/docs/oliver-contract.md`.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }

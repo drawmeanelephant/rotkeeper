@@ -1,65 +1,75 @@
 ---
-title: "⚰️ rc-autopsy.sh Reference"
+reference_contract: rotkeeper.command-reference.v1
+title: rc-autopsy.sh
 slug: rc-autopsy
-target_file: "bones/scripts/rc-autopsy.sh"
-date: "2026-08-26"
-template: "rotkeeper-doc.html"
-status: "active"
-version: "0.5.1"
-author: "Rotkeeper Ritual Council"
-project: "Rotkeeper"
-description: "Dissects the ritual scripts into reference reports: extracts every --help text and catalogs file-write operations with resolved paths."
-tags:
-  - rotkeeper
-  - scripts
-  - audit
-  - reports
+target_file: bones/scripts/rc-autopsy.sh
+template: rotkeeper-doc.html
+status: active
+version: 0.8.1
+author: Rotkeeper DIP
+project: Rotkeeper
+description: Script dissection and output cataloging
 ---
 
-# ⚰️ rc-autopsy
-
-**Script Path:** `bones/scripts/rc-autopsy.sh`
+# rc-autopsy.sh
 
 ## Overview
 
-`rc-autopsy.sh` produces the two self-describing reference reports that other tooling consumes:
+Script dissection and output cataloging
 
-1. **Help report** (`--help-report`, default) — invokes `bash <script> --help` on every known `rc-*.sh` plus `rotkeeper.sh` (with the environment load suppressed via `ROT_SKIP_ENV=true`) and stitches each help text into `bones/reports/autopsy-help.md`. Scripts that fail to answer `--help` fall back to grepping their flag strings, logged as `[WARN]`. A hardcoded allowlist of permitted rituals guarantees no rogue or stray script is ever executed during extraction. DIP stitches this report's blocks into per-script doc pages.
-2. **Output report** (`--output-report`, default) — scans each script for file-write operations (`>`, `>>`, `tee`, `mv`, `cp`, `tar -cf/-ff`) and catalogs them in `bones/reports/autopsy-outputs.md` as a line-numbered table per script, with `$VAR` paths resolved against the live environment where possible. DIP uses this report to exclude generated artifacts from its audits.
+Source: `bones/scripts/rc-autopsy.sh`.
 
-With no mode flag both reports run (`--all` is explicit).
-
-## CLI Usage
+## Usage
 
 ```bash
 rotkeeper.sh autopsy [mode] [options]
-
-# Modes:
-#   --help-report    Extract --help output from all rc-*.sh into a reference report
-#   --output-report  Scan scripts for file-write operations and catalog outputs
-#   --all            Run both reports (default)
-
-# Options:
-#   --dry-run        Preview without writing
-#   --verbose        Detailed logging
-#   --help, -h       Show usage help
 ```
 
-### Environment assumptions
+## Options
 
-- **Reads:** every script under `SCRIPT_DIR` plus `ROOT_DIR/rotkeeper.sh`; the exported `*_DIR` variables for path resolution in the output report.
-- **Writes:** `bones/reports/autopsy-help.md` and `bones/reports/autopsy-outputs.md`.
-- **CWD:** none.
+```text
+Modes:
+--help-report    Extract --help output from all rc-*.sh into a reference report
+--output-report  Scan scripts for file-write operations and catalog outputs
+--all            Run both reports (default)
 
-## Dangerous operations
+--dry-run        Preview without writing
+--verbose        Detailed logging
+--help, -h       Show this help message and exit
+--version, -v    Show script version and quit
+```
 
-- **Executes project scripts** (`bash <script> --help`) — bounded by the hardcoded ritual allowlist; anything else under the scripts directory is skipped with a warning rather than run.
-- Both reports are rewritten wholesale on each run.
-- Everything else is read-only analysis; nothing in the content or output trees is touched.
+## Examples
 
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
+```bash
+bash rotkeeper.sh autopsy                  # Both reports (default)
+bash rotkeeper.sh autopsy --help-report    # Help catalog only
+```
 
+## Exit codes
+
+```text
+0    Success
+1    Report generation failure
+```
+
+## Reads and writes
+
+**Environment:** reads BONES_DIR, CONFIG_DIR, DRY_RUN, LOG_DIR, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TMP_DIR, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+
+**Working directory:** No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+
+**Inputs and outputs:** reads scripts under `SCRIPT_DIR` and the root dispatcher. With no mode, or `--all`, rewrites both `REPORT_DIR/autopsy-help.md` and `REPORT_DIR/autopsy-outputs.md`.
+Help extraction invokes only PERMITTED_RITUALS with `ROT_SKIP_ENV=true`, falling back to flag-string extraction for empty help. Output analysis catalogs writes, copies, moves, tee, and tar operations with line numbers and environment-resolved paths.
+DIP may use the output report for artifact exclusions, but command help is harvested directly from script comments and does not require the help report. Dry-run previews report writes.
+
+## Side effects
+
+- **write:** overwrites bones/reports/autopsy-help.md
+- **write:** overwrites bones/reports/autopsy-outputs.md
+
+## Notes
+<!-- DIP-SOUL-EXTRACTED: command-reference.v1 -->
 
 ### Bones of the Code
 An undertaker for dead processes. It attempts deep logging and error parsing by scraping raw text files. It's essentially a glorified `grep` wrapped in a burial shroud, pretending to understand the final cries of dying code.
@@ -70,33 +80,7 @@ Runaway log files are the hungry ghosts here, waiting to devour every last byte 
 ### Ritual Warnings
 Monitor your disk space, or this script will fill it with the endless screaming of past errors. Do not trust its interpretation of multi-line errors; it only understands the simplest of death rattles.
 
-###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
+## History
+<!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->
 
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
-
-## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
-
-*Not found: no changelog/history entries matching `rc-autopsy.sh`.*
-
-## Environment
-<!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
-
-- **$ROOT_DIR**: .
-- **$OUTPUT_DIR**: output
-- **$CONTENT_DIR**: home/content
-- **$ASSETS_DIR**: home/assets
-- **$DOCS_DIR**: home/content/docs
-- **$HELP_DIR**: home/content/help
-- **$BONES_DIR**: bones
-- **$SCRIPT_DIR**: bones/scripts
-- **$CONFIG_DIR**: bones/config
-- **$LOG_DIR**: bones/logs
-- **$TMP_DIR**: bones/tmp
-- **$ARCHIVE_DIR**: bones/archive
-- **$REPORT_DIR**: bones/reports
-- **$BOOK_REPORT_DIR**: bones/book-reports
-- **$TEMPLATE_DIR**: bones/templates
-- **$META_DIR**: bones/meta
-- **$WEB_DIR**: output
+No matching entries in CHANGELOG.md.

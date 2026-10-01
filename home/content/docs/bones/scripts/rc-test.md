@@ -1,73 +1,71 @@
 ---
-title: "rc-test.sh Documentation"
-target_file: "bones/scripts/rc-test.sh"
-date: "2026-08-26"
-template: "rotkeeper-doc.html"
-status: "active"
-version: "0.5.1"
-author: "Rotkeeper Ritual Council"
-project: "Rotkeeper"
-description: "Integration test harness: builds crypt/busy/sterile layout fixtures, exercises the full pipeline, asserts the release archive, and regression-checks removed commands."
-tags:
-  - rotkeeper
-  - scripts
-  - test
-  - harness
+reference_contract: rotkeeper.command-reference.v1
+title: rc-test.sh
+slug: rc-test
+target_file: bones/scripts/rc-test.sh
+template: rotkeeper-doc.html
+status: active
+version: 0.8.1
+author: Rotkeeper DIP
+project: Rotkeeper
+description: Multi-Pass Layout Integration Test Suite aligned for single distribution zip archives
 ---
 
 # rc-test.sh
 
-**Script Path:** `bones/scripts/rc-test.sh`
-
 ## Overview
 
-`rc-test.sh` backs the `test` and `smoke` dispatcher commands (they map to the same harness). It is the release gate for the whole system.
+Multi-Pass Layout Integration Test Suite aligned for single distribution zip archives
 
-**Full matrix run** (`rotkeeper.sh test`): for each layout mode — `crypt`, `busy`, `sterile` — the harness builds a temporary fixture under `bones/tmp/rotkeeper-test-env/`, runs `init --with-sample` against it, and exercises the rendered/packaged surface: render output shape, asset mirroring, template golden regressions (crypt pass), and the release packager. It then verifies the canonical single distribution archive and asserts the deprecated `-lite` and `-full` archives are absent, plus a battery of structural assertions across the produced trees. The release version is read from `bones/config/version`.
+Source: `bones/scripts/rc-test.sh`.
 
-**Regression-only run** (`--dry-run`): executes only the removed-command checks — `ingest`, `sync-inbox`, `cleanup`, and `reseed` must each trigger their permanent-removal error; any other behavior fails with exit code 101.
-
-Cleanup is trap-driven: on exit (including failure or interrupt) the fixture tree is pruned through `rk_guard_delete` against the `bones/tmp` boundary — if the guard refuses, the footprint is left behind with a warning rather than deleted unsafely.
-
-On macOS, a failure at the harness's `realpath -m` preflight is a legitimate portability report, not a bug to paper over.
-
-## CLI Usage
+## Usage
 
 ```bash
-rotkeeper.sh test [--dry-run]
-rotkeeper.sh smoke [--dry-run]
-
-# Options:
-#   --dry-run      Run only the removed-command regression checks
-#   --help, -h     Show usage help
-#   --version, -v  Show version and quit
+rotkeeper.sh test|smoke [--dry-run]
 ```
 
-### Environment assumptions
-
-- **Reads:** `ROOT_DIR`, `bones/config/version` (release version under test); optional `ROTKEEPER_VERSION` override.
-- **Writes:** everything under `bones/tmp/rotkeeper-test-env/` (fixtures, renders, packaged archives) plus its own console output; the tree is pruned by the exit trap.
-- **Dependencies:** `bash`, `jq`; the full matrix additionally drives `init`/`render`/`pack`, so those tools' requirements apply transitively.
-- **CWD:** expects invocation from the repository root (`./rotkeeper.sh …` is called directly).
-
-## Dangerous operations
-
-- **`rm -rf` of the test fixture tree** in the cleanup trap — strictly bounded by `rk_guard_delete` against `$ROOT_DIR/bones/tmp`; a refused guard leaves the tree in place instead of deleting outside bounds.
-- The harness invokes real rituals (`init`, `render`, packager) inside its sandboxed fixture, never against the live workspace content.
-
-## Details
-
-### CLI Usage
+## Options
 
 ```text
---dry-run
---help, -h
---version, -v
+--dry-run      Run only the removed-command regression checks
+--help, -h     Show help
+--version, -v  Show version and quit
 ```
 
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
+## Examples
 
+```bash
+bash rotkeeper.sh test               # Full multi-layout harness matrix
+bash rotkeeper.sh test --dry-run     # Removed-command regressions only
+```
+
+## Exit codes
+
+```text
+0         All harness assertions passed
+nonzero   A harness assertion failed (the code identifies the suite)
+```
+
+## Reads and writes
+
+**Environment:** reads OUTPUT_DIR, RK_OLIVER_BIN, RK_RENDERER, ROOT_DIR, ROTKEEPER_VERSION, SCRIPT_DIR, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+
+**Working directory:** No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+
+**Inputs and outputs:** full test builds crypt/busy/sterile fixtures under `bones/tmp/rotkeeper-test-env`, runs the pipeline, verifies canonical release contents and absent legacy tiers, and checks renderer, JSON, command, DIP, and removed-command contracts.
+Reads the release version from `bones/config/version` or `ROTKEEPER_VERSION`; requires jq and the tested commands dependencies. EXIT/INT/TERM cleanup removes fixtures only through `rk_guard_delete`.
+`--dry-run` runs only the ingest/sync-inbox/cleanup/reseed removal checks, not the full matrix. The full harness also generates the fsbook retrieval catalog. Report macOS `realpath -m` portability failures without weakening assertions.
+
+## Side effects
+
+- **delete:** recursively removes the entire bones/tmp/<test-root> fixture tree on any exit
+- **delete:** wipes any leftover test root under bones/tmp before the run starts
+- **write:** creates the test fixture root under bones/tmp; every layout
+  pass below builds and mutates its fixtures exclusively inside this boundary
+
+## Notes
+<!-- DIP-SOUL-EXTRACTED: command-reference.v1 -->
 
 ### Bones of the Code
 The torturer. It subjects the scripts to Bats unit tests and dry-run sweeps, demanding perfection from an inherently flawed system.
@@ -78,33 +76,7 @@ Its syntax validation is merely a surface-level scan, and its environment config
 ### Ritual Warnings
 A passing test suite here merely means the code compiles; it does not mean the code is sane.
 
-## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
+## History
+<!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->
 
-*Not found: no changelog/history entries matching `rc-test.sh`.*
-
-## Environment
-<!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
-
-- **$ROOT_DIR**: .
-- **$OUTPUT_DIR**: output
-- **$CONTENT_DIR**: home/content
-- **$ASSETS_DIR**: home/assets
-- **$DOCS_DIR**: home/content/docs
-- **$HELP_DIR**: home/content/help
-- **$BONES_DIR**: bones
-- **$SCRIPT_DIR**: bones/scripts
-- **$CONFIG_DIR**: bones/config
-- **$LOG_DIR**: bones/logs
-- **$TMP_DIR**: bones/tmp
-- **$ARCHIVE_DIR**: bones/archive
-- **$REPORT_DIR**: bones/reports
-- **$BOOK_REPORT_DIR**: bones/book-reports
-- **$TEMPLATE_DIR**: bones/templates
-- **$META_DIR**: bones/meta
-- **$WEB_DIR**: output
-
-###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
-
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
+No matching entries in CHANGELOG.md.

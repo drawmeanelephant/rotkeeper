@@ -11,7 +11,11 @@ IFS=$'\n\t'
 # ============================================================
 # Env assumptions: reads ARCHIVE_DIR, BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, DRY_RUN, LOG_DIR, OUTPUT_DIR, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
-# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
+# Input/Output contracts: reads scripts, documentation, content, configuration, templates, or the filesystem inventory according to the selected mode. Requires Bash and GNU awk; writes only under `BOOK_REPORT_DIR`.
+#   Outputs are `rotkeeper-scriptbook-full.md`, `rotkeeper-docbook.md`, `rotkeeper-docbook-clean.md`, `rotkeeper-configbook.md`, `rotkeeper-contentbook.md`, `rotkeeper-contentmeta.yaml`, `rotkeeper-files.md`, and `collapsed-content.yaml`. Existing outputs are replaced, not archived.
+#   Bound sections use START/END comments with source paths and a per-run random suffix. Books are retrieval aids, not authoritative policy. Filesystem catalogs exclude generated trees, Git data, logs, temporary files, and `.DS_Store`.
+#   Documentation/content books accept `.md`, `.textile`, and `.cook`; clean documentation output strips frontmatter and adds page headings. Content metadata is a YAML list keyed by path; collapse emits title/subtitle/body block scalars.
+#   Write-boundary violations exit 3. A documentation/content corpus over 5 MB requires `--force-bind`. All modes honor `--dry-run`; shared bootstrap logging still writes a run log.
 #  Project : Rotkeeper
 #  Script  : rc-book.sh
 #  Purpose : Bind documentation reports cleanly inside authorized boundaries
@@ -32,6 +36,7 @@ source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&
 #   Binds retrieval artifacts under bones/book-reports/: filesystem
 #   catalogs for DIP discovery, documentation/script/config books, and
 #   content metadata. Outputs are generated retrieval aids, not policy.
+#   With no mode selected, runs all modes.
 #
 # Modes:
 #   --fsbook          Filesystem catalog consumed by DIP for core-file discovery
@@ -42,22 +47,25 @@ source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&
 #   --contentbook     Bind content pages
 #   --contentmeta     Emit content metadata
 #   --collapse        Collapse a book or content tree
+#   --all             Run all modes in sequence
 #   --force-bind      Allow larger than safe default bind
 #
 # Options:
+#   --strip-frontmatter Strip frontmatter from applicable book bodies
+#   --config FILE  Set the optional config argument
 #   --dry-run      Preview the bind without writing
 #   --verbose      Detailed output
 #   --help, -h     Show help
 #   --version, -v  Show version and quit
 #
 # Examples:
-#   bash rotkeeper.sh book --fsbook                          Filesystem catalog for DIP
+#   bash rotkeeper.sh book --fsbook                          # Filesystem catalog for DIP
 #   bash rotkeeper.sh book --docbook-clean --strip-frontmatter
-#   bash rotkeeper.sh book --configbook --dry-run            Preview config bind
+#   bash rotkeeper.sh book --configbook --dry-run            # Preview config bind
 #
 # Exit codes:
 #   0         Success
-#   1         No mode selected or bind failure
+#   1         Bind failure or size safeguard refusal
 #   3         Write-boundary violation
 # @END-HELP
 

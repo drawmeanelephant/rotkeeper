@@ -10,7 +10,8 @@ IFS=$'\n\t'
 # ============================================================
 # Env assumptions: reads DRY_RUN, OLIVER_BIN, RK_OLIVER_BIN, SCRIPT_DIR, TMP_DIR, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
-# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
+# Input/Output contracts: discovers Oliver using `RK_OLIVER_BIN` then `PATH`, checks executability, and smoke-renders through the real CLI with the configured input format and HTML/XHTML profile.
+#   Nonzero or empty render output fails with an actionable setup message. The shared check also gates render. Real runs create and remove `TMP_DIR/oliver-preflight-smoke.md`, `.html`, and `.log`; dry-run skips binary invocation. See `home/content/docs/oliver-contract.md`.
 # @HELP
 # rc-preflight.sh — Report Oliver renderer availability (v{VERSION})
 #
@@ -30,8 +31,8 @@ IFS=$'\n\t'
 #   --version, -v    Show script version and quit
 #
 # Examples:
-#   bash rotkeeper.sh preflight              Verify rendering is ready
-#   bash rotkeeper.sh preflight --verbose    Show discovery details
+#   bash rotkeeper.sh preflight              # Verify rendering is ready
+#   bash rotkeeper.sh preflight --verbose    # Show discovery details
 #
 # Exit codes:
 #   0    Rendering ready

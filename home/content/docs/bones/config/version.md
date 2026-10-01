@@ -44,41 +44,37 @@ overrides a bump — bump always operates on the canonical file.
 - [Config Index](index.html)
 - [Bones Home](../index.html)
 
-## Environment
-<!-- DIP-ENV-EXTRACTED: 2026-08-12T02:18:17Z -->
+## Reads and writes
+<!-- DIP-ENV-EXTRACTED: 2026-10-01T21:17:26Z -->
 
-- **$ROOT_DIR**: .
-- **$OUTPUT_DIR**: output
-- **$CONTENT_DIR**: home/content
-- **$ASSETS_DIR**: home/assets
-- **$DOCS_DIR**: home/content/docs
-- **$HELP_DIR**: home/content/help
-- **$BONES_DIR**: bones
-- **$SCRIPT_DIR**: bones/scripts
-- **$CONFIG_DIR**: bones/config
-- **$LOG_DIR**: bones/logs
-- **$TMP_DIR**: bones/tmp
-- **$ARCHIVE_DIR**: bones/archive
-- **$REPORT_DIR**: bones/reports
-- **$BOOK_REPORT_DIR**: bones/book-reports
-- **$TEMPLATE_DIR**: bones/templates
-- **$META_DIR**: bones/meta
-- **$WEB_DIR**: output
-###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
+This file is not a script; no script environment contract applies.
+## Usage
+<!-- DIP-HELP-EXTRACTED: 2026-10-01T21:17:26Z -->
 
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
-## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-08-13T10:51:03Z -->
+This file has no command-line interface.
+## History
+<!-- DIP-HISTORY-EXTRACTED: 2026-10-01T21:17:26Z -->
 
-- - Made preflight gate on a live Oliver smoke render instead of a version range (Oliver's CLI is provisional and has no stable release yet); `render` routes its failure path through the same check so diagnostics cannot drift, and `scripts/setup-jules.sh` builds Oliver from source with Zig 0.16.
-- - Added the `preflight` dispatcher command: one Apex availability check (discovery, executability, 1.1.x version range, runnable smoke) with a single actionable setup message; `render` routes its failure path through the same check so diagnostics cannot drift.
-- - Added a dispatcher-backed, version-aware microbump flow and parameterized the
--   release test against the dispatcher version.
-- - Modified `README.md` to reflect testing support and current dev version
-- - Add --version flag to all rc-*.sh scripts
-- version: "0.5.0"
-- The dated changelog entries record template parsing repair, version flags for
-<!-- DIP-SOUL-EXTRACTED: 2026-08-12T02:18:42Z -->
+### [0.5.3] - 2026-08-13
 
-*Not found: no soul sidecar for `bones/config/version`.*
+- Made preflight gate on a live Oliver smoke render instead of a version range (Oliver's CLI is provisional and has no stable release yet); `render` routes its failure path through the same check so diagnostics cannot drift, and `scripts/setup-jules.sh` builds Oliver from source with Zig 0.16.
+
+### [0.5.2] - 2026-08-12
+
+- Added the `preflight` dispatcher command: one Apex availability check (discovery, executability, 1.1.x version range, runnable smoke) with a single actionable setup message; `render` routes its failure path through the same check so diagnostics cannot drift.
+
+### [0.4.1] - 2026-07-22
+
+- Added a dispatcher-backed, version-aware microbump flow and parameterized the
+  release test against the dispatcher version.
+
+### v0.2.6-dev
+
+- Modified `README.md` to reflect testing support and current dev version
+
+### [0.3.1.3] - 2026-06-19
+
+- Add --version flag to all rc-*.sh scripts
+<!-- DIP-SOUL-EXTRACTED: 2026-10-01T21:17:26Z -->
+
+No sidecar notes are documented for `bones/config/version`.

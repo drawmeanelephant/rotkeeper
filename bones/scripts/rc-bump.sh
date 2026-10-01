@@ -11,7 +11,9 @@ IFS=$'\n\t'
 # ============================================================
 # Env assumptions: reads BONES_DIR, CONFIG_DIR, DOCS_DIR, DRY_RUN, LOG_DIR, QUIET, ROOT_DIR, SCRIPT_DIR, TMP_DIR, VERBOSE, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
-# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
+# Input/Output contracts: reads the validated semver in `bones/config/version`; the bump calculation does not use `ROTKEEPER_VERSION`. Exactly one of major/minor/patch or `--to` is required; major/minor selectors reset lower segments.
+#   Atomically writes the canonical version, prepends a dated CHANGELOG release, and inserts the timestamped message after `LIVING_BUILDLOG_START` in `DOCS_DIR/road-to-bones/index.md`.
+#   `--commit` stages the version, changelog, and roadmap and commits from `ROOT_DIR`; it never pushes. A dirty worktree is warned about rather than rejected. Dry-run previews all updates and Git actions without writes.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-bump.sh
@@ -51,9 +53,9 @@ source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&
 #   --version, -v      Show version and quit
 #
 # Examples:
-#   bash rotkeeper.sh bump --patch -m "Fix wrap bug"                 Patch bump
-#   bash rotkeeper.sh bump --to 0.8.0 -m "UX pass" --commit          Explicit version + commit
-#   bash rotkeeper.sh bump --minor -m "..." --dry-run                Preview only
+#   bash rotkeeper.sh bump --patch -m "Fix wrap bug"                 # Patch bump
+#   bash rotkeeper.sh bump --to 0.8.0 -m "UX pass" --commit          # Explicit version + commit
+#   bash rotkeeper.sh bump --minor -m "..." --dry-run                # Preview only
 #
 # Exit codes:
 #   0    Success

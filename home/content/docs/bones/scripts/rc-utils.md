@@ -1,74 +1,62 @@
 ---
-title: "🧩 rc-utils.sh Reference"
+reference_contract: rotkeeper.command-reference.v1
+title: rc-utils.sh
 slug: rc-utils
-target_file: "bones/scripts/rc-utils.sh"
-date: "2026-08-26"
-template: "rotkeeper-doc.html"
-status: "active"
-version: "0.5.1"
-author: "Rotkeeper Ritual Council"
-project: "Rotkeeper"
-description: "Shared helper library sourced by every ritual: canonical environment loading, flag parsing, logging, dependency gates, path-safety guards, and portability shims."
-tags:
-  - rotkeeper
-  - scripts
-  - utils
-  - shared
+target_file: bones/scripts/rc-utils.sh
+template: rotkeeper-doc.html
+status: active
+version: 0.8.1
+author: Rotkeeper DIP
+project: Rotkeeper
+description: Shared Rotkeeper helper functions and runtime sanity wrappers
 ---
 
 # rc-utils.sh
 
-**Script Path:** `bones/scripts/rc-utils.sh`
-
 ## Overview
 
-`rc-utils.sh` is the shared toolbox sourced by every `rc-*.sh` ritual. It is a library, not a ritual: executing it directly runs a placeholder `main` that does nothing. Sourcing it does not load the environment by itself — rituals call `rk_init_script`, which parses common flags, installs traps, and invokes `rk_load_env strict` (skipped only when `ROT_SKIP_ENV=true`).
+Shared Rotkeeper helper functions and runtime sanity wrappers
 
-What it provides:
+Source: `bones/scripts/rc-utils.sh`.
 
-- **Canonical environment loading** — `rk_load_env [strict|bootstrap]` sources `rc-env.sh`, then in `strict` mode asserts every layout-derived variable is set, re-validates `rotkeeper.yaml` as parseable YAML, and runs `validate_layout_alignment`. `bootstrap` mode tolerates an uninitialized tree (used by `init` before paths exist).
-- **Layout validation** — `validate_layout_alignment` compares the cached `paths` block against freshly computed layout expectations, catching repository relocation and mid-flight layout changes with explicit `[ERROR]` + fix guidance.
-- **Script bootstrap** — `rk_init_script NAME ARGS…` standardizes each ritual's prologue: default flags from `RK_DRY`/`RK_VERBOSE`/`RK_QUIET`/`RK_DEBUG`, common flag parsing, help dispatch, ERR/EXIT traps (`trap_err`/overridable `cleanup`), a timestamped log file under `LOG_DIR`, stdout preserved on fd 3 for `MARKER` lines, and quiet-mode redirection into the log.
-- **Logging and execution** — `log LEVEL MESSAGE…` (levels `INFO`, `WARN`, `ERROR`, `DEBUG`, `DRY-RUN`, `MARKER`; `MARKER` always reaches the terminal, colorized unless `NO_COLOR` or `TERM=dumb`) and `run CMD…` (dry-run aware command wrapper).
-- **Dependency gates** — `require_bins`, `require_yq_version` (mikefarah v4), `require_gawk_version` (GNU awk specifically — BSD awk is not a substitute), `require_sha256`.
-- **Path safety** — `rk_canonical_path` (canonicalization that works when the leaf does not exist yet), `rk_canonical_or_raw` (lenient variant for not-yet-existing targets), `rk_guard_delete CANDIDATE BOUNDARY` (the fail-closed preflight every `rm -rf` site must pass), and `get_sidecar_path` (soul-sidecar mapping under `META_DIR` that flattens traversal attempts).
-- **Portability shims** — `rk_sha256` (`sha256sum` → `shasum -a 256`), `rk_mtime` (GNU/BSD `stat`), `rk_find_command`/`rk_find_content` (prefers GNU find; NUL-delimited content discovery safe for arbitrary filenames), `rk_up_dirs`.
-- **Frontmatter helpers** — `rk_strip_frontmatter`, `rk_frontmatter_field KEY FILE`, `has_frontmatter`, `get_yaml_key`.
-- **Version loading** — `rk_load_version` reads `bones/config/version` (overridable by `ROTKEEPER_VERSION`), so the semver lives in exactly one place.
-- **Renderer preflight** — `rk_oliver_preflight`: resolves Oliver via `RK_OLIVER_BIN` then `PATH`, asserts executability, and smoke-renders through the real CLI (honoring `INPUT_FORMAT`/`RENDER_PROFILE`) to prove the binary runs. Sets `OLIVER_BIN` on success.
-- **Output ownership** — `mark_output_generated`/`output_is_generated` maintain the `.rotkeeper-generated` marker that proves an output tree was machine-produced before anything may prune it.
+## Usage
 
-### Environment assumptions
+Not documented in the script help block. Consult the source; no command behavior is inferred.
 
-- **Reads:** `ROT_SKIP_ENV`, `ROTKEEPER_VERSION`, `VERSION_FILE`, `RK_DRY`, `RK_VERBOSE`, `RK_QUIET`, `RK_DEBUG`, `NO_COLOR`, `TERM`, plus `RK_OLIVER_BIN`, `INPUT_FORMAT`, `RENDER_PROFILE`, and `TMP_DIR` inside the Oliver preflight. Strict mode requires the full canonical path set from `rc-env.sh`.
-- **Sets:** `DRY_RUN`, `VERBOSE`, `QUIET`, `DEBUG`, `HELP`, `VERSION`, `SCRIPTNAME`, `LOG_FILE` (per-run log path), fd 3 (duplicate of original stdout).
-- **CWD:** none — all self-location uses `BASH_SOURCE`.
+## Options
 
-## Dangerous operations
+Not documented in the script help block. Consult the source; no command behavior is inferred.
 
-- `rk_guard_delete` exists to gate destructive deletes: it canonicalizes candidate and boundary (symlink-safe) and refuses empty candidates, `/`, and anything resolving outside the boundary. Callers must treat a non-zero return as "do not delete".
-- `validate_layout_alignment` and strict loading `exit 1` on relocation mismatches, corrupted path caches, boundary escapes, or missing core directories — deliberate fail-closed behavior, not a bug.
-- The library itself deletes nothing except its own Oliver smoke-render artifacts in `TMP_DIR`.
+## Examples
 
-<!-- 🎴 Limerick 1:
-In the shadows of scripts all combined,
-rc-utils keeps helpers aligned.
-With flags parsed so neat,
-Logs and runs compete,
-And errors are neatly defined.
--->
+Not documented in the script help block. Consult the source; no command behavior is inferred.
 
-<!-- 🎴 Limerick 2:
-When each script needs a guiding hand,
-rc-utils will take a bold stand.
-It checks and it logs,
-Guards against clogs,
-And lights up the whole Rotkeeper land.
--->
+## Exit codes
 
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
+Not documented in the script help block. Consult the source; no command behavior is inferred.
 
+## Reads and writes
+
+**Environment:** reads ARCHIVE_DIR, ASSETS_DIR, BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DEBUG, DOCS_DIR, DRY_RUN, HELP_DIR, INPUT_FORMAT, LOG_DIR, LOG_FILE, META_DIR, OLIVER_BIN, OUTPUT_DIR, QUIET, RELEASE_DIR, RENDER_PROFILE, REPORT_DIR, RK_OLIVER_BIN, ROOT_DIR, ROTKEEPER_VERSION, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, VERBOSE, VERSION, WEB_DIR (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+
+**Working directory:** No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
+
+**Inputs and outputs:** shared helper library, not a dispatcher command. Sourcing defines helpers and loads the version but does not load the layout; scripts call `rk_init_script`, which parses common flags, installs traps, loads/validates the environment, opens a run log, and saves stdout on fd 3.
+Provides flag/help handling, log/run wrappers, dependency gates, strict/bootstrap layout validation, source/frontmatter/sidecar helpers, version loading, portable SHA-256/mtime/find helpers, Oliver preflight, and output-ownership markers.
+Canonical-path and delete guards reject empty/root/escaping destructive targets; callers must not delete after a failed guard. Strict validation exits on relocation/cache/layout/readiness failures. Oliver preflight writes and deletes only its own scratch files; other helper effects depend on callers.
+Reads `ROT_SKIP_ENV`, `ROTKEEPER_VERSION`, `VERSION_FILE`, common RK_* flag defaults, `NO_COLOR`, and `TERM`; rendered navigation reads configuration. Direct execution has a no-op placeholder main.
+
+## Side effects
+
+- **write:** appends each message to bones/logs/<ritual>-<ts>.log
+- **write:** creates bones/tmp and the smoke doc/output/stderr scratch files
+- **delete:** removes the smoke scratch files under bones/tmp
+- **write:** creates the output tree if missing and drops/truncates its .rotkeeper-generated marker
+- **write:** creates bones/logs and a new per-run log file (one per invocation)
+- **write:** rebinds stdout/stderr so everything also lands in $LOG_FILE
+
+## Notes
+<!-- DIP-SOUL-EXTRACTED: command-reference.v1 -->
 
 ### Bones of the Code
 The shared toolbox of rusty implements. It provides logging, color printing, and environment assertions for the rest of the scripts.
@@ -79,33 +67,12 @@ Its attempts at portability often fall flat when encountering ancient or obscure
 ### Ritual Warnings
 Do not rely on these utilities in truly hostile environments. Their portability is an illusion maintained by sheer luck.
 
-## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
+## History
+<!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->
 
-- - Updated `rc-utils.sh` to:
+### v0.2.6-dev
 
-## Environment
-<!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
-
-- **$ROOT_DIR**: .
-- **$OUTPUT_DIR**: output
-- **$CONTENT_DIR**: home/content
-- **$ASSETS_DIR**: home/assets
-- **$DOCS_DIR**: home/content/docs
-- **$HELP_DIR**: home/content/help
-- **$BONES_DIR**: bones
-- **$SCRIPT_DIR**: bones/scripts
-- **$CONFIG_DIR**: bones/config
-- **$LOG_DIR**: bones/logs
-- **$TMP_DIR**: bones/tmp
-- **$ARCHIVE_DIR**: bones/archive
-- **$REPORT_DIR**: bones/reports
-- **$BOOK_REPORT_DIR**: bones/book-reports
-- **$TEMPLATE_DIR**: bones/templates
-- **$META_DIR**: bones/meta
-- **$WEB_DIR**: output
-
-###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
-
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
+- Updated `rc-utils.sh` to:
+  - Respect DRY_RUN with proper logging
+  - Safely export logs to both stdout and $LOG_FILE
+  - Make `trap_err` shell-safe for test invocation

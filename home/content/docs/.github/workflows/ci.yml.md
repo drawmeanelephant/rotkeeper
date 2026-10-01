@@ -48,5 +48,5 @@ This file lives at:
 
 - Requires external network access to download the `yq` binary during the setup phase.
 
-## Necromancer's Notes
+## Notes
 <!-- DIP-SOUL-EXTRACTED: 2026-07-03T00:00:00Z -->

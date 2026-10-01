@@ -67,7 +67,10 @@ rk_load_env() {
 # ============================================================
 # Env assumptions: reads ARCHIVE_DIR, ASSETS_DIR, BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DEBUG, DOCS_DIR, DRY_RUN, HELP_DIR, INPUT_FORMAT, LOG_DIR, LOG_FILE, META_DIR, OLIVER_BIN, OUTPUT_DIR, QUIET, RELEASE_DIR, RENDER_PROFILE, REPORT_DIR, RK_OLIVER_BIN, ROOT_DIR, ROTKEEPER_VERSION, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, VERBOSE, VERSION, WEB_DIR (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
-# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
+# Input/Output contracts: shared helper library, not a dispatcher command. Sourcing defines helpers and loads the version but does not load the layout; scripts call `rk_init_script`, which parses common flags, installs traps, loads/validates the environment, opens a run log, and saves stdout on fd 3.
+#   Provides flag/help handling, log/run wrappers, dependency gates, strict/bootstrap layout validation, source/frontmatter/sidecar helpers, version loading, portable SHA-256/mtime/find helpers, Oliver preflight, and output-ownership markers.
+#   Canonical-path and delete guards reject empty/root/escaping destructive targets; callers must not delete after a failed guard. Strict validation exits on relocation/cache/layout/readiness failures. Oliver preflight writes and deletes only its own scratch files; other helper effects depend on callers.
+#   Reads `ROT_SKIP_ENV`, `ROTKEEPER_VERSION`, `VERSION_FILE`, common RK_* flag defaults, `NO_COLOR`, and `TERM`; rendered navigation reads configuration. Direct execution has a no-op placeholder main.
 
 
 # --- Global Flags ---
