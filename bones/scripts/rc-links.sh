@@ -178,20 +178,23 @@ for page in pages:
         continue
     parser.feed_with_lines(text)
     for tag, raw, lineno, excerpt in parser.links:
-        value = unquote(raw.strip())
+        # Split the URL before decoding: an encoded # or ? belongs to the
+        # filename, not to the fragment/query grammar.
+        value = raw.strip()
         parsed = urlsplit(value)
         if not value or value.startswith(("mailto:", "tel:", "javascript:")) or parsed.scheme or parsed.netloc:
             continue
         # count checked for every local link (even anchor-only)
         is_anchor_only = (parsed.path == "")
         if is_anchor_only:
-            if parsed.fragment and parsed.fragment not in parser.ids:
+            if parsed.fragment and unquote(parsed.fragment) not in parser.ids:
                 failures.append((page.relative_to(root), raw, "missing anchor", lineno, excerpt))
             # anchor-only still counts as checked if it has a fragment
             if parsed.fragment:
                 checked += 1
             continue
-        candidate = (root / parsed.path.lstrip("/")) if parsed.path.startswith("/") else (page.parent / parsed.path)
+        local_path = unquote(parsed.path)
+        candidate = (root / local_path.lstrip("/")) if local_path.startswith("/") else (page.parent / local_path)
         try:
             candidate = candidate.resolve()
         except Exception:

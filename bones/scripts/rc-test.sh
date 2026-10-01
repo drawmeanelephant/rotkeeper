@@ -394,7 +394,7 @@ if [[ "${1:-}" == "wrap" ]]; then
   [[ "$asset_meta" == "null" ]] && asset_meta=""
   # gawk template wrapper: 10 vars (title/desc/author/date/palette/version/subtitle/tags/asset_meta + assets_root + body/template files)
   # html_escape escapes &<>"' for meta; literal_replace does index() literal substitution; evaluate_if handles $if(var)$...$endif$
-  gawk -v title="$title" -v desc="$desc" -v author="$author" -v date="$date" -v palette="$palette" -v version="$version" -v subtitle="$subtitle" -v tags="$tags" -v asset_meta="$asset_meta" -v assets_root="$ar" -v body_file="$bf" -v template_file="$tpl" -v meta_file="$mj" '
+  gawk -v title="$title" -v desc="$desc" -v author="$author" -v date="$date" -v palette="$palette" -v version="$version" -v subtitle="$subtitle" -v tags="$tags" -v asset_meta="$asset_meta" -v ar="$ar" -v body_file="$bf" -v template_file="$tpl" -v meta_file="$mj" '
   function html_escape(str,   s) { s=str; gsub(/&/,"\\&amp;",s); gsub(/</,"\\&lt;",s); gsub(/>/,"\\&gt;",s); gsub(/"/,"\\&quot;",s); gsub(/\x27/,"\\&#39;",s); return s }
   function literal_replace(str, search, replace,   pos, len, result, tail) { len=length(search); result=""; tail=str; while((pos=index(tail,search))>0){result=result substr(tail,1,pos-1) replace; tail=substr(tail,pos+len)} return result tail }
   function evaluate_if(tmpl, var_name, var_val,   start_tag, end_tag, sp, ep, before, after, inner) { start_tag="$if(" var_name ")$"; end_tag="$endif$"; while((sp=index(tmpl,start_tag))>0){ep=index(substr(tmpl,sp),end_tag); if(ep==0) break; ep=sp+ep-1+length(end_tag)-1; before=substr(tmpl,1,sp-1); after=substr(tmpl,ep+1); if(var_val==""||var_val=="null"){tmpl=before after}else{inner=substr(tmpl,sp+length(start_tag),ep-sp-length(start_tag)-length(end_tag)+1); tmpl=before inner after} } return tmpl }
@@ -534,11 +534,11 @@ UGLY_EOF
 
       # Nested output path: the same fixture under a content subdirectory must
       # render into a mirrored nested output path with an identical body.
-      mkdir -p "$b_content/docs"
-      cp "$FIXTURE_SRC" "$b_content/docs/smoke-fixture.md"
+      mkdir -p "$b_content/nested"
+      cp "$FIXTURE_SRC" "$b_content/nested/smoke-fixture.md"
       RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null
 
-      rendered_nested="$out_dir_rel/docs/smoke-fixture.html"
+      rendered_nested="$out_dir_rel/nested/smoke-fixture.html"
       if [[ ! -f "$rendered_nested" ]]; then
         echo "❌ Assertion Failed: nested smoke fixture did not render: $rendered_nested"
         exit 113
@@ -1240,6 +1240,135 @@ S7C_CFG_EOF
       REAL_OLIVER="$(command -v oliver 2>/dev/null || true)"
     fi
 
+    # --- Documentation navigation (#332), isolated from the contract corpus ---
+    # All layouts and shipped wrappers must share one H1 and portable navigation.
+    # Use the real renderer when present, otherwise the hermetic adapter fixture.
+    echo "  [+] Executing documentation navigation assertions ($mode)..."
+    nav_root="$pass_dir/bones/tmp/doc-navigation"
+    mkdir -p "$nav_root/$b_scripts" "$nav_root/$b_config" "$nav_root/$b_templates" \
+      "$nav_root/${b_css%/css}" "$nav_root/$b_content/docs/chapter" \
+      "$nav_root/$b_content/docs/road-to-bones" "$nav_root/$b_content/docs/themes" \
+      "$nav_root/$b_content/docs/unindexed" \
+      "$nav_root/$b_content/help" "$nav_root/bones/meta/docs/chapter"
+    cp "$pass_dir/rotkeeper.sh" "$nav_root/"
+    cp "$pass_dir/$b_scripts"/rc-*.sh "$nav_root/$b_scripts/"
+    cp "$ROOT_DIR/bones/templates"/*.html "$nav_root/$b_templates/"
+    cp "$ROOT_DIR/bones/config/version" "$nav_root/$b_config/version"
+    cp -R "$ROOT_DIR/home/assets/." "$nav_root/${b_css%/css}/"
+    printf 'layout_style: "%s"\ndefault_template: "rotkeeper-doc.html"\n' "$mode" > "$nav_root/$b_config/rotkeeper.yaml"
+    for nav_page in index docs/index docs/chapter/index docs/road-to-bones/index \
+      docs/textile-guide docs/textile-showcase docs/oliver-contract docs/workflow help/index help/guide; do
+      printf -- '---\ntitle: "%s"\n---\n\n# %s\n\nBody.\n' "$nav_page" "$nav_page" > "$nav_root/$b_content/$nav_page.md"
+    done
+    cat <<'DOC_NAV_EOF' > "$nav_root/$b_content/docs/chapter/space #%.md"
+---
+title: "Source title"
+---
+<h1 id="old-title">Override &amp; &lt;Title&gt;</h1>
+<H1>Another heading</H1>
+<h2 id="section">A section</h2>
+<a href="#old%2Dtitle">Old title anchor</a>
+<pre><code>&lt;h1&gt;Example&lt;/h1&gt;</code></pre>
+DOC_NAV_EOF
+    cat <<'DOC_SOUL_EOF' > "$nav_root/bones/meta/docs/chapter/space #%.soul.md"
+---
+title: "Override & <Title>"
+---
+DOC_SOUL_EOF
+    printf '<h1>Untitled body</h1>\n' > "$nav_root/$b_content/docs/untitled.md"
+    printf -- '---\ntitle: "Unindexed page"\n---\n\n# Unindexed page\n' > "$nav_root/$b_content/docs/unindexed/probe.md"
+    cat <<'DOC_BODY_TEMPLATE_EOF' > "$nav_root/$b_templates/body-only.html"
+<!DOCTYPE html>
+<html lang="en"><head><title>$title$</title></head><body><main>$body$</main></body></html>
+DOC_BODY_TEMPLATE_EOF
+    printf -- '---\ntitle: "Body-only page"\ntemplate: body-only.html\n---\n\n# Body-only page\n' > "$nav_root/$b_content/docs/body-only.md"
+    for nav_tpl in "$ROOT_DIR/bones/templates"/*.html; do
+      nav_stem="$(basename "$nav_tpl" .html)"
+      {
+        printf -- '---\ntitle: "Probe %s"\ntemplate: "%s.html"\n' "$nav_stem" "$nav_stem"
+        [[ "$nav_stem" != "theme-spooky-dark-xhtml" ]] || printf 'render_profile: xhtml\n'
+        printf -- '---\n\n# Probe %s\n\n## Section\n\nBody.\n' "$nav_stem"
+      } > "$nav_root/$b_content/docs/themes/$nav_stem.md"
+    done
+    nav_bin="${REAL_OLIVER:-$fake_bin}"
+    (
+      cd "$nav_root"
+      RK_OLIVER_BIN="$nav_bin" bash rotkeeper.sh render > /dev/null
+      bash rotkeeper.sh links
+    )
+    python3 - "$nav_root/$out_dir_rel" <<'DOC_ASSERT_PY'
+from html.parser import HTMLParser
+from pathlib import Path
+from urllib.parse import unquote, urlsplit
+import sys
+
+root = Path(sys.argv[1])
+
+class Page(HTMLParser):
+    def __init__(self, path):
+        super().__init__()
+        self.h1 = 0
+        self.nav = []
+        self.links = []
+        self.ids = []
+        self.feed(path.read_text())
+
+    def handle_starttag(self, tag, attrs):
+        d = dict(attrs)
+        self.h1 += tag == "h1"
+        if tag == "nav":
+            self.nav.append(d.get("aria-label"))
+        if tag == "a":
+            self.links.append(d)
+        if "id" in d:
+            self.ids.append(d["id"])
+        assert not any(d.get(k, "").startswith("/") for k in ("href", "src")), (tag, d)
+        assert tag != "script", "Docs must not require a JavaScript runtime"
+
+pages = sorted(root.glob("docs/**/*.html")) + sorted(root.glob("help/**/*.html"))
+for path in pages:
+    page = Page(path)
+    assert page.h1 == 1, (path, page.h1)
+    assert "Breadcrumb" in page.nav, path
+    assert "Previous and next pages" in page.nav, path
+    assert ("Help pages" if "help" in path.relative_to(root).parts else "Docs pages") in page.nav, path
+    for rel in ("prev", "next"):
+        target = next(a["href"] for a in page.links if a.get("rel") == rel)
+        assert (path.parent / unquote(urlsplit(target).path)).is_file(), (path, rel, target)
+        assert (path.parent / unquote(urlsplit(target).path)).resolve() != path.resolve(), (path, rel)
+
+special = root / "docs/chapter/space #%.html"
+page = Page(special)
+assert "old-title" in page.ids, "Removing a duplicate title must retain its anchor"
+assert "section" in page.ids
+text = special.read_text()
+assert "<h2>Another heading</h2>" in text
+assert "&lt;h1&gt;Example&lt;/h1&gt;" in text
+assert "<Title>" not in text, "Sidecar labels must be escaped"
+assert any("space%20%23%25.html" in a["href"] for a in page.links), "Paths must be URL-encoded"
+assert any(a["href"] == "../../docs/chapter/index.html" for a in page.links), "Nested breadcrumb missing"
+assert "Source title" not in text, "Sidecar title must win in navigation too"
+assert "<h1 class=\"rk-title\">untitled</h1>" in (root / "docs/untitled.html").read_text()
+assert "unindexed/index.html" not in (root / "docs/unindexed/probe.html").read_text(), "Missing index must not become a link"
+print(f"  [+] Pass: {len(pages)} documentation pages, all themes, escaped labels and portable links.")
+DOC_ASSERT_PY
+    if command -v xmllint >/dev/null 2>&1; then
+      xmllint --noout "$nav_root/$out_dir_rel/docs/themes/theme-spooky-dark-xhtml.html"
+    fi
+    # Singleton sections expose disabled controls, not fabricated/self links.
+    rm -f "$nav_root/$b_content/help/guide.md"
+    (
+      cd "$nav_root"
+      RK_OLIVER_BIN="$nav_bin" bash rotkeeper.sh render > /dev/null
+      bash rotkeeper.sh links
+    )
+    if ! grep -q 'aria-disabled="true">Next' "$nav_root/$out_dir_rel/help/index.html"; then
+      echo "❌ Assertion Failed: singleton section must disable unavailable pagination."
+      exit 250
+    fi
+    nav_delete="$(rk_guard_delete "$nav_root" "$pass_dir/bones/tmp")"
+    rm -rf "$nav_delete"
+
     if [[ -n "$REAL_OLIVER" && -x "$REAL_OLIVER" ]]; then
       echo "  [+] Executing real Oliver renderer smoke pass ($REAL_OLIVER)..."
       cat << 'FIXTURE_EOF' > "$b_content/real-oliver-fixture.md"
@@ -1464,7 +1593,8 @@ XHTML_RAW_REAL_EOF
       TEMPLATE_GOLDEN_DIR="$ROOT_DIR/bones/scripts/tests/fixtures/template-golden"
       if [[ "$mode" == "crypt" && -d "$TEMPLATE_GOLDEN_DIR" ]]; then
         echo "  [+] Executing template golden regression ($mode)..."
-        cp "$TEMPLATE_GOLDEN_DIR/golden-fixture.md" "$b_content/golden-fixture.md"
+        mkdir -p "$b_content/docs"
+        cp "$TEMPLATE_GOLDEN_DIR/golden-fixture.md" "$b_content/docs/golden-fixture.md"
         {
           cat <<TG_BRUTAL_FM_EOF
 ---
@@ -1475,7 +1605,7 @@ template: theme-brutal.html
 
 TG_BRUTAL_FM_EOF
           rk_strip_frontmatter "$TEMPLATE_GOLDEN_DIR/golden-fixture.md"
-        } > "$b_content/golden-fixture-brutal.md"
+        } > "$b_content/docs/golden-fixture-brutal.md"
         {
           cat <<TG_XHTML_FM_EOF
 ---
@@ -1487,7 +1617,7 @@ template: theme-spooky-dark-xhtml.html
 
 TG_XHTML_FM_EOF
           rk_strip_frontmatter "$TEMPLATE_GOLDEN_DIR/golden-fixture.md"
-        } > "$b_content/golden-fixture-xhtml.md"
+        } > "$b_content/docs/golden-fixture-xhtml.md"
 
         if ! RK_OLIVER_BIN="$REAL_OLIVER" ./rotkeeper.sh render >/dev/null 2>&1; then
           echo "❌ Assertion Failed: template golden render failed with $REAL_OLIVER."
@@ -1495,9 +1625,9 @@ TG_XHTML_FM_EOF
         fi
 
         if [[ "${RK_REGEN_TEMPLATE_GOLDENS:-0}" == "1" ]]; then
-          cp "$out_dir_rel/golden-fixture.html" "$TEMPLATE_GOLDEN_DIR/theme-spooky-dark.golden.html"
-          cp "$out_dir_rel/golden-fixture-brutal.html" "$TEMPLATE_GOLDEN_DIR/theme-brutal.golden.html"
-          cp "$out_dir_rel/golden-fixture-xhtml.html" "$TEMPLATE_GOLDEN_DIR/theme-spooky-dark-xhtml.golden.html"
+          cp "$out_dir_rel/docs/golden-fixture.html" "$TEMPLATE_GOLDEN_DIR/theme-spooky-dark.golden.html"
+          cp "$out_dir_rel/docs/golden-fixture-brutal.html" "$TEMPLATE_GOLDEN_DIR/theme-brutal.golden.html"
+          cp "$out_dir_rel/docs/golden-fixture-xhtml.html" "$TEMPLATE_GOLDEN_DIR/theme-spooky-dark-xhtml.golden.html"
           echo "  [!] Template goldens REGENERATED under bones/scripts/tests/fixtures/template-golden/ — review the git diff before committing."
         else
           tg_failed=false
@@ -1519,9 +1649,9 @@ TG_XHTML_FM_EOF
               tg_failed=true
             fi
           }
-          tg_check "$out_dir_rel/golden-fixture.html" "$TEMPLATE_GOLDEN_DIR/theme-spooky-dark.golden.html" "default spooky-dark template"
-          tg_check "$out_dir_rel/golden-fixture-brutal.html" "$TEMPLATE_GOLDEN_DIR/theme-brutal.golden.html" "brutal alternate template"
-          tg_check "$out_dir_rel/golden-fixture-xhtml.html" "$TEMPLATE_GOLDEN_DIR/theme-spooky-dark-xhtml.golden.html" "XHTML profile template"
+          tg_check "$out_dir_rel/docs/golden-fixture.html" "$TEMPLATE_GOLDEN_DIR/theme-spooky-dark.golden.html" "default spooky-dark template"
+          tg_check "$out_dir_rel/docs/golden-fixture-brutal.html" "$TEMPLATE_GOLDEN_DIR/theme-brutal.golden.html" "brutal alternate template"
+          tg_check "$out_dir_rel/docs/golden-fixture-xhtml.html" "$TEMPLATE_GOLDEN_DIR/theme-spooky-dark-xhtml.golden.html" "XHTML profile template"
           if [[ "$tg_failed" == true ]]; then
             exit 191
           fi

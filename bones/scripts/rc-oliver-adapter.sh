@@ -64,6 +64,37 @@ is_within_boundary() {
   return 1
 }
 
+# Build a navigation inventory once per batch. Keep all planned paths for
+# breadcrumb existence checks, but read titles only for docs/help pages.
+# Sidecar titles use the same non-empty dominance rule as page metadata.
+doc_entries=()
+while IFS=$'\t' read -r nav_src nav_dst _nav_template _nav_assets nav_soul _nav_bin _nav_root nav_content nav_output _nav_templates nav_meta _nav_dry _nav_verbose || [[ -n "$nav_src" ]]; do
+  [[ -z "$nav_src" || "$nav_src" =~ ^[[:space:]]*# ]] && continue
+  if ! is_within_boundary "$nav_src" "$nav_content" || ! is_within_boundary "$nav_dst" "$nav_output"; then
+    log "ERROR" "Boundary violation in documentation navigation inventory: '$nav_src' -> '$nav_dst'"
+    exit 1
+  fi
+  nav_rel="${nav_dst#"$nav_output"/}"
+  nav_title=""
+  case "$nav_rel" in
+    docs/*|help/*)
+      nav_title="$(yq --front-matter extract -r '.title // ""' "$nav_src" 2>/dev/null || true)"
+      if [[ "$nav_soul" != "NONE" && -f "$nav_soul" ]]; then
+        if ! is_within_boundary "$nav_soul" "$nav_meta"; then
+          log "ERROR" "Boundary violation: Navigation sidecar '$nav_soul' escapes '$nav_meta'"
+          exit 1
+        fi
+        nav_override="$(yq --front-matter extract -r '.title // ""' "$nav_soul" 2>/dev/null || true)"
+        [[ -n "$nav_override" && "$nav_override" != "null" ]] && nav_title="$nav_override"
+      fi
+      [[ -n "$nav_title" && "$nav_title" != "null" ]] || nav_title="$(basename "${nav_rel%.html}")"
+      ;;
+  esac
+  doc_entries+=("$(jq -nc --arg path "$nav_rel" --arg title "$nav_title" '{path:$path, title:$title}')")
+done < "$MANIFEST_TSV"
+doc_inventory="$(printf '%s\n' "${doc_entries[@]}" | jq -s '.')"
+unset doc_entries
+
 # Process each item in the TSV batch manifest
 while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path oliver_bin root_dir content_dir output_dir template_dir meta_dir dry_run verbose || [[ -n "$src_path" ]]; do
   [[ -z "$src_path" || "$src_path" =~ ^[[:space:]]*# ]] && continue
@@ -298,6 +329,28 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
   # 5. Link Rewriting — Phase 6 S3: Oliver render AST rewrites (no GAWK, pin 9ad86a3)
   # SIDE EFFECT (write): duplicates the body HTML into the rewrite-stage scratch file
   cp "$body_tmp" "$body_rewritten"
+
+  # Documentation navigation belongs to the adapter, not Oliver interpolation.
+  # It travels through the existing literal body slot, so every theme (including
+  # XHTML) receives the same markup without new tokens or an upstream pin bump.
+  doc_rel="${dst_path#"$output_dir"/}"
+  case "$doc_rel" in
+    docs/*|help/*)
+      [[ -n "$title" ]] || title="$(basename "${doc_rel%.html}")"
+      doc_nav="$(rk_render_doc_navigation "$doc_inventory" "$doc_rel" "$title")"
+      {
+        printf '%s\n' "$doc_nav" | jq -r '.before'
+        # All shipped wrappers own a single page H1. A custom body-only
+        # template instead gets a title here so it remains readable.
+        if ! grep -qi '<h1[ >]' "$template_path"; then
+          printf '<h1>%s</h1>\n' "$(printf '%s' "$title" | jq -Rs -r '@html')"
+        fi
+        rk_prepare_doc_body "$body_tmp" "$title"
+        printf '\n'
+        printf '%s\n' "$doc_nav" | jq -r '.after'
+      } > "$body_rewritten"
+      ;;
+  esac
 
 
   # 6. Template Interpolation Pass — Phase 6 S2: Oliver wrap (direct, pin 9ad86a3)

@@ -427,6 +427,52 @@ hr {
 .rk-header { margin-bottom: 40px; }
 .rk-title { margin-top: 0; }
 .rk-subtitle { color: var(--dim-text); }
+.rk-page--doc .rk-doc-skip {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+.rk-page--doc .rk-doc-skip:focus {
+  position: static;
+  width: auto;
+  height: auto;
+}
+.rk-page--doc .rk-doc-breadcrumbs ol,
+.rk-page--doc .rk-doc-pagination ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em 1em;
+  list-style: none;
+  padding: 0;
+}
+.rk-page--doc .rk-doc-breadcrumbs li + li::before {
+  content: "/ ";
+  color: var(--dim-text);
+}
+.rk-page--doc .rk-doc-pages {
+  margin-bottom: 2em;
+  padding: 1em;
+  border: 1px solid var(--border-color);
+}
+.rk-page--doc .rk-doc-pages summary { cursor: pointer; }
+.rk-page--doc .rk-doc-pages ul {
+  margin-top: 1em;
+  columns: 2 18em;
+}
+.rk-page--doc .rk-doc-pages li {
+  break-inside: avoid;
+  overflow-wrap: anywhere;
+}
+.rk-page--doc .rk-doc-pagination {
+  margin-top: 2em;
+  border-top: 1px solid var(--border-color);
+  padding-top: 1em;
+}
+.rk-page--doc .rk-doc-pagination li {
+  flex: 1 1 18em;
+  overflow-wrap: anywhere;
+}
 .rk-article > *:first-child { margin-top: 0; }
 .rk-footer {
   margin-top: 40px;
