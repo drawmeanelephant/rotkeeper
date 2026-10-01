@@ -9,41 +9,46 @@ IFS=$'\n\t'
 #  ██║  ██║███████║███████║███████╗   ██║   ███████║
 #  ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝   ╚═╝   ╚══════╝
 # ============================================================
-# Env assumptions: reads ARCHIVE_DIR, ASSETS_DIR, BONES_DIR, CONFIG_DIR, DRY_RUN, LOG_DIR, OUTPUT_DIR, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TMP_DIR, VERBOSE, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
-# CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
-# Input/Output contracts: CLI args and env vars in; files and stdout/stderr out; respects --dry-run (no writes) and --verbose.
+# Env assumptions: reads `ASSETS_DIR`, `OUTPUT_DIR`, `BONES_DIR`, `ARCHIVE_DIR`, `REPORT_DIR`, `CONFIG_DIR`, `LOG_DIR`, `ROOT_DIR`, `SCRIPT_DIR`, `TMP_DIR`, `DRY_RUN`, `VERBOSE`, `VERSION` through `rk_load_env`; `ROTKEEPER_VERSION` can override the version. Requires `bash`, `rsync`, and either `sha256sum` or `shasum`.
+# CWD assumptions: none; paths come from the active layout through `rk_load_env`, not the working directory.
+# Input/Output contracts: reads every regular file under `ASSETS_DIR` except `.DS_Store`, sorted by relative path; does not scan HTML or content references. Writes the `OUTPUT_DIR/assets` mirror, `BONES_DIR/asset-manifest.yaml`, `ARCHIVE_DIR/asset-manifest-<timestamp>.yaml`, and `REPORT_DIR/asset-report-<timestamp>.yaml`. Reports progress and errors through the shared logger. `--dry-run` previews asset changes without changing assets, manifests, reports, or the output ownership marker; bootstrap logging still writes under `LOG_DIR`.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-assets.sh
-#  Purpose : Generate a selective YAML manifest of referenced assets
+#  Purpose : Mirror the source asset tree and generate a YAML manifest of relative paths and SHA-256 checksums.
 #  Version : 0.5.1
-#  Updated : 2026-03-23
+#  Updated : 2026-10-01
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
 # @HELP
-# rc-assets.sh — Generate a selective YAML manifest of referenced assets (v{VERSION})
+# rc-assets.sh — Mirror assets and generate a SHA-256 manifest (v{VERSION})
 #
 # Usage:
-#   rotkeeper.sh assets [options]
+#   bash rotkeeper.sh assets [options]
 #
 # Description:
-#   Scans content sources for referenced local assets and writes a
-#   selective YAML manifest so asset usage stays auditable.
+#   Enumerates the source asset tree, copies valid paths into output/assets,
+#   and writes a path/checksum manifest. Prunes stale assets only from an
+#   output tree carrying the .rotkeeper-generated ownership marker.
 #
 # Options:
-#   --dry-run        Preview actions without writing files
+#   --dry-run        Preview asset changes; only bootstrap logs are written
 #   --verbose        Show detailed logs
 #   --help, -h       Show this help message and exit
 #   --version, -v    Show script version and quit
 #
 # Examples:
-#   bash rotkeeper.sh assets                Generate the asset manifest
-#   bash rotkeeper.sh assets --dry-run      Preview without writing
+#   bash rotkeeper.sh assets                # Generate the asset manifest
+#   bash rotkeeper.sh assets --dry-run      # Preview asset changes
+#   bash rotkeeper.sh assets --dry-run --verbose
+#   bash rotkeeper.sh assets --help         # Show help without starting a run
 #
 # Exit codes:
 #   0    Success
-#   1    Manifest generation failure
+#   1    Configuration or environment validation failure
+#   2    Missing required dependency
+#   nonzero    I/O failures propagate the failing command's exit status
 # @END-HELP
 
 
@@ -97,10 +102,10 @@ main() {
     REPORT="$REPORT_DIR/asset-report-$TIMESTAMP.yaml"
     OUTPUT_ASSET_DIR="$OUTPUT_DIR/assets"
 
-    # SIDE EFFECT (write): creates output/assets, bones/archives, and bones/reports if missing
+    # SIDE EFFECT (write): creates `OUTPUT_DIR/assets`, `ARCHIVE_DIR` (`bones/archive` by default), and `REPORT_DIR` (`bones/reports` by default) if missing
     run mkdir -p "$OUTPUT_ASSET_DIR" "$ARCHIVE_DIR" "$REPORT_DIR"
 
-    # SIDE EFFECT (delete+write): rotates the previous asset-manifest.yaml into bones/archives (removes it from bones/)
+    # SIDE EFFECT (delete+write): moves the previous `bones/asset-manifest.yaml` into `ARCHIVE_DIR/asset-manifest-<timestamp>.yaml`; does not merge manifests
     if [[ -f "$MANIFEST" ]]; then
         run mv "$MANIFEST" "$ARCHIVE_DIR/asset-manifest-$TIMESTAMP.yaml"
         if [[ "$DRY_RUN" == true ]]; then
@@ -116,7 +121,7 @@ main() {
     asset_count=$(echo "$ASSET_PATHS" | grep -c . || true)
     log "INFO" "Found $asset_count assets in $ASSETS_DIR"
 
-    # SIDE EFFECT (write): truncates bones/reports/asset-report-<ts>.yaml (real runs only)
+    # SIDE EFFECT (write): truncates `REPORT_DIR/asset-report-<timestamp>.yaml` (real runs only)
     [[ "$DRY_RUN" == false ]] && : > "$REPORT"
 
     # Keep generated assets synchronized with the source tree so deleted
@@ -129,7 +134,7 @@ main() {
                 if [[ "$DRY_RUN" == true ]]; then
                     log "DRY-RUN" "Would prune stale generated asset: $rel_generated"
                 else
-                    # SIDE EFFECT (delete): removes generated assets no longer present in the source tree
+                    # SIDE EFFECT (delete): removes files under `OUTPUT_DIR/assets` that have no source counterpart, only when the output tree carries `.rotkeeper-generated`
                     rm -f "$generated_asset"
                     log "INFO" "Pruned stale generated asset: $rel_generated"
                 fi
@@ -156,7 +161,7 @@ main() {
                     log "ERROR" "Illegal characters in asset path"
                     continue
                 fi
-                # SIDE EFFECT (write): copies each source asset into output/assets via rsync
+                # SIDE EFFECT (write): copies each valid source asset into `OUTPUT_DIR/assets` via `rsync`
                 run mkdir -p "$(dirname "$dest")"
                 run rsync -a "$src" "$dest"
                 if [[ "$DRY_RUN" == true ]]; then
@@ -165,7 +170,7 @@ main() {
                     # Checksum: rk_sha256 prints "<hash>  <file>"; awk extracts hash.
                     checksum=$(rk_sha256 "$src" | awk '{print $1}')
                     log "INFO" "Copied asset: $relpath"
-                    # SIDE EFFECT (write): appends path/sha256 entries to bones/reports/asset-report-<ts>.yaml
+                    # SIDE EFFECT (write): appends `path`/`sha256` entries to `REPORT_DIR/asset-report-<timestamp>.yaml`
                     {
                         echo "- path: \"$relpath\""
                         echo "  sha256: \"$checksum\""
@@ -178,12 +183,13 @@ main() {
         if [[ "$DRY_RUN" == true ]]; then
             log "DRY-RUN" "Would generate full asset manifest at: $MANIFEST"
         else
-            # SIDE EFFECT (write): publishes the report as bones/asset-manifest.yaml
+            # SIDE EFFECT (write): publishes the report as `BONES_DIR/asset-manifest.yaml`
             run cp "$REPORT" "$MANIFEST"
             log "INFO" "Full asset manifest generated at: $MANIFEST"
         fi
     fi
 
+    # SIDE EFFECT (write): creates or truncates `OUTPUT_DIR/.rotkeeper-generated` through `mark_output_generated`; skipped during `--dry-run`
     mark_output_generated
 
     log "MARKER" "Assets synchronized: $asset_count source assets -> $OUTPUT_ASSET_DIR"
