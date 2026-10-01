@@ -2342,9 +2342,40 @@ if grep -Eq 'autopsy help report missing|Necromancer|Ritual History|^- - |Unrela
   exit 163
 fi
 pilot_after=$(rk_sha256 "$pilot_doc")
+# macOS CI resolves awk to Apple awk, even when gawk is installed. Exercise
+# that parser explicitly so a developer GNU awk PATH cannot hide failures.
+if [[ "$(uname -s)" == Darwin && -x /usr/bin/awk ]]; then
+  (
+    # shellcheck disable=SC2329 # Invoked by the child dispatcher via export -f.
+    awk() { /usr/bin/awk "$@"; }
+    export -f awk
+    "$pilot_root/rotkeeper.sh" dip > /dev/null
+  )
+  if [[ "$pilot_after" != "$(rk_sha256 "$pilot_doc")" ]]; then
+    echo "Assertion failed: Apple awk changed the generated command reference."
+    exit 164
+  fi
+fi
 "$pilot_root/rotkeeper.sh" dip > /dev/null
 if [[ "$pilot_after" != "$(rk_sha256 "$pilot_doc")" ]]; then
   echo "Assertion failed: command-reference generation is not byte-idempotent."
+  exit 164
+fi
+# Parser errors must fail the audit, not publish empty help as a fallback.
+if (
+  # shellcheck disable=SC2329 # Invoked by the child dispatcher via export -f.
+  awk() {
+    [[ "${2:-}" != section=* ]] || return 77
+    command awk "$@"
+  }
+  export -f awk
+  "$pilot_root/rotkeeper.sh" dip > /dev/null 2>&1
+); then
+  echo "Assertion failed: DIP accepted a failed help parser."
+  exit 164
+fi
+if [[ "$pilot_after" != "$(rk_sha256 "$pilot_doc")" ]]; then
+  echo "Assertion failed: a failed help parser changed the command reference."
   exit 164
 fi
 # A source change must update the generated page, never require a hand edit.

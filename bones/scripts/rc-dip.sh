@@ -851,7 +851,7 @@ script_help_section() {
     /^# @END-HELP[[:space:]]*$/ { exit }
     help {
       sub(/^#[[:space:]]?/, "")
-      if ($0 ~ /^[A-Za-z][A-Za-z /-]*:$/) {
+      if ($0 ~ /^[A-Za-z][A-Za-z \/-]*:$/) {
         name=substr($0, 1, length($0)-1)
         selected=(name == section)
         if (section == "Options") {
@@ -893,7 +893,7 @@ build_command_reference() {
   printf "Source: \`%s\`.\n\n" "$target_file"
 
   for section in Usage Options Examples 'Exit codes'; do
-    content=$(script_help_section "$target_file" "$section")
+    content=$(script_help_section "$target_file" "$section") || return 1
     content=$(normalize_body "$content")
     printf '## %s\n\n' "$section"
     if [[ -n "${content//[[:space:]]/}" ]]; then
