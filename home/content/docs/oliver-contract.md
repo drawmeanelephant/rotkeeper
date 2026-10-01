@@ -2,8 +2,8 @@
 title: "Oliver Renderer Contract"
 slug: oliver-contract
 template: rotkeeper-doc.html
-version: "1.14"
-updated: "2026-08-27"
+version: "1.15"
+updated: "2026-10-01"
 description: "The supported contract between Rotkeeper and the native Oliver HTML renderer: executable discovery, input format and output profile, output streams, exit codes, the adapter boundary, and the stable template/input contract."
 tags:
   - rotkeeper
@@ -184,6 +184,41 @@ navigation:
 ```
 
 `rc-utils.sh`'s `rk_render_navigation "$assets_root"` builds `<nav aria-label="…"><ul><li><a href="…">…</a></li></ul></nav>` with `href`s resolved to the current page's depth (`./assets/` → `./`; `../assets/` → `../`), then the adapter swaps `<site-nav></site-nav>` for it in the wrapped page (multi-line-safe via an `ENVIRON` AWK variable — `awk -v` errors on newlines). Omit the config block and the placeholder is left untouched, so unaffected themes never see it. `theme-textpattern` is the first consumer, replacing its hardcoded tabs. (`$navigation$` is not this slot; because it is a reserved token it currently substitutes empty.)
+
+## Documentation navigation and headings
+
+For output pages under `docs/` or `help/`, the adapter adds a breadcrumb, a
+collapsible section-page list, and previous/next navigation to the literal
+`$body$` fragment before `wrap`. Each navigation has a distinct `<nav>`
+landmark label. This works with every shipped theme, including the XHTML
+wrapper, without adding an Oliver token or changing the renderer pin.
+
+- The current render plan is the inventory. Stale output files are never
+  navigation targets. Breadcrumb ancestors link only when their index page
+  exists in the plan; otherwise they appear as text.
+- Docs and Help are separate sections. Each section puts its `index.html`
+  first, then sorts pages by output-relative path. Previous/next links wrap
+  around the section, so the first and last pages remain connected. A section
+  with only one page has disabled previous/next controls instead of self-links.
+  This is independent of the task-guide organization of the Help index.
+- Labels use source titles, with non-empty soul-sidecar titles taking
+  precedence. A page without a title uses its filename stem. Labels are
+  HTML-escaped, path segments are URL-encoded, and targets are relative to the
+  current page. No root-absolute URLs, CDN, or JavaScript are introduced.
+- The wrapper owns the single page H1. Body H1s matching the effective title
+  are removed, retaining their attributes on an empty span so existing
+  fragment links survive. Other body H1s become H2s. Lower-level headings and
+  escaped code examples remain untouched. Body-only custom templates receive
+  a page H1 in the body instead.
+- Non-documentation pages keep the normal renderer body unchanged. The
+  Textpattern masthead uses a paragraph for site branding, leaving its article
+  title as the only wrapper H1.
+
+The template golden fixtures render under `docs/`, so they cover the shared
+navigation and title normalization through spooky-dark, brutal, and XHTML.
+The isolated documentation harness also checks every shipped template and all
+three layouts, escaped labels, nested paths, sidecar precedence, untitled
+pages, preserved anchors, and singleton navigation.
 
 ## Sidecar precedence
 

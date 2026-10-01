@@ -13,7 +13,7 @@ change the wrapped DOM will diverge from the checked-in goldens.
 ## Inline Surface
 
 Regular paragraph with **bold**, *italic*, ***both***, `inline code`, a
-[link](my-first-page.md), and an external <https://example.com/autolink>.
+[link](../my-first-page.md), and an external <https://example.com/autolink>.
 
 ## GFM Table
 

@@ -206,6 +206,90 @@ rk_render_navigation() {
   printf '  </ul>\n</nav>'
 }
 
+# Documentation chrome uses only pages in the current render plan, not the
+# on-disk output tree (which may contain stale pages). Labels are escaped and
+# each path segment is URL-encoded before insertion into the trusted body slot.
+# Inputs: $1 (JSON page inventory), $2 (output-relative page), $3 (page title)
+# Outputs: JSON with before/after HTML fragments; requires jq
+rk_render_doc_navigation() {
+  local inventory="$1" page="$2" title="$3"
+  printf '%s' "$inventory" | jq -c --arg page "$page" --arg title "$title" '
+    def escaped: @html;
+    def url: split("/") | map(@uri) | join("/");
+    ($page | split("/")) as $parts |
+    ("../" * (($parts | length) - 1)) as $prefix |
+    $parts[0] as $section |
+    (if $section == "help" then "Help" else "Docs" end) as $section_label |
+    (map(select(.path | startswith($section + "/"))) |
+      sort_by([if .path == ($section + "/index.html") then 0 else 1 end, .path])) as $pages |
+    ($pages | map(.path) | index($page)) as $pos |
+    def link($path; $text; $attrs):
+      "<a href=\"" + $prefix + ($path | url | escaped) + "\"" + $attrs + ">" + ($text | escaped) + "</a>";
+    def crumb($path; $text):
+      "<li>" + (if any(.[]; .path == $path) and $path != $page
+        then link($path; $text; "") else ($text | escaped) end) + "</li>";
+    {
+      before: ("<nav class=\"rk-doc-breadcrumbs\" aria-label=\"Breadcrumb\">\n<ol>\n" +
+        (if any(.[]; .path == "index.html") then crumb("index.html"; "Home") + "\n" else "" end) +
+        (if $page != ($section + "/index.html") then crumb($section + "/index.html"; $section_label) + "\n" else "" end) +
+        ([range(1; ($parts | length) - 1) as $i |
+          crumb(($parts[0:$i + 1] | join("/")) + "/index.html"; $parts[$i])] | join("\n")) +
+        "\n<li aria-current=\"page\">" + ($title | escaped) + "</li>\n</ol>\n</nav>\n" +
+        "<details class=\"rk-doc-pages\">\n<summary>Browse " + $section_label + " pages</summary>\n" +
+        "<nav aria-label=\"" + $section_label + " pages\">\n<ul>\n" +
+        ([$pages[] | "<li>" + link(.path; .title; if .path == $page then " aria-current=\"page\"" else "" end) + "</li>"] | join("\n")) +
+        "\n</ul>\n</nav>\n</details>\n"),
+      after: ("<nav class=\"rk-doc-pagination\" aria-label=\"Previous and next pages\">\n<ul>\n" +
+        (if ($pages | length) > 1 then
+          $pages[($pos - 1) % ($pages | length)] as $prev |
+          $pages[($pos + 1) % ($pages | length)] as $next |
+          "<li>" + link($prev.path; "Previous: " + $prev.title; " rel=\"prev\"") + "</li>\n" +
+          "<li>" + link($next.path; "Next: " + $next.title; " rel=\"next\"") + "</li>"
+        else "<li><span aria-disabled=\"true\">Previous</span></li>\n<li><span aria-disabled=\"true\">Next</span></li>" end) +
+        "\n</ul>\n</nav>\n")
+    }
+  '
+}
+
+# The wrapper owns the document H1. Remove repeated body titles (retaining
+# their attributes as an empty span, so existing fragment links still work)
+# and demote other body H1s to H2. Escaped code examples are untouched.
+# Inputs: $1 (rendered body), $2 (effective title)
+# Outputs: normalized HTML on stdout; requires gawk + jq
+rk_prepare_doc_body() {
+  local body="$1" title="$2"
+  RK_DOC_TITLE="$(printf '%s' "$title" | jq -Rs -r '@html')" gawk '
+    BEGIN { RS = "\0"; ORS = ""; IGNORECASE = 1; title = ENVIRON["RK_DOC_TITLE"] }
+    function plain(s) {
+      gsub(/<[^>]*>/, "", s)
+      gsub(/[[:space:]]+/, " ", s)
+      sub(/^ /, "", s); sub(/ $/, "", s)
+      return s
+    }
+    {
+      rest = $0; out = ""
+      while (match(rest, /<h1([[:space:]][^>]*)?>/)) {
+        out = out substr(rest, 1, RSTART - 1)
+        opening = substr(rest, RSTART, RLENGTH)
+        rest = substr(rest, RSTART + RLENGTH)
+        if (!match(rest, /<\/h1[[:space:]]*>/)) { out = out opening; break }
+        text = substr(rest, 1, RSTART - 1)
+        rest = substr(rest, RSTART + RLENGTH)
+        if (plain(text) == plain(title)) {
+          if (opening != "<h1>") {
+            sub(/^<h1/, "<span", opening)
+            out = out opening "</span>"
+          }
+        } else {
+          sub(/^<h1/, "<h2", opening)
+          out = out opening text "</h2>"
+        }
+      }
+      printf "%s", out rest
+    }
+  ' "$body"
+}
+
 # ---
 # rk_resolve_default_template: Resolve the per-site default template from the
 # config-driven theme registry (#252). `theme_registry` in

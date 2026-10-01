@@ -1,21 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>$title$</title>
+  $if(description)$
+  <meta name="description" content="$description$">
+  $endif$
   <link rel="stylesheet" href="$assets_root$css/theme-spooky-dark.css">
 </head>
 <body class="rk-page rk-page--doc">
   <div class="rk-shell">
-    <div class="rk-header">
+    <a class="rk-doc-skip" href="#rk-doc-content">Skip to content</a>
+    <header class="rk-header">
       <h1 class="rk-title">$title$</h1>
       $if(description)$
       <p class="rk-subtitle">$description$</p>
       $endif$
-    </div>
-    <div class="rk-article">
+    </header>
+    <main class="rk-article" id="rk-doc-content">
       $body$
-    </div>
+    </main>
     <footer class="rk-footer">
       <p class="footer-credit">Rendered by Rotkeeper · v$version$</p>
 $if(asset_meta)$      <p class="footer-asset-meta">$asset_meta$</p>
