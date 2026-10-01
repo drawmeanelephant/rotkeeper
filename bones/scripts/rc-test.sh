@@ -2276,6 +2276,85 @@ if ! jq -e '
 fi
 echo "✅ DIP regression passed."
 
+echo "--- DIP command-reference v1 pilot: sources, dry-run, and idempotence ---"
+
+# An isolated inventory exercises the pilot without rewriting repository
+# docs. Deliberately omit autopsy-help.md to cover fresh-clone generation.
+pilot_root="$TEST_DIR/dip-pilot"
+pilot_doc="$pilot_root/home/content/docs/bones/scripts/rc-assets.md"
+pilot_legacy="$pilot_root/home/content/docs/bones/scripts/rc-scan.md"
+mkdir -p "$pilot_root/bones/scripts" "$pilot_root/bones/config" \
+  "$pilot_root/bones/templates" "$pilot_root/bones/book-reports" \
+  "$pilot_root/bones/meta/bones/scripts" "$pilot_root/home/assets" \
+  "$(dirname "$pilot_doc")"
+cp "$ROOT_DIR/rotkeeper.sh" "$pilot_root/"
+cp "$ROOT_DIR"/bones/scripts/rc-*.sh "$pilot_root/bones/scripts/"
+cp "$ROOT_DIR/bones/config/version" "$pilot_root/bones/config/"
+printf 'layout_style: "crypt"\n' > "$pilot_root/bones/config/rotkeeper.yaml"
+printf '%s\n' '- bones/scripts/rc-assets.sh' '- bones/scripts/rc-scan.sh' \
+  > "$pilot_root/bones/book-reports/rotkeeper-files.md"
+cp "$ROOT_DIR/bones/meta/bones/scripts/rc-assets.soul.md" \
+  "$pilot_root/bones/meta/bones/scripts/"
+cat > "$pilot_doc" <<'PILOT_DOC'
+---
+reference_contract: "rotkeeper.command-reference.v1"
+target_file: "bones/scripts/rc-assets.sh"
+---
+# Old pilot body
+PILOT_DOC
+printf '# Authored reference\n\nKeep this text unchanged.\n' > "$pilot_legacy"
+cat > "$pilot_root/CHANGELOG.md" <<'PILOT_HISTORY'
+# Changelog
+## [1.2.3] - 2026-10-01
+- Hardened asset processing across
+  `rc-assets.sh` and shared helpers.
+- Unrelated change must not appear.
+PILOT_HISTORY
+
+pilot_before=$(rk_sha256 "$pilot_doc")
+pilot_legacy_before=$(rk_sha256 "$pilot_legacy")
+"$pilot_root/rotkeeper.sh" dip --dry-run > /dev/null
+if [[ "$pilot_before" != "$(rk_sha256 "$pilot_doc")" ]]; then
+  echo "Assertion failed: the command-reference pilot changed during dry-run."
+  exit 160
+fi
+"$pilot_root/rotkeeper.sh" dip > /dev/null
+expected_sections=$'## Overview\n## Usage\n## Options\n## Examples\n## Exit codes\n## Reads and writes\n## Side effects\n## Notes\n## History'
+if [[ "$(grep '^## ' "$pilot_doc")" != "$expected_sections" ]] \
+  || [[ "$(grep -c '^# ' "$pilot_doc")" != 1 ]]; then
+  echo "Assertion failed: the command-reference pilot has incorrect headings."
+  exit 161
+fi
+for pilot_fact in 'Mirror the source asset tree' 'bash rotkeeper.sh assets' \
+  'Missing required dependency' 'rsync' '- **delete:**' \
+  '## Notes' '### Design' '# assets: []' '### [1.2.3]' \
+  '- Hardened asset processing across' "  \`rc-assets.sh\` and shared helpers."; do
+  if ! grep -Fq -- "$pilot_fact" "$pilot_doc"; then
+    echo "Assertion failed: command-reference source fact missing: $pilot_fact"
+    exit 162
+  fi
+done
+if grep -Eq 'autopsy help report missing|Necromancer|Ritual History|^- - |Unrelated change|Old pilot body' "$pilot_doc" \
+  || [[ "$pilot_legacy_before" != "$(rk_sha256 "$pilot_legacy")" ]]; then
+  echo "Assertion failed: pilot retained old content or changed a legacy page."
+  exit 163
+fi
+pilot_after=$(rk_sha256 "$pilot_doc")
+"$pilot_root/rotkeeper.sh" dip > /dev/null
+if [[ "$pilot_after" != "$(rk_sha256 "$pilot_doc")" ]]; then
+  echo "Assertion failed: command-reference generation is not byte-idempotent."
+  exit 164
+fi
+# A source change must update the generated page, never require a hand edit.
+printf '\nAdditional source review detail.\n' \
+  >> "$pilot_root/bones/meta/bones/scripts/rc-assets.soul.md"
+"$pilot_root/rotkeeper.sh" dip > /dev/null
+if ! grep -Fq 'Additional source review detail.' "$pilot_doc"; then
+  echo "Assertion failed: command-reference pilot did not refresh its sidecar."
+  exit 165
+fi
+echo "DIP command-reference pilot passed."
+
 echo "======================================================================"
 echo "--- Regression tests for legacy rituals (ingest, sync-inbox, cleanup, reseed) ---"
 

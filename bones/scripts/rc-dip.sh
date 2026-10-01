@@ -870,6 +870,115 @@ build_soul_content() {
   fi
 }
 
+# Command-reference v1 pilot (#326). Opt-in pages are rebuilt from sources;
+# legacy pages retain their existing pillars until the migration in #327.
+build_command_reference() {
+  local target_file="$1"
+  local script_name purpose section content
+  script_name=$(basename -- "$target_file")
+  purpose=$(awk '/^#[[:space:]]+Purpose[[:space:]]*:/ {
+    sub(/^#[[:space:]]+Purpose[[:space:]]*:[[:space:]]*/, ""); print; exit
+  }' "$ROOT_DIR/$target_file")
+  [[ -n "${purpose//[[:space:]]/}" ]] || purpose="Purpose is not documented in the script header."
+
+  printf '%s\n' '---'
+  RK_REF_TARGET="$target_file" RK_REF_TITLE="$script_name" \
+    RK_REF_PURPOSE="$purpose" RK_REF_VERSION="$VERSION" yq -n '
+      .reference_contract = "rotkeeper.command-reference.v1" |
+      .title = strenv(RK_REF_TITLE) |
+      .slug = (strenv(RK_REF_TITLE) | sub("\.sh$"; "")) |
+      .target_file = strenv(RK_REF_TARGET) |
+      .template = "rotkeeper-doc.html" |
+      .status = "active" |
+      .version = strenv(RK_REF_VERSION) |
+      .author = "Rotkeeper DIP" |
+      .project = "Rotkeeper" |
+      .description = strenv(RK_REF_PURPOSE)'
+  printf '%s\n\n' '---' "# $script_name" '## Overview'
+  printf '%s\n\n' "$purpose"
+  printf "Source: \`%s\`.\n\n" "$target_file"
+
+  for section in Usage Options Examples 'Exit codes'; do
+    content=$(awk -v section="$section" -v version="$VERSION" '
+      /^# @HELP[[:space:]]*$/ { help=1; next }
+      /^# @END-HELP[[:space:]]*$/ { exit }
+      help {
+        sub(/^#[[:space:]]?/, "")
+        if ($0 ~ /^[A-Za-z][A-Za-z ]*:$/) {
+          selected=($0 == section ":"); next
+        }
+        if (selected) {
+          sub(/^  /, ""); gsub(/\{VERSION\}/, version); print
+        }
+      }
+    ' "$ROOT_DIR/$target_file")
+    printf '## %s\n\n' "$section"
+    if [[ -n "${content//[[:space:]]/}" ]]; then
+      case "$section" in
+        Usage|Examples) printf "\`\`\`bash\n%s\n\`\`\`\n\n" "$content" ;;
+        *) printf "\`\`\`text\n%s\n\`\`\`\n\n" "$content" ;;
+      esac
+    else
+      printf 'Not documented in the script help block.\n\n'
+    fi
+  done
+
+  printf '## Reads and writes\n\n'
+  awk '
+    /^# @HELP[[:space:]]*$/ { exit }
+    /^# (Env assumptions|CWD assumptions|Input\/Output contracts):/ {
+      sub(/^# /, "")
+      sub(/^Env assumptions:/, "**Environment:**")
+      sub(/^CWD assumptions:/, "**Working directory:**")
+      sub(/^Input\/Output contracts:/, "**Inputs and outputs:**")
+      print $0 "\n"; found=1
+    }
+    END { if (!found) print "Read/write contracts are not documented in the script header.\n" }
+  ' "$ROOT_DIR/$target_file"
+  printf '## Side effects\n\n'
+  awk '
+    /^[[:space:]]*# SIDE EFFECT \(/ {
+      sub(/^[[:space:]]*# SIDE EFFECT \(/, "- **")
+      sub(/\):[[:space:]]*/, ":** ")
+      print; found=1
+    }
+    END { if (!found) print "No side effects are documented in script annotations." }
+  ' "$ROOT_DIR/$target_file"
+  printf '\n## Notes\n<!-- DIP-SOUL-EXTRACTED: command-reference.v1 -->\n\n'
+  content=$(build_soul_content "$target_file")
+  normalize_body "$content"
+  printf '\n## History\n<!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->\n\n'
+  if [[ -f "$ROOT_DIR/CHANGELOG.md" ]]; then
+    # Match whole bullets, including mentions on continuation lines. Do not
+    # append road-to-bones fragments or add another bullet prefix.
+    awk -v script="$script_name" '
+      function emit() {
+        if (index(tolower(bullet), tolower(script))) {
+          if (heading != previous) {
+            print "#" heading "\n"; previous=heading
+          }
+          printf "%s\n", bullet; found=1
+        }
+        bullet=""
+      }
+      /^## / { emit(); heading=$0; next }
+      /^#/ { emit(); next }
+      /^- / { emit(); bullet=$0 "\n"; next }
+      bullet != "" && /^[[:space:]]+[^[:space:]]/ {
+        bullet=bullet $0 "\n"; next
+      }
+      /^[[:space:]]*$/ { next }
+      { emit() }
+      END {
+        emit()
+        if (!found) print "No matching entries in CHANGELOG.md."
+      }
+    ' "$ROOT_DIR/CHANGELOG.md"
+  else
+    printf 'CHANGELOG.md is unavailable.\n'
+  fi
+}
+
 # Ensure required marker scaffolding exists without clobbering authored body.
 ensure_dip_markers() {
   local doc_path="$1"
@@ -1000,6 +1109,20 @@ for doc_path in "${!EXPECTED_DOCS[@]}"; do
   fi
   target_file="${EXPECTED_DOCS[$doc_path]}"
   script_name=$(basename -- "$target_file")
+
+  if [[ "$target_file" == *.sh \
+    && "$(read_target_file "$doc_path")" == "$target_file" \
+    && "$(rk_frontmatter_field reference_contract "$doc_path")" == "rotkeeper.command-reference.v1" ]]; then
+    reference_content=$(build_command_reference "$target_file")
+    if [[ "$reference_content" != "$(cat "$doc_path")" ]]; then
+      if [[ "${DRY_RUN:-false}" == true ]]; then
+        log "DRY-RUN" "Would regenerate command reference: $doc_path"
+      else
+        printf '%s\n' "$reference_content" | atomic_write "$doc_path"
+      fi
+    fi
+    continue
+  fi
 
   # Only stitch generated reference docs that already carry DIP markers,
   # or stubs we just created. Do not inject markers into pure authored docs

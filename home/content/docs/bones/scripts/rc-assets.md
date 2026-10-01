@@ -1,157 +1,137 @@
 ---
-title: "🧾 rc-assets.sh Reference"
+reference_contract: rotkeeper.command-reference.v1
+title: rc-assets.sh
 slug: rc-assets
-target_file: "bones/scripts/rc-assets.sh"
-date: "2026-08-26"
-template: "rotkeeper-doc.html"
-status: "active"
-version: "0.5.1"
-author: "Rotkeeper Ritual Council"
-project: "Rotkeeper"
-description: "Mirrors home/assets/ into output/assets/ and generates a SHA256 checksum manifest at bones/asset-manifest.yaml, pruning stale generated assets."
-tags:
-  - rotkeeper
-  - scripts
-  - assets
-  - manifest
+target_file: bones/scripts/rc-assets.sh
+template: rotkeeper-doc.html
+status: active
+version: 0.8.1
+author: Rotkeeper DIP
+project: Rotkeeper
+description: Mirror the source asset tree and generate a YAML manifest of relative paths and SHA-256 checksums.
 ---
 
+# rc-assets.sh
 
-# 🖼️ rc-assets.sh
+## Overview
 
-<!-- The sacred rite of asset manifest generation -->
+Mirror the source asset tree and generate a YAML manifest of relative paths and SHA-256 checksums.
 
-**Script Path:** `bones/scripts/rc-assets.sh`
+Source: `bones/scripts/rc-assets.sh`.
 
-## Purpose
-<!-- Core objectives of rc-assets.sh -->
-- Enumerate every file under `home/assets/` (no HTML scanning — assets are mirrored by source tree, not discovered from rendered output)
-- Copy each asset into `output/assets/`, preserving the directory layout
-- Prune stale generated assets from `output/assets/` when the output tree is marked generated, so deleted source assets do not linger
-- Emit a YAML manifest of path → SHA256 pairs to `bones/asset-manifest.yaml`, archiving any prior manifest to `bones/archive/`
+## Usage
 
-## CLI Interface
 ```bash
-rc-assets.sh [--dry-run] [--verbose] [--help]
+bash rotkeeper.sh assets [options]
 ```
 
-Supported flags:
-- `--help`, `-h`
-  Show usage information and exit.
-- `--dry-run`
-  Preview actions without writing output.
-- `--verbose`
-  Show detailed logs.
+## Options
 
-## Workflow Steps
-1. **Verify Dependencies**: `require_bins bash rsync` and `require_sha256` (sourced from `rc-utils.sh`).
-2. **Archive Prior Manifest**: Move any existing `bones/asset-manifest.yaml` to `bones/archive/asset-manifest-<timestamp>.yaml`.
-3. **Discover Assets**: Enumerate files under `home/assets/` (`find`, excluding `.DS_Store`), sorted by relative path.
-4. **Prune Stale Output**: When the output tree is marked generated, delete `output/assets/` entries with no source counterpart.
-5. **Sync & Checksum**: Validate each relative path for traversal/illegal characters, `rsync` into `output/assets/`, and compute SHA256.
-6. **Assemble & Write Manifest**: Append `- path:` / `  sha256:` entries to the report, copy it to `bones/asset-manifest.yaml`, and mark the output tree generated.
-
-## Exit Codes
-<!-- Symbolic outcomes of incantation -->
-- `0` — Manifest generated successfully.
-- Nonzero — dependency failure (`require_bins` exits 2 when `rsync` is missing) or an I/O error under strict mode.
-
-### Environment assumptions
-
-- **Reads:** `ASSETS_DIR` (source tree), `OUTPUT_DIR`, `BONES_DIR`, `ARCHIVE_DIR`, `REPORT_DIR`; requires the output ownership marker (`.rotkeeper-generated`) before pruning.
-- **Writes:** `output/assets/` mirror, `bones/asset-manifest.yaml` (prior manifest archived to `bones/archive/asset-manifest-<timestamp>.yaml`), timestamped report under `bones/reports/`.
-- **Dependencies:** `bash`, `rsync`, and a SHA-256 tool (`sha256sum` or `shasum`).
-- **CWD:** none — all paths are environment-derived.
-
-## Dangerous operations
-
-- **Prunes stale files from `output/assets/`** — any generated asset with no source counterpart is deleted, but only when the output tree carries the `.rotkeeper-generated` ownership marker; unmarked trees are never touched.
-- Rotates the asset manifest by moving the previous one into `bones/archive/`; history is preserved, never merged.
-- Relative asset paths are validated against traversal and character allowlists before copy; violations are logged as errors and skipped, not copied.
+```text
+--dry-run        Preview asset changes; only bootstrap logs are written
+--verbose        Show detailed logs
+--help, -h       Show this help message and exit
+--version, -v    Show script version and quit
+```
 
 ## Examples
+
 ```bash
-# Generate full manifest
-./bones/scripts/rc-assets.sh
-
-# Preview without writing
-./bones/scripts/rc-assets.sh --dry-run --verbose
-
-# Show help
-./bones/scripts/rc-assets.sh --help
+bash rotkeeper.sh assets                # Generate the asset manifest
+bash rotkeeper.sh assets --dry-run      # Preview asset changes
+bash rotkeeper.sh assets --dry-run --verbose
+bash rotkeeper.sh assets --help         # Show help without starting a run
 ```
 
+## Exit codes
 
-## Manifest Format
+```text
+0    Success
+1    Configuration or environment validation failure
+2    Missing required dependency
+nonzero    I/O failures propagate the failing command's exit status
+```
 
-The output manifest is a YAML file with entries like:
+## Reads and writes
+
+**Environment:** reads `ASSETS_DIR`, `OUTPUT_DIR`, `BONES_DIR`, `ARCHIVE_DIR`, `REPORT_DIR`, `CONFIG_DIR`, `LOG_DIR`, `ROOT_DIR`, `SCRIPT_DIR`, `TMP_DIR`, `DRY_RUN`, `VERBOSE`, `VERSION` through `rk_load_env`; `ROTKEEPER_VERSION` can override the version. Requires `bash`, `rsync`, and either `sha256sum` or `shasum`.
+
+**Working directory:** none; paths come from the active layout through `rk_load_env`, not the working directory.
+
+**Inputs and outputs:** reads every regular file under `ASSETS_DIR` except `.DS_Store`, sorted by relative path; does not scan HTML or content references. Writes the `OUTPUT_DIR/assets` mirror, `BONES_DIR/asset-manifest.yaml`, `ARCHIVE_DIR/asset-manifest-<timestamp>.yaml`, and `REPORT_DIR/asset-report-<timestamp>.yaml`. Reports progress and errors through the shared logger. `--dry-run` previews asset changes without changing assets, manifests, reports, or the output ownership marker; bootstrap logging still writes under `LOG_DIR`.
+
+## Side effects
+
+- **write:** creates `OUTPUT_DIR/assets`, `ARCHIVE_DIR` (`bones/archive` by default), and `REPORT_DIR` (`bones/reports` by default) if missing
+- **delete+write:** moves the previous `bones/asset-manifest.yaml` into `ARCHIVE_DIR/asset-manifest-<timestamp>.yaml`; does not merge manifests
+- **write:** truncates `REPORT_DIR/asset-report-<timestamp>.yaml` (real runs only)
+- **delete:** removes files under `OUTPUT_DIR/assets` that have no source counterpart, only when the output tree carries `.rotkeeper-generated`
+- **write:** records an empty manifest entry in the report
+- **write:** copies each valid source asset into `OUTPUT_DIR/assets` via `rsync`
+- **write:** appends `path`/`sha256` entries to `REPORT_DIR/asset-report-<timestamp>.yaml`
+- **write:** publishes the report as `BONES_DIR/asset-manifest.yaml`
+- **write:** creates or truncates `OUTPUT_DIR/.rotkeeper-generated` through `mark_output_generated`; skipped during `--dry-run`
+
+## Notes
+<!-- DIP-SOUL-EXTRACTED: command-reference.v1 -->
+
+### Design
+
+The command verifies `bash`, `rsync`, and a SHA-256 tool before processing
+assets. It archives the previous manifest, enumerates source files, prunes
+stale generated assets, copies valid paths with `rsync -a`, computes checksums,
+and publishes the timestamped report as the current manifest. It then marks
+the output tree as generated.
+
+The default `crypt` layout reads `home/assets/` and writes `output/assets/`.
+Other layouts use their environment-derived asset and output directories.
+Directory structure is preserved. Every source file is considered, whether
+or not a content page references it.
+
+Related pages: [Scripts index](index.html) and
+[Bones documentation](../index.html).
+
+The manifest and report contain YAML entries in this form:
 
 ```yaml
 - path: "images/rotkeeper-splash.png"
-  sha256: "abc123..."
+  sha256: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 ```
 
-If no assets are found, the manifest is a single comment line: `# assets: []`.
+When no source files are found, the manifest contains the single comment
+line `# assets: []`. Archives and reports use timestamps in
+`YYYY-MM-DD_HHMM` format.
 
-## 🛣️ Navigation
-<!-- Quick navigation links -->
-- [Scripts Index](index.html)
-- [Assets Reference](rc-assets.html)
-- [Bones Home](../index.html)
+### Limits
 
-<!--
-Limerick 1:
-In corridors of icons and sprites aligned,
-rc-assets carves metadata refined.
-With digest aflame,
-It catalogs each name,
-And preserves each relic assigned.
+Relative paths containing `../` or characters outside `[a-zA-Z0-9/._-]` are
+logged as errors and skipped before copying. This includes spaces and
+non-ASCII characters. These checks do not make the command a general
+validator for untrusted directory trees.
 
-Limerick 2:
-A scroll of YAML in spectral light,
-Records each asset’s secret might.
-It tracks size and date,
-In tabular fate,
-Ensuring no file fades from sight.
--->
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
+Discovery uses `find -type f`, so symbolic links are not enumerated as assets.
+Files named `.DS_Store` are excluded. The manifest records paths and
+checksums, not sizes, dates, or reference counts. A successful exit does not
+mean every discovered path was accepted.
 
+### Cautions
 
-### Bones of the Code
-This script trudges through the asset graveyard, cataloging artifacts and blindly copying them to `output/assets/`. It performs SHA256 checksum mapping, presumably because someone once trusted a file and paid the price. It's a glorified `cp` command with delusions of grandeur.
+Stale output files are deleted only when the output tree already contains
+`.rotkeeper-generated`. An unmarked tree is not pruned, but valid source
+assets are still copied into it and the command marks it as generated.
 
-### Restless Spirits
-The reliance on `sha256sum` or `shasum` preflights is a fragile pact; if the host lacks these, the ritual fails silently or spectacularly. More terrifyingly, it naively trusts asset filenames. A malicious filename could easily trigger a path traversal vulnerability, exfiltrating assets to wherever the dark forces desire.
+Prior manifests are moved to `bones/archive/` by default, not
+`bones/archives/`. Archive and report names have minute resolution; repeated
+runs in the same minute can replace files with the same timestamp.
 
-### Ritual Warnings
-Do not feed it untrusted zip files or chaotic directory structures unless you enjoy directory traversal exploits. Ensure `sha256sum` or `shasum` is bound to the environment before invoking this fragile magic.
-## Ritual History
-<!-- DIP-HISTORY-EXTRACTED: 2026-07-23T10:54:47Z -->
+`--dry-run` leaves assets, manifests, reports, and the output ownership marker
+unchanged. Shared bootstrap logging still creates a run log. `--help` and
+`--version` exit before starting the asset workflow.
 
-- - Hardened strict-mode and quoting behavior across `rc-assets.sh`,
--   fixes** — strict-mode and quoting hardening across `rc-assets.sh`,
-## Environment
-<!-- DIP-ENV-EXTRACTED: 2026-08-12T00:38:36Z -->
+## History
+<!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->
 
-- **$ROOT_DIR**: .
-- **$OUTPUT_DIR**: output
-- **$CONTENT_DIR**: home/content
-- **$ASSETS_DIR**: home/assets
-- **$DOCS_DIR**: home/content/docs
-- **$HELP_DIR**: home/content/help
-- **$BONES_DIR**: bones
-- **$SCRIPT_DIR**: bones/scripts
-- **$CONFIG_DIR**: bones/config
-- **$LOG_DIR**: bones/logs
-- **$TMP_DIR**: bones/tmp
-- **$ARCHIVE_DIR**: bones/archive
-- **$REPORT_DIR**: bones/reports
-- **$BOOK_REPORT_DIR**: bones/book-reports
-- **$TEMPLATE_DIR**: bones/templates
-- **$META_DIR**: bones/meta
-- **$WEB_DIR**: output
-###### CLI Usage
-<!-- DIP-HELP-EXTRACTED: 2026-08-15T15:43:55Z -->
+### [0.4.1] - 2026-07-22
 
-*Not found: autopsy help report missing (`bones/reports/autopsy-help.md`). Run: ./rotkeeper.sh autopsy --help-report*
+- Hardened strict-mode and quoting behavior across `rc-assets.sh`,
+  `rc-book.sh`, `rc-dip.sh`, and `rc-glue.sh`.
