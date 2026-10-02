@@ -172,7 +172,8 @@ the upload credentials; no local Cloudflare login is needed.
    the rendered Help hub, onboarding, workflow, and publishing pages from
    that checked build. It makes a fresh remote clone at the selected commit,
    verifies that generated artifacts are absent, installs the documented
-   tools, and runs `init`, `new`, `render`, checks, and `pack`.
+   tools, and runs `init`, `new`, the onboarding reference refresh
+   (`book --fsbook`, `autopsy --all`, `dip`), `render`, checks, and `pack`.
 4. It checks the gzip archive, embedded metadata, source JSON export, and
    archived page/stylesheet bytes. The enforced site build refreshes the
    product references before uploading only `output/` through the existing

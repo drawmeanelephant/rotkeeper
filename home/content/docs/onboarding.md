@@ -93,11 +93,24 @@ The `new` command refuses to overwrite an existing file. Edit
 
 ## Render and check
 
+This checkout includes Rotkeeper's product documentation. Refresh its
+inventory and references **before the first render**; the checked-in audit
+matrix may describe an older inventory and link to pages no longer generated.
+These commands update documentation sources, not your newly created page:
+
 ```bash
+bash rotkeeper.sh book --fsbook
+bash rotkeeper.sh autopsy --all
+bash rotkeeper.sh dip
 bash rotkeeper.sh render
 bash rotkeeper.sh links
 bash rotkeeper.sh status
 ```
+
+Keep Help and Docs enabled for this first build. For a later user-only site,
+follow the [workflow's system-documentation instructions](workflow.html)
+before disabling them; do not ignore broken links or delete generated
+pages to make the audit pass.
 
 Render writes `output/my-page.html` and synchronizes local assets. Open that
 file in a browser. `links` checks local page and asset references; `status`

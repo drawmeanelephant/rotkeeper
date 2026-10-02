@@ -239,6 +239,9 @@ jobs:
           bash rotkeeper.sh init --with-sample
           bash rotkeeper.sh new my-page.md --title "My page" --description "My first Rotkeeper page."
           bash rotkeeper.sh new walkthrough.md --subdir journal --title "Walkthrough"
+          bash rotkeeper.sh book --fsbook
+          bash rotkeeper.sh autopsy --all
+          bash rotkeeper.sh dip
           bash rotkeeper.sh render
           bash rotkeeper.sh links
           bash rotkeeper.sh a11y
