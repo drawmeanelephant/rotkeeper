@@ -1,33 +1,17 @@
 ---
-title: "⚙️ Configurations Root"
-description: "Central validation boundary for project schemas, directory variables, and skipping whitelists."
-status: "complete"
+title: "Configuration reference"
+description: "Reference pages for site settings, version, and DIP whitelist paths."
+reviewed: "2026-10-01"
 ---
 
-# ⚙️ Configurations Root
+### Purpose
 
-## Architectural Intent
-This meta-layer dictates how Rotkeeper evaluates its directories, tracks file lineages, and enforces exclusion rules during automated pruning cycles.
+This content directory documents files in `bones/config`. It does not load
+or validate configuration itself.
 
-## Directory / File Schema Expectations
-- `rotkeeper.yaml`: Defines core pipeline options, template bindings, and project parameters.
-- `dip-whitelist.txt`: Contains strict flat-file expressions for files that must never be auto-purged or flagged as obsolete by rc-dip.sh.
+### Contents and conventions
 
-## Preservation Notes
-Keep this directory strictly offline-first. Schema extensions must pass raw text parsing checks without adding heavy external parser dependencies.
-
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-13T23:16:45Z -->
-
-
-# ⚙️ Configurations Root
-
-## Architectural Intent
-This meta-layer dictates how Rotkeeper evaluates its directories, tracks file lineages, and enforces exclusion rules during automated pruning cycles.
-
-## Directory / File Schema Expectations
-- `rotkeeper.yaml`: Defines core pipeline options, template bindings, and project parameters.
-- `dip-whitelist.txt`: Contains strict flat-file expressions for files that must never be auto-purged or flagged as obsolete by rc-dip.sh.
-
-## Preservation Notes
-Keep this directory strictly offline-first. Schema extensions must pass raw text parsing checks without adding heavy external parser dependencies.
+`rotkeeper.yaml` supplies site settings and layout mappings; `version` is
+the canonical version source. `dip-whitelist.txt` lists exact documentation
+paths exempt from obsolete moves, not general audit or write exemptions.
+Change the actual configuration files, then refresh their references.

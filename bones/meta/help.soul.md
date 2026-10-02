@@ -1,21 +1,16 @@
 ---
-title: "Help & Tutorials"
-description: "Entry-level guides and troubleshooting references for end users."
-status: "complete"
+title: "Help"
+description: "Content directory reserved for user help."
+reviewed: "2026-10-01"
 ---
 
-### Architectural Intent
-The `help/` directory provides onboarding material, tutorials, and frequently asked questions for users interacting with the Rotkeeper CLI and output estate. This folder is dedicated to reducing friction and flattening the learning curve for the brutalist toolchain.
+### Purpose
 
-### Directory / File Schema Expectations
-Stores standard `.md` content. Files should focus on pragmatic troubleshooting and step-by-step guides. No auto-generated logs or reports should be placed here.
+The help directory is a content section. At review time it contains only
+its index, not onboarding guides, tutorials, or FAQs.
 
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-13T23:16:45Z -->
+### Contents and conventions
 
-
-### Architectural Intent
-The `help/` directory provides onboarding material, tutorials, and frequently asked questions for users interacting with the Rotkeeper CLI and output estate. This folder is dedicated to reducing friction and flattening the learning curve for the brutalist toolchain.
-
-### Directory / File Schema Expectations
-Stores standard `.md` content. Files should focus on pragmatic troubleshooting and step-by-step guides. No auto-generated logs or reports should be placed here.
+Glue can create or refresh navigation in `index.md`. Author help pages as
+content sources. `render_system_docs: false` excludes this section alongside
+`docs` and `messages` during rendering.

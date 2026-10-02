@@ -1,27 +1,21 @@
 ---
-title: "Theme Suite (x5)"
-description: "Defines CSS variables, fonts, and specific layouts for themes."
-status: "complete"
+target_file: bones/templates/theme-kawaii.html
+reviewed: "2026-10-01"
+reviewed_against: "0.8.1"
 ---
 
-### Architectural Intent
-The kawaii sub-theme layout engineers a departure from the stark, utilitarian dark and light terminal configurations. It deploys a playful, soft pastel aesthetic parameterized by rounded borders, gentle color palettes, and mathematically clean spacing. Its primary architectural function is to provide a purely visual, high-contrast alternative for rendered documents without sacrificing structural integrity.
+### Design
 
-### Directory / File Schema Expectations
-The template enforces a rigid layout dependency graph:
-- Asset bindings demand a static CSS stylesheet mapped exactly to `css/theme-kawaii.css`, injected strictly via the `$assets_root$` token.
-- Typography resolution depends on a hardcoded Google Font import for the `Nunito` sans-serif family to ensure rounded, friendly glyph rendering.
-- The document object model strictly delegates structure to `rk-shell`, `rk-header`, `rk-title`, and `rk-article` wrapper tags, providing isolated rendering contexts for the `$title$` and `$body$` payload placeholders.
+The wrapper links `css/theme-kawaii.css` and uses `rk-shell`, `rk-header`,
+`rk-title`, and `rk-article` as class names. It displays a title, body,
+version footer, and optional asset metadata and tags.
 
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-13T23:16:45Z -->
+### Limits
 
+The template contains no Google Fonts import and no description display.
+The named wrappers are ordinary HTML elements with classes, not custom tags.
 
-### Architectural Intent
-The kawaii sub-theme layout engineers a departure from the stark, utilitarian dark and light terminal configurations. It deploys a playful, soft pastel aesthetic parameterized by rounded borders, gentle color palettes, and mathematically clean spacing. Its primary architectural function is to provide a purely visual, high-contrast alternative for rendered documents without sacrificing structural integrity.
+### Cautions
 
-### Directory / File Schema Expectations
-The template enforces a rigid layout dependency graph:
-- Asset bindings demand a static CSS stylesheet mapped exactly to `css/theme-kawaii.css`, injected strictly via the `$assets_root$` token.
-- Typography resolution depends on a hardcoded Google Font import for the `Nunito` sans-serif family to ensure rounded, friendly glyph rendering.
-- The document object model strictly delegates structure to `rk-shell`, `rk-header`, `rk-title`, and `rk-article` wrapper tags, providing isolated rendering contexts for the `$title$` and `$body$` payload placeholders.
+Preserve `$assets_root$` and `$body$`. Check the stylesheet separately for
+font and color behavior; the wrapper does not guarantee high contrast.

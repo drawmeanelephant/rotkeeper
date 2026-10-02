@@ -155,12 +155,40 @@ body headings Purpose and Contents and conventions. Directory metadata is
 merged into generated index frontmatter by `rc-glue`, so include only keys
 intended for that page. Do not add file-only ownership/version keys.
 
-Sidecar paths mirror their targets under `bones/meta`, with the final file
-extension removed before `.soul.md`; directory paths keep the directory name.
-Review each claim against the target and shared helpers, then update the
-review date and version together. Remove generated tails at the source.
-The existing sidecar migration and `rc-new --soul` scaffold alignment belong
-to #329; the assets sidecar is the first reviewed example.
+File sidecars for DIP core targets mirror repository-relative paths under
+`bones/meta`, with the final extension removed before `.soul.md`. Their
+`target_file` is repository-relative. Directory sidecars mirror paths
+relative to the active content root, keeping the directory name. Glue
+uses directory frontmatter, not the sidecar body, when creating indexes.
+It does not merge a sidecar with nonempty `target_file` into an index.
+
+`bash rotkeeper.sh new <file> --soul` uses a content-relative lookup path
+under `bones/meta`, but still records a repository-relative `target_file`.
+It emits the three file headings and TODO text with `reviewed: null` and
+`reviewed_against: null`. These null values identify an unreviewed scaffold,
+not a completed review. Existing sidecars are preserved; dry-run publishes
+neither the source nor the sidecar.
+
+Before publishing, review each claim against the target, static help, and
+shared helpers. Replace the TODO text, then set the file review date and
+version together using `bones/config/version`. Directory sidecars record
+only the review date; do not add a version key that would enter the index.
+The [assets sidecar reference](bones/scripts/rc-assets.html) is a reviewed
+example.
+
+Check that a consumer can reach the sidecar: DIP discovers non-content core
+files, render looks up content-file sidecars, and glue looks up directories
+under the content root. DIP skips Markdown cores and `.github`, and glue
+does not walk the asset tree. For unreachable notes, fold verified content
+into an existing reader-facing page and delete the sidecar. When a target
+is removed, retire its sidecar and obsolete reference page, remove retired
+whitelist entries, and repair links. Do not add whitelist entries to conceal
+missing ownership or coverage.
+
+Remove generated tails at the source. Regenerate references with
+`bash rotkeeper.sh book --fsbook` followed by `bash rotkeeper.sh dip`.
+Review the affected pages and keep unrelated generated changes out of the
+commit.
 
 ## Pilot findings and follow-up tasks
 
@@ -190,9 +218,9 @@ Follow-up tasks for [#327](https://github.com/drawmeanelephant/rotkeeper/issues/
 
 Follow-up tasks for [#329](https://github.com/drawmeanelephant/rotkeeper/issues/329):
 
-- [ ] Apply the agreed file/directory schemas and plain-language body headings; remove all self-stitched tails and update the scaffold.
-- [ ] Check other sidecars for the same drift as assets: false discovery claims, incorrect archive paths, missing dry-run exceptions, unsupported dependency/security claims, and omitted format or deletion limits.
-- [ ] Record source-reviewed dates/versions and resolve unreachable sidecars before publishing them.
+- [x] Apply the agreed file/directory schemas and plain-language body headings; remove all self-stitched tails and update the scaffold.
+- [x] Check other sidecars for the same drift as assets: false discovery claims, incorrect archive paths, missing dry-run exceptions, unsupported dependency/security claims, and omitted format or deletion limits.
+- [x] Record source-reviewed dates/versions and resolve unreachable sidecars before publishing them.
 
 ## Behavior rules
 

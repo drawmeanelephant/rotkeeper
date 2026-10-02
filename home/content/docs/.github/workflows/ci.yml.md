@@ -1,52 +1,35 @@
 ---
-title: "ci.yml"
-slug: ci-workflow
-version: "v1.0.0"
-updated: 2026-07-03
-description: "Reference for the main CI workflow execution."
-tags:
-  - rotkeeper
-  - ci
-  - github
-asset_meta:
-  name: "ci.yml.md"
-  version: "v1.0.0"
-  author: "Rotkeeper Ritual Council"
-  project: "Rotkeeper"
-  tracked: true
-  license: "All Rights Reserved"
+title: "Continuous integration"
+description: "Linux and macOS validation in the GitHub Actions test matrix."
+template: rotkeeper-doc.html
+reviewed: "2026-10-01"
 ---
 
-# ⚙️ ci.yml — Continuous Integration
+# Continuous integration
 
-The `ci.yml` file defines the primary GitHub Actions workflow for the Rotkeeper repository, orchestrating automated checks on pull requests and pushes to the main branch.
+Source:
+[.github/workflows/ci.yml](https://github.com/drawmeanelephant/rotkeeper/blob/main/.github/workflows/ci.yml).
 
-This file lives at:
+The workflow runs on pushes to `main` or `master`, pull requests targeting
+those branches, and manual dispatch. The matrix uses `ubuntu-latest` and
+`macos-latest` with `fail-fast: false`.
 
-```
-.github/workflows/ci.yml
-```
+## Checks
 
----
+- Install Zig 0.16.0 using the OS/architecture-specific archive and checksum.
+- Install Bash 5 and ShellCheck on macOS.
+- Run `scripts/setup.sh`, under sudo on Linux but not on macOS.
+- Prove Oliver runs with a Markdown smoke render.
+- Run ShellCheck on the dispatcher, Rotatui, and `rc-*.sh` scripts.
+- Run `bash rotkeeper.sh test` with `RK_STRICT=1`.
+- Run the theme accessibility gate with `bash rotkeeper.sh a11y`.
 
-## 🛠️ What It Does
+The final `test` job depends on the matrix. `test` and `smoke` select the
+same Bash fixture harness; this workflow does not run a separate Bats suite.
 
-1. **Environment Setup**: Provisions an Ubuntu runner and installs required dependencies using `scripts/setup.sh`.
-2. **Smoke Testing**: Executes the core `./rotkeeper.sh smoke` ritual to verify system integrity.
-3. **Test Suite**: Runs the full bats-core test suite via `./rotkeeper.sh test`.
+## Limits
 
----
-
-## 🔁 Behavior
-
-- Triggers automatically on `push` to `main` and on `pull_request`.
-- Fails the workflow immediately if any ritual (smoke or test) returns a non-zero exit code.
-
----
-
-## ⚠️ Notes & Caveats
-
-- Requires external network access to download the `yq` binary during the setup phase.
-
-## Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-03T00:00:00Z -->
+Provisioning requires network access and system installs. CI results do not
+guarantee every behavior is correct, and this file does not establish
+repository branch-protection settings. This page is authored because DIP
+excludes `.github` from core discovery.

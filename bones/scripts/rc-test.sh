@@ -2296,6 +2296,50 @@ XHTML_RAW_EOF
       exit 155
     fi
 
+    # --- New-content sidecar scaffold contract (#329) ---
+    # Run after renderer/golden/archive checks: glue creates indexes that would
+    # otherwise change the earlier documentation-navigation fixture inventory.
+    echo "  [+] Testing unreviewed file-sidecar scaffolds..."
+    for soul_ext in md textile cook; do
+      soul_name="soul-contract-$soul_ext"
+      ./rotkeeper.sh new "$soul_name.$soul_ext" --subdir scaffold-contract --soul > /dev/null
+      soul_scaffold="bones/meta/scaffold-contract/$soul_name.soul.md"
+      soul_expected_target="$b_content/scaffold-contract/$soul_name.$soul_ext"
+      if ! yq --front-matter extract -o=json '.' "$soul_scaffold" |
+        jq -e --arg target "$soul_expected_target" '
+          keys == ["reviewed", "reviewed_against", "target_file"] and
+          .target_file == $target and .reviewed == null and .reviewed_against == null
+        ' > /dev/null \
+        || [[ "$(grep '^#' "$soul_scaffold")" != $'### Design\n### Limits\n### Cautions' ]] \
+        || grep -q 'DIP-.*EXTRACTED' "$soul_scaffold"; then
+        echo "❌ Assertion Failed: --soul scaffold must use the file schema without claiming review ($mode, $soul_ext)."
+        exit 156
+      fi
+      soul_before=$(rk_sha256 "$soul_scaffold")
+      ./rotkeeper.sh new "soul-preview-$soul_ext.$soul_ext" --subdir scaffold-contract --soul --dry-run > /dev/null
+      if [[ -e "$b_content/scaffold-contract/soul-preview-$soul_ext.$soul_ext" \
+        || -e "bones/meta/scaffold-contract/soul-preview-$soul_ext.soul.md" ]]; then
+        echo "❌ Assertion Failed: --soul --dry-run published a scaffold."
+        exit 156
+      fi
+      # Existing sidecars must remain unchanged when a new source shares their path.
+      rm "$b_content/scaffold-contract/$soul_name.$soul_ext"
+      ./rotkeeper.sh new "$soul_name.$soul_ext" --subdir scaffold-contract --soul > /dev/null
+      if [[ "$(rk_sha256 "$soul_scaffold")" != "$soul_before" ]]; then
+        echo "❌ Assertion Failed: --soul overwrote an existing sidecar."
+        exit 156
+      fi
+    done
+    # The root lookup also names rotkeeper.sh's file sidecar; glue must not
+    # merge file ownership or review metadata into a directory index.
+    cp "$ROOT_DIR/bones/meta/rotkeeper.soul.md" bones/meta/rotkeeper.soul.md
+    ./rotkeeper.sh glue --force > /dev/null
+    if ! yq --front-matter extract -o=json '.' "$b_content/index.md" |
+      jq -e 'has("target_file") == false and has("reviewed_against") == false' > /dev/null; then
+      echo "❌ Assertion Failed: glue merged a file sidecar into the content-root index."
+      exit 156
+    fi
+
     echo "  🎉 Pass [$mode] successful: canonical distribution payload matches criteria."
   )
 done

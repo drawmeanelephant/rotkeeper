@@ -1,27 +1,22 @@
 ---
-title: "🟢 theme-phosphor Layout Soul"
-description: "CRT overlay interface configuration utilizing VT323 monospaced arrays for terminal emulation."
-status: "complete"
+target_file: bones/templates/theme-phosphor.html
+reviewed: "2026-10-01"
+reviewed_against: "0.8.1"
 ---
 
-# 🟢 theme-phosphor Layout Soul
+### Design
 
-## Architectural Intent
-Provides a retro-brutalist CRT terminal layout block for users or agents checking logs inside a sandboxed environment.
+The wrapper loads `css/theme-phosphor.css` and includes a `crt-overlay`
+element. The header formats the title as `> $title$_`. The article receives
+the rendered body; the footer shows version and optional metadata.
 
-## Directory / File Schema Expectations
-- Requires accompanying layout styling in `home/assets/css/theme-phosphor.css`.
-- Must parse template flags dynamically without fracturing the common `$body$` structure.
+### Limits
 
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-13T23:16:45Z -->
+This is an HTML page wrapper, not a terminal emulator. It contains no
+inline font import, dynamic flag parser, or description display.
 
+### Cautions
 
-# 🟢 theme-phosphor Layout Soul
-
-## Architectural Intent
-Provides a retro-brutalist CRT terminal layout block for users or agents checking logs inside a sandboxed environment.
-
-## Directory / File Schema Expectations
-- Requires accompanying layout styling in `home/assets/css/theme-phosphor.css`.
-- Must parse template flags dynamically without fracturing the common `$body$` structure.
+Keep the overlay's styling in the associated stylesheet. Preserve
+`$assets_root$` and `$body$`; layout-specific asset locations are supplied
+by the renderer rather than hard-coded to `home/assets`.

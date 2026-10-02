@@ -1,33 +1,18 @@
 ---
-title: "🎨 Presentation Layer Layouts"
-description: "Zero-hydration layout targets. Standard template placeholders ($body$, $assets_root$, $title$) required."
-status: "complete"
+title: "Template reference"
+description: "Reference pages for HTML wrappers used by Oliver."
+reviewed: "2026-10-01"
 ---
 
-# 🎨 Presentation Layer Layouts
+### Purpose
 
-## Architectural Intent
-Manages the visual bones of the compiled estate. This directory forces a strict zero-hydration rule across all generated pages.
+This directory documents the HTML wrappers in the active template directory.
+Oliver renders the source body and applies a selected wrapper; templates
+are not executed by this reference directory.
 
-## Directory / File Schema Expectations
-- Layout files must be plain valid HTML containing valid template variables (e.g., `$title$`, `$description$`, `$body$`).
-- BANNED: client-side reactive hydration scripts, framework runtimes, tracking bloat, or blocking assets.
+### Contents and conventions
 
-## Preservation Notes
-Templates are designed to outlive modern browser specifications. Stick to native CSS variables and standard layout flows.
-
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-13T23:16:45Z -->
-
-
-# 🎨 Presentation Layer Layouts
-
-## Architectural Intent
-Manages the visual bones of the compiled estate. This directory forces a strict zero-hydration rule across all generated pages.
-
-## Directory / File Schema Expectations
-- Layout files must be plain valid HTML containing valid template variables (e.g., `$title$`, `$description$`, `$body$`).
-- BANNED: client-side reactive hydration scripts, framework runtimes, tracking bloat, or blocking assets.
-
-## Preservation Notes
-Templates are designed to outlive modern browser specifications. Stick to native CSS variables and standard layout flows.
+Each reference corresponds to a template source. `$body$` and
+`$assets_root$` are literal slots; metadata tokens and `$if(...)$` blocks
+follow the Oliver contract. Inspect each wrapper and its stylesheet
+separately; there is no directory-level enforcement of client-side behavior.

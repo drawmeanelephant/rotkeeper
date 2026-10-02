@@ -68,14 +68,17 @@ The gallery HTML is a direct preview write, not a rendered page. Run `bash rotke
 ## Notes
 <!-- DIP-SOUL-EXTRACTED: command-reference.v1 -->
 
-### Bones of the Code
-The template showcase generator. It loops through all theme templates under `bones/templates/` and spits out a static markdown file `showcase-${theme}.md` filled with nested headers, list elements, table patterns, and code fences. Its main purpose is to feed the rendering machine synthetic bodies to test layout aesthetics.
+### Design
 
-### Restless Spirits
-This script is a vanity project for templates. It naively assumes `TEMPLATE_DIR` exists and contains standard files. It performs no safety check when stripping the `theme-` prefix, meaning a poorly named template could output files in unpredictable places.
+Discovers top-level HTML templates in the active `TEMPLATE_DIR`, scaffolds `CONTENT_DIR/showcase/showcase-<name>.md`, and writes both a gallery source index and an immediate static gallery at `OUTPUT_DIR/showcase/index.html`. Names remove the `.html` suffix and optional `theme-` prefix. Sample frontmatter is derived from template tokens; a common body exercises headings, lists, quotes, tables, and code.
 
-### Ritual Warnings
-Ensure `TEMPLATE_DIR` contains valid `.html` layouts. The output markdown is rewritten each run, meaning manual annotations added to the showcase files will be crushed.
+### Limits
+
+Does not render the individual showcase pages; run render afterward to populate their linked HTML. The template-directory existence check is explicit. The optional Oliver check only tests whether a template is non-empty when an executable renderer is discoverable; it never invokes Oliver or validates the template dialect. The source gallery contains raw HTML, and per-template scaffolds do not automatically select XHTML profiles.
+
+### Cautions
+
+Real runs replace generated showcase sources and both gallery indexes, so manual additions there are lost. Templates whose names differ only by the removed `theme-` prefix map to the same showcase filename. Dry-run skips page/index writes but unconditionally creates the showcase source directory and still writes bootstrap logs. The direct gallery output is a preview write, not a render-manifest update.
 
 ## History
 <!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->

@@ -1,29 +1,17 @@
 ---
 target_file: bones/scripts/rc-glue.sh
-source: generated
-generated: 2026-07-03
-version: 0.1.0
-status: final
+reviewed: "2026-10-01"
+reviewed_against: "0.8.1"
 ---
 
-### Bones of the Code
-The dark arts of code injection and template stitching. It relies heavily on `awk` and `sed` to find markers and cram new organs into existing corpses. It's a butcher shop masquerading as a templating engine.
+### Design
 
-### Restless Spirits
-String replacements using `awk` or `sed` are fundamentally fragile. Throw in a stray ampersand, an unescaped slash, or nested brackets, and the whole operation turns to mush. It will happily inject malformed code and leave you with a syntax error wrapped in an enigma.
+Walks the active content tree, or a canonicalized subtree selected by `--path`, and creates missing `index.md` sources with links to immediate directories and Markdown, Textile, and Cooklang children. Default template selection uses the shared resolver. Directory-sidecar frontmatter overrides default metadata. A sidecar with nonempty `target_file` is a file sidecar and is not merged into an index, including the dispatcher sidecar at the content-root lookup path `bones/meta/rotkeeper.soul.md`.
 
-### Ritual Warnings
-Sanitize your inputs. If your injected code contains special characters, prepare for the regex parser to summon something unholy.
+### Limits
 
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-13T23:16:45Z -->
+Existing indexes marked `rotkeeper_glued: true` are skipped unless forced. Custom indexes keep their frontmatter and prose; exactly one ordered glue-marker pair is replaced, while missing or ambiguous markers cause a new block to be appended. Marker recognition and the generated-index test are textual, not a structural Markdown/frontmatter parse. Links assume each child directory has an index and do not verify rendered destinations.
 
+### Cautions
 
-### Bones of the Code
-The dark arts of code injection and template stitching. It relies heavily on `awk` and `sed` to find markers and cram new organs into existing corpses. It's a butcher shop masquerading as a templating engine.
-
-### Restless Spirits
-String replacements using `awk` or `sed` are fundamentally fragile. Throw in a stray ampersand, an unescaped slash, or nested brackets, and the whole operation turns to mush. It will happily inject malformed code and leave you with a syntax error wrapped in an enigma.
-
-### Ritual Warnings
-Sanitize your inputs. If your injected code contains special characters, prepare for the regex parser to summon something unholy.
+`--force` removes a marked generated index before recreating it, so manual edits in that file are lost and regeneration is not an atomic replacement. Custom-block replacement uses a temporary file and keeps the original on rewrite failure. Glue is inserted as literal environment data into gawk, not regex replacement text. Dry-run skips index mutations but still performs metadata/template resolution and writes bootstrap logs.

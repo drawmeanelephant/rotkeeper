@@ -1,29 +1,17 @@
 ---
 target_file: bones/scripts/rc-env.sh
-source: generated
-generated: 2026-07-03
-version: 0.1.0
-status: final
+reviewed: "2026-10-01"
+reviewed_against: "0.8.1"
 ---
 
-### Bones of the Code
-The fragile foundation upon which this whole cursed architecture rests. It loads environment variables and attempts to establish 'safety bounds', as if anything here is truly safe.
+### Design
 
-### Restless Spirits
-Sourcing dynamic shell scripts is basically inviting vampires in through the front door. If `ROOT_DIR` is unset or accidentally evaluates to `/`, the rest of the scripts will gladly unleash their destructive tendencies on the entire filesystem.
+Internal Bash library loaded through `rk_load_env`, not a dispatcher command. Derives the repository root from its own location and keeps system paths under `bones`. Crypt uses `home/content`, `bones/templates`, `home/assets`, and `output`; busy changes templates/assets to root directories; sterile uses `src/content`, `config/templates`, `src/assets`, and `dist`. It exports paths and configured source/output-format settings without writing files.
 
-### Ritual Warnings
-Never trust the environment. Validate `ROOT_DIR` as if your life depends on it, because the lifespan of your filesystem certainly does.
+### Limits
 
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-13T23:16:45Z -->
+Reuses a serialized paths block only when its saved root equals the current root. A relocated cache is ignored during derivation with a warning, but shared strict validation can still reject the saved configuration. Repeated loads for the same root return early unless forced; editing configuration does not automatically refresh variables in an already-loaded shell. Unsupported input formats and render profiles fall back to Markdown and HTML.
 
+### Cautions
 
-### Bones of the Code
-The fragile foundation upon which this whole cursed architecture rests. It loads environment variables and attempts to establish 'safety bounds', as if anything here is truly safe.
-
-### Restless Spirits
-Sourcing dynamic shell scripts is basically inviting vampires in through the front door. If `ROOT_DIR` is unset or accidentally evaluates to `/`, the rest of the scripts will gladly unleash their destructive tendencies on the entire filesystem.
-
-### Ritual Warnings
-Never trust the environment. Validate `ROOT_DIR` as if your life depends on it, because the lifespan of your filesystem certainly does.
+Callers should source `rc-utils.sh` and initialize through `rk_init_script`, rather than bypassing shared validation with a direct environment load. Path derivation and strict validation are separate: deriving paths does not prove their readiness or cache coherence. Init uses `FORCE_ENV_RELOAD=true` after writing mappings; normal callers should not use that override to mask stale configuration.

@@ -1,21 +1,18 @@
 ---
-title: "🔧 Execution Scripts Root"
-description: "Central repository for bash-based automation rituals (rc-*.sh)."
-status: "complete"
+title: "Script reference"
+description: "Generated command references and internal script documentation."
+reviewed: "2026-10-01"
 ---
 
-### Architectural Intent
-The `scripts/` directory is the core operational engine of Rotkeeper. It isolates executable bash logic from configuration and templates.
+### Purpose
 
-### Directory / File Schema Expectations
-All operational logic must be implemented in strictly POSIX-compliant bash. Files follow the `rc-*.sh` naming convention and are tightly coupled to the dispatcher (`rotkeeper.sh`). External binaries should be avoided in favor of coreutils, `gawk`, and `grep`.
+This directory contains reference pages for `bones/scripts`, not executable
+scripts. DIP combines script annotations, static help, sidecar notes, and
+CHANGELOG entries for owned command references.
 
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-13T23:16:45Z -->
+### Contents and conventions
 
-
-### Architectural Intent
-The `scripts/` directory is the core operational engine of Rotkeeper. It isolates executable bash logic from configuration and templates.
-
-### Directory / File Schema Expectations
-All operational logic must be implemented in strictly POSIX-compliant bash. Files follow the `rc-*.sh` naming convention and are tightly coupled to the dispatcher (`rotkeeper.sh`). External binaries should be avoided in favor of coreutils, `gawk`, and `grep`.
+Use `bash rotkeeper.sh <command>` for project work. Runtime scripts use Bash,
+including Bash-specific syntax; they are not POSIX-shell scripts. Correct
+generated references in their sources rather than editing the generated
+page. The tests subtree documents checked-in test material.
