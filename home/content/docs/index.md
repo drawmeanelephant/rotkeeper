@@ -79,7 +79,7 @@ The current workflow is deliberately small and local-first:
 - [DIP Matrix](dip-matrix.html)
 
 ### 5½. 🌐 Hosting the Generated Docs
-- [Publishing the Docs](publishing.html) — the docs are portable output; publish the bytes anywhere
+- [Publishing the Docs](publishing.html) — GitHub Actions publishes this site's portable output to Cloudflare Pages
 
 ### 6. 🌀 Advanced Flags & Edge Cases
 - [Rotkeeper Reference](rotkeeper-reference.html)

@@ -3,6 +3,8 @@
 [![Release](https://img.shields.io/github/v/release/drawmeanelephant/rotkeeper?sort=semver)](https://github.com/drawmeanelephant/rotkeeper/releases)
 [![CI](https://github.com/drawmeanelephant/rotkeeper/actions/workflows/ci.yml/badge.svg)](https://github.com/drawmeanelephant/rotkeeper/actions/workflows/ci.yml)
 
+[Help site](https://rot.filed.fyi/) · [Cloudflare Pages mirror](https://rotkeeper.pages.dev/)
+
 *"What lives in `/bones/` may yet render again."*
 
 Rotkeeper is a Bash-native static-site and content system with Oliver HTML rendering, integrity scanning, documentation improvement, archiving, and release packaging. No Node, NPM, or application framework is required — just Markdown, Bash, and standard Unix tooling. The outputs are raw, static, and immortal.
@@ -49,6 +51,8 @@ If `preflight` fails, install Oliver (or set `RK_OLIVER_BIN=/path/to/oliver`) an
 **Audit documentation:** `dip` reports documentation coverage; `book --docbook` binds the documentation into one retrieval artifact.
 
 The full end-to-end walkthrough lives in [home/content/docs/workflow.md](home/content/docs/workflow.md).
+
+This repository's help site builds in GitHub Actions and publishes to Cloudflare Pages on pushes to `main`. Pull requests build and check the site without deploying. See [Publishing the Docs](home/content/docs/publishing.md) for the pipeline and hosting setup.
 
 ## Requirements
 

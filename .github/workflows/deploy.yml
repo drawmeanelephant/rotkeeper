@@ -1,0 +1,186 @@
+name: Publish Rotkeeper help
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rotkeeper-pages-${{ github.ref }}
+  cancel-in-progress: false
+
+# Issue #334 will enforce the help-site gates once the content backlog clears.
+# Build failures and broken links already block publication.
+env:
+  HELP_CHECKS_ENFORCE: "false"
+
+jobs:
+  build:
+    name: Build and check help site
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Install Zig 0.16.0
+        # Keep the same source-build fallback as ci.yml and scripts/setup.sh.
+        shell: bash
+        run: |
+          set -euo pipefail
+          IFS=$'\n\t'
+          curl -fsSL --max-time 120 \
+            https://ziglang.org/download/0.16.0/zig-x86_64-linux-0.16.0.tar.xz \
+            -o "$RUNNER_TEMP/zig.tar.xz"
+          printf '%s  %s\n' \
+            70e49664a74374b48b51e6f3fdfbf437f6395d42509050588bd49abe52ba3d00 \
+            "$RUNNER_TEMP/zig.tar.xz" | sha256sum -c -
+          sudo mkdir -p /usr/local/lib /usr/local/bin
+          sudo tar -xJf "$RUNNER_TEMP/zig.tar.xz" -C /usr/local/lib
+          sudo ln -sf /usr/local/lib/zig-x86_64-linux-0.16.0/zig /usr/local/bin/zig
+          zig version
+
+      - name: Install the pinned Oliver renderer and site tools
+        run: sudo bash scripts/setup.sh
+
+      - name: Build the help site
+        shell: bash
+        run: |
+          set -euo pipefail
+          IFS=$'\n\t'
+          bash rotkeeper.sh preflight
+          bash rotkeeper.sh book --fsbook
+          bash rotkeeper.sh autopsy --all
+          bash rotkeeper.sh dip
+          bash rotkeeper.sh render
+          bash rotkeeper.sh links
+          test -s output/index.html
+          test -s output/docs/publishing.html
+
+      - name: Check help placeholders and page structure (warn-only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          IFS=$'\n\t'
+          python3 - <<'PY'
+          import os
+          import re
+          from html.parser import HTMLParser
+          from pathlib import Path
+
+          class Page(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.h1 = 0
+                  self.nav = False
+                  self.text = []
+
+              def handle_starttag(self, tag, attrs):
+                  self.h1 += tag == "h1"
+                  self.nav |= tag == "nav"
+
+              def handle_data(self, text):
+                  self.text.append(text)
+
+          findings = []
+          pages = sorted(Path("output/docs").rglob("*.html"))
+          if not pages:
+              raise SystemExit("No rendered documentation pages found")
+          for path in pages:
+              page = Page()
+              page.feed(path.read_text(encoding="utf-8"))
+              if re.search(r"Not found:|TODO:", "".join(page.text)):
+                  findings.append(f"{path}: unfinished placeholder text")
+              if page.h1 != 1 or not page.nav:
+                  findings.append(f"{path}: {page.h1} H1 headings; nav={page.nav}")
+          enforce = os.environ["HELP_CHECKS_ENFORCE"] == "true"
+          level = "error" if enforce else "warning"
+          for finding in findings:
+              print(f"::{level}::{finding}")
+          print(f"Checked {len(pages)} docs pages; {len(findings)} findings.")
+          # Do not pretend these checks exist before their dependencies land.
+          print(f"::{level}::Sidecar coverage and generated command-reference "
+                "coverage gates are pending issues #328, #331, and #334.")
+          if enforce:
+              raise SystemExit("Complete the pending #334 gates before enforcing")
+          PY
+
+      - name: Check theme accessibility (warn-only)
+        continue-on-error: ${{ env.HELP_CHECKS_ENFORCE != 'true' }}
+        run: bash rotkeeper.sh a11y
+
+      - name: Save the checked site
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: rotkeeper-site
+          path: output/
+          if-no-files-found: error
+          # Rendered reference pages include docs/.github/ and dotfile pages.
+          # This uploads only the generated site, never checkout credentials.
+          include-hidden-files: true
+          retention-days: 1
+
+  deploy:
+    name: Deploy to Cloudflare Pages
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'drawmeanelephant/rotkeeper'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download the checked site
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: rotkeeper-site
+          path: output/
+
+      - name: Set up Node for the deployment tool only
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "22"
+
+      - name: Publish the production deployment
+        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4.146.0"
+          packageManager: npm
+          command: pages deploy output --project-name=rotkeeper --branch=main
+
+      - name: Verify both public hostnames serve the uploaded bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          IFS=$'\n\t'
+          python3 - <<'PY'
+          import time
+          from pathlib import Path
+          from urllib.error import URLError
+          from urllib.request import Request, urlopen
+
+          hosts = ("https://rot.filed.fyi", "https://rotkeeper.pages.dev")
+          files = ("index.html", "docs/publishing.html")
+          for attempt in range(12):
+              try:
+                  for file in files:
+                      expected = (Path("output") / file).read_bytes()
+                      route = "/" if file == "index.html" else "/docs/publishing"
+                      for host in hosts:
+                          request = Request(host + route, headers={"Cache-Control": "no-cache"})
+                          with urlopen(request, timeout=20) as response:
+                              if response.status != 200 or response.read() != expected:
+                                  raise ValueError(f"{host}{route}: not serving the uploaded bytes")
+                  print("Both hostnames return HTTP 200 and match the uploaded home and publishing pages.")
+                  break
+              except (URLError, OSError, ValueError) as error:
+                  if attempt == 11:
+                      raise SystemExit(f"Public deployment verification failed: {error}")
+                  print(f"Waiting for production deployment: {error}")
+                  time.sleep(10)
+          PY
