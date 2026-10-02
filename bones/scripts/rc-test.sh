@@ -2445,12 +2445,260 @@ if ! jq -e '
     .schema == "rotkeeper.dip-matrix.v1" and
     (.rows | type == "array") and
     (.totals.rows | type == "number") and
-    .totals.rows == (.rows | length)
+    .totals.rows == (.rows | length) and
+    (.degraded.help_input | type == "boolean") and
+    (.sidecar_coverage | all(.[]; type == "number")) and
+    (.orphaned_sidecars | type == "array") and
+    all(.rows[]; (.sections | type == "object") and (.placeholder_count | type == "number")) and
+    all(.rows[] | select(.sidecar.state == "missing"); .sidecar.path == null) and
+    all(.rows[] | select(.sidecar.state == "present"); (.sidecar.path | type == "string")) and
+    all(.rows[] | select(.status == "OK"); .placeholder_count == 0 and
+      all(.sections[]; .state == "populated")) and
+    ([.rows[] | select(.status == "Exempt") | .target_file] | sort) == ([
+      ".blessed", ".gitignore", ".editorconfig", ".vscode/settings.json", ".vscode/extensions.json",
+      "bones/scripts/tests/fixtures/oliver-smoke/smoke-fixture-expected.html",
+      "bones/scripts/tests/fixtures/template-golden/theme-brutal.golden.html",
+      "bones/scripts/tests/fixtures/template-golden/theme-spooky-dark.golden.html",
+      "bones/scripts/tests/fixtures/template-golden/theme-spooky-dark-xhtml.golden.html",
+      "bones/scripts/tests/rc-glue.bats"
+    ] | sort)
   ' >/dev/null <<< "$dip_json"; then
   echo "❌ Assertion Failed: dip --json output does not match the rotkeeper.dip-matrix.v1 envelope."
   exit 140
 fi
 echo "✅ DIP regression passed."
+
+echo "--- DIP matrix: placeholders, exceptions, sidecar reachability, and git history ---"
+audit_root="$TEST_DIR/dip-audit"
+mkdir -p "$audit_root/bones/scripts" "$audit_root/bones/config" \
+  "$audit_root/bones/templates" "$audit_root/bones/book-reports" \
+  "$audit_root/bones/meta/bones/scripts" "$audit_root/bones/reports" \
+  "$audit_root/home/assets" "$audit_root/home/content/docs" \
+  "$audit_root/home/content/help" "$audit_root/.vscode"
+cp "$ROOT_DIR/rotkeeper.sh" "$audit_root/"
+cp "$ROOT_DIR"/bones/scripts/rc-*.sh "$audit_root/bones/scripts/"
+cp "$ROOT_DIR/bones/config/version" "$audit_root/bones/config/"
+cp "$ROOT_DIR/bones/reports/coverage-exceptions.md" "$audit_root/bones/reports/"
+cp "$ROOT_DIR/bones/meta/bones/scripts/rc-assets.soul.md" "$audit_root/bones/meta/bones/scripts/"
+printf 'layout_style: "crypt"\n' > "$audit_root/bones/config/rotkeeper.yaml"
+printf '# Changelog\n' > "$audit_root/CHANGELOG.md"
+printf '%s\n' '- probe.conf' '- empty.conf' '- complete.conf' '- missing.conf' \
+  '- exempt.conf' '- .blessed' '- bones/scripts/rc-assets.sh' '- bones/scripts/rc-env.sh' \
+  > "$audit_root/bones/book-reports/rotkeeper-files.md"
+for audit_target in probe empty complete missing exempt; do
+  printf 'Fixture target.\n' > "$audit_root/$audit_target.conf"
+done
+printf 'v0.2.0\n' > "$audit_root/.blessed"
+printf '{}\n' > "$audit_root/.vscode/settings.json"
+cat > "$audit_root/bones/config/dip-whitelist.txt" <<'AUDIT_WHITELIST'
+   # A comment is not an exemption or a doc path.
+
+home/content/docs/retired.md
+exempt: exempt.conf | Fixture reason with "quotes" | retained suffix.
+  exempt: .blessed | Version marker.
+exempt: .vscode/settings.json | Optional editor settings.
+exempt: ../outside.conf | Invalid path.
+exempt: /outside.conf | Invalid absolute path.
+exempt: missing.conf
+exempt: empty.conf |
+AUDIT_WHITELIST
+cat > "$audit_root/home/content/docs/probe.md" <<'AUDIT_PROBE'
+---
+status: complete
+description: "TODO: frontmatter is not prose."
+---
+# Placeholder probe
+## Overview
+*Not found: overview input.*
+## Usage
+TODO: Explain usage.
+```markdown
+## Notes
+TODO: Example only.
+*Not found: example only.*
+```
+~~~text
+TODO: Another example only.
+~~~
+## Reads and writes
+Reads fixture data.
+## Necromancer's Notes
+- TODO: Review a list item.
+> *Not found: quoted notes.*
+Inline TODO: detail.
+<!-- TODO: hidden comment only. -->
+## History
+TODO: Review history.
+## Extra
+*Not found: a non-required section still counts.*
+AUDIT_PROBE
+cat > "$audit_root/home/content/docs/empty.md" <<'AUDIT_EMPTY'
+# Empty sections
+## Overview
+<!-- A marker alone is not content. -->
+## Usage
+No CLI.
+## Reads and writes
+No runtime effects.
+## Notes
+Reviewed.
+AUDIT_EMPTY
+cat > "$audit_root/home/content/docs/complete.md" <<'AUDIT_COMPLETE'
+---
+status: complete
+---
+# Complete reference
+## Overview
+A fixture.
+## Usage
+No CLI.
+## Reads and writes
+No runtime effects.
+## Notes
+Reviewed.
+## History
+No changes.
+AUDIT_COMPLETE
+printf 'Reviewed notes.\n' > "$audit_root/bones/meta/complete.soul.md"
+printf 'Directory metadata.\n' > "$audit_root/bones/meta/help.soul.md"
+printf 'Page metadata.\n' > "$audit_root/bones/meta/landing.soul.md"
+printf '# Landing page\n' > "$audit_root/home/content/landing.textile"
+printf 'Unused asset metadata.\n' > "$audit_root/bones/meta/homeassets.soul.md"
+printf 'Deleted target metadata.\n' > "$audit_root/bones/meta/removed.soul.md"
+printf 'Exempt target metadata.\n' > "$audit_root/bones/meta/.blessed.soul.md"
+printf '%s\n' '---' 'target_file: retired.conf' '---' '# Preserved reference' \
+  > "$audit_root/home/content/docs/retired.md"
+audit_probe_before=$(rk_sha256 "$audit_root/home/content/docs/probe.md")
+audit_retired_before=$(rk_sha256 "$audit_root/home/content/docs/retired.md")
+audit_raw=$(bash "$audit_root/rotkeeper.sh" dip --dry-run --json)
+audit_json=$(sed -n '/^{$/,/^}$/p' <<< "$audit_raw")
+if ! jq -e '
+    .schema == "rotkeeper.dip-matrix.v1" and .totals.rows == (.rows | length) and
+    .degraded.help_input == true and .staleness.git_history == "unavailable" and
+    .sidecar_coverage == {present: 2, missing: 4, exempt: 3, orphaned: 2} and
+    .orphaned_sidecars == ["bones/meta/homeassets.soul.md", "bones/meta/removed.soul.md"] and
+    .totals.placeholders == 7 and .totals.placeholder_pages == 1 and
+    ([.rows[] | select(.status == "Exempt")] | length == 3) and
+    all(.rows[] | select(.status != "Exempt" and .target_file != "Unknown"); .stale == "unknown") and
+    any(.rows[]; .target_file == "probe.conf" and .status == "Stub" and
+      .placeholder_count == 7 and .sections.notes.state == "placeholder" and
+      .sections.notes.placeholders == 3 and .sections.history.state == "placeholder") and
+    any(.rows[]; .target_file == "empty.conf" and .status == "Stub" and
+      .sections.overview.state == "empty" and .sections.history.state == "missing") and
+    any(.rows[]; .target_file == "exempt.conf" and
+      .exemption_reason == "Fixture reason with \"quotes\" | retained suffix.")
+  ' >/dev/null <<< "$audit_json"; then
+  echo "Assertion failed: DIP placeholder, exemption, coverage, or missing-history fields."
+  exit 171
+fi
+bash "$audit_root/rotkeeper.sh" dip --json > "$audit_root/published.log"
+if [[ -e "$audit_root/home/content/docs/exempt.md" || -e "$audit_root/home/content/docs/.blessed.md" \
+  || -e "$audit_root/home/content/docs/.vscode/settings.md" ]] \
+  || [[ "$audit_probe_before" != "$(rk_sha256 "$audit_root/home/content/docs/probe.md")" ]] \
+  || [[ "$audit_retired_before" != "$(rk_sha256 "$audit_root/home/content/docs/retired.md")" ]] \
+  || ! grep -Fq 'notes: placeholder' "$audit_root/home/content/docs/dip-matrix.md" \
+  || ! grep -Fq 'bones/meta/removed.soul.md' "$audit_root/home/content/docs/dip-matrix.md" \
+  || ! grep -Fq 'Help input missing' "$audit_root/home/content/docs/dip-matrix.md"; then
+  echo "Assertion failed: DIP exemptions, legacy whitelist, or matrix publication."
+  exit 172
+fi
+# Preserve the checkout's existing author/committer identities in raw fixture
+# objects. No runner identity or Git configuration changes are needed.
+# Two committed dates reveal drift despite identical checkout mtimes.
+audit_author=$(git -C "$ROOT_DIR" log -1 --format='%an <%ae>')
+audit_committer=$(git -C "$ROOT_DIR" log -1 --format='%cn <%ce>')
+git -C "$audit_root" init -q
+git -C "$audit_root" add .
+audit_initial_commit=$(
+  {
+    printf 'tree %s\n' "$(git -C "$audit_root" write-tree)"
+    printf 'author %s 978307200 +0000\ncommitter %s 978307200 +0000\n\n' \
+      "$audit_author" "$audit_committer"
+    printf 'test: establish DIP history\n\nCo-authored-by: factory-droid[bot] <138933559+factory-droid[bot]@users.noreply.github.com>\n'
+  } | git -C "$audit_root" hash-object -t commit -w --stdin
+)
+git -C "$audit_root" update-ref HEAD "$audit_initial_commit"
+printf 'Changed fixture.\n' >> "$audit_root/complete.conf"
+git -C "$audit_root" add complete.conf
+audit_target_commit=$(
+  {
+    printf 'tree %s\nparent %s\n' "$(git -C "$audit_root" write-tree)" "$audit_initial_commit"
+    printf 'author %s 1009843200 +0000\ncommitter %s 1009843200 +0000\n\n' \
+      "$audit_author" "$audit_committer"
+    printf 'test: change DIP target\n\nCo-authored-by: factory-droid[bot] <138933559+factory-droid[bot]@users.noreply.github.com>\n'
+  } | git -C "$audit_root" hash-object -t commit -w --stdin
+)
+git -C "$audit_root" update-ref HEAD "$audit_target_commit" "$audit_initial_commit"
+if [[ "$(git -C "$audit_root" rev-list --count HEAD)" != 2 ]] \
+  || [[ "$(git -C "$audit_root" log -1 --format='%an <%ae>')" != "$audit_author" ]] \
+  || [[ "$(git -C "$audit_root" log -1 --format='%cn <%ce>')" != "$audit_committer" ]] \
+  || [[ "$(git -C "$audit_root" log -1 --format='%at %ct' "$audit_initial_commit")" != '978307200 978307200' ]] \
+  || [[ "$(git -C "$audit_root" log -1 --format='%at %ct' "$audit_target_commit")" != '1009843200 1009843200' ]]; then
+  echo "Assertion failed: DIP fixture history did not preserve identities and committed dates."
+  exit 173
+fi
+touch "$audit_root/home/content/docs/complete.md" "$audit_root/bones/meta/complete.soul.md"
+printf '# Help input\n' > "$audit_root/bones/reports/autopsy-help.md"
+audit_raw=$(bash "$audit_root/rotkeeper.sh" dip --dry-run --json)
+audit_json=$(sed -n '/^{$/,/^}$/p' <<< "$audit_raw")
+if ! jq -e '
+    .degraded.help_input == false and .staleness.git_history == "complete" and
+    .staleness.sidecars >= 1 and
+    any(.rows[]; .target_file == "bones/scripts/rc-env.sh" and .status == "Stub" and
+      .sections.usage.state == "missing" and .sections.side_effects.state == "missing") and
+    any(.rows[]; .target_file == "complete.conf" and .status == "Stale" and .stale == true and
+      .last_code_edit == "2002-01-01" and .last_doc_edit == "2001-01-01" and
+      .staleness.doc == "stale" and .sidecar.stale == "stale") and
+    any(.rows[]; .target_file == "bones/scripts/rc-assets.sh" and
+      .status == "OK" and all(.sections[]; .state == "populated"))
+  ' >/dev/null <<< "$audit_json"; then
+  echo "Assertion failed: DIP did not use committed dates or read the help input."
+  exit 173
+fi
+printf 'Uncommitted target.\n' > "$audit_root/untracked.conf"
+cp "$audit_root/home/content/docs/complete.md" "$audit_root/home/content/docs/untracked.md"
+printf '%s\n' '- untracked.conf' >> "$audit_root/bones/book-reports/rotkeeper-files.md"
+audit_raw=$(bash "$audit_root/rotkeeper.sh" dip --dry-run --json)
+audit_json=$(sed -n '/^{$/,/^}$/p' <<< "$audit_raw")
+if ! jq -e 'any(.rows[]; .target_file == "untracked.conf" and .stale == "unknown" and
+    .last_code_edit == "unknown" and .last_doc_edit == "unknown")' >/dev/null <<< "$audit_json"; then
+  echo "Assertion failed: missing path history in a full repository was not unknown."
+  exit 173
+fi
+# A fresh full clone also has checkout mtimes, but must retain known drift.
+fresh_root="$TEST_DIR/dip-fresh"
+git clone -q "file://$audit_root" "$fresh_root"
+if [[ ! -f "$fresh_root/bones/reports/coverage-exceptions.md" ]]; then
+  echo "Assertion failed: a fresh clone lost the reports-directory whitelist pointer."
+  exit 173
+fi
+mkdir -p "$fresh_root/bones/templates" "$fresh_root/home/assets" "$fresh_root/home/content/help"
+audit_raw=$(bash "$fresh_root/rotkeeper.sh" dip --dry-run --json)
+audit_json=$(sed -n '/^{$/,/^}$/p' <<< "$audit_raw")
+if ! jq -e '.staleness.git_history == "complete" and
+    any(.rows[]; .target_file == "complete.conf" and .stale == true and .sidecar.stale == "stale")' \
+    >/dev/null <<< "$audit_json"; then
+  echo "Assertion failed: fresh-clone DIP lost committed staleness."
+  exit 173
+fi
+# A file:// clone enforces --depth even for a local source. No history
+# inference from a truncated log is allowed, including for paths at HEAD.
+shallow_root="$TEST_DIR/dip-shallow"
+git clone -q --depth 1 "file://$audit_root" "$shallow_root"
+mkdir -p "$shallow_root/bones/templates" "$shallow_root/home/assets" "$shallow_root/home/content/help"
+audit_raw=$(bash "$shallow_root/rotkeeper.sh" dip --dry-run --json)
+audit_json=$(sed -n '/^{$/,/^}$/p' <<< "$audit_raw")
+if ! jq -e '
+    .staleness.git_history == "shallow" and .staleness.state == "unknown" and
+    .staleness.unknown > 0 and
+    all(.rows[] | select(.status != "Exempt" and .target_file != "Unknown");
+      .stale == "unknown" and .last_code_edit == "unknown" and
+      .staleness.doc == "unknown" and .sidecar.stale == "unknown")
+  ' >/dev/null <<< "$audit_json"; then
+  echo "Assertion failed: shallow DIP staleness was not reported as unknown."
+  exit 174
+fi
+echo "DIP matrix regression passed."
 
 echo "--- DIP command-reference v1 pilot: sources, dry-run, and idempotence ---"
 
