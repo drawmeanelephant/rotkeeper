@@ -1368,6 +1368,39 @@ DOC_ASSERT_PY
       echo "❌ Assertion Failed: singleton section must disable unavailable pagination."
       exit 250
     fi
+    # Help and Docs are product documentation. A user-only build excludes
+    # both in discovery, Oliver's batch, and generated-output pruning.
+    yq -i '.render_system_docs = false' "$nav_root/$b_config/rotkeeper.yaml"
+    (
+      cd "$nav_root"
+      RK_OLIVER_BIN="$nav_bin" bash rotkeeper.sh render --dry-run > /dev/null
+    )
+    if [[ ! -f "$nav_root/$out_dir_rel/help/index.html" \
+      || ! -f "$nav_root/$out_dir_rel/docs/index.html" ]]; then
+      echo "Assertion failed: system-docs exclusion dry-run deleted pages ($mode)."
+      exit 250
+    fi
+    (
+      cd "$nav_root"
+      RK_OLIVER_BIN="$nav_bin" bash rotkeeper.sh render > /dev/null
+    )
+    if [[ ! -f "$nav_root/$out_dir_rel/index.html" \
+      || -f "$nav_root/$out_dir_rel/help/index.html" \
+      || -f "$nav_root/$out_dir_rel/docs/index.html" ]]; then
+      echo "Assertion failed: system-docs exclusion did not omit Help and Docs ($mode)."
+      exit 250
+    fi
+    yq -i '.render_system_docs = true' "$nav_root/$b_config/rotkeeper.yaml"
+    (
+      cd "$nav_root"
+      RK_OLIVER_BIN="$nav_bin" bash rotkeeper.sh render > /dev/null
+      bash rotkeeper.sh links
+    )
+    if [[ ! -f "$nav_root/$out_dir_rel/help/index.html" \
+      || ! -f "$nav_root/$out_dir_rel/docs/index.html" ]]; then
+      echo "Assertion failed: system-docs re-enable did not restore Help and Docs ($mode)."
+      exit 250
+    fi
     nav_delete="$(rk_guard_delete "$nav_root" "$pass_dir/bones/tmp")"
     rm -rf "$nav_delete"
 
@@ -2699,6 +2732,157 @@ if ! jq -e '
   exit 174
 fi
 echo "DIP matrix regression passed."
+
+echo "--- Help hub: generated command index and authored-guide ownership ---"
+for help_layout in crypt busy sterile; do
+  help_root="$TEST_DIR/help-$help_layout"
+  help_content="home/content"
+  help_templates="bones/templates"
+  help_assets="home/assets"
+  if [[ "$help_layout" == busy ]]; then
+    help_templates="templates"; help_assets="assets"
+  elif [[ "$help_layout" == sterile ]]; then
+    help_content="src/content"; help_templates="config/templates"; help_assets="src/assets"
+  fi
+  mkdir -p "$help_root/bones/scripts" "$help_root/bones/config" \
+    "$help_root/bones/book-reports" "$help_root/$help_templates" \
+    "$help_root/$help_assets" "$help_root/$help_content/docs" "$help_root/$help_content/help"
+  cp "$ROOT_DIR/rotkeeper.sh" "$help_root/"
+  cp "$ROOT_DIR"/bones/scripts/rc-*.sh "$help_root/bones/scripts/"
+  cp "$ROOT_DIR/bones/config/version" "$help_root/bones/config/"
+  printf 'layout_style: "%s"\n' "$help_layout" > "$help_root/bones/config/rotkeeper.yaml"
+  printf '# Changelog\n' > "$help_root/CHANGELOG.md"
+  printf '%s\n' '- rotkeeper.sh' > "$help_root/bones/book-reports/rotkeeper-files.md"
+  for help_script in "$help_root"/bones/scripts/rc-*.sh; do
+    printf -- '- bones/scripts/%s\n' "${help_script##*/}" \
+      >> "$help_root/bones/book-reports/rotkeeper-files.md"
+  done
+  cp "$ROOT_DIR/home/content/docs/index.md" "$help_root/$help_content/docs/index.md"
+  cat > "$help_root/$help_content/help/index.md" <<'HELP_GUIDE'
+---
+title: "Task guide"
+doc_type: guide
+reviewed: "2026-10-02"
+---
+# Task guide
+
+Keep this authored workflow.
+HELP_GUIDE
+  printf -- '---\ndoc_type: guide\n---\n# Unreviewed\n\nInstructions.\n' \
+    > "$help_root/$help_content/docs/unreviewed.md"
+  printf -- '---\ndoc_type: guide\nreviewed: "2999-01-01"\n---\n# Future review\n\nInstructions.\n' \
+    > "$help_root/$help_content/docs/future.md"
+  printf -- '---\ndoc_type: guide\nreviewed: "2026-10-02"\n---\n# Unfinished\n\nTODO: Finish these instructions.\n' \
+    > "$help_root/$help_content/docs/unfinished.md"
+  printf '# Uncertain page\n' > "$help_root/$help_content/docs/uncertain.md"
+  printf '# Uncertain help page\n' > "$help_root/$help_content/help/uncertain.md"
+  printf -- '---\ndoc_type: guide\ntarget_file: removed.conf\n---\n# Retained help page\n' \
+    > "$help_root/$help_content/help/retired.md"
+  help_index="$help_root/$help_content/docs/index.md"
+  help_guide="$help_root/$help_content/help/index.md"
+  help_index_before=$(rk_sha256 "$help_index")
+  help_guide_before=$(rk_sha256 "$help_guide")
+  bash "$help_root/rotkeeper.sh" dip --dry-run > /dev/null
+  if [[ "$help_index_before" != "$(rk_sha256 "$help_index")" \
+    || "$help_guide_before" != "$(rk_sha256 "$help_guide")" ]]; then
+    echo "Assertion failed: Help index or guide changed during dry-run ($help_layout)."
+    exit 175
+  fi
+  help_raw=$(bash "$help_root/rotkeeper.sh" dip --json)
+  help_json=$(sed -n '/^{$/,/^}$/p' <<< "$help_raw")
+  if ! jq -e --arg content "$help_content" '
+      (.authored_guides | length) == 5 and
+      any(.authored_guides[]; .doc == ($content + "/help/index.md") and .status == "Reviewed") and
+      any(.authored_guides[]; .doc == ($content + "/docs/unreviewed.md") and .status == "Needs review") and
+      any(.authored_guides[]; .doc == ($content + "/docs/future.md") and .status == "Needs review") and
+      any(.authored_guides[]; .doc == ($content + "/docs/unfinished.md") and
+        .status == "Incomplete" and .placeholder_count == 1) and
+      .totals.placeholders == 1 and
+      any(.rows[]; .doc == "uncertain.md" and .status == "Unowned") and
+      any(.rows[]; .doc == "../help/uncertain.md" and .status == "Unowned") and
+      any(.rows[]; .doc == "../help/retired.md" and .status == "Unowned") and
+      all(.rows[]; .doc != ($content + "/help/index.md"))
+    ' >/dev/null <<< "$help_json" \
+    || [[ "$help_guide_before" != "$(rk_sha256 "$help_guide")" ]]; then
+    echo "Assertion failed: authored-guide tracking hid findings or changed prose ($help_layout)."
+    exit 175
+  fi
+  python3 - "$help_root" "$help_content" "$ROOT_DIR/home/content" <<'HELP_INDEX_PY'
+from pathlib import Path
+import re
+import sys
+
+root, content, sources = Path(sys.argv[1]), sys.argv[2], Path(sys.argv[3])
+index = (root / content / "docs/index.md").read_text()
+dispatcher = (root / "rotkeeper.sh").read_text()
+mapped = {}
+for arm, body in re.findall(r"^  ([a-z][a-z0-9|-]*)\)\n(.*?)^    ;;", dispatcher, re.M | re.S):
+    target = re.search(r'\$BONES/(rc-[a-z0-9-]+\.sh)', body)
+    if target:
+        for command in arm.split("|"):
+            if command != "smoke":
+                mapped[command] = target[1]
+rows = re.findall(r"^\| `([a-z0-9-]+)` \| .*? \| \[.*?\]\((.*?)\) \|$", index, re.M)
+assert len(rows) == len(mapped), (rows, mapped)
+assert dict(rows) == {cmd: "bones/scripts/" + name[:-3] + ".html" for cmd, name in mapped.items()}
+for _, target in rows:
+    assert (root / content / "docs" / (target[:-5] + ".md")).is_file(), target
+assert "For task-based instructions" in index and "## Other reference" in index
+guides = "\n".join(p.read_text() for p in [sources / "help/index.md", sources / "docs/workflow.md", sources / "docs/onboarding.md"])
+for cmd in mapped:
+    assert re.search(r"\b" + re.escape(cmd) + r"\b", guides), cmd
+assert "rotkeeper_glued: true" not in (sources / "help/index.md").read_text()
+print(f"Help command index covers {len(mapped)} script-backed commands.")
+HELP_INDEX_PY
+  help_index_after=$(rk_sha256 "$help_index")
+  bash "$help_root/rotkeeper.sh" dip > /dev/null
+  if [[ "$help_index_after" != "$(rk_sha256 "$help_index")" ]]; then
+    echo "Assertion failed: generated command index is not byte-idempotent ($help_layout)."
+    exit 175
+  fi
+  # A newly documented command must appear without editing the index.
+  sed 's/#   init        /#   initialize  /;s/^  init)$/  initialize)/' \
+    "$help_root/rotkeeper.sh" > "$help_root/dispatcher.tmp"
+  mv "$help_root/dispatcher.tmp" "$help_root/rotkeeper.sh"
+  bash "$help_root/rotkeeper.sh" dip > /dev/null
+  if ! grep -Fq "| \`initialize\` |" "$help_index" || grep -Fq "| \`init\` |" "$help_index"; then
+    echo "Assertion failed: command-index generation did not follow dispatcher changes."
+    exit 175
+  fi
+  # A malformed marker pair or undocumented mapping must fail closed.
+  sed '/#   initialize  /d' "$help_root/rotkeeper.sh" > "$help_root/dispatcher.tmp"
+  mv "$help_root/dispatcher.tmp" "$help_root/rotkeeper.sh"
+  help_index_after=$(rk_sha256 "$help_index")
+  if bash "$help_root/rotkeeper.sh" dip > /dev/null 2>&1 \
+    || [[ "$help_index_after" != "$(rk_sha256 "$help_index")" ]]; then
+    echo "Assertion failed: undocumented command mapping changed the index."
+    exit 175
+  fi
+  cp "$ROOT_DIR/rotkeeper.sh" "$help_root/rotkeeper.sh"
+  sed '/^#   init        /p' "$help_root/rotkeeper.sh" > "$help_root/dispatcher.tmp"
+  mv "$help_root/dispatcher.tmp" "$help_root/rotkeeper.sh"
+  if bash "$help_root/rotkeeper.sh" dip > /dev/null 2>&1 \
+    || [[ "$help_index_after" != "$(rk_sha256 "$help_index")" ]]; then
+    echo "Assertion failed: duplicate dispatcher help entries changed the index."
+    exit 175
+  fi
+  cp "$ROOT_DIR/rotkeeper.sh" "$help_root/rotkeeper.sh"
+  printf '\n<!-- DIP-COMMAND-INDEX-START -->\n' >> "$help_index"
+  help_index_after=$(rk_sha256 "$help_index")
+  if bash "$help_root/rotkeeper.sh" dip > /dev/null 2>&1 \
+    || [[ "$help_index_after" != "$(rk_sha256 "$help_index")" ]]; then
+    echo "Assertion failed: malformed command-index markers were accepted."
+    exit 175
+  fi
+  printf '# Authored, unmarked index\n' > "$help_index"
+  help_index_after=$(rk_sha256 "$help_index")
+  bash "$help_root/rotkeeper.sh" dip > /dev/null
+  if [[ "$help_index_after" != "$(rk_sha256 "$help_index")" ]]; then
+    echo "Assertion failed: DIP replaced an unmarked authored index."
+    exit 175
+  fi
+done
+echo "Help hub regression passed."
 
 echo "--- DIP command-reference v1 pilot: sources, dry-run, and idempotence ---"
 

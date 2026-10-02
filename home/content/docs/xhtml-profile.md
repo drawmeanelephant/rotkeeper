@@ -1,10 +1,12 @@
 ---
-title: "XHTML Output Profile"
+title: "Use the XHTML output profile"
 slug: xhtml-profile
 template: theme-spooky-dark-xhtml.html
 render_profile: xhtml
 version: "1.0"
 updated: "2026-08-14"
+doc_type: guide
+reviewed: "2026-10-02"
 description: "Rotkeeper's opt-in XHTML page render mode: Oliver's --to xhtml profile, the theme wrapper variant this page is built with, and the fail-closed raw-HTML boundary."
 tags:
   - rotkeeper
@@ -14,18 +16,26 @@ tags:
   - reference
 ---
 
-# XHTML Output Profile
+# Use the XHTML output profile
 
 This page is itself an XHTML document. It rendered through Oliver's `--to xhtml` output profile, and its wrapper is the `theme-spooky-dark-xhtml.html` theme variant — an XML declaration plus `<html xmlns="http://www.w3.org/1999/xhtml">` in place of the usual `<!DOCTYPE html>`.
 
 ## How to opt in
 
-Two knobs, mirroring how `input_format` works:
+Choose a page-level setting or a site-wide default:
 
 - **Per page (recommended):** add `render_profile: xhtml` to the source's YAML frontmatter. This page does exactly that.
 - **Site-wide default:** set `render_profile: "xhtml"` in `bones/config/rotkeeper.yaml`. Per-page frontmatter still overrides it for individual pages.
 
-The default is `html`, and when the profile is `html` the adapter invokes Oliver byte-identically to the pre-XHTML contract — no `--to` flag is appended at all.
+The default is `html`. Pair `render_profile: xhtml` with an XHTML-compatible
+template:
+
+```yaml
+render_profile: xhtml
+template: theme-spooky-dark-xhtml.html
+```
+
+Then run `bash rotkeeper.sh render` and `bash rotkeeper.sh links`.
 
 ## What changes on the wire
 
@@ -46,4 +56,9 @@ This page is deliberately CommonMark-safe — no raw HTML — so it survives its
 
 ## Verification
 
-The XHTML document you are reading is well-formed: the render pipeline checked it with an independent XML parser (`xmllint`), and the harness's real-binary pass does the same for its own XHTML fixture. The full contract lives in [Oliver Renderer Contract](oliver-contract.md).
+The render pipeline checks XHTML pages with the independent XML parser
+`xmllint`; it must be installed. The harness checks its own XHTML fixture
+when the real renderer is available. The full contract is in the
+[Oliver renderer contract](oliver-contract.html).
+
+**Back to:** [Help](../help/index.html) · [Choose a theme](themes.html)

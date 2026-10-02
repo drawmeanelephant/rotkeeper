@@ -4,6 +4,8 @@ slug: new-ritual
 template: rotkeeper-doc.html
 version: "1.0"
 updated: "2026-10-01"
+doc_type: guide
+reviewed: "2026-10-02"
 description: "Command development requirements, the help page contract, plain-language style, sidecar schema, and validation."
 tags:
   - rotkeeper
@@ -59,6 +61,21 @@ The contract identifier is `rotkeeper.command-reference.v1`. DIP owns command
 reference pages; authors own task guides. Change the script annotations,
 help block, sidecar, or CHANGELOG when reference information is missing or
 wrong. Do not repair a generated page by hand.
+
+The [command index](index.html) is generated from `rotkeeper.sh`'s static
+Commands help section and its actual case-arm script mappings. Every
+script-backed case arm must have a named command in help; aliases share
+a reference. DIP replaces only the `DIP-COMMAND-INDEX-START` /
+`DIP-COMMAND-INDEX-END` block in the existing Docs index. Keep one ordered
+pair of those markers. New command registration must update both the
+dispatcher mapping and help.
+
+Task guides use `doc_type: guide`, a `reviewed: YYYY-MM-DD` date, and no
+core `target_file`. DIP preserves their authored bodies and reports review
+dates and prose placeholders separately in `authored_guides` JSON and the
+matrix's authored-guide table. Guides do not need command-reference pillars,
+but declaration alone is not evidence of review or completeness. Existing
+guide URLs remain under Docs and are organized by the [Help hub](../help/index.html).
 
 ### Frontmatter
 
@@ -242,4 +259,4 @@ Follow-up tasks for [#329](https://github.com/drawmeanelephant/rotkeeper/issues/
 On macOS, report a `realpath -m` portability failure rather than weakening
 the harness.
 
-**Back to**: [Documentation overview](index.html) · [Dispatcher reference](rotkeeper-reference.html)
+**Back to**: [Help](../help/index.html) · [Dispatcher reference](rotkeeper.html)

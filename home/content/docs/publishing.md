@@ -1,9 +1,11 @@
 ---
-title: "Publishing the Docs"
+title: "Publish a site"
 slug: publishing
 template: "rotkeeper-doc.html"
 version: "1.1"
-updated: "2026-10-01"
+updated: "2026-10-02"
+doc_type: guide
+reviewed: "2026-10-02"
 description: "Rotkeeper's help site is built in GitHub Actions and published to Cloudflare Pages. The generated output remains portable to other static hosts."
 tags:
   - rotkeeper
@@ -11,14 +13,34 @@ tags:
   - publishing
 ---
 
-# Publishing the Docs
+# Publish a site
+
+## Publish your own site
+
+Follow [installation and the first render](onboarding.html), then
+[build and check your content](workflow.html). Publish the active layout's
+generated output directory (`output/` for `crypt` and `busy`, `dist/` for
+`sterile`) to a static host. Upload the directory's contents so `index.html`
+is at the intended site root, including its `assets/` directory.
+
+Keep configuration, source exports, archives, and secrets out of the upload.
+No host-side build or application runtime is needed. Test the uploaded
+home page, a nested page, and a stylesheet after publishing. Preserve the
+HTML if you want byte-for-byte verification; disable host features that
+inject analytics or rewrite it.
+
+The commands below build **this repository's help site**. Their deployment
+workflow and Cloudflare credentials do not automatically publish another
+user's site. Use your host's upload procedure for your own output.
+
+## This repository's help site
 
 Rotkeeper's own help site uses the Cloudflare Pages project **`rotkeeper`**:
 
 - **Primary URL:** [rot.filed.fyi](https://rot.filed.fyi/)
 - **Pages URL:** [rotkeeper.pages.dev](https://rotkeeper.pages.dev/)
 
-Both hostnames are configured to serve the same production deployment after the first successful publish. The old rotkeeper.com is abandoned.
+Both hostnames serve the same production deployment. The old rotkeeper.com is abandoned.
 
 The docs are **generated output**, not a separate repository or a host-specific application. Cloudflare is the chosen host for this repository's site; anyone using Rotkeeper can still publish their generated site to another static host.
 
@@ -58,7 +80,13 @@ The approved workflow file is `.github/workflows/deploy.yml` (**Publish Rotkeepe
 
 Tool installation uses `scripts/setup.sh`, the same checksum- and commit-verified Oliver installer used by CI, with Zig 0.16.0 available for its pinned source-build fallback. Actions are pinned to commit SHAs. Node and Wrangler are used only in the deploy job to upload static files; they are not site build or runtime dependencies.
 
-Build errors, missing entry pages, and broken local links block deployment. Placeholder and page-structure checks, plus the theme accessibility audit, run **warn-only** while the help backlog is open. Sidecar coverage and generated command-reference coverage still depend on issues #328, #331, and #334; the workflow reports them as pending rather than claiming they pass. Issue #334 completes and enforces the site-level gates. Setting `HELP_CHECKS_ENFORCE` to `true` before those pending gates are implemented intentionally blocks publication.
+Build errors, missing entry pages, and broken local links block deployment.
+Placeholder and page-structure checks, plus the theme accessibility audit,
+run **warn-only** while the help backlog is open. The workflow still reports
+sidecar and command-reference coverage gates as pending. Issue #334
+integrates and enforces those checks; the presence of a generated index
+does not itself mean the CI gate exists. Setting `HELP_CHECKS_ENFORCE` to
+`true` before those pending gates are implemented intentionally blocks publication.
 
 Generated docs and `output/` are not committed by the workflow. The checked site artifact expires after one day.
 
@@ -75,11 +103,20 @@ The workflow references these secrets only in the production deploy step. Do not
 
 The Pages project must have **`main` as its production branch**. Add `rot.filed.fyi` in the project's **Custom domains** settings, not just in DNS. Its proxied CNAME should point to `rotkeeper.pages.dev`. Both hostnames must stay attached to the same project. If the project uses Cloudflare's Git integration, disable its automatic builds so GitHub Actions remains the single publisher.
 
+The active configuration rule `(http.host eq "rot.filed.fyi")` disables
+Real User Monitoring (RUM) only for that hostname. Cloudflare's automatically
+injected analytics beacon otherwise changes the response bytes and fails
+the deployment check. Other hostnames keep their existing analytics settings.
+
 ### Initial 522 diagnosis
 
 On 2026-10-01, both hostnames returned HTTP 522. The existing proxied CNAME for `rot.filed.fyi` already targeted `rotkeeper.pages.dev`; the owner confirmed that Pages had **never received a deployment**. The hosting target had no deployed site to serve, rather than needing a different DNS target.
 
-The first successful push-to-`main` deployment supplies the missing site. The workflow's public checks then confirm that both hostnames serve it. If the Pages URL works but the custom hostname still fails, check the project's Custom domains status and certificate activation before changing DNS. A CNAME alone does not register a Pages custom domain.
+The production deployment and exact-byte verification passed on 2026-10-02
+after the hostname-only RUM exclusion. If the Pages URL works but the custom
+hostname fails, check the project's Custom domains status and certificate
+activation before changing DNS. A CNAME alone does not register a Pages
+custom domain.
 
 ## Publish the bytes
 
@@ -99,4 +136,4 @@ Hosting remains downstream of the build. The primary URL for this repository is 
 
 ---
 
-*Back to*: [Documentation overview](index.md)
+**Back to:** [Help](../help/index.html) · [Build workflow](workflow.html)

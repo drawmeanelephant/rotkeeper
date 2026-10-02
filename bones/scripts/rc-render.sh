@@ -199,7 +199,9 @@ main() {
     log "MARKER" "📄 Reanimating..."
 
     local render_sys_docs
-    render_sys_docs=$(yq eval '.render_system_docs // true' "$CONFIG_FILE" 2>/dev/null || echo "true")
+    # yq's // operator treats false as absent, so do not default through it.
+    render_sys_docs=$(yq eval '.render_system_docs' "$CONFIG_FILE" 2>/dev/null || echo "true")
+    [[ "$render_sys_docs" == false ]] || render_sys_docs=true
 
     log "INFO" "Evaluating layout scope (render_system_docs: $render_sys_docs)"
 
@@ -349,12 +351,30 @@ main() {
         rm -f "$TMP_DIR/oliver-plan-$$.log"
         exit 1
       fi
+      if [[ "$render_sys_docs" == false ]]; then
+        # Oliver plans the whole content tree. Apply the same scope used by
+        # discovery/pruning before the adapter builds its navigation inventory.
+        local scoped_tsv="${batch_tsv}.scoped" plan_line planned_output
+        # SIDE EFFECT (write): filters the plan into a sibling scratch file,
+        # then replaces the batch TSV without changing the original row bytes.
+        while IFS= read -r plan_line || [[ -n "$plan_line" ]]; do
+          planned_output="${plan_line#*$'\t'}"
+          planned_output="${planned_output%%$'\t'*}"
+          [[ -n "$planned_output" ]] || continue
+          if [[ -n "${EXPECTED_OUTPUTS[$planned_output]:-}" ]]; then
+            printf '%s\n' "$plan_line"
+          fi
+        done < "$batch_tsv" > "$scoped_tsv"
+        mv "$scoped_tsv" "$batch_tsv"
+      fi
       log "INFO" "Oliver plan succeeded (${#md_corpses[@]} sources)"
       # SIDE EFFECT: deletes the plan stderr scratch log on success
       rm -f "$TMP_DIR/oliver-plan-$$.log"
 
       log "INFO" "Executing Oliver batch adapter pass..."
-      if [[ "$DRY_RUN" == true ]]; then
+      if [[ ! -s "$batch_tsv" ]]; then
+        log "INFO" "No pages selected after excluding system documentation."
+      elif [[ "$DRY_RUN" == true ]]; then
         log "DRY-RUN" "Would invoke bash $SCRIPT_DIR/rc-oliver-adapter.sh $batch_tsv"
       else
         # SIDE EFFECT (delegated): rc-oliver-adapter.sh renders HTML into output/ and

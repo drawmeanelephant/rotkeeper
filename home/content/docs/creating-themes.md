@@ -1,77 +1,94 @@
 ---
-title: "Creating a Theme"
+title: "Create a theme"
 slug: creating-themes
-template: "rotkeeper-doc.html"
-version: "1.0"
-updated: "2026-08-28"
-description: "How to add a new template or theme without breaking the render pipeline — the token contract, the shared skeleton, registration, XHTML variants, and the validation gates."
-tags:
-  - rotkeeper
-  - themes
-  - templates
+template: rotkeeper-doc.html
+doc_type: guide
+reviewed: "2026-10-02"
+description: "Build a local HTML wrapper and stylesheet, register the template, and check rendering and accessibility."
 ---
 
-# Creating a Theme
+# Create a theme
 
-Every template in `bones/templates/` is a **standalone HTML file** rendered by the Oliver `wrap` dialect: the adapter feeds it the page's frontmatter tokens, the rendered body, and the asset root, and `oliver wrap` interpolates the `$token$` / `$if(token)$` markers. This page is the walkthrough for adding a new template or theme without breaking the pipeline — the ground truth is [oliver-contract.md](oliver-contract.md) plus the adapter source (`bones/scripts/rc-oliver-adapter.sh`).
+Templates are standalone HTML files using Oliver's `wrap` dialect. Begin
+with an existing wrapper and its stylesheet. New repository files require
+maintainer approval; this guide does not authorize adding a dependency or
+build system.
 
-## 1. Start from a member
+## Keep the wrapper contract
 
-Copy an existing theme pair — `theme-spooky-dark.html` + `theme-spooky.css` are the plainest — rather than writing a template from scratch. The **shared skeleton** is the contract: variation between themes lives in CSS, ornament, and surface treatment, not in divergent HTML structure.
-
-## 2. The token contract
-
-Typed tokens (html-escaped by `wrap`): `$title$`, `$description$`, `$author$`, `$date$`, `$palette$`, `$version$`, `$subtitle$`, `$tags$`, `$asset_meta$`. Raw tokens: `$assets_root$` (asset prefix, literal) and `$body$` (the rendered markdown, never escaped). Gating uses `$if(name)$ … $endif$` — keep the markers **at column 0** so a removed block leaves no blank line. The **generic hook** (#269) interpolates any other frontmatter key the adapter merges into `wrap_meta` — the necropolis theme's `$page_type$` body hook is the example. Unknown `$tokens$` pass through verbatim.
-
-## 3. The shared skeleton
-
-- **Header** — site/page `$title$` plus optional deck (`$if(description)$`), per theme.
-- **Nav** — optional; `theme-textpattern` and the daisy pair ship one. It is driven from the `navigation:` block in `bones/config/rotkeeper.yaml` through the raw-HTML `<site-nav></site-nav>` slot — never hardcode tabs.
-- **Main** — `$body$` wrapped in the theme's article element.
-- **Footer** — the standardized asset-meta slot, present on every theme:
+Use `$body$` for rendered content and `$assets_root$` for local asset paths.
+Those slots are raw. Metadata tokens such as `$title$`, `$description$`,
+`$author$`, `$date$`, `$palette$`, `$version$`, `$subtitle$`, `$tags$`, and
+`$asset_meta$` are escaped by Oliver. Other merged frontmatter keys can also
+be tokens; unknown tokens remain literal.
 
 ```html
-<footer class="<theme-footer>">
-  <p class="footer-credit">Rendered by Rotkeeper · v$version$</p>
-$if(asset_meta)$      <p class="footer-asset-meta">$asset_meta$</p>
-$endif$$if(tags)$      <p class="footer-tags">$tags$</p>
-$endif$    </footer>
+<link rel="stylesheet" href="$assets_root$css/my-theme.css">
+<header><h1>$title$</h1></header>
+<main>$body$</main>
 ```
 
-`v$version$` is live from `bones/config/version` (the same single source `--version` uses). Lore lines live above the slot (see #4).
+Do not replace `$body$` with an escaped metadata token. Do not hard-code a
+deployment domain or root-absolute asset path. The adapter adds one-H1
+normalization and documentation navigation to Docs and Help pages.
+See the [Oliver contract](oliver-contract.html) for the complete interface.
 
-## 4. Identity primitives (optional)
+## Include metadata and optional navigation
 
-The haunted house voice — dividers, lore blocks, icons — lives in `home/assets/css/rk-identity.css` (#251). Opt in with one line at the **top** of the theme stylesheet (an `@import` must precede all other rules), then map the `--rk-*` tokens on your `:root`. Full contracts and the token table are in [Theme Families](themes.md) under "Shared identity primitives". A theme that doesn't want the voice simply doesn't import the file.
+Use conditional slots with markers at column zero:
 
-## 5. Register it
+```html
+<footer>
+  <p>Rendered by Rotkeeper · v$version$</p>
+$if(asset_meta)$  <p>$asset_meta$</p>
+$endif$$if(tags)$  <p>$tags$</p>
+$endif$</footer>
+```
 
-The config-driven theme registry (`theme_registry` in `bones/config/rotkeeper.yaml`, #252) maps mode names to template files and is the per-site selector. Add your template to the registry so `new` lists it and `status`/`render`/`glue` resolve it; the resolver validates every registered entry exists. Per-page `template:` frontmatter always wins over the registry default.
+`version` comes from `bones/config/version`. For configured site navigation,
+put `<site-nav></site-nav>` in the wrapper and use the `navigation` block
+in `bones/config/rotkeeper.yaml`. The adapter inserts literal navigation
+HTML with page-relative links.
 
-## 6. XHTML variants (optional)
+Shared decorative styles are available in `home/assets/css/rk-identity.css`.
+An optional `@import url("rk-identity.css");` must precede other CSS rules.
+Use the existing styles and their `--rk-*` tokens rather than duplicating
+them. Decorative markup must not carry essential instructions.
 
-XHTML output is opt-in per page (`render_profile: xhtml`) or per site, and needs a wrapper variant — the `theme-spooky-dark-xhtml.html` pattern (self-closing void elements, `xmlns`). Rendering fails closed on raw HTML under `--to xhtml` (`error.RawHtmlNotXmlWellFormed`), so keep content CommonMark-safe for XHTML pages or accept the constraint.
+## Register and select
 
-## 7. Validate before you call it done
+Add a named entry under `theme_registry` and, if desired, set `default` to
+the new wrapper. Registry names do not replace filenames in `template`
+frontmatter. `new --list` enumerates available HTML files, whether or not
+each one has a registry name.
 
-| Command | What it proves |
-| --- | --- |
-| `bash rotkeeper.sh render` | The site still renders with your theme wired in |
-| `bash rotkeeper.sh showcase` | Scaffolds a showcase page for your theme and refreshes the gallery — every theme renders the same evaluation body |
-| `bash rotkeeper.sh a11y` | The gate auto-discovers your theme via its stylesheet link and follows `@import` chains: AA contrast pairs, visible focus, narrow-viewport overflow strategy |
-| `bash rotkeeper.sh test` | Full harness 3/3 layouts + contract/DIP/regression; the S7 registry assertions require your registered template to exist |
-| `bash rotkeeper.sh status` | Config sanity, registry resolution, manifest checks |
+Set `template: my-theme.html` on a test page. The wrapper must exist in the
+active layout's template directory. Put its stylesheet in the active assets
+directory so `render` can synchronize it.
 
-When you change an **existing** template's structure, rendered goldens diverge — regenerate them with `RK_REGEN_TEMPLATE_GOLDENS=1 bash rotkeeper.sh test` and commit the goldens alongside the template change.
+## Use an XHTML wrapper when needed
 
-## Common mistakes
+An XHTML page needs an XML-compatible wrapper, such as
+`theme-spooky-dark-xhtml.html`, and `render_profile: xhtml`. Use self-closing
+void elements and the XHTML namespace. The body parser fails closed on raw
+HTML it cannot accept in the XHTML profile.
 
-- `@import` not at the top of the stylesheet (the a11y gate's chain resolver and browsers both require it first).
-- `$if$` markers not at column 0 — blank-line drift in rendered output.
-- Styling content instead of the skeleton — Rotkeeper content is markdown-first; the theme styles the chrome, not the prose.
-- Shipping a theme that fails the a11y gate — no template joins a family in good standing without passing.
-- An XHTML page without a wrapper variant — `render_profile` and template must agree.
+## Validate
 
----
+```bash
+bash rotkeeper.sh showcase
+bash rotkeeper.sh render
+bash rotkeeper.sh links
+bash rotkeeper.sh a11y
+bash rotkeeper.sh test
+bash rotkeeper.sh status
+```
 
-*Back to*: [Theme Families](themes.md) · [Documentation overview](index.md)
+Check headings, keyboard focus, narrow viewports, code blocks, and tables
+in a browser. Passing the static audit alone does not certify every page.
+If an existing wrapper's expected output changes intentionally, regenerate
+its checked-in goldens with
+`RK_REGEN_TEMPLATE_GOLDENS=1 bash rotkeeper.sh test` and review the diff.
+Do not use regeneration to hide an unexpected rendering regression.
+
+**Back to:** [Choose a theme](themes.html) · [Help](../help/index.html)

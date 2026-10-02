@@ -1,84 +1,120 @@
 ---
-title: "📋 Onboarding Guide"
+title: "Install and create a first site"
 slug: onboarding
-version: "0.2.3-pre"
-updated: "2025-06-01"
-description: "Internal checklist and commentary for contributors joining the Rotkeeper project. Includes environment and process notes."
-tags:
-  - rotkeeper
-  - onboarding
-  - internal
-  - contributors
-asset_meta:
-  name: "onboarding.md"
-  version: "0.2.3-pre"
-  author: "Filed Systems"
-  project: "Rotkeeper"
-  tracked: true
-  license: "All Rights Reserved"
----
-# 🧟 Rotkeeper Maintainer Onboarding
-
-Welcome, unlucky soul. You’ve just inherited Rotkeeper — a Bash-based static documentation embalmer. It’s not a site generator. It’s a system of modular rituals (`rc-*.sh`) that:
-- Expand structured YAML tombs
-- Render Markdown and HTML via Oliver
-- Scan for rot
-- Pack results into `.tar.gz` tombkits
-
-The system is offline-first, manually operated, and intended for long-term preservation. Every action is logged into `bones/`, every file treated as a death-object.
-
-Its tone? Somewhere between a DevOps toolkit and a cursed scroll from an archivist cult. Expect grit, inconsistency, and occasional brilliance.
-
+template: rotkeeper-doc.html
+doc_type: guide
+reviewed: "2026-10-02"
+description: "Install the required tools, initialize a checkout, create a page, and render and check the site."
 ---
 
-## 📜 How to Review Rotkeeper
+# Install and create a first site
 
-If you're joining this system mid-rot, use the following protocol when auditing or peer reviewing the project.
+Rotkeeper builds static HTML from Markdown, Textile, and Cooklang sources.
+It uses Bash and the Oliver renderer. The site needs no application server
+or JavaScript runtime.
 
-### ROTKEEPER REVIEW PROTOCOL
+## Get a checkout
 
-> Read as if you are taking over as the new maintainer.
+Install Git, clone the repository into a new directory, and enter it:
 
-**Your Task:**
+```bash
+git clone https://github.com/drawmeanelephant/rotkeeper.git
+cd rotkeeper
+```
 
-- 🧠 Ask clarifying questions about what’s missing or unexplained
-- ⚠️ Flag scripts that feel fragile, ambiguous, or overly complex
-- 🛠 Suggest ways to modularize, test, harden, or improve naming
-- ✨ Note anything that feels elegant, purposeful, or surprisingly solid
+Use a separate checkout for a separate site. Commands can update configuration,
+manifests, generated documentation, logs, and output.
 
-If you spot TODOs, unfinished rituals, or hallucinated AI logic, call it out. If you love a pattern, highlight it.
+## Install the tools
 
----
+Use Bash 4 or newer, mikefarah `yq` v4, `jq`, GNU `gawk`, `rsync`, Git,
+`tar`, `gzip`, `zip`, `zipinfo`, and a SHA-256 tool (`sha256sum` or `shasum`).
+The XHTML profile also uses `xmllint`.
 
-## 💀 Useful Files
+On macOS, install Homebrew first, then install Bash and ShellCheck:
 
-- `rotkeeper-manual.md` — Generated retrieval documentation for the living grimoire.
-- `bones/` — Where logs, configs, and scan results are entombed.
-- `home/` — Where your tombs and rendered results live.
-- `bones/config/rotkeeper.yaml` — Defines the active layout and path configuration.
+```bash
+brew install bash shellcheck coreutils libxml2
+export PATH="$(brew --prefix)/bin:$(brew --prefix)/opt/coreutils/libexec/gnubin:$(brew --prefix)/opt/libxml2/bin:$PATH"
+bash --version
+bash scripts/setup.sh
+```
 
----
+On Ubuntu, Bash is already suitable. Install the test tools, then run setup:
 
-## 🧩 Suggested Structure for Your Review
+```bash
+sudo apt-get update
+sudo apt-get install -y shellcheck coreutils
+bash scripts/setup.sh
+```
 
-If contributing a formal review, structure it like this:
+`scripts/setup.sh` installs site tools and tries Oliver's published binary
+first. It verifies the checksum and exact commit pin. If that binary is
+unavailable or does not match, install Zig **0.16.0** from
+[ziglang.org](https://ziglang.org/download/) and rerun setup to build the
+same pinned source. Setup may request administrative permission. It has no
+dry-run mode. See the [Oliver contract](oliver-contract.html) for the renderer
+interface and failure conditions.
 
-1. **🧐 Clarifying Questions** — About config, layout, script behavior
-2. **🚩 Fragile / Complex Areas** — Any dangerous patterns, bad assumptions, or cursed logic
-3. **💡 Suggestions** — Modularization, testing, validation, documentation
-4. **✨ Highlights** — Anything elegant, poetic, or unusually clean
+```bash
+bash rotkeeper.sh preflight
+```
 
-Bonus if your review concludes with “summary & next steps.” Bonus-er if it invokes the word "crypt."
+Preflight must succeed before rendering. If Oliver is installed outside
+`PATH`, set `RK_OLIVER_BIN` to its executable path and run preflight again.
 
----
+## Understand the directories
 
-## 🤘 Style Notes
+| Directory | Role | Edit directly? |
+| --- | --- | --- |
+| `bones/` | Scripts, configuration, templates, sidecars, logs, reports, and archives | Change source configuration or templates deliberately |
+| `home/content/` | Authored source pages in the default layout | Yes |
+| `home/assets/` | Local CSS, fonts, images, and JavaScript | Yes |
+| `output/` | Generated HTML and copied assets | No |
 
-Rotkeeper invites a certain tone:
-- **Dry, sarcastic, slightly haunted** is encouraged.
-- Feel free to swear at the shell scripts — they deserve it.
-- Use the term "necromantic devops" at least once for luck.
+The default layout is `crypt`. `busy` uses `templates/` and `assets/` while
+keeping `home/content/` and `output/`. `sterile` uses `src/content/`,
+`config/templates/`, `src/assets/`, and `dist/`. `bones/` remains the system
+root. This guide uses the default layout. Initialize a new checkout with
+`bash rotkeeper.sh init --profile=STYLE` when selecting another layout, and
+provide templates and assets at that layout's paths before rendering.
 
-CUNTIER™ reviews (Content Upgrades: Notably Thicker, Intensely Emphatic & Rot-bloated) are welcome.
+## Initialize and create a page
 
-Welcome to the bonepile.
+```bash
+bash rotkeeper.sh init --with-sample
+bash rotkeeper.sh new my-page.md --title "My page" --description "My first Rotkeeper page."
+```
+
+Initialization preserves existing content. It writes the active path mappings
+to `bones/config/rotkeeper.yaml`; the optional sample is `test-file.md`.
+The `new` command refuses to overwrite an existing file. Edit
+`home/content/my-page.md` and add text below the generated heading.
+
+## Render and check
+
+```bash
+bash rotkeeper.sh render
+bash rotkeeper.sh links
+bash rotkeeper.sh status
+```
+
+Render writes `output/my-page.html` and synchronizes local assets. Open that
+file in a browser. `links` checks local page and asset references; `status`
+reports the active paths, renderer, and environment health. Use the
+[workflow guide](workflow.html) for frontmatter, additional checks,
+troubleshooting, and documentation maintenance.
+
+## Archive and publish
+
+```bash
+bash rotkeeper.sh pack
+```
+
+Pack writes a site archive and source export under `bones/archive/`. The
+archive is a backup, not a production deployment. Publish the generated
+`output/` directory to a static host using the
+[publishing guide](publishing.html). That guide separates publishing your
+own site from this repository's automatic Cloudflare Pages deployment.
+
+**Next:** [Full workflow](workflow.html) · [Help](../help/index.html)

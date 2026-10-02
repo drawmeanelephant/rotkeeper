@@ -64,6 +64,8 @@ Each output is recorded through `oliver manifest --add` in `bones/manifest.txt`.
 ## Side effects
 
 - **write:** appends the output entry to `bones/manifest.txt` via `oliver manifest --add`
+- **write:** filters the plan into a sibling scratch file,
+  then replaces the batch TSV without changing the original row bytes.
 - **delegated:** rc-oliver-adapter.sh renders HTML into output/ and
   writes per-run logs under bones/logs plus warning files under bones/tmp
 - **delete:** the structured channel is consumed; drop it so a
@@ -82,7 +84,7 @@ Oliver is the only supported renderer. Discovery uses `RK_OLIVER_BIN` before PAT
 
 ### Cautions
 
-Stale HTML is pruned only from an output tree carrying `.rotkeeper-generated`; pruning and asset synchronization precede the adapter, so a failed batch is not a transactional rollback. `render_system_docs: false` prunes directories named docs, messages, or help from local discovery. XHTML requires a suitable wrapper and can fail on raw HTML. Dry-run skips the adapter, output writes, pruning, asset synchronization, and manifest updates, but still invokes Oliver preflight and plan and writes logs and temporary planning files.
+Stale HTML is pruned only from an output tree carrying `.rotkeeper-generated`; pruning and asset synchronization precede the adapter, so a failed batch is not a transactional rollback. `render_system_docs: false` excludes directories named docs, messages, or help from local discovery and filters Oliver's whole-tree plan before the adapter runs. Explicit false is preserved rather than passed through yq's default operator. A generated tree's previously rendered product-help pages are pruned on a real user-only build. XHTML requires a suitable wrapper and can fail on raw HTML. Dry-run skips the adapter, output writes, pruning, asset synchronization, and manifest updates, but still invokes Oliver preflight and plan and writes logs and temporary planning files.
 
 ## History
 <!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->

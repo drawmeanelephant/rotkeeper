@@ -1,115 +1,225 @@
 ---
-title: "Rotkeeper Workflow"
+title: "Write, build, check, and ship"
 slug: workflow
 template: rotkeeper-doc.html
-description: "End-to-end Rotkeeper workflow: install, initialize, author, render, verify, archive, and release. Every step runs through the dispatcher."
-tags:
-  - rotkeeper
-  - workflow
-  - guide
+doc_type: guide
+reviewed: "2026-10-02"
+description: "Content formats, frontmatter, site checks, packaging, documentation maintenance, and troubleshooting."
 ---
 
-# Rotkeeper Workflow
+# Write, build, check, and ship
 
-This guide walks the full Rotkeeper cycle from a cold checkout to a shipped framework zip. Every operation runs through the dispatcher: `bash rotkeeper.sh <command>` (or `./rotkeeper.sh`).
+First [install and initialize Rotkeeper](onboarding.html). Run the commands
+below from the repository root. Paths use the default `crypt` layout;
+`bash rotkeeper.sh status` shows the active paths for other layouts.
 
-The cycle is: **preflight → init → author → render → verify → archive → release**, finished by the [release-day checklist](#8-release-day-checklist) in section 8 below.
+## Write content
 
-## 1. Preflight — is the renderer ready?
-
-Oliver is the only renderer and the one external runtime dependency. Check it once up front:
-
-```bash
-./rotkeeper.sh preflight
-```
-
-It reports whether Oliver is found, executable, and actually runnable (a live smoke render through the real CLI), and exits non-zero with a single actionable message when it is not. `render` runs the same check before every pass, so diagnostics never drift.
-
-To install Oliver on macOS or Linux, follow the install paths in `home/content/docs/oliver-contract.md`, then either add `oliver` to `PATH` or set `RK_OLIVER_BIN=/path/to/oliver`.
-
-## 2. Initialize — build the layout
+Create a new page, then edit the source file:
 
 ```bash
-./rotkeeper.sh init               # crypt layout (default), minimal config
-./rotkeeper.sh init --with-sample # ...plus a sample page to render
+bash rotkeeper.sh new notes.md --subdir journal --title "Notes" --tags "journal,example"
 ```
 
-`init` writes `bones/config/rotkeeper.yaml`, derives all paths for the active layout style (`crypt`, `busy`, or `sterile`), and records a serialized `paths` block. If the repository later moves, `init` heals the path mappings; a relocation mismatch is detected and reported before scripts run.
+This creates `home/content/journal/notes.md`. Bare filenames get `.md`.
+Nested filenames and `--subdir` must stay inside the content root.
 
-## 3. Author — write content
+### Frontmatter and Markdown
 
-Source content is Markdown with YAML frontmatter:
+```markdown
+---
+title: "Notes"
+description: "A short summary."
+template: rotkeeper-doc.html
+tags:
+  - journal
+---
+
+# Notes
+
+Write a paragraph, then link to [another page](../my-page.md).
+```
+
+Oliver renders the body and the template wraps it. Internal `.md`,
+`.textile`, and `.cook` links become `.html`. A source's directory and
+basename determine its output path; `slug` does not move it. `template`
+overrides the site default. Sidecar frontmatter wins over source frontmatter.
+Use CommonMark headings, lists, links, and fenced code. Oliver supports
+pipe tables; do not assume every extension from another Markdown renderer
+is supported.
+
+### Textile and Cooklang
 
 ```bash
-./rotkeeper.sh new my-page.md     # scaffold a page with frontmatter
+bash rotkeeper.sh new notes.textile --subdir journal --title "Textile notes"
+bash rotkeeper.sh new soup.cook --subdir recipes --title "Soup"
 ```
 
-Frontmatter drives the render: `title`, `description`, `author`, `date`, `template` (per-page template override), and `palette` (theme selection when the template supports it). A `.soul.md` sidecar in `bones/meta` may override any of those fields for a page.
+A `.textile` file always selects Textile; a `.cook` file always selects
+Cooklang. A `.md` file uses the site's `input_format`, which defaults to
+Markdown. Keep different basenames in the same directory: `notes.md` and
+`notes.textile` both map to `notes.html` and cause a collision.
 
-Asset files (CSS, images, fonts) live in the layout's assets directory — `home/assets/` in `crypt`.
+See the [Textile guide](textile-guide.html) for syntax. A Cooklang source
+may contain `Add @water{250%ml} to a #pot{}. Heat for ~{5%minutes}.`
+The new-source scaffold supplies a sample recipe that you can replace.
+Cooklang recipes may keep the title in frontmatter rather than a Markdown
+heading. The [Oliver contract](oliver-contract.html) defines all three
+input formats.
 
-## 4. Render — Markdown becomes HTML
+### Sidecars
+
+`bash rotkeeper.sh new notes.md --subdir journal --soul` also creates
+`bones/meta/journal/notes.soul.md` if it is absent. Use a new filename when
+trying this example if `journal/notes.md` already exists.
+
+The scaffold's null review fields and unfinished notes are not reviewed
+documentation. Replace the notes and record the review date and version.
+The lookup path is content-relative; `target_file` inside the sidecar is
+repository-relative. Directory sidecars describe sections, while core-file
+sidecars feed DIP references. See the
+[sidecar contract](new-ritual.html#sidecar-contract) before adding or
+changing one.
+
+## Choose a theme
+
+List templates with `bash rotkeeper.sh new --list`. Choose a per-page
+`template`, or change `theme_registry.default` in
+`bones/config/rotkeeper.yaml` for the site. The
+[theme guide](themes.html) covers palettes and the
+[theme development guide](creating-themes.html) covers wrappers and CSS.
 
 ```bash
-./rotkeeper.sh render
+bash rotkeeper.sh showcase
+bash rotkeeper.sh render
 ```
 
-The renderer sweeps the content tree (`*.md` and `*.textile` sources), extracts frontmatter (sidecar wins), resolves a template, invokes Oliver once per page (`oliver render --from <markdown|textile>` per `input_format` in `rotkeeper.yaml`, with a `.textile` source always rendering as textile; stdout = body HTML, stderr = warnings), rewrites internal `.md`/`.textile` links to `.html`, and interpolates the page into the template. The adapter's responsibilities and the Oliver binary contract are recorded in `oliver-contract.md`.
+Showcase generates comparison sources, which render like other content.
+The [XHTML guide](xhtml-profile.html) explains how to pair
+`render_profile: xhtml` with an XHTML-compatible wrapper.
 
-If a render fails, the error names the page, Oliver's stderr (warnings never leak into page bodies), and the offending path. `--dry-run` previews the pass without writing; `--verbose` shows detail.
-
-## 5. Verify — scan, links, status
+## Build and check
 
 ```bash
-./rotkeeper.sh scan    # manifest entries + SHA-256 hashes vs. generated files
-./rotkeeper.sh links   # audit internal links and local asset references in output
-./rotkeeper.sh status  # environment health, counts, render freshness
+bash rotkeeper.sh preflight
+bash rotkeeper.sh glue --dry-run
+bash rotkeeper.sh glue
+bash rotkeeper.sh render
+bash rotkeeper.sh links
+bash rotkeeper.sh a11y
+bash rotkeeper.sh scan
+bash rotkeeper.sh status
 ```
 
-`scan` proves the rendered tree matches the manifest. `links` proves every hyperlink and asset reference resolves — catch a `.md` link the rewrite missed, or a stylesheet that no longer ships.
+- `preflight` checks renderer discovery, executability, and a live smoke render.
+- `glue` creates missing directory indexes and refreshes marked navigation in authored indexes. It does not write task-guide prose.
+- `render` converts sources, wraps pages, rewrites source links, and runs asset synchronization. Stale output deletion requires the generated-tree ownership marker.
+- `assets` can be run separately after asset changes: `bash rotkeeper.sh assets`. It mirrors local assets and rebuilds `bones/asset-manifest.yaml`.
+- `links` checks local page, fragment, and asset targets. It does not prove external sites are reachable.
+- `a11y` runs a static theme audit. It is not a substitute for browser and assistive-technology testing.
+- `scan` checks the render/archive ledger in `bones/manifest.txt`. It is not the asset-manifest generator.
+- `status` reports environment health and freshness; inspect warnings rather than treating the command's exit alone as proof.
 
-## 6. Archive — pack the rendered site
+`render --dry-run` previews output changes. Most dry-runs still create
+bootstrap logs. Consult each command reference for supported flags and
+exceptions.
+
+To omit product documentation from your own site, set
+`render_system_docs: false` in `bones/config/rotkeeper.yaml`. It excludes
+Docs, Help, and `messages/`. Replace the repository homepage and remove
+links to those omitted pages before disabling them.
+
+## Archive the site
 
 ```bash
-./rotkeeper.sh pack
+bash rotkeeper.sh pack --dry-run
+bash rotkeeper.sh pack
 ```
 
-Archives the rendered HTML and metadata into a versioned tarball under `bones/archive/`. This is the deployable artifact of a single site publish.
+Default packing archives the generated site, embeds `metadata.json`, and
+exports Markdown sources to JSON under `bones/archive/`. Archive names
+contain a timestamp and random tag, not the framework version.
+`pack --content` archives sources but excludes `help/`; `pack --self`
+bundles the system, sources, and output. Neither mode deploys a website.
+Do not publish source exports unintentionally.
 
-## 7. Release — ship the framework
+Use the [publishing guide](publishing.html) to upload the generated output
+directory. Do not commit or hand-edit `output/`.
+
+## Package a framework release
+
+Site publication does not require a version bump or framework release.
+For an intentional framework release:
 
 ```bash
-./rotkeeper.sh test              # full harness: all layout styles, hermetic fixtures
-./rotkeeper.sh bump --to 0.5.2   # record the microrelease, sync version markers
-./rotkeeper.sh release 0.5.2     # build the canonical framework zip
+bash rotkeeper.sh test
+bash rotkeeper.sh bump --patch -m "Describe the release" --dry-run
 ```
 
-`release` stages the repository against an explicit root-entry allowlist, excludes dev-only and forbidden trees (caches, logs, temp, output, credentials), generates `bones/config/release-manifest.txt` inside the archive, and fails fast on unexpected root entries, missing required files, or forbidden artifacts. The zip lands at `bones/archive/releases/rotkeeper-<VERSION>.zip`.
+Review the preview. When ready, run the same bump without `--dry-run`, then
+`bash rotkeeper.sh release`. `bump` requires exactly one version selector
+and a message. It updates `bones/config/version`, CHANGELOG, and the build
+log. `--commit` is optional and can stage unrelated work, so do not use it
+without reviewing the tree.
 
-## 8. Release-day checklist <a id="8-release-day-checklist"></a>
+`release` builds `bones/archive/releases/rotkeeper-VERSION.zip`. It validates
+the distribution's root allowlist, required files, exclusions, and embedded
+release manifest. This distributes Rotkeeper, not just your rendered site.
 
-Run the full loop before tagging a version — a release is only real when a clean environment reproduces the advertised workflow:
+## Maintain documentation
 
-1. **Clean clone.** `git clone` the repo into a fresh directory (no cached env, no leftover `paths` block).
-2. **Pinned renderer.** `bash scripts/setup.sh` — it installs Oliver from the upstream `builds` release (checksum + `--version` commit verified against the pinned `OLIVER_PIN`), falling back to a Zig 0.16.0 source build of the same pin when the download path is unavailable (never unpinned `main`). Do not pre-install an Oliver from a different source.
-3. **Gate.** `./rotkeeper.sh preflight` must PASS, and `bash rotkeeper.sh test` must be green with `RK_STRICT=1` (forces the real-Oliver renderer smoke and CommonMark contract corpus on every layout pass).
-4. **Initialize all three profiles.** `./rotkeeper.sh init --with-sample` in `crypt` (default), then init a `busy` and a `sterile` fixture and render each.
-5. **Verify.** `scan`, `links`, `assets`, and `status` report zero drift; `book --docbook` and `dip` bind without new stubs.
-6. **Archive.** `pack`, then confirm the tomb: `gzip -t bones/archive/tomb-*.tar.gz` and check `metadata.json` is embedded.
-7. **Release.** `./rotkeeper.sh bump --to <VERSION>` (records changelog + roadmap), then `./rotkeeper.sh release <VERSION>`.
-8. **Inspect the artifact.** The zip must contain the framework spine (`rotkeeper.sh`, `bones/config/rotkeeper.yaml`, `bones/config/version`, `bones/config/release-manifest.txt`, `bones/scripts/rc-utils.sh`), only `rotkeeper/`-rooted entries, and no caches, logs, archives, or credentials. The harness asserts all of this on every run; spot-check the manifest inside the archive.
-9. **Extract and replay.** Unzip to a second clean directory, run preflight → init → render → scan → pack, and confirm the quickstart works from the shipped artifact — then tag the version.
+```bash
+bash rotkeeper.sh book --fsbook
+bash rotkeeper.sh autopsy --all
+bash rotkeeper.sh dip --dry-run
+bash rotkeeper.sh dip
+bash rotkeeper.sh render
+bash rotkeeper.sh links
+```
 
-## Day-two operations
+The filesystem book supplies DIP's core inventory. Autopsy reads static
+help and output annotations. DIP rebuilds owned references, refreshes the
+marked command index, and reports missing sections, placeholders, sidecar
+coverage, and ownership. Fix generated reference information in the script
+or sidecar, not the rendered page.
 
-- `preflight` — re-check the renderer after upgrades or PATH changes.
-- `glue` — regenerate navigation glue for new content directories.
-- `assets` — regenerate the asset manifest after adding files.
-- `showcase` — regenerate theme preview pages for every template.
-- `dip` — audit documentation coverage and obsolete pages.
-- `book --docbook` — bind documentation into a single retrieval artifact.
-- `test` — run the full integration harness before any release.
+Task guides declare `doc_type: guide` and a `reviewed: YYYY-MM-DD` date.
+They have no core `target_file` and remain author-owned. DIP reports them
+separately, including missing/older review dates and unfinished prose; it
+does not require command-reference sections or suppress their findings.
+Review a guide whenever its instructions change.
 
-## Verification gate
+Optional binders include `book --docbook`, `book --scriptbook-full`, and
+`book --configbook`. They write retrieval aids under `bones/book-reports/`,
+not authoritative policy or files to deploy.
 
-Before any release: `bash -n` on every modified script, `shellcheck` (repository `.shellcheckrc`), `bash rotkeeper.sh test`, `bash rotkeeper.sh status`, and the relevant `--dry-run` for the changed command. The harness rebuilds `crypt`, `busy`, and `sterile` fixtures, renders the checked-in smoke fixture against its golden output, exercises the real Oliver binary when present, and verifies the canonical release archive.
+To extend the CLI, follow the [command development guide](new-ritual.html)
+and [contribution rules](CONTRIBUTING.html). Configuration shapes are in the
+[schema reference](rotkeeper-schemas.html).
+
+## Troubleshoot
+
+| Message or symptom | What to check |
+| --- | --- |
+| `Missing required dependency` | Install the named tool. Confirm mikefarah `yq` v4, GNU `gawk`, and Bash 4+ are on `PATH`. |
+| Oliver missing or rendering fails before page discovery | Run `preflight`; fix `PATH` or `RK_OLIVER_BIN`, then rerun it. |
+| `YAML configuration is malformed` | Validate `bones/config/rotkeeper.yaml` with `yq eval '.'`; repair YAML rather than removing validation. |
+| Cached paths do not match the current repository | Run `init` to rewrite path mappings. Do not copy a serialized `paths` block from another checkout. |
+| `File already exists` | Edit that source, or choose another filename. `new` does not overwrite it. |
+| `Source basename collision` | Keep only one source format for a directory/basename pair. |
+| `RawHtmlNotXmlWellFormed` | Remove incompatible raw HTML or use the HTML profile with an HTML wrapper. |
+| `No templates found` | Provide templates in the active layout's template directory. |
+| Broken links | Repair the source link or create the intended target, render again, then rerun `links`. |
+| `realpath: illegal option -- m` on macOS | Install Homebrew coreutils and put its `libexec/gnubin` directory on `PATH`. Do not weaken canonical-path checks. |
+| Site returns 200 but deployment's uploaded-byte check fails | Ensure the host does not inject analytics or otherwise rewrite HTML. This repository disables Cloudflare RUM only for `rot.filed.fyi`. |
+
+## Release-day checklist <a id="8-release-day-checklist"></a>
+
+On a fresh checkout, follow [installation](onboarding.html), run
+`preflight`, `init`, `new`, `render`, `links`, `pack`, and the
+[publishing steps](publishing.html). Then run the full test harness and
+inspect/extract the framework release if that is the intended deliverable.
+The separate site-level quality work records this clean-clone walkthrough;
+the checklist alone is not evidence that it passed.
+
+**Back to:** [Help](../help/index.html) · [Command reference](index.html)
