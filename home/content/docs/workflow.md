@@ -269,4 +269,82 @@ inspect/extract the framework release if that is the intended deliverable.
 The separate site-level quality work records this clean-clone walkthrough;
 the checklist alone is not evidence that it passed.
 
+## Completed clean-clone walkthrough (2026-10-02)
+
+Evidence for issue #334 and documentation epic #325:
+[successful GitHub Actions run 37032630378](https://github.com/drawmeanelephant/rotkeeper/actions/runs/37032630378).
+The tested source commit was `33900d4a908ff26680f9c223d4fe5610696a1948`.
+Both Linux and macOS full matrices passed before the walkthrough job ran.
+The repository owner approved project `rotkeeper`, preview branch
+`docs-334-walkthrough`, and publication through GitHub's existing secrets.
+
+The job read the **rendered** Help hub and its onboarding, workflow, and
+publishing pages from the checked CI artifact. It cloned that remote branch
+afresh and asserted the exact commit, with no generated output, filesystem
+book, autopsy help report, or manifest present. It did not copy a working
+checkout's generated artifacts.
+
+| Step | Commands and observed result |
+| --- | --- |
+| Install | `sudo apt-get update`, `sudo apt-get install -y shellcheck coreutils`, checksum-verified Zig 0.16.0 installation, then `bash scripts/setup.sh`. The rolling Oliver binary reported a newer commit and was rejected; setup built exactly `b84f6368181079b9df2fc2c28646ffcb29ffd2ff`. `preflight` passed. |
+| Initialize | `bash rotkeeper.sh init --with-sample` completed and wrote this clone's active paths. |
+| Create | `bash rotkeeper.sh new my-page.md --title "My page" --description "My first Rotkeeper page."` and `bash rotkeeper.sh new walkthrough.md --subdir journal --title "Walkthrough"` created both sources without overwriting anything. |
+| Refresh and render | `book --fsbook`, `autopsy --all`, `dip`, then `render`, through the dispatcher. Render produced **133 pages**. `links` checked **8,451 links with zero broken**; `a11y` passed all **14 static theme audits**; `status` reported current output and all 22 scripts matching 0.8.1. |
+| Pack | `bash rotkeeper.sh pack` produced `tomb-2026-10-02_164337-0735.tar.gz` and `tomb-export-2026-10-02_164337-0735.json`. `gzip -t` passed. The JSON export parsed as an array; embedded metadata had mode `default` and `file_count: 191`. Archived home, first page, nested page, and stylesheet matched the local files exactly. |
+| Gate and publish | `bash rotkeeper.sh test --site` passed all six gates. The existing pinned Wrangler action ran `pages deploy output --project-name=rotkeeper --branch=docs-334-walkthrough`, uploading only generated output. The publication verifier passed at **16:44:31 UTC**. |
+
+The archive's compressed SHA-256 was
+`894458bf0e0fd555623c13ede3493398fc58d4b3bc97be731ce1fdce73de10bd`.
+Its embedded pre-metadata tar SHA-256 was
+`eb608ded2b72b59515ebadb716314b98c9f3e38d59ba019db407654368a73fb1`.
+No archive, source export, log, or rendered site is committed with this evidence.
+
+### Public delivery evidence
+
+The immutable deployment URL is
+[d8a5074a.rotkeeper.pages.dev](https://d8a5074a.rotkeeper.pages.dev/).
+The following anonymous requests returned HTTP 200 and **exactly matched
+the uploaded files**, not just expected titles:
+
+| Requested route | Bytes | SHA-256 |
+| --- | --- | --- |
+| `/` | 2,343 | `487946af2e714f928eb78a0d78a5439ac9b36a979359c926c0312d65cdba3281` |
+| `/my-page.html` | 1,264 | `24ecd7031a205cf5077a3726a9980e8aaffc2d9c8f6c1295162caebc29aefee4` |
+| `/journal/walkthrough.html` | 1,236 | `7754208d3c785fb1af9fc9a1f0ef17ea65d95319403fad8c52306e91b1958781` |
+| `/assets/css/theme-spooky-dark.css` | 101 | `371d102f4aaf8377f89e5d6c8a7791bf87ab6aa5a6de00fc9551ada07e3b4d1b` |
+
+Production, DNS, access controls, and host settings were unchanged.
+Cloudflare RUM remains disabled only for `rot.filed.fyi`.
+
+### Findings fixed and validation limits
+
+- The first real run stopped on eight broken links in the historical
+  checked-in DIP matrix. Onboarding now requires the reference refresh
+  before the first render. No link assertion was relaxed.
+- The next run uploaded a preview but failed public verification with
+  Cloudflare error 1010/HTTP 403 for Python's default user agent. The final
+  run used the existing production verifier's `rotkeeper-deploy-check`
+  header and passed exact-byte checks. No security setting was disabled.
+- A supplemental macOS clone entered through `/tmp` hit canonical-path
+  boundary errors. Repeating from `/private/tmp` with a physical working
+  directory passed rendering, links, all theme audits, packing, gzip,
+  metadata, and archive byte checks. Onboarding now uses `cd -P`.
+- Site gates covered **87 Help/Docs pages**, **18 commands plus the smoke
+  alias**, both documentation stylesheets, **47 present sidecars**, zero
+  missing/unreachable sidecars, and **12 Reviewed authored guides** with no
+  placeholders. The separate reference report still showed 19 Stub rows,
+  two Stale rows (three known stale targets overall), and six unowned
+  pages, with their meanings explained above rather than ignored.
+- The strict full suite passed all three layouts locally and in both CI
+  operating systems, including all **15 negative gate regressions**.
+  Bash syntax, ShellCheck, workflow lint, status, and supported build/audit
+  dry-runs passed. `test --dry-run` remains only the legacy-command suite.
+- Browser DOM/navigation spot checks worked. No screenshot, visual-review,
+  or assistive-technology pass is claimed. GitHub reported an existing
+  pinned Wrangler action Node 20 deprecation warning while successfully
+  running it under Node 24; the upload tool itself used Node 22.
+
+This is the prepared issue/epic evidence summary. Posting it or closing
+issues still requires owner approval.
+
 **Back to:** [Help](../help/index.html) · [Command reference](index.html)
