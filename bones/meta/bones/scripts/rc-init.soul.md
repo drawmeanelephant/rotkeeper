@@ -1,29 +1,17 @@
 ---
 target_file: bones/scripts/rc-init.sh
-source: generated
-generated: 2026-07-03
-version: 0.1.0
-status: final
+reviewed: "2026-10-01"
+reviewed_against: "0.8.1"
 ---
 
-### Bones of the Code
-The Genesis script. It copies templates, blesses scripts, and bootstraps the project. It's the overly enthusiastic cult leader welcoming you to the compound.
+### Design
 
-### Restless Spirits
-Its zealotry knows no bounds. When invoked with `--force`, it will violently overwrite existing configurations and clobber active directories without a second thought. It respects nothing that came before it.
+Initializes directories and configuration without a content-deletion workflow. Real runs mark matching command scripts and Bats files executable, create content/output/configuration directories, seed an absent or empty configuration, and serialize the runtime paths block through yq. A forced strict environment reload follows the cache write. Optional starter content is `CONTENT_DIR/test-file.md` and is kept if already present.
 
-### Ritual Warnings
-Use `--force` only when you are entirely prepared to salt the earth and start anew. Keep backups of your configuration.
+### Limits
 
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-13T23:16:45Z -->
+Does not copy or install templates and has no destructive `--force` mode. Optional assets/render work is delegated, and full mode adds sample content plus assets, render, and scan; those commands retain their own contracts. The dispatcher and script still pass through shared strict validation before the main initialization work, so bootstrap loading alone does not guarantee that every broken layout can be repaired.
 
+### Cautions
 
-### Bones of the Code
-The Genesis script. It copies templates, blesses scripts, and bootstraps the project. It's the overly enthusiastic cult leader welcoming you to the compound.
-
-### Restless Spirits
-Its zealotry knows no bounds. When invoked with `--force`, it will violently overwrite existing configurations and clobber active directories without a second thought. It respects nothing that came before it.
-
-### Ritual Warnings
-Use `--force` only when you are entirely prepared to salt the earth and start anew. Keep backups of your configuration.
+Changing the configuration’s layout label and writing the current runtime cache does not move content, templates, or assets. Check the selected paths and reload result rather than assuming `--profile` migrates a repository. Dry-run skips chmod, configuration writes, sample writes, and delegated commands, but the core directory creation is unconditional and shared bootstrap logging still writes.

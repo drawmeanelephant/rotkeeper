@@ -68,14 +68,17 @@ Default output is a human-readable report; `--short` emits version/pages/freshne
 ## Notes
 <!-- DIP-SOUL-EXTRACTED: command-reference.v1 -->
 
-### Bones of the Code
-The physician examining a corpse. It attempts to provide diagnostics and status reports by probing the repository and log files.
+### Design
 
-### Restless Spirits
-If Git is not installed, it panics like a lost child. If the logs are empty, it assumes everything is perfectly fine, completely blind to the fact that the logging daemon might have silently crashed days ago.
+Reports version provenance, caller working directory and Git context, script inventory, bound-book sizes, release ZIPs, recent tarballs, content counts, render freshness, and selected configuration fields. Restores the caller’s output streams after shared bootstrap so reports remain visible. Short mode emits a single summary; JSON mode emits the full section data. Reporting writes a run log but does not generate content or repair state.
 
-### Ritual Warnings
-Do not mistake silence for health. An empty log often means the patient is already dead.
+### Limits
+
+Script health assigns the loaded canonical version to each discovered script; it does not execute script versions or run Bash syntax checks. Freshness compares the newest source mtime with the newest HTML mtime, not each source/output pair, templates, or assets. Stub/draft counts use literal status-line matches. Missing Git context becomes `[no git]` in human output and null fields in JSON, not a fatal Git dependency failure.
+
+### Cautions
+
+An “output is current” result is a coarse freshness heuristic, not proof that every page exists or matches its source. Git queries use the caller’s working directory, and release discovery uses a root-relative path, so run from the repository root for repository-wide results. `--dry-run` is a no-op report flag and does not suppress logging. `--json` takes precedence over `--short` when both are supplied.
 
 ## History
 <!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->

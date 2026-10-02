@@ -1,27 +1,21 @@
 ---
-title: "Theme Suite (x5)"
-description: "Defines CSS variables, fonts, and specific layouts for themes."
-status: "complete"
+target_file: bones/templates/theme-overgrown.html
+reviewed: "2026-10-01"
+reviewed_against: "0.8.1"
 ---
 
-### Architectural Intent
-The overgrown theme layout is designed to offer a warm, bookish, literary reading experience. It utilizes forest and mossy earth tones, paired with rich serif typography and generous margins, to evoke the aesthetic of an old library book or a set of field notes.
+### Design
 
-### Directory / File Schema Expectations
-The template file layout adheres to the following structural schema:
-- CSS styling is mapped to `css/theme-overgrown.css` and is loaded via the `$assets_root$` path.
-- Includes Google Font imports to load the elegant serif `Cormorant Garamond` for headings and the highly readable `Lora` for body text.
-- The layout is structured using the `rk-shell` class, with the `$title$` variable populated inside the main header container, and the `$body$` variable populated within the `rk-article` container.
+The wrapper loads `css/theme-overgrown.css`, displays `$title$` in an
+`rk-header`, and places `$body$` in `rk-article` within `rk-shell`.
+The footer contains the version and optional asset metadata and tags.
 
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-13T23:16:45Z -->
+### Limits
 
+There are no Google Fonts imports or description fields in this template.
+Typography and colors are defined by its stylesheet.
 
-### Architectural Intent
-The overgrown theme layout is designed to offer a warm, bookish, literary reading experience. It utilizes forest and mossy earth tones, paired with rich serif typography and generous margins, to evoke the aesthetic of an old library book or a set of field notes.
+### Cautions
 
-### Directory / File Schema Expectations
-The template file layout adheres to the following structural schema:
-- CSS styling is mapped to `css/theme-overgrown.css` and is loaded via the `$assets_root$` path.
-- Includes Google Font imports to load the elegant serif `Cormorant Garamond` for headings and the highly readable `Lora` for body text.
-- The layout is structured using the `rk-shell` class, with the `$title$` variable populated inside the main header container, and the `$body$` variable populated within the `rk-article` container.
+Keep the stylesheet available through the relative asset prefix. Template
+changes must preserve the literal body slot and the CSS class names they use.

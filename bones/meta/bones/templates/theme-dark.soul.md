@@ -1,25 +1,22 @@
 ---
-title: "🏴 theme-dark Layout Soul"
-description: "High-contrast dark terminal configuration utilizing the Inter font family cascade."
-status: "complete"
+target_file: bones/templates/theme-dark.html
+reviewed: "2026-10-01"
+reviewed_against: "0.8.1"
 ---
 
-# 🏴 theme-dark Layout Soul
+### Design
 
-## Architectural Intent
-Provides the standard dark presentation template designed to lower eye strain during long autonomous execution passes.
+This wrapper loads `css/theme-dark.css` and places the title, optional
+description, and body inside an `rk-container`. Its footer includes the
+loaded version and optional asset metadata and tags.
 
-## Directory / File Schema Expectations
-- Must cleanly parse standard frontmatter objects passed by the hardened rc-pack.sh array structure.
+### Limits
 
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-13T23:16:45Z -->
+Rendering uses Oliver through `render`, not `pack`. The template contains
+no theme-switching control or inline font import.
 
+### Cautions
 
-# 🏴 theme-dark Layout Soul
-
-## Architectural Intent
-Provides the standard dark presentation template designed to lower eye strain during long autonomous execution passes.
-
-## Directory / File Schema Expectations
-- Must cleanly parse standard frontmatter objects passed by the hardened rc-pack.sh array structure.
+Keep the relative `$assets_root$` prefix and the `$body$` slot. Styling
+depends on the linked stylesheet; the wrapper alone does not establish
+contrast or accessibility compliance.

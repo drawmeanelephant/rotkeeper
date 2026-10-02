@@ -1,21 +1,22 @@
 ---
-title: "DIP Whitelist"
-description: "Explicit rules for what files are skipped during obsolete culls."
-status: "complete"
+target_file: bones/config/dip-whitelist.txt
+reviewed: "2026-10-01"
+reviewed_against: "0.8.1"
 ---
 
-### Architectural Intent
-A simple plain-text configuration file containing a newline-delimited list of files that should be whitelisted by the Document Improvement Project (DIP). Files listed here are ignored during audits and will not be flagged as obsolete or stubbed.
+### Design
 
-### Directory / File Schema Expectations
-If an invalid filename or path containing a typo is added here, it fails silently, leaving the target file vulnerable to DIP sweeps. Do not add wildcard characters or directory globs unless supported by the parsing logic in `rc-dip.sh`. Keep comments prefixed with `#` to avoid parsing errors.
+DIP reads exact repository-relative documentation paths, one per line.
+It trims surrounding whitespace and ignores blank lines and comments
+starting with `#`. Listed pages bypass the obsolete-document move check.
 
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-13T23:16:45Z -->
+### Limits
 
+Entries are not globs or directory-prefix rules. The whitelist does not
+exempt pages from matrix reporting, reference generation, or pillar
+stitching. It is not a sidecar coverage exception list.
 
-### Architectural Intent
-A simple plain-text configuration file containing a newline-delimited list of files that should be whitelisted by the Document Improvement Project (DIP). Files listed here are ignored during audits and will not be flagged as obsolete or stubbed.
+### Cautions
 
-### Directory / File Schema Expectations
-If an invalid filename or path containing a typo is added here, it fails silently, leaving the target file vulnerable to DIP sweeps. Do not add wildcard characters or directory globs unless supported by the parsing logic in `rc-dip.sh`. Keep comments prefixed with `#` to avoid parsing errors.
+A typo does not match the intended page. Keep only current page paths and
+remove entries when their pages are retired.

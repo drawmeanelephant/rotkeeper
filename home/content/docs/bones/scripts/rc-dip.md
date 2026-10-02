@@ -78,14 +78,17 @@ Obsolete moves require explicit target_file evidence and honor the whitelist; am
 ## Notes
 <!-- DIP-SOUL-EXTRACTED: command-reference.v1 -->
 
-### Bones of the Code
-The so-called Document Improvement Project engine. It ingests path-mirrored Necronotes to 'improve' things. It's a parasitic entity that feeds on sidecar files to alter the behavior or documentation of the host scripts.
+### Design
 
-### Restless Spirits
-The newly refactored ingestion logic is a snake eating its own tail. It is highly susceptible to recursive stitching loops, where a note improves a note that improves a note, ad infinitum. Empty sidecars might also cause it to stumble and collapse, unable to process the void.
+Builds a core-file inventory from `bones/book-reports/rotkeeper-files.md`, excluding runtime artifacts, content, assets, and metadata. Generates a missing catalog on a real run. Creates missing or empty references and regenerates explicitly owned shell-script references from source headers, static help, side-effect annotations, sidecar notes, and matching CHANGELOG bullets. Publishes the audit matrix at `DOCS_DIR/dip-matrix.md`.
 
-### Ritual Warnings
-Do not feed it self-referential sidecars. Handle empty notes with care, or the engine will lock itself in a state of endless contemplation.
+### Limits
+
+Sidecars supply documentation prose, not executable behavior, and do not enter the expected-document ownership map. Recursive generated tails are removed when harvesting their bodies; empty or absent notes receive a factual fallback. Non-empty unowned script pages are preserved. Non-command mirrors retain authored prose while marker-owned sections are updated. Staleness compares UTC calendar dates, not full timestamp precision. The whitelist only exempts obsolete moves, not all reporting or stitching.
+
+### Cautions
+
+An obsolete move requires explicit `target_file` evidence that its target is absent from the core inventory; a missing filesystem catalog disables those moves. Destinations are under the content parent’s `obsolete/docs` tree, not `bones/obsolete`. Existing catalogs are consumed rather than automatically refreshed, so regenerate the catalog when inventory changes. Dry-run avoids document/matrix publication and catalog generation but still writes bootstrap logs; `--json` also creates and removes a scratch file and emits the computed `rotkeeper.dip-matrix.v1` envelope alongside normal console output.
 
 ## History
 <!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->
