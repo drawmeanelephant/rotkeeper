@@ -2406,6 +2406,8 @@ if ! jq -e '
     (.sidecar_coverage | all(.[]; type == "number")) and
     (.orphaned_sidecars | type == "array") and
     all(.rows[]; (.sections | type == "object") and (.placeholder_count | type == "number")) and
+    all(.rows[] | select(.sidecar.state == "missing"); .sidecar.path == null) and
+    all(.rows[] | select(.sidecar.state == "present"); (.sidecar.path | type == "string")) and
     all(.rows[] | select(.status == "OK"); .placeholder_count == 0 and
       all(.sections[]; .state == "populated")) and
     ([.rows[] | select(.status == "Exempt") | .target_file] | sort) == ([
@@ -2432,6 +2434,7 @@ mkdir -p "$audit_root/bones/scripts" "$audit_root/bones/config" \
 cp "$ROOT_DIR/rotkeeper.sh" "$audit_root/"
 cp "$ROOT_DIR"/bones/scripts/rc-*.sh "$audit_root/bones/scripts/"
 cp "$ROOT_DIR/bones/config/version" "$audit_root/bones/config/"
+cp "$ROOT_DIR/bones/reports/coverage-exceptions.md" "$audit_root/bones/reports/"
 cp "$ROOT_DIR/bones/meta/bones/scripts/rc-assets.soul.md" "$audit_root/bones/meta/bones/scripts/"
 printf 'layout_style: "crypt"\n' > "$audit_root/bones/config/rotkeeper.yaml"
 printf '# Changelog\n' > "$audit_root/CHANGELOG.md"
@@ -2604,6 +2607,10 @@ fi
 # A fresh full clone also has checkout mtimes, but must retain known drift.
 fresh_root="$TEST_DIR/dip-fresh"
 git clone -q "file://$audit_root" "$fresh_root"
+if [[ ! -f "$fresh_root/bones/reports/coverage-exceptions.md" ]]; then
+  echo "Assertion failed: a fresh clone lost the reports-directory whitelist pointer."
+  exit 173
+fi
 mkdir -p "$fresh_root/bones/templates" "$fresh_root/home/assets" "$fresh_root/home/content/help"
 audit_raw=$(bash "$fresh_root/rotkeeper.sh" dip --dry-run --json)
 audit_json=$(sed -n '/^{$/,/^}$/p' <<< "$audit_raw")

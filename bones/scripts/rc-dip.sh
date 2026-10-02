@@ -1499,7 +1499,7 @@ if [[ "$JSON_MODE" == true ]]; then
         [inputs | select(length > 0) | split("\t")]
         | map({target_file: .[0], doc: .[1], last_code_edit: .[2], last_doc_edit: .[3], status: .[4],
             sections: (.[5] | fromjson), placeholder_count: (.[6] | tonumber),
-            sidecar: {path: (.[7] | select(length > 0)) // null, state: .[8],
+            sidecar: {path: ((.[7] | select(length > 0)) // null), state: .[8],
               last_edit: .[12], stale: .[11]},
             stale: (if .[9] == "stale" then true elif .[9] == "current" then false else .[9] end),
             staleness: {doc: .[10], sidecar: .[11]}, exemption_reason: .[13]})
