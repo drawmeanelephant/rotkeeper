@@ -56,21 +56,21 @@ if [[ $# -gt 0 ]]; then shift; fi
 #
 # Commands:
 #   init        Initialize environment
-#   new <file>  Scaffold a new markdown file
-#   render      Convert markdown into HTML tombs
-#   pack        Archive rendered HTML into a versioned tarball
+#   new <file>  Scaffold a Markdown, Textile, or Cooklang source
+#   render      Convert source content into HTML with Oliver
+#   pack        Archive the rendered site into a timestamped tarball
 #   preflight   Report Oliver renderer availability and compatibility
 #   release     Package the project into a single canonical framework zip file
 #   bump        Record a microrelease update and synchronize version markers
 #   test        Run the integration test harness matrix (alias: smoke)
 #   scan        Verify manifest entries against actual files
-#   assets      Generate asset manifest
+#   assets      Mirror assets and generate a checksum manifest
 #   autopsy     Catalog script help and output behavior
-#   glue        Auto-generate navigation glue for unindexed content directories
+#   glue        Create missing directory indexes and refresh marked navigation
 #   links       Audit links and local assets in rendered HTML
 #   a11y        Audit theme accessibility: contrast, focus states, legibility
 #   showcase    Generate showcase content for every HTML template
-#   dip         Audit documentation coverage via DIP
+#   dip         Generate references and audit documentation coverage
 #   book        Generate aggregated documentation book targets
 #   status      Display environment health status reports
 #

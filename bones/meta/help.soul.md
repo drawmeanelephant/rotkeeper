@@ -1,16 +1,20 @@
 ---
 title: "Help"
-description: "Content directory reserved for user help."
-reviewed: "2026-10-01"
+description: "Task-based guides for installing, writing, building, checking, publishing, and maintaining Rotkeeper."
+reviewed: "2026-10-02"
 ---
 
 ### Purpose
 
-The help directory is a content section. At review time it contains only
-its index, not onboarding guides, tutorials, or FAQs.
+The authored Help index is the task hub. It links existing guide URLs under
+Docs and the DIP-generated command index; guide URLs are retained so older
+links continue to work. Docs also contains generated core-file references.
 
 ### Contents and conventions
 
-Glue can create or refresh navigation in `index.md`. Author help pages as
-content sources. `render_system_docs: false` excludes this section alongside
-`docs` and `messages` during rendering.
+Do not replace the Help index with an automatic directory listing. Task
+guides declare `doc_type: guide`, record their review date, and have no core
+`target_file`. DIP reports them separately rather than stitching command
+reference sections into them. `render_system_docs: false` excludes Help,
+Docs, and messages together; the published product-help site keeps that
+setting enabled.

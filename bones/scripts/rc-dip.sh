@@ -13,6 +13,7 @@ IFS=$'\n\t'
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
 # Input/Output contracts: reads the fsbook core inventory, script headers/static help/side-effect annotations, sidecars, CHANGELOG, documentation ownership, dip-whitelist.txt, and git commit dates. Generates a missing catalog on demand; a degraded inventory cannot authorize obsolete moves.
 #   Rebuilds missing or explicitly owned script references under `DOCS_DIR` with the command-reference v1 contract. Authored task guides are not replaced. Non-command mirrors retain authored prose while Notes/History and marker-owned runtime sections are migrated.
+#   Refreshes the opt-in command-index block in `DOCS_DIR/index.md` from dispatcher help and script mappings. Reports explicitly authored guides in docs/help separately, including review dates and placeholders.
 #   Obsolete moves require explicit target_file evidence and honor bare whitelist paths; exempt: target | reason entries suppress stubs and stitching. Publishes `DOCS_DIR/dip-matrix.md`; `--json` retains `rotkeeper.dip-matrix.v1` with additive section, placeholder, sidecar coverage/orphan, exemption, and staleness fields. Dry-run previews doc/matrix mutations; shared bootstrap logging still writes.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
@@ -56,6 +57,8 @@ source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&
 #   Bare dip-whitelist.txt paths protect docs from obsolete moves;
 #   exempt: <core path> | <reason> skips reference generation and coverage.
 #   Moves obsolete docs only with explicit ownership evidence.
+#   Refreshes the marked command index from dispatcher source. Pages with
+#   doc_type: guide and no target_file are preserved and reported separately.
 #
 # Options:
 #   --dry-run      Preview actions without moving or writing docs
@@ -686,7 +689,10 @@ fi
 
 log "INFO" "Checking for obsolete docs..."
 # rk_find_content uses -print0 (NUL-delimited) for safe handling of exotic filenames; mapfile -d '' preserves it
-mapfile -d '' EXISTING_DOCS < <(rk_find_content "$DOCS_DIR" md textile cook)
+mapfile -d '' EXISTING_DOCS < <(
+  rk_find_content "$DOCS_DIR" md textile cook
+  if [[ -d "$HELP_DIR" ]]; then rk_find_content "$HELP_DIR" md textile cook; fi
+)
 
 # ---
 # is_blessed_doc: True if doc or its target_file lives under .blessed.
@@ -713,16 +719,24 @@ is_blessed_doc() {
 
 declare -a UNOWNED_DOCS=()
 declare -a OBSOLETE_MOVED=()
+declare -a AUTHORED_GUIDES=()
 
 # In degraded fsbook mode, refuse obsolete moves (inventory incomplete).
 for doc in ${EXISTING_DOCS[@]+"${EXISTING_DOCS[@]}"}; do
   [[ "$doc" == "$MATRIX_FILE" ]] && continue
-  [[ -n "${WHITELIST[$doc]:-}" ]] && continue
 
   target_file_check=""
   if grep -q '^target_file:' "$doc" 2>/dev/null; then
     target_file_check=$(read_target_file "$doc" || true)
   fi
+  # Explicit authorship is not a core-target exemption. Guides have their own
+  # review/placeholder report, and cannot override an expected core reference.
+  if [[ -z "$target_file_check" && -z "${EXPECTED_DOCS[$doc]:-}" \
+    && "$(rk_frontmatter_field doc_type "$doc")" == guide ]]; then
+    AUTHORED_GUIDES+=("$doc")
+    continue
+  fi
+  [[ -n "${WHITELIST[$doc]:-}" ]] && continue
   if [[ -n "$target_file_check" && -n "${EXEMPT_TARGETS[$target_file_check]:-}" ]]; then
     continue
   fi
@@ -760,7 +774,8 @@ for doc in ${EXISTING_DOCS[@]+"${EXISTING_DOCS[@]}"}; do
   # Strong evidence: generated-style reference with target_file no longer in core set
   REL_PATH="${doc#"$DOCS_DIR"/}"
   if [[ "$REL_PATH" == "$doc" ]]; then
-    log "ERROR" "Refuse obsolete move — doc not under DOCS_DIR: $doc"
+    UNOWNED_DOCS+=("$doc")
+    log "WARN" "Keeping doc outside DOCS_DIR; ownership needs review: $doc"
     continue
   fi
   if [[ "$REL_PATH" == /* || "$REL_PATH" == *".."* ]]; then
@@ -1028,6 +1043,94 @@ build_command_reference() {
   build_history_content "$script_name"
 }
 
+# Read the dispatcher, never execute command scripts to discover mappings.
+# Aliases share a case arm; removed commands have no script mapping.
+build_command_index() {
+  local rows command target description doc
+  rows=$(awk '
+    /^# @HELP$/ { help=1; next }
+    /^# @END-HELP$/ { help=0; next }
+    help {
+      line=$0; sub(/^#[[:space:]]?/, "", line)
+      if (line ~ /^[A-Za-z][A-Za-z ]*:$/) { commands=(line == "Commands:"); next }
+      if (commands && line ~ /^[[:space:]]+[a-z][a-z0-9-]*[[:space:]]/) {
+        sub(/^[[:space:]]+/, "", line)
+        cmd=line; sub(/[[:space:]].*$/, "", cmd)
+        desc=line; sub(/^[^[:space:]]+[[:space:]]+/, "", desc)
+        sub(/^<[^>]+>[[:space:]]+/, "", desc)
+        if (cmd in descriptions) bad=1
+        order[++n]=cmd; descriptions[cmd]=desc
+      }
+      next
+    }
+    /^case "\$command" in$/ { dispatch=1; next }
+    dispatch && /^[[:space:]]*[a-z][a-z0-9|-]*\)$/ {
+      arm=$0; gsub(/^[[:space:]]+|\)$/, "", arm); next
+    }
+    dispatch && /^[[:space:]]*;;$/ { arm=""; next }
+    dispatch && arm != "" && match($0, /"\$BONES\/rc-[a-z0-9-]+\.sh"/) {
+      target=substr($0, RSTART+1, RLENGTH-2); sub(/^\$BONES\//, "bones/scripts/", target)
+      split(arm, aliases, "|")
+      for (i in aliases) targets[aliases[i]]=target
+      arms[arm]=target
+    }
+    END {
+      if (!n || bad) exit 1
+      for (a in arms) {
+        found=0; split(a, aliases, "|")
+        for (i in aliases) if (aliases[i] in descriptions) found=1
+        if (!found) exit 1
+      }
+      for (i=1; i<=n; i++) {
+        cmd=order[i]
+        if (!(cmd in targets)) exit 1
+        print cmd "\t" targets[cmd] "\t" descriptions[cmd]
+      }
+    }
+  ' "$ROOT_DIR/rotkeeper.sh") || {
+    log "ERROR" "Dispatcher commands and help disagree; cannot generate the command index."
+    return 1
+  }
+  printf '%s\n' '| Command | Purpose | Reference |' '| --- | --- | --- |'
+  while IFS=$'\t' read -r command target description; do
+    [[ -f "$ROOT_DIR/$target" ]] || return 1
+    doc=$(expected_doc_for_core "$target")
+    doc="${doc#"$DOCS_DIR"/}"
+    description="${description//|/\\|}"
+    printf "| \`%s\` | %s | [%s](%s) |\n" "$command" "$description" \
+      "${target##*/}" "${doc%.md}.html"
+  done <<< "$rows"
+}
+
+# Only the explicitly marked block belongs to DIP; surrounding authored prose
+# stays unchanged. An absent index or unmarked page is not created or replaced.
+refresh_command_index() {
+  local doc="$DOCS_DIR/index.md" content updated
+  [[ -f "$doc" ]] || return 0
+  grep -q '<!-- DIP-COMMAND-INDEX-' "$doc" || return 0
+  if ! awk '
+    /^<!-- DIP-COMMAND-INDEX-START -->$/ { starts++; if (ends) bad=1 }
+    /^<!-- DIP-COMMAND-INDEX-END -->$/ { ends++; if (!starts) bad=1 }
+    END { exit !(starts == 1 && ends == 1 && !bad) }
+  ' "$doc"; then
+    log "ERROR" "Invalid command-index markers: $doc"
+    return 1
+  fi
+  content=$(build_command_index) || return 1
+  updated=$(RK_COMMAND_INDEX="$content" awk '
+    /^<!-- DIP-COMMAND-INDEX-START -->$/ { print; print ENVIRON["RK_COMMAND_INDEX"]; block=1; next }
+    /^<!-- DIP-COMMAND-INDEX-END -->$/ { block=0 }
+    !block { print }
+  ' "$doc") || return 1
+  if [[ "$updated" != "$(cat "$doc")" ]]; then
+    if [[ "${DRY_RUN:-false}" == true ]]; then
+      log "DRY-RUN" "Would refresh dispatcher command index: $doc"
+    else
+      printf '%s\n' "$updated" | atomic_write "$doc"
+    fi
+  fi
+}
+
 # Ensure required marker scaffolding exists without clobbering authored body.
 ensure_dip_markers() {
   local doc_path="$1"
@@ -1266,6 +1369,8 @@ for doc_path in "${!EXPECTED_DOCS[@]}"; do
   stitch_pillar "$doc_path" "DIP-SOUL-EXTRACTED" "$soul_content"
 done
 
+refresh_command_index
+
 # Identify reachable sidecars using the three existing lookup rules. A
 # target_file inside a sidecar is descriptive, not an alternative lookup path.
 declare -A SIDECAR_CONSUMERS=() EXEMPT_SIDECARS=()
@@ -1325,6 +1430,31 @@ STALE_KNOWN=0
 STALE_UNKNOWN=0
 STALE_DOCS=0
 STALE_SIDECARS=0
+declare -a GUIDE_ROWS=() GUIDE_PATHS=() GUIDE_STATES=() GUIDE_DATES=() GUIDE_PLACEHOLDERS=()
+
+if ((${#AUTHORED_GUIDES[@]} > 0)); then
+  mapfile -t AUTHORED_GUIDES < <(printf '%s\n' "${AUTHORED_GUIDES[@]}" | LC_ALL=C sort)
+fi
+for doc in ${AUTHORED_GUIDES[@]+"${AUTHORED_GUIDES[@]}"}; do
+  reviewed=$(rk_frontmatter_field reviewed "$doc")
+  todo_count=$(count_todo_lines "$doc")
+  record_git_edit "$doc"
+  guide_state="Needs review"
+  if [[ "$reviewed" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ \
+    && ! "$reviewed" > "${DATE_STR%%T*}" \
+    && ( "${GIT_EDIT_DATES[$doc]}" == unknown || ! "${GIT_EDIT_DATES[$doc]}" > "$reviewed" ) ]]; then
+    guide_state="Reviewed"
+  fi
+  ((todo_count == 0)) || guide_state="Incomplete"
+  PLACEHOLDER_COUNT=$((PLACEHOLDER_COUNT + todo_count))
+  ((todo_count == 0)) || PLACEHOLDER_PAGES=$((PLACEHOLDER_PAGES + 1))
+  rel_guide="${doc#"$CONTENT_DIR"/}"
+  GUIDE_ROWS+=("| [$rel_guide](../$rel_guide) | ${reviewed:-Not recorded} | $guide_state | $todo_count |")
+  GUIDE_PATHS+=("${doc#"$ROOT_DIR"/}")
+  GUIDE_STATES+=("$guide_state")
+  GUIDE_DATES+=("$reviewed")
+  GUIDE_PLACEHOLDERS+=("$todo_count")
+done
 
 declare -a MATRIX_ROWS=()
 
@@ -1441,6 +1571,9 @@ else
 fi
 for doc_path in ${SORTED_UNOWNED[@]+"${SORTED_UNOWNED[@]}"}; do
   rel_doc="${doc_path#"$DOCS_DIR"/}"
+  if [[ "$rel_doc" == "$doc_path" ]]; then
+    rel_doc="../${doc_path#"$CONTENT_DIR"/}"
+  fi
   record_git_edit "$doc_path"
   doc_date="${GIT_EDIT_DATES[$doc_path]}"
   status="Unowned"
@@ -1525,6 +1658,16 @@ if [[ "$JSON_MODE" == true ]]; then
   fi
 
   matrix_rel="${MATRIX_FILE#"$ROOT_DIR"/}"
+  guides_json="[]"
+  if ((${#GUIDE_PATHS[@]} > 0)); then
+    guides_json=$(
+      for i in "${!GUIDE_PATHS[@]}"; do
+        printf '%s\t%s\t%s\t%s\n' "${GUIDE_PATHS[$i]}" "${GUIDE_STATES[$i]}" \
+          "${GUIDE_DATES[$i]}" "${GUIDE_PLACEHOLDERS[$i]}"
+      done | jq -Rn '[inputs | split("\t")] | map({
+        doc: .[0], status: .[1], reviewed: .[2], placeholder_count: (.[3] | tonumber)})'
+    )
+  fi
 
   # SIDE EFFECT (write): creates a bones/tmp scratch file for stdout JSON assembly
   json_out="$TMP_DIR/dip-json-stdout.$$"
@@ -1542,6 +1685,7 @@ if [[ "$JSON_MODE" == true ]]; then
     printf '  "staleness": {"state": "%s", "git_history": "%s", "stale": %d, "unknown": %d, "docs": %d, "sidecars": %d},\n' \
       "$stale_state" "$GIT_HISTORY" "$STALE_KNOWN" "$STALE_UNKNOWN" "$STALE_DOCS" "$STALE_SIDECARS"
     printf '  "rows": %s,\n' "$rows_json"
+    printf '  "authored_guides": %s,\n' "$guides_json"
     printf '  "ownership_collisions": %s,\n' "$collisions_json"
     printf '  "obsolete_moved": %s,\n' "$obsolete_json"
     printf '  "degraded": {"autopsy_report": %s, "fsbook_catalog": %s, "help_input": %s}\n' \
@@ -1602,6 +1746,12 @@ MATRIX
     echo "$coverage_line"
     echo ""
     echo "$staleness_line"
+    if ((${#GUIDE_ROWS[@]} > 0)); then
+      printf '\n## Authored task guides\n\n'
+      printf '%s\n\n' "These pages declare \`doc_type: guide\`, have no core \`target_file\`, and are maintained by authors, not stitched as command references. Review dates and prose placeholders remain visible; declaration alone does not mean completion."
+      printf '%s\n' '| Guide | Reviewed | Status | Placeholders |' '| --- | --- | --- | --- |'
+      printf '%s\n' "${GUIDE_ROWS[@]}"
+    fi
     if ((${#EXEMPT_TARGETS[@]} > 0)); then
       echo ""
       echo "## Target exemptions"
