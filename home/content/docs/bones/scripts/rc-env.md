@@ -42,7 +42,7 @@ Not documented in the script help block. Consult the source; no command behavior
 **Working directory:** No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
 
 **Inputs and outputs:** internal environment library reached through `rk_load_env`, not a dispatcher command. Derives the canonical paths from `BASH_SOURCE` and configuration, exports the layout/renderer variables, and does not write files.
-Reuses a paths cache only for the same root; relocation invalidates it with a warning. Crypt, busy, and sterile select their respective content/templates/assets/output paths. Unsupported input/profile values fall back to Markdown/HTML.
+Reuses a paths cache only for the same root in normal mode; init bootstrap ignores it and derives paths from the physical root and active layout. Relocation invalidates normal-mode caches with a warning. Unsupported input/profile values fall back to Markdown/HTML.
 `ROTKEEPER_ENV_LOADED` makes repeated loading for the same root idempotent; `FORCE_ENV_RELOAD` is reserved for init after cache writes. Strict validation in rc-utils rejects corrupted caches or escaping paths.
 
 ## Side effects
@@ -58,7 +58,7 @@ Internal Bash library loaded through `rk_load_env`, not a dispatcher command. De
 
 ### Limits
 
-Reuses a serialized paths block only when its saved root equals the current root. A relocated cache is ignored during derivation with a warning, but shared strict validation can still reject the saved configuration. Repeated loads for the same root return early unless forced; editing configuration does not automatically refresh variables in an already-loaded shell. Unsupported input formats and render profiles fall back to Markdown and HTML.
+Normal commands reuse a serialized paths block only when its saved root equals the physical root. A relocated cache is ignored during derivation with a warning, but shared strict validation still rejects the saved configuration. Init bootstrap always ignores the cache and rederives all destinations from the root and YAML layout before validating them. Normal repeated loads for the same root return early unless forced; editing configuration does not automatically refresh variables in an already-loaded shell. Unsupported input formats and render profiles fall back to Markdown and HTML.
 
 ### Cautions
 

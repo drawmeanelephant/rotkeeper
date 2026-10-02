@@ -218,7 +218,9 @@ Guides must be reviewed and placeholder-free; missing generation inputs or
 ambiguous ownership also fail.
 
 The full `test` runs these same gates on a disposable copy of the tracked
-working site, plus negative regressions for each gate. `test --site` checks
+working site, including current edits. It refreshes only the copy's
+checkout-specific paths with plain `init`, checks parent configuration and
+edit preservation, and runs negative regressions for each gate. `test --site` checks
 the actual output artifact in the current checkout. CI and the publishing
 workflow both enforce this mode before accepting or uploading that output.
 There is no warn-only switch. Neither mode publishes content.
@@ -251,7 +253,7 @@ and [contribution rules](CONTRIBUTING.html). Configuration shapes are in the
 | `Missing required dependency` | Install the named tool. Confirm mikefarah `yq` v4, GNU `gawk`, and Bash 4+ are on `PATH`. |
 | Oliver missing or rendering fails before page discovery | Run `preflight`; fix `PATH` or `RK_OLIVER_BIN`, then rerun it. |
 | `YAML configuration is malformed` | Validate `bones/config/rotkeeper.yaml` with `yq eval '.'`; repair YAML rather than removing validation. |
-| Cached paths do not match the current repository | Run `init` to rewrite path mappings. Do not copy a serialized `paths` block from another checkout. |
+| Cached paths do not match the current repository | From the copied or moved checkout, run `bash rotkeeper.sh init` to derive safe paths from its physical root and active layout and replace the stale cache. Normal commands reject the mismatch until repaired. `init --dry-run` previews without rewriting the cache; it still creates local bootstrap logs. Repair malformed YAML or escaping symlinks first. |
 | `File already exists` | Edit that source, or choose another filename. `new` does not overwrite it. |
 | `Source basename collision` | Keep only one source format for a directory/basename pair. |
 | `RawHtmlNotXmlWellFormed` | Remove incompatible raw HTML or use the HTML profile with an HTML wrapper. |

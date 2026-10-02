@@ -364,6 +364,20 @@ mkdir -p "$TEST_DIR"
 
 LAYOUT_MODES=("crypt" "busy" "sterile")
 
+assert_env_rejection() {
+  local root="$1" expected="$2" result
+  shift 2
+  if result=$(bash "$root/rotkeeper.sh" "$@" 2>&1); then
+    echo "Assertion failed: $* accepted invalid environment ($expected)."
+    exit 172
+  fi
+  if ! grep -Fq "$expected" <<< "$result"; then
+    printf '%s\n' "$result"
+    echo "Assertion failed: $* rejected the environment for the wrong reason."
+    exit 172
+  fi
+}
+
 for mode in ${LAYOUT_MODES[@]+"${LAYOUT_MODES[@]}"}; do
   pass_dir="$TEST_DIR/$mode"
 
@@ -407,7 +421,7 @@ for mode in ${LAYOUT_MODES[@]+"${LAYOUT_MODES[@]}"}; do
 project: "Test Tomb"
 author: "Test Necromancer"
 default_template: "theme-light.html"
-layout_style: "$mode"
+layout_style: $mode
 CONF_EOF
 
   mkdir -p "$pass_dir/$b_css"
@@ -419,6 +433,101 @@ CONF_EOF
 
     echo "  [+] Initializing environment testing pass..."
     ./rotkeeper.sh init --with-sample > /dev/null
+
+    echo "  [+] Testing plain init relocation repair and environment protections ($mode)..."
+    repair_root="$TEST_DIR/relocation-$mode"
+    repair_config="$repair_root/bones/config/rotkeeper.yaml"
+    repair_output="$repair_root/output"
+    [[ "$mode" != sterile ]] || repair_output="$repair_root/dist"
+    parent_config_before=$(rk_sha256 "$pass_dir/bones/config/rotkeeper.yaml")
+    printf '\n<!-- Preserve this working edit through relocation repair. -->\n' >> "$pass_dir/$b_content/test-file.md"
+    parent_content_before=$(rk_sha256 "$pass_dir/$b_content/test-file.md")
+    cp -R "$pass_dir" "$repair_root"
+    assert_env_rejection "$repair_root" "Environment relocation mismatch detected." preflight
+    repair_config_before=$(rk_sha256 "$repair_config")
+    rmdir "$repair_output"
+    bash "$repair_root/rotkeeper.sh" init --dry-run > /dev/null
+    if [[ "$repair_config_before" != "$(rk_sha256 "$repair_config")" || -e "$repair_output" ]]; then
+      echo "Assertion failed: init --dry-run changed the relocated config or created output."
+      exit 172
+    fi
+    assert_env_rejection "$repair_root" "Environment relocation mismatch detected." preflight
+    bash "$repair_root/rotkeeper.sh" init > /dev/null
+    bash "$repair_root/rotkeeper.sh" preflight > /dev/null
+    if [[ "$(yq eval '.paths.ROOT_DIR' "$repair_config")" != "$repair_root" \
+      || "$(yq eval '.paths.CONTENT_DIR' "$repair_config")" != "$repair_root/$b_content" \
+      ]] || ! cmp -s "$pass_dir/$b_content/test-file.md" "$repair_root/$b_content/test-file.md"; then
+      echo "Assertion failed: plain init did not repair the copy's active layout or preserved content."
+      exit 172
+    fi
+    # A physical move must be repairable too, without a skip-env escape hatch.
+    moved_root="$TEST_DIR/moved-$mode"
+    mv "$repair_root" "$moved_root"
+    repair_root="$moved_root"
+    repair_config="$repair_root/bones/config/rotkeeper.yaml"
+    repair_output="$repair_root/output"
+    [[ "$mode" != sterile ]] || repair_output="$repair_root/dist"
+    assert_env_rejection "$repair_root" "Environment relocation mismatch detected." preflight
+    bash "$repair_root/rotkeeper.sh" init > /dev/null
+    bash "$repair_root/rotkeeper.sh" preflight > /dev/null
+    repair_good="$TEST_DIR/repair-$mode.yaml"
+    cp "$repair_config" "$repair_good"
+    for invalid in malformed missing escape layout; do
+      cp "$repair_good" "$repair_config"
+      case "$invalid" in
+        malformed)
+          printf 'paths: [unterminated\n' > "$repair_config"
+          expected_error="YAML configuration is malformed"
+          ;;
+        missing)
+          yq eval 'del(.paths.CONTENT_DIR)' -i "$repair_config"
+          expected_error="Corrupted path cache."
+          ;;
+        escape)
+          ROOT_ESCAPE="$pass_dir/output" yq eval '.paths.OUTPUT_DIR = strenv(ROOT_ESCAPE)' -i "$repair_config"
+          expected_error="Structural coherence violation."
+          ;;
+        layout)
+          next_layout=sterile
+          [[ "$mode" != sterile ]] || next_layout=crypt
+          NEXT_LAYOUT="$next_layout" yq eval '.layout_style = strenv(NEXT_LAYOUT)' -i "$repair_config"
+          expected_error="Mid-flight layout change detected."
+          ;;
+      esac
+      assert_env_rejection "$repair_root" "$expected_error" preflight
+      if [[ "$invalid" == malformed ]]; then
+        repair_bad_before=$(rk_sha256 "$repair_config")
+        assert_env_rejection "$repair_root" "$expected_error" init
+        [[ "$repair_bad_before" == "$(rk_sha256 "$repair_config")" ]] || exit 172
+      elif [[ "$invalid" != layout ]]; then
+        # Even a same-root poisoned cache must never choose init write targets.
+        bash "$repair_root/rotkeeper.sh" init --dry-run > /dev/null
+        bash "$repair_root/rotkeeper.sh" init > /dev/null
+        cmp -s "$repair_good" "$repair_config" || {
+          echo "Assertion failed: init did not replace the invalid cache with derived paths."
+          exit 172
+        }
+      fi
+      echo "Pass: $invalid environment protection ($mode)."
+    done
+    cp "$repair_good" "$repair_config"
+    # Derived paths must also be checked canonically before any init writes.
+    rmdir "$repair_output"
+    ln -s "$pass_dir/output" "$repair_output"
+    assert_env_rejection "$repair_root" "Structural coherence violation." init
+    assert_env_rejection "$repair_root" "Structural coherence violation." init --dry-run
+    rm "$repair_output"
+    mkdir -p "$repair_output"
+    for preview in init preflight render; do
+      bash "$repair_root/rotkeeper.sh" "$preview" --dry-run > /dev/null
+    done
+    if ! cmp -s "$repair_good" "$repair_config" \
+      || [[ "$parent_config_before" != "$(rk_sha256 "$pass_dir/bones/config/rotkeeper.yaml")" \
+      || "$parent_content_before" != "$(rk_sha256 "$pass_dir/$b_content/test-file.md")" ]]; then
+      echo "Assertion failed: relocation repair/dry-runs changed the parent config or working edit."
+      exit 172
+    fi
+    echo "Pass: copy/move repair, canonical boundary, dry-runs, and parent isolation ($mode)."
 
     echo "  [+] Testing renderer selection and validation..."
     # 1. Invalid renderer flag must fail
@@ -3342,10 +3451,34 @@ echo "--- Enforced Help/Docs site gates and negative regressions ---"
 # Copy tracked working files, including current edits, not reports, archives,
 # secrets, or this harness's own fixtures. The real site build is mandatory.
 require_bins rsync python3 git
+site_parent_config="$CONFIG_DIR/rotkeeper.yaml"
+site_parent_config_before=$(rk_sha256 "$site_parent_config")
+site_parent_edits_before=$(git -C "$ROOT_DIR" diff --binary HEAD)
+site_seed="$TEST_DIR/help-site-initialized"
 site_root="$TEST_DIR/help-site"
-mkdir -p "$site_root"
+mkdir -p "$site_seed" "$site_root"
 git -C "$ROOT_DIR" ls-files -z |
-  rsync -a --from0 --files-from=- "$ROOT_DIR/" "$site_root/"
+  rsync -a --from0 --files-from=- "$ROOT_DIR/" "$site_seed/"
+# Confirm that this is the tracked working tree, not a clean HEAD archive.
+site_copy_delta=$(git -C "$ROOT_DIR" ls-files -z |
+  rsync -naci --from0 --files-from=- "$ROOT_DIR/" "$site_seed/")
+if [[ -n "$site_copy_delta" ]]; then
+  echo "Assertion failed: Help-site copy lost tracked working edits."
+  exit 172
+fi
+# Always exercise an initialized source, even when the harness starts pristine.
+# Init repairs inherited caches only in these disposable copies.
+bash "$site_seed/rotkeeper.sh" init > /dev/null
+rsync -a "$site_seed/" "$site_root/"
+assert_env_rejection "$site_root" "Environment relocation mismatch detected." preflight
+site_config="$site_root/bones/config/rotkeeper.yaml"
+site_config_before=$(rk_sha256 "$site_config")
+bash "$site_root/rotkeeper.sh" init --dry-run > /dev/null
+if [[ "$site_config_before" != "$(rk_sha256 "$site_config")" ]]; then
+  echo "Assertion failed: Help-site relocation dry-run rewrote the copied config."
+  exit 172
+fi
+bash "$site_root/rotkeeper.sh" init > /dev/null
 build_help_site "$site_root"
 site_content="$site_root/home/content"
 site_output="$site_root/output"
@@ -3355,6 +3488,12 @@ esac
 site_evidence="$site_root/bones/tmp/help-site-dip.txt"
 bash "$site_root/rotkeeper.sh" dip --dry-run --json > "$site_evidence"
 assert_help_site "$site_root" "$site_content" "$site_output" "$site_evidence"
+if [[ "$site_parent_config_before" != "$(rk_sha256 "$site_parent_config")" \
+  || "$site_parent_edits_before" != "$(git -C "$ROOT_DIR" diff --binary HEAD)" ]]; then
+  echo "Assertion failed: disposable Help-site repair/build changed the parent config or working edits."
+  exit 172
+fi
+echo "Pass: initialized Help-site copy repaired and built; parent config and tracked working edits unchanged."
 
 # Corrupt only disposable fixture artifacts. Each fault starts from the same
 # passing site and must fail for its named gate, not an unrelated exception.
