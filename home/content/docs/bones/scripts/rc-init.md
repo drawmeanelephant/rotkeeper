@@ -61,7 +61,7 @@ bash rotkeeper.sh init --with-sample --dry-run
 **Working directory:** No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
 
 **Inputs and outputs:** requires Bash and mikefarah yq v4+, marks command scripts/tests executable, and creates the content, output, and configuration directories without deleting existing content.
-Writes `bones/config/rotkeeper.yaml`: seeds missing configuration, applies the selected layout, and serializes the full paths cache in one yq transaction, followed by a forced strict environment reload. This repairs relocation/layout-cache validation failures.
+Uses the shared init bootstrap to ignore cached destinations and validate paths derived from the physical root and active layout before any writes. Replaces the paths cache in one yq transaction, followed by a forced strict environment reload, repairing relocation/layout-cache failures.
 `--with-sample` creates `CONTENT_DIR/test-file.md` only if absent; `--with-assets` and `--with-render` delegate to those commands. `--full` includes sample, assets, render, and scan. Delegated commands retain their own write/delete contracts. Dry-run previews changes.
 
 ## Side effects
@@ -76,15 +76,15 @@ Writes `bones/config/rotkeeper.yaml`: seeds missing configuration, applies the s
 
 ### Design
 
-Initializes directories and configuration without a content-deletion workflow. Real runs mark matching command scripts and Bats files executable, create content/output/configuration directories, seed an absent or empty configuration, and serialize the runtime paths block through yq. A forced strict environment reload follows the cache write. Optional starter content is `CONTENT_DIR/test-file.md` and is kept if already present.
+Initializes directories and configuration without a content-deletion workflow. The shared bootstrap ignores serialized paths and derives destinations from the physical repository root and active layout. It rejects malformed YAML and canonical paths that escape that root before logging or other writes. Real runs mark matching command scripts and Bats files executable, create core directories, seed an absent or empty configuration, and replace the paths block through yq. A forced strict environment reload follows the cache write. Optional starter content is `CONTENT_DIR/test-file.md` and is kept if already present.
 
 ### Limits
 
-Does not copy or install templates and has no destructive `--force` mode. Optional assets/render work is delegated, and full mode adds sample content plus assets, render, and scan; those commands retain their own contracts. The dispatcher and script still pass through shared strict validation before the main initialization work, so bootstrap loading alone does not guarantee that every broken layout can be repaired.
+Does not copy or install templates and has no destructive `--force` mode. Plain `bash rotkeeper.sh init` repairs an initialized checkout copied or moved to another physical root, including stale or incomplete caches. It does not repair malformed YAML, escaping symlinks, or missing layout resources. Optional assets/render work is delegated, and full mode adds sample content plus assets, render, and scan; those commands retain their own contracts.
 
 ### Cautions
 
-Changing the configuration’s layout label and writing the current runtime cache does not move content, templates, or assets. Check the selected paths and reload result rather than assuming `--profile` migrates a repository. Dry-run skips chmod, configuration writes, sample writes, and delegated commands, but the core directory creation is unconditional and shared bootstrap logging still writes.
+Changing the configuration’s layout label and writing the current runtime cache does not move content, templates, or assets. Check the selected paths and reload result rather than assuming `--profile` migrates a repository. `init --dry-run` skips chmod, core directory creation, configuration writes, sample writes, and delegated commands. Shared bootstrap logging still writes inside the current checkout, never through the discarded cache.
 
 ## History
 <!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->

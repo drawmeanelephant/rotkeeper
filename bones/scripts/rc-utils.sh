@@ -3,10 +3,12 @@ set -euo pipefail
 IFS=$'\n\t'
 # ---
 # rk_load_env: The canonical sequence to load the environment.
-# Callers source rc-utils.sh, which automatically calls rk_load_env strict (unless ROT_SKIP_ENV=true) when initializing via rk_init_script.
+# rk_init_script loads strictly for normal commands; only init uses bootstrap
+# to derive safe paths without trusting the cache it is about to replace.
 # ---
 rk_load_env() {
   local mode="${1:-strict}"
+  local RK_ENV_MODE="$mode"
 
   local env_file
   env_file="$(dirname "${BASH_SOURCE[0]:-$0}")/rc-env.sh"
@@ -18,11 +20,14 @@ rk_load_env() {
 
 
   # Policy validation is kept separate from environment derivation.
-  if [[ "$mode" == "strict" ]]; then
+  if [[ "$mode" == "strict" || "$mode" == "bootstrap" ]]; then
       # Ensure environment load validates that required layout-derived variables are set
       require_env_vars ROOT_DIR BONES_DIR CONTENT_DIR OUTPUT_DIR TEMPLATE_DIR ASSETS_DIR DOCS_DIR HELP_DIR META_DIR LOG_DIR TMP_DIR CONFIG_DIR ARCHIVE_DIR RELEASE_DIR REPORT_DIR BOOK_REPORT_DIR SCRIPT_DIR WEB_DIR
 
       local target_config="${CONFIG_DIR}/rotkeeper.yaml"
+      if [[ "$mode" == "bootstrap" ]]; then
+        target_config="$CONFIG_TARGET"
+      fi
       if [[ -s "$target_config" ]]; then
         # A missing yq must not masquerade as malformed YAML: name the missing
         # tool with an install hint before any config parse is attempted. At
@@ -42,9 +47,7 @@ rk_load_env() {
         fi
       fi
 
-      validate_layout_alignment "strict"
-  elif [[ "$mode" == "bootstrap" ]]; then
-      validate_layout_alignment "bootstrap"
+      validate_layout_alignment "$mode"
   fi
 }
 
@@ -691,6 +694,27 @@ validate_layout_alignment() {
   # ROOT_DIR. A missing ROOT_DIR is a bootstrap ordering bug, so fail closed
   # instead of silently validating the caller's CWD.
   local root_fallback="${ROOT_DIR:?ROOT_DIR is unset; load rc-env.sh via rk_load_env before validating layout alignment}"
+  if [[ "$mode" == "bootstrap" ]]; then
+      # Init may replace an invalid cache, never use it to select write targets.
+      # Check every derived destination before logs, chmod, mkdir, or yq writes.
+      local canon_root canon_val p_name
+      canon_root=$(realpath -m "$root_fallback" 2>/dev/null || readlink -m "$root_fallback" 2>/dev/null) || {
+          echo "[ERROR] Cannot validate canonical paths; GNU realpath/readlink -m is required." >&2
+          exit 1
+      }
+      for p_name in BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR ARCHIVE_DIR RELEASE_DIR REPORT_DIR BOOK_REPORT_DIR META_DIR TEMPLATE_DIR ASSETS_DIR CONTENT_DIR OUTPUT_DIR DOCS_DIR HELP_DIR WEB_DIR CONFIG_TARGET; do
+          canon_val=$(realpath -m "${!p_name}" 2>/dev/null || readlink -m "${!p_name}" 2>/dev/null) || {
+              echo "[ERROR] Cannot canonicalize $p_name." >&2
+              exit 1
+          }
+          if [[ "$canon_val" != "$canon_root/"* ]]; then
+              echo "[ERROR] Structural coherence violation." >&2
+              echo "  -> $p_name ($canon_val) escapes Root Dir ($canon_root)." >&2
+              exit 1
+          fi
+      done
+      return 0
+  fi
   local target_config="${CONFIG_DIR:-${root_fallback}/bones/config}/rotkeeper.yaml"
   if [[ ! -f "$target_config" ]]; then
     target_config="${root_fallback}/config/rotkeeper.yaml"
@@ -1055,7 +1079,11 @@ rk_init_script() {
 
   # Ensure the environment is canonically loaded before continuing so logs can write to LOG_DIR
   if [[ "${ROT_SKIP_ENV:-false}" != true ]]; then
-    rk_load_env strict
+    if [[ "$SCRIPTNAME" == "rc-init" ]]; then
+      rk_load_env bootstrap
+    else
+      rk_load_env strict
+    fi
   fi
 
   init_log "$SCRIPTNAME"

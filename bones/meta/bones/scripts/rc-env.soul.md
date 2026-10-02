@@ -1,6 +1,6 @@
 ---
 target_file: bones/scripts/rc-env.sh
-reviewed: "2026-10-01"
+reviewed: "2026-10-02"
 reviewed_against: "0.8.1"
 ---
 
@@ -10,7 +10,7 @@ Internal Bash library loaded through `rk_load_env`, not a dispatcher command. De
 
 ### Limits
 
-Reuses a serialized paths block only when its saved root equals the current root. A relocated cache is ignored during derivation with a warning, but shared strict validation can still reject the saved configuration. Repeated loads for the same root return early unless forced; editing configuration does not automatically refresh variables in an already-loaded shell. Unsupported input formats and render profiles fall back to Markdown and HTML.
+Normal commands reuse a serialized paths block only when its saved root equals the physical root. A relocated cache is ignored during derivation with a warning, but shared strict validation still rejects the saved configuration. Init bootstrap always ignores the cache and rederives all destinations from the root and YAML layout before validating them. Normal repeated loads for the same root return early unless forced; editing configuration does not automatically refresh variables in an already-loaded shell. Unsupported input formats and render profiles fall back to Markdown and HTML.
 
 ### Cautions
 

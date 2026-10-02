@@ -22,12 +22,13 @@ Source: `bones/scripts/rc-test.sh`.
 ## Usage
 
 ```bash
-rotkeeper.sh test|smoke [--dry-run]
+rotkeeper.sh test|smoke [--dry-run | --site]
 ```
 
 ## Options
 
 ```text
+--site         Build and enforce Help/Docs gates in the current checkout
 --dry-run      Run only the removed-command regression checks
 --help, -h     Show help
 --version, -v  Show version and quit
@@ -37,6 +38,7 @@ rotkeeper.sh test|smoke [--dry-run]
 
 ```bash
 bash rotkeeper.sh test               # Full multi-layout harness matrix
+bash rotkeeper.sh test --site        # Build/check the deployable help site
 bash rotkeeper.sh test --dry-run     # Removed-command regressions only
 ```
 
@@ -71,10 +73,27 @@ Reads the release version from `bones/config/version` or `ROTKEEPER_VERSION`; re
 
 Bash integration harness shared by the dispatcher test and smoke commands. Creates crypt, busy, and sterile fixtures beneath `bones/tmp/rotkeeper-test-env`, exercises initialization, rendering, packaging, scanning, and release, and checks output pruning, archive integrity, metadata/template contracts, documentation navigation, and command help/version behavior. Includes isolated DIP generation and migration fixtures and removed-command regressions.
 
+The full run also initializes a disposable copy of the tracked working site,
+copies it again, proves normal commands reject its stale relocation cache,
+and repairs it with plain init before building. It checks that copying retains
+tracked working edits and that repair/build leaves the parent configuration
+byte-identical and its tracked edits unchanged. Each layout also checks copy
+and physical-move repair, malformed YAML, missing/escaping caches, layout
+changes, canonical symlink boundaries, and supported dry-run non-mutation.
+The repaired copy builds and
+enforces the Help/Docs quality gates. Fifteen isolated corruptions prove
+failures for placeholders, links, accessibility, sidecars, generated command
+coverage, page structure, authored guides, and degraded DIP inputs.
+`test --site` runs the same build and gates in the current checkout, without
+the fixture matrix. CI and publication use this mode to check the actual
+deployable artifact. It regenerates source references and the DIP matrix.
+
 ### Limits
 
 Uses fixture Oliver executables for adapter contracts, with real-renderer smoke, CommonMark, XHTML, and template-golden checks when an executable Oliver is available. `RK_STRICT=1` makes specified missing real-renderer checks, fixtures, or XML tooling fatal rather than skipped. The dry-run mode runs only the removed-command regressions; it is not a preview of the full matrix. Dry-run payload non-mutation assertions compare file counts, not all file contents.
 
+Init relocation dry-runs compare configuration bytes and check that output
+directories are not created; bootstrap logs remain an expected write.
 The isolated scaffold contract checks Markdown, Textile, and Cooklang
 sidecars in every layout, including null review fields, dry-run non-publication,
 and preservation of existing sidecars. It also checks that glue does not
