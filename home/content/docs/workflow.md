@@ -189,6 +189,53 @@ separately, including missing/older review dates and unfinished prose; it
 does not require command-reference sections or suppress their findings.
 Review a guide whenever its instructions change.
 
+### Enforced site gates
+
+```bash
+bash rotkeeper.sh test --site
+```
+
+This builds the current checkout through `preflight`, `book --fsbook`,
+`autopsy --all`, `dip`, and `render`, then checks:
+
+1. No unfinished placeholder text in rendered Help or Docs, including code examples.
+2. No broken local links, fragments, or assets anywhere in the rendered site.
+3. Every stylesheet used by Help or Docs has a passing static accessibility audit.
+4. Every non-exempt DIP target has an existing sidecar, with no unreachable sidecars.
+5. Every script-backed dispatcher command, including aliases, has a generated
+   reference and a link in the marked, generated Docs command index. Manual
+   command rows outside that block fail.
+6. Every Help and Docs source is rendered; each rendered page has exactly one
+   H1 and a nav landmark. Missing or disabled documentation fails.
+
+Help and Docs are the product-documentation scope, recursively, including
+directory indexes, authored guides, references, Textile pages, and the DIP
+matrix. Other site content is outside the page-structure and placeholder
+checks, but not the whole-site link check. DIP exceptions apply to reference
+and sidecar generation only; they do not exempt a rendered page from checks.
+Both core-reference rows and the separate authored-guide report are consumed.
+Guides must be reviewed and placeholder-free; missing generation inputs or
+ambiguous ownership also fail.
+
+The full `test` runs these same gates on a disposable copy of the tracked
+working site, plus negative regressions for each gate. `test --site` checks
+the actual output artifact in the current checkout. CI and the publishing
+workflow both enforce this mode before accepting or uploading that output.
+There is no warn-only switch. Neither mode publishes content.
+
+DIP's aggregate `Stub`, `Stale`, and `Unowned` counts are not interchangeable
+with site defects. The gate prints section gaps, unowned paths, staleness,
+and authored-guide states rather than silently dropping them. The inherited
+19 stub rows include template pages still marked `status: stub` despite
+populated sections, missing overview sections for `.agentignore` and the
+version file, internal libraries without CLI help, and scripts with no
+annotated side effects. These are not missing sidecars or rendered
+placeholders. Six unowned pages are four fixture directory indexes,
+`daisyui-map.md`, and `textile-showcase.textile`, not orphaned sidecars.
+Git staleness is a review signal; it is unknown in copies without history.
+The gates independently check actual sidecar files, command-reference
+contracts/usage, rendered text, structure, links, and audited stylesheets.
+
 Optional binders include `book --docbook`, `book --scriptbook-full`, and
 `book --configbook`. They write retrieval aids under `bones/book-reports/`,
 not authoritative policy or files to deploy.
