@@ -2602,24 +2602,41 @@ if [[ -e "$audit_root/home/content/docs/exempt.md" || -e "$audit_root/home/conte
   echo "Assertion failed: DIP exemptions, legacy whitelist, or matrix publication."
   exit 172
 fi
-# Use the configured Git identity, never invent one. Two committed dates
-# make both doc and sidecar drift observable despite identical checkout mtimes.
+# Preserve the checkout's existing author/committer identities in raw fixture
+# objects. No runner identity or Git configuration changes are needed.
+# Two committed dates reveal drift despite identical checkout mtimes.
+audit_author=$(git -C "$ROOT_DIR" log -1 --format='%an <%ae>')
+audit_committer=$(git -C "$ROOT_DIR" log -1 --format='%cn <%ce>')
 git -C "$audit_root" init -q
 git -C "$audit_root" add .
-GIT_AUTHOR_DATE='2001-01-01T00:00:00Z' GIT_COMMITTER_DATE='2001-01-01T00:00:00Z' \
-  git -C "$audit_root" commit -q -F - <<'AUDIT_INITIAL_COMMIT'
-test: establish DIP history
-
-Co-authored-by: factory-droid[bot] <138933559+factory-droid[bot]@users.noreply.github.com>
-AUDIT_INITIAL_COMMIT
+audit_initial_commit=$(
+  {
+    printf 'tree %s\n' "$(git -C "$audit_root" write-tree)"
+    printf 'author %s 978307200 +0000\ncommitter %s 978307200 +0000\n\n' \
+      "$audit_author" "$audit_committer"
+    printf 'test: establish DIP history\n\nCo-authored-by: factory-droid[bot] <138933559+factory-droid[bot]@users.noreply.github.com>\n'
+  } | git -C "$audit_root" hash-object -t commit -w --stdin
+)
+git -C "$audit_root" update-ref HEAD "$audit_initial_commit"
 printf 'Changed fixture.\n' >> "$audit_root/complete.conf"
 git -C "$audit_root" add complete.conf
-GIT_AUTHOR_DATE='2002-01-01T00:00:00Z' GIT_COMMITTER_DATE='2002-01-01T00:00:00Z' \
-  git -C "$audit_root" commit -q -F - <<'AUDIT_TARGET_COMMIT'
-test: change DIP target
-
-Co-authored-by: factory-droid[bot] <138933559+factory-droid[bot]@users.noreply.github.com>
-AUDIT_TARGET_COMMIT
+audit_target_commit=$(
+  {
+    printf 'tree %s\nparent %s\n' "$(git -C "$audit_root" write-tree)" "$audit_initial_commit"
+    printf 'author %s 1009843200 +0000\ncommitter %s 1009843200 +0000\n\n' \
+      "$audit_author" "$audit_committer"
+    printf 'test: change DIP target\n\nCo-authored-by: factory-droid[bot] <138933559+factory-droid[bot]@users.noreply.github.com>\n'
+  } | git -C "$audit_root" hash-object -t commit -w --stdin
+)
+git -C "$audit_root" update-ref HEAD "$audit_target_commit" "$audit_initial_commit"
+if [[ "$(git -C "$audit_root" rev-list --count HEAD)" != 2 ]] \
+  || [[ "$(git -C "$audit_root" log -1 --format='%an <%ae>')" != "$audit_author" ]] \
+  || [[ "$(git -C "$audit_root" log -1 --format='%cn <%ce>')" != "$audit_committer" ]] \
+  || [[ "$(git -C "$audit_root" log -1 --format='%at %ct' "$audit_initial_commit")" != '978307200 978307200' ]] \
+  || [[ "$(git -C "$audit_root" log -1 --format='%at %ct' "$audit_target_commit")" != '1009843200 1009843200' ]]; then
+  echo "Assertion failed: DIP fixture history did not preserve identities and committed dates."
+  exit 173
+fi
 touch "$audit_root/home/content/docs/complete.md" "$audit_root/bones/meta/complete.soul.md"
 printf '# Help input\n' > "$audit_root/bones/reports/autopsy-help.md"
 audit_raw=$(bash "$audit_root/rotkeeper.sh" dip --dry-run --json)
