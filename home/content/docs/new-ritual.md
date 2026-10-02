@@ -53,7 +53,7 @@ model.
 - **DIP**: `book --fsbook` discovers core scripts. `dip` generates missing reference pages and rebuilds pages whose `target_file` matches the script, at the mirrored path under the active `DOCS_DIR`. Authored pages without matching ownership are not replaced.
 - **Tests**: `bones/scripts/rc-test.sh` copies command scripts into `crypt`, `busy`, and `sterile` fixtures. Extend its workflow assertions and command-contract coverage for new behavior.
 
-## Command reference contract
+## Command reference contract <a id="command-reference-contract"></a>
 
 The contract identifier is `rotkeeper.command-reference.v1`. DIP owns command
 reference pages; authors own task guides. Change the script annotations,
@@ -132,7 +132,7 @@ engine migrates marker-owned headings alongside reference generation,
 including boundary recognition, stub templates, and TODO counting. It also
 recognizes old heading names while reading older sidecar tails.
 
-## Sidecar contract
+## Sidecar contract <a id="sidecar-contract"></a>
 
 File sidecars use this frontmatter:
 
