@@ -78,9 +78,9 @@ a nested page you created, and its stylesheet with the local bytes:
 
 ```bash
 export DEPLOYMENT_URL="https://YOUR-DEPLOYMENT.rotkeeper.pages.dev"
-curl -fsS "$DEPLOYMENT_URL/" | cmp - output/index.html
-curl -fsS "$DEPLOYMENT_URL/journal/walkthrough.html" | cmp - output/journal/walkthrough.html
-curl -fsS "$DEPLOYMENT_URL/assets/css/theme-spooky-dark.css" | cmp - output/assets/css/theme-spooky-dark.css
+curl -fsSL -A rotkeeper-deploy-check "$DEPLOYMENT_URL/" | cmp - output/index.html
+curl -fsSL -A rotkeeper-deploy-check "$DEPLOYMENT_URL/journal/walkthrough.html" | cmp - output/journal/walkthrough.html
+curl -fsSL -A rotkeeper-deploy-check "$DEPLOYMENT_URL/assets/css/theme-spooky-dark.css" | cmp - output/assets/css/theme-spooky-dark.css
 ```
 
 Create `journal/walkthrough.md` with `new --subdir journal` as shown in the
@@ -89,6 +89,13 @@ path. Nonzero curl or cmp exits mean verification failed. These reads check
 public delivery, not visual appearance or assistive-technology behavior.
 An archive, a local browser, or a successful CLI upload alone is not
 publication evidence.
+
+Follow redirects because Pages canonicalizes HTML routes. Automated
+verification uses the descriptive `rotkeeper-deploy-check` user agent,
+also used by the production verifier. Cloudflare can reject the default
+Python user agent with HTTP 403/error 1010 even when the public page works.
+Use the named verifier rather than disabling browser-integrity or access
+controls. Continue to require HTTP 200 and exact bytes.
 
 ## This repository's help site
 

@@ -19,8 +19,14 @@ Install Git, clone the repository into a new directory, and enter it:
 
 ```bash
 git clone https://github.com/drawmeanelephant/rotkeeper.git
-cd rotkeeper
+cd -P rotkeeper
 ```
+
+Use a physical working directory (`pwd -P`), not a symlink alias. On macOS,
+for example, `/tmp` points to `/private/tmp`. A logical checkout path can
+disagree with canonical paths and correctly trigger a boundary error.
+If you entered through a symlink, switch to the physical directory and
+rerun `init` to refresh the path cache; do not weaken the boundary checks.
 
 Use a separate checkout for a separate site. Commands can update configuration,
 manifests, generated documentation, logs, and output.

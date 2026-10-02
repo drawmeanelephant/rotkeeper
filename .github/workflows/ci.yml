@@ -314,7 +314,9 @@ jobs:
                   for name in files:
                       expected = (Path("output") / name).read_bytes()
                       route = "/" if name == "index.html" else "/" + name
-                      with urlopen(Request(host + route, headers={"Cache-Control": "no-cache"}), timeout=20) as response:
+                      with urlopen(Request(host + route, headers={
+                          "Cache-Control": "no-cache", "User-Agent": "rotkeeper-deploy-check",
+                      }), timeout=20) as response:
                           actual = response.read()
                           assert response.status == 200 and actual == expected, name
                       evidence.append(f"{route}: HTTP 200, {len(actual)} bytes, SHA-256 {hashlib.sha256(actual).hexdigest()}")
