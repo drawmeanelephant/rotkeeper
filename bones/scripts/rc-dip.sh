@@ -11,9 +11,9 @@ IFS=$'\n\t'
 # ============================================================
 # Env assumptions: reads ARCHIVE_DIR, ASSETS_DIR, BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DEBUG, DOCS_DIR, DRY_RUN, HELP_DIR, LOG_DIR, META_DIR, OUTPUT_DIR, QUIET, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, WEB_DIR (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
-# Input/Output contracts: reads the fsbook core inventory, script headers/static help/side-effect annotations, sidecars, CHANGELOG, and documentation ownership. Generates a missing catalog on demand; a degraded inventory cannot authorize obsolete moves.
+# Input/Output contracts: reads the fsbook core inventory, script headers/static help/side-effect annotations, sidecars, CHANGELOG, documentation ownership, dip-whitelist.txt, and git commit dates. Generates a missing catalog on demand; a degraded inventory cannot authorize obsolete moves.
 #   Rebuilds missing or explicitly owned script references under `DOCS_DIR` with the command-reference v1 contract. Authored task guides are not replaced. Non-command mirrors retain authored prose while Notes/History and marker-owned runtime sections are migrated.
-#   Obsolete moves require explicit target_file evidence and honor the whitelist; ambiguous pages are reported unowned. Publishes `DOCS_DIR/dip-matrix.md`; `--json` adds the unchanged `rotkeeper.dip-matrix.v1` envelope to stdout. Dry-run previews doc/matrix mutations; shared bootstrap logging still writes.
+#   Obsolete moves require explicit target_file evidence and honor bare whitelist paths; exempt: target | reason entries suppress stubs and stitching. Publishes `DOCS_DIR/dip-matrix.md`; `--json` retains `rotkeeper.dip-matrix.v1` with additive section, placeholder, sidecar coverage/orphan, exemption, and staleness fields. Dry-run previews doc/matrix mutations; shared bootstrap logging still writes.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-dip.sh
@@ -26,8 +26,11 @@ IFS=$'\n\t'
 #                path, with target_file frontmatter and DIP markers
 #  - authored  : handwritten conceptual docs (whitelist / no target_file
 #                ownership); never auto-moved
-#  - stub      : generated doc still carrying TODO placeholders / status stub
-#  - stale     : code mtime newer than doc mtime
+#  - stub      : doc has a placeholder, empty/missing required section, or status stub
+#  - stale     : target git commit date newer than doc or sidecar commit date;
+#                unknown in shallow repositories or without path history
+#  - exempt    : explicit target exception; no reference page or sidecar required
+#  - orphaned  : sidecar has no DIP, content-directory glue, or content-page consumer
 #  - obsolete  : generated reference whose target_file is no longer a core
 #                file — moved only with strong evidence (explicit target_file)
 #  - unowned   : present under DOCS_DIR with uncertain ownership; reported,
@@ -45,10 +48,14 @@ source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&
 #   rotkeeper.sh dip [options]
 #
 # Description:
-#   Scans documentation coverage, ownership, staleness, and obsolete
-#   references; publishes the dip-matrix report. Reads source scripts
-#   and generated books critically. Moves an obsolete doc only with
-#   strong evidence; ambiguous docs are reported as unowned.
+#   Reports required-section state and TODO:/Not found: placeholders,
+#   including Notes, plus sidecar coverage and unreachable sidecars.
+#   Staleness uses git commit dates, never checkout times; shallow or
+#   missing history is unknown. Missing help input is reported as degraded
+#   (command references read static script help directly).
+#   Bare dip-whitelist.txt paths protect docs from obsolete moves;
+#   exempt: <core path> | <reason> skips reference generation and coverage.
+#   Moves obsolete docs only with explicit ownership evidence.
 #
 # Options:
 #   --dry-run      Preview actions without moving or writing docs
@@ -93,46 +100,46 @@ MATRIX_FILE="${DOCS_DIR}/dip-matrix.md"
 DATE_STR=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 DEGRADED_AUTOPSY=false
 DEGRADED_FSBOOK=false
+DEGRADED_HELP=false
+[[ -f "$REPORT_DIR/autopsy-help.md" ]] || DEGRADED_HELP=true
+
+GIT_HISTORY="unavailable"
+if [[ "$(git -C "$ROOT_DIR" rev-parse --show-toplevel 2>/dev/null || true)" == "$(rk_canonical_path "$ROOT_DIR")" ]]; then
+  if [[ "$(git -C "$ROOT_DIR" rev-parse --is-shallow-repository 2>/dev/null || true)" == false ]]; then
+    GIT_HISTORY="complete"
+  else
+    GIT_HISTORY="shallow"
+  fi
+fi
+declare -A GIT_EDIT_TIMES=() GIT_EDIT_DATES=()
 
 # --- helpers ---------------------------------------------------------------
 
-# ---
-# get_fs_date: Format file mtime as YYYY-MM-DD (UTC) or Missing.
-# Inputs: $1 (file path)
-# Outputs: Prints date string
-# Env: Reads BONES_DIR, DRY_RUN, QUIET, ROOT_DIR, VERBOSE (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
-# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
-# ---
-get_fs_date() {
-  local file=$1
-  if [[ -f "$file" ]]; then
-    if stat --version >/dev/null 2>&1; then
-      date -u -d "@$(stat -c %Y "$file")" "+%Y-%m-%d"
-    else
-      TZ=UTC stat -f "%Sm" -t "%Y-%m-%d" "$file"
+# Cache committed dates only. Unknown history must never fall back to mtime.
+record_git_edit() {
+  local file="$1" edit
+  [[ -z "${GIT_EDIT_DATES[$file]:-}" ]] || return 0
+  GIT_EDIT_TIMES["$file"]=""
+  GIT_EDIT_DATES["$file"]="unknown"
+  if [[ ! -f "$file" ]]; then
+    GIT_EDIT_DATES["$file"]="Missing"
+  elif [[ "$GIT_HISTORY" == complete ]]; then
+    edit=$(git -C "$ROOT_DIR" log -1 --format='%ct %cs' -- "${file#"$ROOT_DIR"/}" 2>/dev/null || true)
+    if [[ "$edit" =~ ^([0-9]+)[[:space:]]+([0-9]{4}-[0-9]{2}-[0-9]{2})$ ]]; then
+      GIT_EDIT_TIMES["$file"]="${BASH_REMATCH[1]}"
+      GIT_EDIT_DATES["$file"]="${BASH_REMATCH[2]}"
     fi
-  else
-    echo "Missing"
   fi
 }
 
-# ---
-# get_fs_iso: Format file mtime as ISO-8601 UTC or zero-date.
-# Inputs: $1 (file path)
-# Outputs: Prints ISO timestamp
-# Env: No env vars (pure args/stdin)
-# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
-# ---
-get_fs_iso() {
-  local file=$1
-  if [[ -f "$file" ]]; then
-    if stat --version >/dev/null 2>&1; then
-      date -u -d "@$(stat -c %Y "$file")" "+%Y-%m-%dT%H:%M:%SZ"
-    else
-      TZ=UTC stat -f "%Sm" -t "%Y-%m-%dT%H:%M:%SZ" "$file"
-    fi
+git_staleness() {
+  local target="$1" source="$2"
+  if [[ -z "${GIT_EDIT_TIMES[$target]:-}" || -z "${GIT_EDIT_TIMES[$source]:-}" ]]; then
+    echo unknown
+  elif (( GIT_EDIT_TIMES[$target] > GIT_EDIT_TIMES[$source] )); then
+    echo stale
   else
-    echo "0000-00-00T00:00:00Z"
+    echo current
   fi
 }
 
@@ -187,17 +194,69 @@ read_status_field() {
   rk_frontmatter_field "status" "$1"
 }
 
-# Count TODO: lines outside fenced code blocks.
+# Count placeholder lines throughout the body, including lists, quotes, and
+# Notes. Fenced examples, YAML, and HTML comments are not unfinished prose.
 count_todo_lines() {
   local doc="$1"
-  awk '
-    BEGIN { fence=0; soul=0; c=0 }
-    /^```/ { fence = !fence; next }
-    !fence && /^##[[:space:]]+(Notes([[:space:]]|$)|Necromancer)/ { soul=1; next }
-    !fence && soul && /^##[[:space:]]+/ { soul=0 }
-    !fence && !soul && !/^>[[:space:]]*TODO:/ && /^TODO:/ { c++ }
+  rk_strip_frontmatter "$doc" | awk '
+    /^[[:space:]]*(```|~~~)/ { fence=!fence; next }
+    fence { next }
+    /<!--/ { comment=1 }
+    comment { if (/-->/) comment=0; next }
+    /TODO:|Not found:/ { c++ }
     END { print c+0 }
-  ' "$doc"
+  '
+}
+
+# Required sections are the command-reference v1 contract, or the five
+# non-command reference pillars. Keep legacy heading aliases readable.
+section_states() {
+  local doc="$1" command="$2"
+  { if [[ -f "$doc" ]]; then rk_strip_frontmatter "$doc"; fi; } | awk -v command="$command" '
+    BEGIN {
+      n=split(command == "true" \
+        ? "overview usage options examples exit_codes reads_and_writes side_effects notes history" \
+        : "overview usage reads_and_writes notes history", keys, " ")
+    }
+    /^[[:space:]]*(```|~~~)/ { fence=!fence; next }
+    !fence && /<!--/ { comment=1 }
+    comment { if (/-->/) comment=0; next }
+    !fence && /^##[[:space:]]+|^######[[:space:]]+CLI Usage/ {
+      heading=$0; sub(/^#+[[:space:]]+/, "", heading)
+      key=""
+      if (heading == "Overview") key="overview"
+      if (heading == "Usage" || heading == "CLI Usage") key="usage"
+      if (heading == "Options") key="options"
+      if (heading == "Examples") key="examples"
+      if (heading == "Exit codes") key="exit_codes"
+      if (heading == "Reads and writes" || heading == "Environment") key="reads_and_writes"
+      if (heading == "Side effects") key="side_effects"
+      if (heading == "Notes" || heading ~ /^Necromancer/) key="notes"
+      if (heading == "History" || heading == "Ritual History") key="history"
+      # Sidecar bodies can contain their own H2s within Notes.
+      if (key != "") { section=key; seen[key]=1; next }
+      if (section != "notes") section=""
+    }
+    section != "" && /[^[:space:]]/ {
+      if (!fence && /^#+[[:space:]]/) next
+      content[section]++
+      if (!fence && /TODO:|Not found:/) placeholders[section]++
+      if (!fence && ($0 ~ /^No sidecar notes are documented for `/ \
+          || $0 ~ /^Not documented in the script help block[.]/ \
+          || $0 ~ /Purpose is not documented in the script header[.]/ \
+          || $0 ~ /Not documented in the script header[.]/ \
+          || $0 ~ /^No side effects are documented in script annotations[.]/ \
+          || $0 ~ /^CHANGELOG[.]md is unavailable[.]/)) absent[section]=1
+    }
+    END {
+      for (i=1; i<=n; i++) {
+        key=keys[i]
+        state=!seen[key] ? "missing" : placeholders[key] ? "placeholder" \
+          : absent[key] ? "missing" : content[key] ? "populated" : "empty"
+        printf "%s\t%s\t%d\n", key, state, placeholders[key]+0
+      }
+    }
+  '
 }
 
 # True if line is a DIP pillar section boundary (not generic ## — soul bodies use those).
@@ -399,6 +458,30 @@ expected_doc_for_core() {
   fi
 }
 
+declare -A WHITELIST=() EXEMPT_TARGETS=()
+WHITELIST_FILE="$CONFIG_DIR/dip-whitelist.txt"
+if [[ -f "$WHITELIST_FILE" ]]; then
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line=$(printf '%s\n' "$line" | sed -E 's/^[[:space:]]+//;s/[[:space:]]+$//')
+    [[ -z "$line" || "$line" == \#* ]] && continue
+    if [[ "$line" == exempt:* ]]; then
+      entry="${line#exempt:}"
+      target="${entry%%|*}"
+      reason="${entry#*|}"
+      target=$(printf '%s\n' "$target" | sed -E 's/^[[:space:]]+//;s/[[:space:]]+$//')
+      reason=$(printf '%s\n' "$reason" | sed -E 's/^[[:space:]]+//;s/[[:space:]]+$//')
+      if [[ "$entry" != *"|"* || -z "$target" || -z "$reason" ]] \
+        || ! path_stays_under "$ROOT_DIR" "$target"; then
+        log "WARN" "Ignoring invalid target exemption: $line"
+        continue
+      fi
+      EXEMPT_TARGETS["$target"]="$reason"
+    else
+      WHITELIST["$ROOT_DIR/$line"]=1
+    fi
+  done <"$WHITELIST_FILE"
+fi
+
 log "INFO" "Starting Document Improvement Project audit..."
 
 # --- 1. File discovery -----------------------------------------------------
@@ -558,6 +641,15 @@ else
   log "WARN" "FSBook catalog still missing — core discovery skipped. Run: ./rotkeeper.sh book --fsbook. Audit will not move/stub based on incomplete inventory."
 fi
 
+# Explicit exemptions remain visible even in excluded trees such as .vscode.
+# They cannot authorize obsolete moves or generation in a degraded inventory.
+for file in "${!EXEMPT_TARGETS[@]}"; do
+  if [[ -f "$ROOT_DIR/$file" && -z "${CORE_FILE_SET[$file]:-}" ]]; then
+    CORE_FILES+=("$file")
+    CORE_FILE_SET["$file"]=1
+  fi
+done
+
 # Ownership map: expected doc path → core relative path
 declare -A EXPECTED_DOCS=()
 declare -a OWNERSHIP_COLLISIONS=()
@@ -596,17 +688,6 @@ log "INFO" "Checking for obsolete docs..."
 # rk_find_content uses -print0 (NUL-delimited) for safe handling of exotic filenames; mapfile -d '' preserves it
 mapfile -d '' EXISTING_DOCS < <(rk_find_content "$DOCS_DIR" md textile cook)
 
-declare -A WHITELIST=()
-WHITELIST_FILE="$CONFIG_DIR/dip-whitelist.txt"
-if [[ -f "$WHITELIST_FILE" ]]; then
-  while IFS= read -r line || [[ -n "$line" ]]; do
-    [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
-    line=$(printf '%s\n' "$line" | sed -E 's/^[[:space:]]+//;s/[[:space:]]+$//')
-    [[ -z "$line" ]] && continue
-    WHITELIST["$ROOT_DIR/$line"]=1
-  done <"$WHITELIST_FILE"
-fi
-
 # ---
 # is_blessed_doc: True if doc or its target_file lives under .blessed.
 # Inputs: $1 (doc path), $2 (target_file value)
@@ -641,6 +722,9 @@ for doc in ${EXISTING_DOCS[@]+"${EXISTING_DOCS[@]}"}; do
   target_file_check=""
   if grep -q '^target_file:' "$doc" 2>/dev/null; then
     target_file_check=$(read_target_file "$doc" || true)
+  fi
+  if [[ -n "$target_file_check" && -n "${EXEMPT_TARGETS[$target_file_check]:-}" ]]; then
+    continue
   fi
 
   if is_blessed_doc "$doc" "$target_file_check"; then
@@ -1033,9 +1117,10 @@ migrate_pillar_names() {
 }
 
 for doc in ${EXISTING_DOCS[@]+"${EXISTING_DOCS[@]}"}; do
-  migrate_pillar_names "$doc"
   [[ -f "$doc" ]] || continue
   tf=$(read_target_file "$doc")
+  [[ -z "$tf" || -z "${EXEMPT_TARGETS[$tf]:-}" ]] || continue
+  migrate_pillar_names "$doc"
   # Remove the old command-only dumps from non-command mirrors as well,
   # including whitelisted generated pages outside the current core inventory.
   if [[ -n "$tf" && "$tf" != *.sh ]]; then
@@ -1055,6 +1140,7 @@ done
 log "INFO" "Checking for missing docs..."
 for doc_path in "${!EXPECTED_DOCS[@]}"; do
   target_file="${EXPECTED_DOCS[$doc_path]}"
+  [[ -z "${EXEMPT_TARGETS[$target_file]:-}" ]] || continue
   rel_expected="${doc_path#"$ROOT_DIR"/}"
   if [[ "$doc_path" != "$DOCS_DIR"/* ]] || ! path_stays_under "$ROOT_DIR" "$rel_expected"; then
     log "ERROR" "Refusing unsafe generated doc path outside ROOT_DIR/DOCS_DIR: $doc_path"
@@ -1127,6 +1213,8 @@ done
 log "INFO" "Generating source-driven command references and reference pillars..."
 
 for doc_path in "${!EXPECTED_DOCS[@]}"; do
+  target_file="${EXPECTED_DOCS[$doc_path]}"
+  [[ -z "${EXEMPT_TARGETS[$target_file]:-}" ]] || continue
   [[ -f "$doc_path" ]] || continue
   rel_expected="${doc_path#"$ROOT_DIR"/}"
   if [[ "$doc_path" != "$DOCS_DIR"/* ]] || ! path_stays_under "$ROOT_DIR" "$rel_expected"; then
@@ -1178,6 +1266,46 @@ for doc_path in "${!EXPECTED_DOCS[@]}"; do
   stitch_pillar "$doc_path" "DIP-SOUL-EXTRACTED" "$soul_content"
 done
 
+# Identify reachable sidecars using the three existing lookup rules. A
+# target_file inside a sidecar is descriptive, not an alternative lookup path.
+declare -A SIDECAR_CONSUMERS=() EXEMPT_SIDECARS=()
+for file in ${CORE_FILES[@]+"${CORE_FILES[@]}"}; do
+  origin=$(get_base_no_ext "$file")
+  sidecar="${SOUL_TARGETS[$origin]:-}"
+  [[ -n "$sidecar" ]] || continue
+  if [[ -n "${EXEMPT_TARGETS[$file]:-}" ]]; then
+    EXEMPT_SIDECARS["$sidecar"]=1
+  else
+    SIDECAR_CONSUMERS["$sidecar"]="dip"
+  fi
+done
+if [[ -d "$CONTENT_DIR" ]]; then
+  while IFS= read -r -d '' dir; do
+    origin="${dir#"$CONTENT_DIR"/}"
+    [[ "$dir" != "$CONTENT_DIR" ]] || origin=rotkeeper
+    sidecar="${SOUL_TARGETS[$origin]:-}"
+    [[ -n "$sidecar" ]] || continue
+    SIDECAR_CONSUMERS["$sidecar"]="${SIDECAR_CONSUMERS[$sidecar]:+${SIDECAR_CONSUMERS[$sidecar]},}glue"
+  done < <(find "$CONTENT_DIR" -type d -print0)
+  while IFS= read -r -d '' page; do
+    origin=$(get_base_no_ext "${page#"$CONTENT_DIR"/}")
+    sidecar="${SOUL_TARGETS[$origin]:-}"
+    [[ -n "$sidecar" ]] || continue
+    # Coverage is reachability, independent of render_system_docs selection.
+    SIDECAR_CONSUMERS["$sidecar"]="${SIDECAR_CONSUMERS[$sidecar]:+${SIDECAR_CONSUMERS[$sidecar]},}render"
+  done < <(rk_find_content "$CONTENT_DIR" md textile cook)
+fi
+declare -a ORPHANED_SIDECARS=()
+for origin in "${!SOUL_TARGETS[@]}"; do
+  sidecar="${SOUL_TARGETS[$origin]}"
+  if [[ -z "${SIDECAR_CONSUMERS[$sidecar]:-}" && -z "${EXEMPT_SIDECARS[$sidecar]:-}" ]]; then
+    ORPHANED_SIDECARS+=("${sidecar#"$ROOT_DIR"/}")
+  fi
+done
+if ((${#ORPHANED_SIDECARS[@]} > 0)); then
+  mapfile -t ORPHANED_SIDECARS < <(printf '%s\n' "${ORPHANED_SIDECARS[@]}" | LC_ALL=C sort)
+fi
+
 # --- 6. Matrix generation --------------------------------------------------
 
 log "INFO" "Generating DIP Matrix at $MATRIX_FILE..."
@@ -1188,12 +1316,38 @@ declare -A STAT_COUNTS=(
   ["Missing"]=0
   ["Stale"]=0
   ["Unowned"]=0
+  ["Exempt"]=0
 )
+declare -A COVERAGE_COUNTS=([present]=0 [missing]=0 [exempt]=0)
+PLACEHOLDER_COUNT=0
+PLACEHOLDER_PAGES=0
+STALE_KNOWN=0
+STALE_UNKNOWN=0
+STALE_DOCS=0
+STALE_SIDECARS=0
 
 declare -a MATRIX_ROWS=()
 
 # Parallel row capture for --json emission (order mirrors MATRIX_ROWS)
 declare -a J_TARGETS=() J_DOCS=() J_CODE_DATES=() J_DOC_DATES=() J_STATUSES=()
+declare -a J_SECTIONS=() J_PLACEHOLDERS=() J_SIDECARS=() J_COVERAGE=() \
+  J_STALE=() J_DOC_STALE=() J_SOUL_STALE=() J_SOUL_DATES=() J_REASONS=()
+
+collect_section_states() {
+  local doc="$1" command="$2" override="${3:-}" key state count data sep=""
+  data=$(section_states "$doc" "$command") || return 1
+  SECTIONS_JSON="{"
+  SECTIONS_TEXT=""
+  SECTION_GAPS=0
+  while IFS=$'\t' read -r key state count; do
+    [[ -z "$override" ]] || state="$override"
+    [[ "$state" == populated || "$state" == exempt ]] || SECTION_GAPS=$((SECTION_GAPS + 1))
+    SECTIONS_JSON+="${sep}\"$key\":{\"state\":\"$state\",\"placeholders\":$count}"
+    SECTIONS_TEXT+="${SECTIONS_TEXT:+; }${key//_/ }: $state"
+    sep=","
+  done <<< "$data"
+  SECTIONS_JSON+="}"
+}
 
 # Stable iteration for deterministic matrix output
 mapfile -t SORTED_DOC_PATHS < <(printf '%s\n' "${!EXPECTED_DOCS[@]}" | LC_ALL=C sort)
@@ -1202,66 +1356,82 @@ for doc_path in ${SORTED_DOC_PATHS[@]+"${SORTED_DOC_PATHS[@]}"}; do
   target_file="${EXPECTED_DOCS[$doc_path]}"
   status="Missing"
   base_stat="Missing"
-
-  if [[ -f "$doc_path" ]]; then
-    status=$(read_status_field "$doc_path" || true)
-    [[ -z "$status" ]] && status="unknown"
-
-    # Normalize known status labels
-    case "${status,,}" in
-      stub) status="Stub"; base_stat="Stub" ;;
-      missing) status="Missing"; base_stat="Missing" ;;
-      stale) status="Stale"; base_stat="Stale" ;;
-      complete|ok) status="OK"; base_stat="OK" ;;
-      *)
-        # Heuristic: still a stub if DIP placeholders remain
-        if grep -qE '^TODO: (Provide a brief overview|Stitch )' "$doc_path" 2>/dev/null \
-          || grep -q 'status: "stub"' "$doc_path" 2>/dev/null \
-          || grep -q '^status: stub' "$doc_path" 2>/dev/null; then
-          status="Stub"
-          base_stat="Stub"
-        else
-          status="OK"
-          base_stat="OK"
-        fi
-        ;;
-    esac
-
-    code_date=$(get_fs_date "$ROOT_DIR/$target_file")
-    doc_date=$(get_fs_date "$doc_path")
-
-    if [[ "$code_date" != "Missing" && "$doc_date" != "Missing" && "$code_date" > "$doc_date" ]]; then
-      status="Stale"
-      base_stat="Stale"
-    fi
-
-    if [[ "$base_stat" == "OK" ]]; then
+  record_git_edit "$ROOT_DIR/$target_file"
+  record_git_edit "$doc_path"
+  code_date="${GIT_EDIT_DATES[$ROOT_DIR/$target_file]}"
+  doc_date="${GIT_EDIT_DATES[$doc_path]}"
+  doc_stale=$(git_staleness "$ROOT_DIR/$target_file" "$doc_path")
+  origin=$(get_base_no_ext "$target_file")
+  sidecar="${SOUL_TARGETS[$origin]:-}"
+  soul_date="Missing"
+  soul_stale="unknown"
+  coverage="missing"
+  if [[ -n "$sidecar" ]]; then
+    coverage="present"
+    record_git_edit "$sidecar"
+    soul_date="${GIT_EDIT_DATES[$sidecar]}"
+    soul_stale=$(git_staleness "$ROOT_DIR/$target_file" "$sidecar")
+  fi
+  stale="current"
+  if [[ "$doc_stale" == unknown || "$soul_stale" == unknown ]]; then
+    stale="unknown"
+  elif [[ "$doc_stale" == stale || "$soul_stale" == stale ]]; then
+    stale="stale"
+  fi
+  command=false
+  [[ "$target_file" != *.sh ]] || command=true
+  todo_count=0
+  reason="${EXEMPT_TARGETS[$target_file]:-}"
+  if [[ -n "$reason" ]]; then
+    status="Exempt"; base_stat="Exempt"; coverage="exempt"
+    stale="exempt"; doc_stale="exempt"; soul_stale="exempt"
+    collect_section_states /dev/null "$command" exempt
+  else
+    collect_section_states "$doc_path" "$command"
+    if [[ -f "$doc_path" ]]; then
       todo_count=$(count_todo_lines "$doc_path")
-      if [[ "$todo_count" -gt 0 ]]; then
-        status="OK, ${todo_count} TODOs remain"
-        base_stat="OK"
+      status_field=$(read_status_field "$doc_path" || true)
+      if ((todo_count > 0 || SECTION_GAPS > 0)) || [[ "${status_field,,}" == stub ]]; then
+        status="Stub"; base_stat="Stub"
+      elif [[ "${status_field,,}" == missing ]]; then
+        status="Missing"; base_stat="Missing"
+      elif [[ "$stale" == stale ]]; then
+        status="Stale"; base_stat="Stale"
+      else
+        status="OK"; base_stat="OK"
       fi
     fi
-  else
-    code_date=$(get_fs_date "$ROOT_DIR/$target_file")
-    doc_date="Missing"
-    status="Missing"
-    base_stat="Missing"
+    PLACEHOLDER_COUNT=$((PLACEHOLDER_COUNT + todo_count))
+    ((todo_count == 0)) || PLACEHOLDER_PAGES=$((PLACEHOLDER_PAGES + 1))
+    [[ "$doc_stale" != stale ]] || STALE_DOCS=$((STALE_DOCS + 1))
+    [[ "$soul_stale" != stale ]] || STALE_SIDECARS=$((STALE_SIDECARS + 1))
+    [[ "$stale" != stale ]] || STALE_KNOWN=$((STALE_KNOWN + 1))
+    [[ "$stale" != unknown ]] || STALE_UNKNOWN=$((STALE_UNKNOWN + 1))
   fi
 
+  COVERAGE_COUNTS["$coverage"]=$((COVERAGE_COUNTS[$coverage] + 1))
   STAT_COUNTS["$base_stat"]=$((${STAT_COUNTS[$base_stat]:-0} + 1))
   rel_doc="${doc_path#"$DOCS_DIR"/}"
-  if [[ "$base_stat" == "Missing" ]]; then
+  if [[ "$base_stat" == "Missing" || "$base_stat" == "Exempt" ]]; then
     doc_ref="\`$rel_doc\`"
   else
     doc_ref="[$rel_doc]($rel_doc)"
   fi
-  MATRIX_ROWS+=("| \`$target_file\` | $doc_ref | $code_date | $doc_date | $status |")
+  MATRIX_ROWS+=("| \`$target_file\` | $doc_ref | $code_date | $doc_date | $status | $todo_count | $SECTIONS_TEXT | $coverage | doc: $doc_stale; sidecar: $soul_stale |")
   J_TARGETS+=("$target_file")
   J_DOCS+=("$rel_doc")
   J_CODE_DATES+=("$code_date")
   J_DOC_DATES+=("$doc_date")
   J_STATUSES+=("$status")
+  J_SECTIONS+=("$SECTIONS_JSON")
+  J_PLACEHOLDERS+=("$todo_count")
+  J_SIDECARS+=("${sidecar#"$ROOT_DIR"/}")
+  J_COVERAGE+=("$coverage")
+  J_STALE+=("$stale")
+  J_DOC_STALE+=("$doc_stale")
+  J_SOUL_STALE+=("$soul_stale")
+  J_SOUL_DATES+=("$soul_date")
+  J_REASONS+=("$reason")
 done
 
 if ((${#UNOWNED_DOCS[@]} > 0)); then
@@ -1271,19 +1441,38 @@ else
 fi
 for doc_path in ${SORTED_UNOWNED[@]+"${SORTED_UNOWNED[@]}"}; do
   rel_doc="${doc_path#"$DOCS_DIR"/}"
-  doc_date=$(get_fs_date "$doc_path")
+  record_git_edit "$doc_path"
+  doc_date="${GIT_EDIT_DATES[$doc_path]}"
   status="Unowned"
+  todo_count=$(count_todo_lines "$doc_path")
+  PLACEHOLDER_COUNT=$((PLACEHOLDER_COUNT + todo_count))
+  ((todo_count == 0)) || PLACEHOLDER_PAGES=$((PLACEHOLDER_PAGES + 1))
   STAT_COUNTS["Unowned"]=$((STAT_COUNTS["Unowned"] + 1))
-  MATRIX_ROWS+=("| \`Unknown\` | [$rel_doc]($rel_doc) | Missing | $doc_date | $status |")
+  MATRIX_ROWS+=("| \`Unknown\` | [$rel_doc]($rel_doc) | Missing | $doc_date | $status | $todo_count | Not a core reference | Not applicable | unknown |")
   J_TARGETS+=("Unknown")
   J_DOCS+=("$rel_doc")
   J_CODE_DATES+=("Missing")
   J_DOC_DATES+=("$doc_date")
   J_STATUSES+=("$status")
+  J_SECTIONS+=("{}")
+  J_PLACEHOLDERS+=("$todo_count")
+  J_SIDECARS+=("")
+  J_COVERAGE+=("not_applicable")
+  J_STALE+=("unknown")
+  J_DOC_STALE+=("unknown")
+  J_SOUL_STALE+=("unknown")
+  J_SOUL_DATES+=("Missing")
+  J_REASONS+=("")
 done
 
-  total_rows=$((${STAT_COUNTS[OK]:-0} + ${STAT_COUNTS[Stub]:-0} + ${STAT_COUNTS[Missing]:-0} + ${STAT_COUNTS[Stale]:-0} + ${STAT_COUNTS[Unowned]:-0}))
-totals_line="**Totals:** OK: ${STAT_COUNTS[OK]:-0} | Stub: ${STAT_COUNTS[Stub]:-0} | Missing: ${STAT_COUNTS[Missing]:-0} | Stale: ${STAT_COUNTS[Stale]:-0} | Unowned: ${STAT_COUNTS[Unowned]:-0} | Rows: ${total_rows}"
+total_rows=${#MATRIX_ROWS[@]}
+stale_state="known"
+if [[ "$GIT_HISTORY" != complete ]] || ((STALE_UNKNOWN > 0)); then
+  stale_state="unknown"
+fi
+totals_line="**Totals:** OK: ${STAT_COUNTS[OK]} | Stub: ${STAT_COUNTS[Stub]} | Missing: ${STAT_COUNTS[Missing]} | Stale rows: ${STAT_COUNTS[Stale]} | Unowned: ${STAT_COUNTS[Unowned]} | Exempt: ${STAT_COUNTS[Exempt]} | Rows: ${total_rows}"
+coverage_line="**Sidecar coverage (targets):** present: ${COVERAGE_COUNTS[present]} | missing: ${COVERAGE_COUNTS[missing]} | exempt: ${COVERAGE_COUNTS[exempt]} | orphaned sidecars: ${#ORPHANED_SIDECARS[@]}"
+staleness_line="**Staleness:** $stale_state | known stale targets: $STALE_KNOWN | unknown targets: $STALE_UNKNOWN | stale docs: $STALE_DOCS | stale sidecars: $STALE_SIDECARS"
 
 # --- 6b. Machine-readable stdout (--json) -----------------------------------
 # --json mirrors the published matrix as a single schema-tagged JSON object on
@@ -1302,11 +1491,18 @@ if [[ "$JSON_MODE" == true ]]; then
   if ((${#J_TARGETS[@]} > 0)); then
     rows_json=$(
       for i in "${!J_TARGETS[@]}"; do
-        printf '%s\t%s\t%s\t%s\t%s\n' \
-          "${J_TARGETS[$i]}" "${J_DOCS[$i]}" "${J_CODE_DATES[$i]}" "${J_DOC_DATES[$i]}" "${J_STATUSES[$i]}"
+        printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+          "${J_TARGETS[$i]}" "${J_DOCS[$i]}" "${J_CODE_DATES[$i]}" "${J_DOC_DATES[$i]}" "${J_STATUSES[$i]}" \
+          "${J_SECTIONS[$i]}" "${J_PLACEHOLDERS[$i]}" "${J_SIDECARS[$i]}" "${J_COVERAGE[$i]}" \
+          "${J_STALE[$i]}" "${J_DOC_STALE[$i]}" "${J_SOUL_STALE[$i]}" "${J_SOUL_DATES[$i]}" "${J_REASONS[$i]}"
       done | jq -Rn '
         [inputs | select(length > 0) | split("\t")]
-        | map({target_file: .[0], doc: .[1], last_code_edit: .[2], last_doc_edit: .[3], status: .[4]})
+        | map({target_file: .[0], doc: .[1], last_code_edit: .[2], last_doc_edit: .[3], status: .[4],
+            sections: (.[5] | fromjson), placeholder_count: (.[6] | tonumber),
+            sidecar: {path: (.[7] | select(length > 0)) // null, state: .[8],
+              last_edit: .[12], stale: .[11]},
+            stale: (if .[9] == "stale" then true elif .[9] == "current" then false else .[9] end),
+            staleness: {doc: .[10], sidecar: .[11]}, exemption_reason: .[13]})
       '
     )
   fi
@@ -1323,6 +1519,10 @@ if [[ "$JSON_MODE" == true ]]; then
   if ((${#OBSOLETE_MOVED[@]} > 0)); then
     obsolete_json=$(printf '%s\n' "${OBSOLETE_MOVED[@]}" | jq -R -s 'split("\n") | map(select(length > 0))')
   fi
+  orphans_json="[]"
+  if ((${#ORPHANED_SIDECARS[@]} > 0)); then
+    orphans_json=$(printf '%s\n' "${ORPHANED_SIDECARS[@]}" | jq -R -s 'split("\n") | map(select(length > 0))')
+  fi
 
   matrix_rel="${MATRIX_FILE#"$ROOT_DIR"/}"
 
@@ -1333,14 +1533,21 @@ if [[ "$JSON_MODE" == true ]]; then
     printf '  "schema": "rotkeeper.dip-matrix.v1",\n'
     printf '  "generated_at": "%s",\n' "$DATE_STR"
     printf '  "matrix_file": %s,\n' "$(printf '%s' "$matrix_rel" | jq -R .)"
-    printf '  "totals": {"ok": %d, "stub": %d, "missing": %d, "stale": %d, "unowned": %d, "rows": %d},\n' \
-      "${STAT_COUNTS[OK]:-0}" "${STAT_COUNTS[Stub]:-0}" "${STAT_COUNTS[Missing]:-0}" "${STAT_COUNTS[Stale]:-0}" "${STAT_COUNTS[Unowned]:-0}" "$total_rows"
+    printf '  "totals": {"ok": %d, "stub": %d, "missing": %d, "stale": %d, "unowned": %d, "rows": %d, "exempt": %d, "placeholders": %d, "placeholder_pages": %d},\n' \
+      "${STAT_COUNTS[OK]}" "${STAT_COUNTS[Stub]}" "${STAT_COUNTS[Missing]}" "${STAT_COUNTS[Stale]}" "${STAT_COUNTS[Unowned]}" "$total_rows" \
+      "${STAT_COUNTS[Exempt]}" "$PLACEHOLDER_COUNT" "$PLACEHOLDER_PAGES"
+    printf '  "sidecar_coverage": {"present": %d, "missing": %d, "exempt": %d, "orphaned": %d},\n' \
+      "${COVERAGE_COUNTS[present]}" "${COVERAGE_COUNTS[missing]}" "${COVERAGE_COUNTS[exempt]}" "${#ORPHANED_SIDECARS[@]}"
+    printf '  "orphaned_sidecars": %s,\n' "$orphans_json"
+    printf '  "staleness": {"state": "%s", "git_history": "%s", "stale": %d, "unknown": %d, "docs": %d, "sidecars": %d},\n' \
+      "$stale_state" "$GIT_HISTORY" "$STALE_KNOWN" "$STALE_UNKNOWN" "$STALE_DOCS" "$STALE_SIDECARS"
     printf '  "rows": %s,\n' "$rows_json"
     printf '  "ownership_collisions": %s,\n' "$collisions_json"
     printf '  "obsolete_moved": %s,\n' "$obsolete_json"
-    printf '  "degraded": {"autopsy_report": %s, "fsbook_catalog": %s}\n' \
+    printf '  "degraded": {"autopsy_report": %s, "fsbook_catalog": %s, "help_input": %s}\n' \
       "$( [[ "$DEGRADED_AUTOPSY" == true ]] && echo true || echo false )" \
-      "$( [[ "$DEGRADED_FSBOOK" == true ]] && echo true || echo false )"
+      "$( [[ "$DEGRADED_FSBOOK" == true ]] && echo true || echo false )" \
+      "$( [[ "$DEGRADED_HELP" == true ]] && echo true || echo false )"
     echo "}"
   } > "$json_out"
 
@@ -1376,12 +1583,40 @@ template: "rotkeeper-doc.html"
 
 This page tracks the documentation status of core project files.
 
-| Target File | Doc Page | Last Code Edit | Last Doc Edit | Status |
-|-------------|----------|----------------|---------------|--------|
+OK requires populated sections and no prose placeholders, including Notes.
+Fenced examples, YAML frontmatter, and HTML comments are excluded from placeholder counts.
+Dates are last git commit dates, not checkout times. Staleness is unknown in shallow
+repositories or without path history. Stale row totals count only known Stale statuses;
+incomplete pages remain Stub even when their sources are stale.
+Sidecar coverage counts targets; orphaned sidecars have no DIP, glue-directory, or render-page consumer.
+
+| Target File | Doc Page | Last Code Edit | Last Doc Edit | Status | Placeholders | Sections | Sidecar | Staleness |
+|-------------|----------|----------------|---------------|--------|--------------|----------|---------|-----------|
 MATRIX
     printf '%s\n' ${MATRIX_ROWS[@]+"${MATRIX_ROWS[@]}"}
     echo ""
     echo "$totals_line"
+    echo ""
+    echo "**Placeholders:** $PLACEHOLDER_COUNT lines in $PLACEHOLDER_PAGES pages."
+    echo ""
+    echo "$coverage_line"
+    echo ""
+    echo "$staleness_line"
+    if ((${#EXEMPT_TARGETS[@]} > 0)); then
+      echo ""
+      echo "## Target exemptions"
+      echo ""
+      while IFS= read -r file; do
+        echo "- \`$file\`: ${EXEMPT_TARGETS[$file]}"
+      done < <(printf '%s\n' "${!EXEMPT_TARGETS[@]}" | LC_ALL=C sort)
+    fi
+    if ((${#ORPHANED_SIDECARS[@]} > 0)); then
+      echo ""
+      echo "## Orphaned sidecars"
+      echo ""
+      printf -- "- \`%s\`\n" "${ORPHANED_SIDECARS[@]}"
+      [[ "$DEGRADED_FSBOOK" != true ]] || echo "Core inventory is incomplete; these orphan findings are provisional."
+    fi
     if ((${#OWNERSHIP_COLLISIONS[@]} > 0)); then
       echo ""
       echo "## Ownership collisions"
@@ -1391,12 +1626,13 @@ MATRIX
         echo "- \`$dpath\`: \`$a\` vs \`$b\`"
       done
     fi
-    if [[ "$DEGRADED_AUTOPSY" == true || "$DEGRADED_FSBOOK" == true ]]; then
+    if [[ "$DEGRADED_AUTOPSY" == true || "$DEGRADED_FSBOOK" == true || "$DEGRADED_HELP" == true ]]; then
       echo ""
       echo "## Degraded inputs"
       echo ""
       [[ "$DEGRADED_AUTOPSY" == true ]] && echo "- Autopsy report missing — artifact excludes incomplete."
       [[ "$DEGRADED_FSBOOK" == true ]] && echo "- FSBook catalog missing — core inventory incomplete; obsolete moves skipped."
+      [[ "$DEGRADED_HELP" == true ]] && echo "- Help input missing (bones/reports/autopsy-help.md); command references read static help directly from scripts."
     fi
   } >"$matrix_tmp"
 
@@ -1422,6 +1658,6 @@ if ((${#OWNERSHIP_COLLISIONS[@]} > 0)); then
   log "WARN" "Ownership collisions remain unresolved (see matrix / logs)."
 fi
 
-SUMMARY="DIP finished. OK=${STAT_COUNTS[OK]:-0} Stub=${STAT_COUNTS[Stub]:-0} Missing=${STAT_COUNTS[Missing]:-0} Stale=${STAT_COUNTS[Stale]:-0} Unowned=${STAT_COUNTS[Unowned]:-0} Collisions=${#OWNERSHIP_COLLISIONS[@]} ObsoleteActions=${#OBSOLETE_MOVED[@]}"
+SUMMARY="DIP finished. OK=${STAT_COUNTS[OK]} Stub=${STAT_COUNTS[Stub]} Missing=${STAT_COUNTS[Missing]} Stale=$stale_state (known=$STALE_KNOWN unknown=$STALE_UNKNOWN) Unowned=${STAT_COUNTS[Unowned]} Exempt=${STAT_COUNTS[Exempt]} Placeholders=$PLACEHOLDER_COUNT Sidecars=${COVERAGE_COUNTS[present]}/${COVERAGE_COUNTS[missing]} Orphans=${#ORPHANED_SIDECARS[@]} Collisions=${#OWNERSHIP_COLLISIONS[@]} ObsoleteActions=${#OBSOLETE_MOVED[@]}"
 log "INFO" "$SUMMARY"
 log "MARKER" "$SUMMARY"

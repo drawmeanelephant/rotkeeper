@@ -1,3 +1,17 @@
+# Bare doc paths protect only against obsolete-document moves.
+# Target exemptions suppress reference pages and sidecar requirements.
+# Format: exempt: <repo-relative core path> | <reason>
+exempt: .blessed | Currently contains only a version tag; a separate reference page is unnecessary.
+exempt: .gitignore | Standard Git ignore rules are self-documenting by their paths.
+exempt: .editorconfig | Conventional editor formatting settings, not a runtime component.
+exempt: .vscode/settings.json | Optional, local VS Code settings; Rotkeeper does not require this editor.
+exempt: .vscode/extensions.json | Optional VS Code extension recommendations, not runtime dependencies.
+exempt: bones/scripts/tests/fixtures/oliver-smoke/smoke-fixture-expected.html | Expected renderer output used by the smoke regression, not an authored template.
+exempt: bones/scripts/tests/fixtures/template-golden/theme-brutal.golden.html | Expected template output used by golden regressions, not an authored template.
+exempt: bones/scripts/tests/fixtures/template-golden/theme-spooky-dark.golden.html | Expected template output used by golden regressions, not an authored template.
+exempt: bones/scripts/tests/fixtures/template-golden/theme-spooky-dark-xhtml.golden.html | Expected XHTML template output used by golden regressions, not an authored template.
+exempt: bones/scripts/tests/rc-glue.bats | Test assertions for glue behavior, not a dispatcher command or user-facing reference target.
+
 home/content/docs/architecture.md
 home/content/docs/onboarding.md
 home/content/docs/rotkeeper-rituals.md
