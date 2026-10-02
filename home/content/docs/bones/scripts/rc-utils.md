@@ -58,14 +58,17 @@ Reads `ROT_SKIP_ENV`, `ROTKEEPER_VERSION`, `VERSION_FILE`, common RK_* flag defa
 ## Notes
 <!-- DIP-SOUL-EXTRACTED: command-reference.v1 -->
 
-### Bones of the Code
-The shared toolbox of rusty implements. It provides logging, color printing, and environment assertions for the rest of the scripts.
+### Design
 
-### Restless Spirits
-Its attempts at portability often fall flat when encountering ancient or obscure shell environments. The 'robust' shell functions are one edge case away from a syntax error, especially when dealing with non-standard terminal emulators or deeply nested subshells.
+Shared Bash helper library rather than a dispatcher command. Sourcing defines helpers and loads the canonical version; `rk_init_script` handles flags, traps, environment validation, per-run logs, and a saved stdout descriptor. Supplies dependency checks, path and deletion helpers, frontmatter/sidecar access, template resolution, navigation generation, portable checksum/mtime/find selection, and live Oliver preflight.
 
-### Ritual Warnings
-Do not rely on these utilities in truly hostile environments. Their portability is an illusion maintained by sheer luck.
+### Limits
+
+`parse_flags` handles leading common flags only and stops at the first custom argument; each caller must handle later flags. `run` suppresses only commands routed through it during dry-run, not arbitrary caller writes. Strict environment checks compare cached paths, layout-derived paths, repository boundaries, and required directories. Sidecar mapping rejects escaping destinations by returning `bones/meta/null.soul.md`.
+
+### Cautions
+
+Canonical-path helpers have different fallback behavior, so callers must use the appropriate guard rather than assume every helper fails closed. Destructive callers must honor a failed `rk_guard_delete` result. Cleanup runs without masking the original exit status; scripts can override it. Help exits before environment/log initialization. Other initialization, including dry-run, creates logs, and Oliver preflight creates and removes its own smoke files and invokes the renderer.
 
 ## History
 <!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->

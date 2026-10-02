@@ -1,52 +1,23 @@
 ---
-title: "dependabot.yml"
-slug: dependabot
-version: "v1.0.0"
-updated: 2026-07-03
-description: "Reference for Dependabot configuration."
-tags:
-  - rotkeeper
-  - dependencies
-  - github
-asset_meta:
-  name: "dependabot.yml.md"
-  version: "v1.0.0"
-  author: "Rotkeeper Ritual Council"
-  project: "Rotkeeper"
-  tracked: true
-  license: "All Rights Reserved"
+title: "Dependabot configuration"
+description: "Weekly GitHub Actions update requests."
+template: rotkeeper-doc.html
+reviewed: "2026-10-01"
 ---
 
-# 🤖 dependabot.yml — Dependency Automation
+# Dependabot configuration
 
-The `dependabot.yml` file configures automated dependency updates for GitHub Actions within the Rotkeeper repository.
+Source:
+[.github/dependabot.yml](https://github.com/drawmeanelephant/rotkeeper/blob/main/.github/dependabot.yml).
 
-This file lives at:
+The configuration uses Dependabot version 2 and monitors the
+`github-actions` ecosystem at `/` on a weekly schedule. It applies
+`dependencies` and `github-actions` labels to its update pull requests.
 
-```
-.github/dependabot.yml
-```
+## Limits
 
----
+It does not update apt packages, Homebrew packages, Oliver, or other shell
+binaries. An update request is not evidence that a new action version works
+with Rotkeeper. Review the diff and CI results before merging.
 
-## 🛠️ What It Does
-
-1. **Action Monitoring**: Instructs Dependabot to scan `.github/workflows/` for outdated GitHub Actions versions.
-2. **Automated PRs**: Generates Pull Requests to bump action versions on a weekly schedule.
-3. **Labeling**: Automatically applies `dependencies` and `github-actions` labels to its generated PRs.
-
----
-
-## 🔁 Behavior
-
-- Runs on a `weekly` interval.
-- Only monitors the `github-actions` package ecosystem. It does not monitor apt packages or shell binaries.
-
----
-
-## ⚠️ Notes & Caveats
-
-- Dependabot PRs still require the standard CI workflow (`ci.yml`) to pass before merging.
-
-## Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-03T00:00:00Z -->
+This page is authored because DIP excludes `.github` from core discovery.

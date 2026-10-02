@@ -16,15 +16,25 @@ HTML template for rendering blog posts.
 Zero-hydration HTML template used for static rendering. It relies on standard CSS variables and structural classes.
 
 ## Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-10-02T01:27:41Z -->
 
 
-### Architectural Intent
-An Oliver-rendered HTML template optimized for blog layout rendering. It provides metadata structures, date displays, and tag layouts for news and log articles.
+### Design
 
-### Directory / File Schema Expectations
-This template expects standard variables like `$body$`, `$title$`, and `$date$`. If these fields are missing from the frontmatter of blog posts, rendering compiles empty strings without a layout fallback. Ensure all blog markdown files contain proper `date` and `title` variables in their frontmatter before rendering.
+The wrapper uses `rk-shell`, a title header, an optional description, and
+an article body. It loads `css/theme-spooky-dark.css` through `$assets_root$`.
+The footer shows the loaded version and optional asset metadata and tags.
 
+### Limits
+
+The template has no date display, post list, or chronological navigation.
+It wraps one rendered source body.
+
+### Cautions
+
+Keep `$body$` and `$assets_root$` intact. The adapter passes body HTML
+literally and supplies the relative asset prefix. The linked stylesheet
+must be available in the generated asset tree.
 ## Reads and writes
 <!-- DIP-ENV-EXTRACTED: 2026-10-01T21:17:26Z -->
 

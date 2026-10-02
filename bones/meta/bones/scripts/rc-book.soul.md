@@ -1,29 +1,17 @@
 ---
 target_file: bones/scripts/rc-book.sh
-source: generated
-generated: 2026-07-03
-version: 0.1.0
-status: final
+reviewed: "2026-10-01"
+reviewed_against: "0.8.1"
 ---
 
-### Bones of the Code
-This script binds scattered markdown souls into a single, monstrous RAG Tome. It agglomerates documentation, code, and whatever else it finds into one massive file, like a flesh golem made of text.
+### Design
 
-### Restless Spirits
-Including raw configs and logs is a fool's errand. The token weight of this monstrous book will crush any LLM that attempts to read it. Furthermore, collapsing huge projects into a single shell variable or stream may invoke the dreaded OOM killer, as the shell's memory limits buckle under the weight of the project's ego.
+Creates separate script, documentation, configuration/template, content, metadata, filesystem-catalog, and collapsed-book retrieval artifacts under `bones/book-reports`. Each mode replaces its designated output. With no mode selected, it runs all binders. Bound source sections use path markers with a random per-run suffix. The filesystem catalog excludes configured generated/cache trees and supplies DIP discovery.
 
-### Ritual Warnings
-Keep the project small, or watch this script choke on its own creation. Never feed the resulting tome to a language model without a robust token budget, lest you bankrupt your API account.
+### Limits
 
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-13T23:16:45Z -->
+The size check estimates the deduplicated documentation/content corpus and requires `--force-bind` above 5,242,880 bytes; it runs for every mode and does not measure every possible script/configuration/book input. Clean docbook strips frontmatter and emits title text, rather than deleting stale source documentation. Collapse reads existing `rotkeeper-*.md` book reports, not the content tree. `--config` is parsed but is not consumed by the binders.
 
+### Cautions
 
-### Bones of the Code
-This script binds scattered markdown souls into a single, monstrous RAG Tome. It agglomerates documentation, code, and whatever else it finds into one massive file, like a flesh golem made of text.
-
-### Restless Spirits
-Including raw configs and logs is a fool's errand. The token weight of this monstrous book will crush any LLM that attempts to read it. Furthermore, collapsing huge projects into a single shell variable or stream may invoke the dreaded OOM killer, as the shell's memory limits buckle under the weight of the project's ego.
-
-### Ritual Warnings
-Keep the project small, or watch this script choke on its own creation. Never feed the resulting tome to a language model without a robust token budget, lest you bankrupt your API account.
+Books are retrieval snapshots, not authoritative policy or backups. Some discovery loops use newline-separated paths, unlike the NUL-delimited content-metadata walk; do not assume arbitrary filenames are supported in every mode. Recognized dry-run flags skip report writes but still create the book-report directory and write bootstrap logs. Random section suffixes mean repeated real binds are not byte-identical.

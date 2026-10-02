@@ -16,15 +16,25 @@ HTML template for the high-contrast light theme.
 Zero-hydration HTML template used for static rendering. It relies on standard CSS variables and structural classes.
 
 ## Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-04T15:41:00Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-10-02T01:27:41Z -->
 
 
-### Architectural Intent
-An HTML layout file that includes the light theme styles, establishing the standard light-mode aesthetic for rendered documents.
+### Design
 
-### Directory / File Schema Expectations
-If colors are edited without reviewing dark-mode overrides, theme switching widgets will break. Verify contrast ratios on all text and code blocks.
+The light wrapper links `css/theme-light.css`. It uses `rk-container`,
+a title header with an optional description, and a main article region.
+The footer shows version, asset metadata, and tags when supplied.
 
+### Limits
+
+The template has no dark-mode override or theme-switching widget.
+It does not define the stylesheet's colors.
+
+### Cautions
+
+Keep the stylesheet link relative through `$assets_root$`. Test stylesheet
+changes with `bash rotkeeper.sh a11y` and inspect rendered pages; the
+template does not itself verify contrast.
 ## Reads and writes
 <!-- DIP-ENV-EXTRACTED: 2026-10-01T21:17:26Z -->
 

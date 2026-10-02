@@ -80,11 +80,25 @@ No side effects are documented in script annotations.
 ## Notes
 <!-- DIP-SOUL-EXTRACTED: command-reference.v1 -->
 
-### Architectural Intent
-The primary dispatcher for the Rotkeeper system. It acts as the gateway cli to bootstrap the environment, invoke scripts like `rc-init.sh`, `rc-render.sh`, `rc-dip.sh`, and `rc-release.sh`, and coordinate test suites.
+### Design
 
-### Directory / File Schema Expectations
-It is a wrapper with high expectations. It requires `rc-utils.sh` and `rc-env.sh` to exist in the same directory, failing immediately if the environment variables are not populated. If child scripts exit with unhandled errors, it occasionally fails to report the specific failure origin. Always execute `rotkeeper.sh` from the workspace root or ensure script directories are accessible. Verify environment paths, or the dispatcher will fail to bootstrap.
+The dispatcher derives the repository root from its own location and
+loads `bones/scripts/rc-utils.sh` for version and help handling. It runs
+command scripts with Bash. `test` and `smoke` select the same harness.
+`release` supplies the current version unless a positional version is given.
+
+### Limits
+
+The dispatcher does not load the layout itself; command bootstraps do that.
+It does not require the caller's working directory to be the repository
+root. Unknown commands and the removed `ingest`, `sync-inbox`, `cleanup`,
+and `reseed` commands fail.
+
+### Cautions
+
+Invoke project commands through `bash rotkeeper.sh <command>`, not by
+executing `rc-*.sh` files directly. Subcommands have their own dependencies
+and side effects. Top-level help and version output do not start a workflow.
 
 ## History
 <!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->

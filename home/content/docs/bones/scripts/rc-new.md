@@ -81,14 +81,22 @@ Filename/subdirectory traversal and destinations outside `CONTENT_DIR` are rejec
 ## Notes
 <!-- DIP-SOUL-EXTRACTED: command-reference.v1 -->
 
-### Bones of the Code
-A glorified form filler that generates new markdown 'tombs' and slaps YAML frontmatter on them. It takes user input and attempts to coerce it into a valid filename.
+### Design
 
-### Restless Spirits
-It is hopelessly naive about character escaping. Feed it a title with quotes, colons, or other exotic characters, and watch it generate malformed frontmatter and unreadable filenames. It's a breeding ground for syntax errors.
+Scaffolds one source under the active `CONTENT_DIR`, adding `.md` to bare names. Derives title and slug, resolves the default template, and writes optional author, description, tags, body, and source URL. Markdown and Textile receive format-specific headings; Cooklang gets a sample recipe when no body is supplied. No filename or `--list` lists available templates instead of creating content.
 
-### Ritual Warnings
-Stick to alphanumeric titles unless you enjoy manually untangling broken YAML and shell-escaped horrors.
+`--soul` uses the file-sidecar schema with a repository-relative target,
+Design/Limits/Cautions headings, and null review fields. The content-relative
+lookup path remains unchanged. Fill in and verify the notes before recording
+a review date and version.
+
+### Limits
+
+Canonical destination checks reject parent traversal and paths outside the content boundary, and existing content files are refused. Titles, authors, tags, and single-line descriptions escape quotes and backslashes; multiline descriptions use a block scalar. Slugs are ASCII-oriented. The selected template name is written to frontmatter without checking whether that template exists; rendering has its own template checks.
+
+### Cautions
+
+`--soul` requests a mirrored metadata sidecar and preserves an existing sidecar with a warning. Newly scaffolded notes are author-editable context, not evidence that a source review has occurred. Source creation and sidecar creation are separate writes, so a sidecar failure does not roll back the content page. Dry-run skips source and sidecar publication but still loads the environment and writes bootstrap logs.
 
 ## History
 <!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->

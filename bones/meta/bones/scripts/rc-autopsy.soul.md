@@ -1,29 +1,17 @@
 ---
 target_file: bones/scripts/rc-autopsy.sh
-source: generated
-generated: 2026-07-03
-version: 0.1.0
-status: final
+reviewed: "2026-10-01"
+reviewed_against: "0.8.1"
 ---
 
-### Bones of the Code
-An undertaker for dead processes. It attempts deep logging and error parsing by scraping raw text files. It's essentially a glorified `grep` wrapped in a burial shroud, pretending to understand the final cries of dying code.
+### Design
 
-### Restless Spirits
-Runaway log files are the hungry ghosts here, waiting to devour every last byte of your disk space if left unchecked. Furthermore, its regex-based parsing of multi-line stack traces is comically inadequate. It will slice a stack trace in half and present you with a meaningless limb.
+Catalogs command help and source-level output operations, not process logs or stack traces. Discovers top-level `rc-*.sh` files and the dispatcher; help collection executes only explicitly permitted basenames with `--help` and `ROT_SKIP_ENV=true`. Real runs replace `bones/reports/autopsy-help.md`, `bones/reports/autopsy-outputs.md`, or both.
 
-### Ritual Warnings
-Monitor your disk space, or this script will fill it with the endless screaming of past errors. Do not trust its interpretation of multi-line errors; it only understands the simplest of death rattles.
+### Limits
 
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-13T23:16:45Z -->
+The output catalog uses line-oriented regular expressions for selected redirections, copies, moves, tee, and tar syntax. It substitutes exported directory variables and labels remaining variables unresolved. It is not a complete parser of shell behavior, quoting, multiline commands, or indirect writes. An empty help response falls back to flag strings found in source; captured error text can also appear in the report.
 
+### Cautions
 
-### Bones of the Code
-An undertaker for dead processes. It attempts deep logging and error parsing by scraping raw text files. It's essentially a glorified `grep` wrapped in a burial shroud, pretending to understand the final cries of dying code.
-
-### Restless Spirits
-Runaway log files are the hungry ghosts here, waiting to devour every last byte of your disk space if left unchecked. Furthermore, its regex-based parsing of multi-line stack traces is comically inadequate. It will slice a stack trace in half and present you with a meaningless limb.
-
-### Ritual Warnings
-Monitor your disk space, or this script will fill it with the endless screaming of past errors. Do not trust its interpretation of multi-line errors; it only understands the simplest of death rattles.
+Verify report entries against current source before using them as operational facts. DIP may consume the output report for artifact exclusions, but harvests command help directly from source comments. Use a leading `--dry-run` before a report-mode flag: the shared parser stops at the first custom flag, and the local mode parser does not set dry-run. A recognized dry-run skips report writes and help execution but still writes bootstrap logs.

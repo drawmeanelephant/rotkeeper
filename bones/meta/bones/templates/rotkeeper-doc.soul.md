@@ -1,21 +1,24 @@
 ---
-title: "Doc Layout Template"
-description: "Layout expectations for sidebar layouts and structural indices."
-status: "complete"
+target_file: bones/templates/rotkeeper-doc.html
+reviewed: "2026-10-01"
+reviewed_against: "0.8.1"
 ---
 
-### Architectural Intent
-The primary Oliver-rendered HTML template for static documentation pages. It handles layout rendering, side navigation, headers, footers, and scripts integration.
+### Design
 
-### Directory / File Schema Expectations
-It is deeply dependent on the CSS structures declared in `rotkeeper.css`. If layout classes are renamed in the stylesheet, the documentation grid layout will crumble. Modify this layout only when updating global documentation typography or page headers.
+The documentation wrapper sets the page title, optional description metadata,
+one header H1, and a main content region with `id="rk-doc-content"`.
+A skip link targets that region. The stylesheet is
+`css/theme-spooky-dark.css`, not `rotkeeper.css`.
 
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-13T23:16:45Z -->
+### Limits
 
+The wrapper itself contains no page inventory or sidebar. For output under
+`docs/` or `help/`, the render adapter inserts breadcrumbs, page navigation,
+and previous/next links through the body slot.
 
-### Architectural Intent
-The primary Oliver-rendered HTML template for static documentation pages. It handles layout rendering, side navigation, headers, footers, and scripts integration.
+### Cautions
 
-### Directory / File Schema Expectations
-It is deeply dependent on the CSS structures declared in `rotkeeper.css`. If layout classes are renamed in the stylesheet, the documentation grid layout will crumble. Modify this layout only when updating global documentation typography or page headers.
+Preserve the skip-link target and the literal `$body$` slot. Keep the
+stylesheet classes aligned with the wrapper. Optional footer fields use
+`$if(...)$` blocks; the version comes from the shared version loader.

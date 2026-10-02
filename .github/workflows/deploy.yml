@@ -27,6 +27,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Install Zig 0.16.0
@@ -172,7 +173,10 @@ jobs:
                       expected = (Path("output") / file).read_bytes()
                       route = "/" if file == "index.html" else "/docs/publishing"
                       for host in hosts:
-                          request = Request(host + route, headers={"Cache-Control": "no-cache"})
+                          request = Request(
+                              host + route,
+                              headers={"Cache-Control": "no-cache", "User-Agent": "rotkeeper-deploy-check"},
+                          )
                           with urlopen(request, timeout=20) as response:
                               if response.status != 200 or response.read() != expected:
                                   raise ValueError(f"{host}{route}: not serving the uploaded bytes")

@@ -1,29 +1,17 @@
 ---
 target_file: bones/scripts/rc-scan.sh
-source: generated
-generated: 2026-07-03
-version: 0.1.0
-status: final
+reviewed: "2026-10-01"
+reviewed_against: "0.8.1"
 ---
 
-### Bones of the Code
-The paranoid auditor. It checks files against `bones/manifest.txt` to see what has been stolen or what has crawled in uninvited.
+### Design
 
-### Restless Spirits
-Its reporting mechanism for missing or orphaned files is easily confused by symlinks, bizarre characters in filenames, or simple directory restructurings. It cries wolf so often that its warnings are eventually ignored.
+Audits `bones/manifest.txt` against disk and walks the rendered output tree for unlisted files. Generated assets and named runtime-support directories are excluded from the orphan walk. Reports missing entries, output orphans, present-file SHA-256 digests, and mismatches against ledger-recorded hashes. Real runs write selected Markdown/JSON reports under `bones/reports`; stdout JSON uses the `rotkeeper.scan.v2` envelope.
 
-### Ritual Warnings
-Do not treat its manifest as absolute truth. It is easily fooled by the slightest deviation in the physical realm.
+### Limits
 
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-13T23:16:45Z -->
+Findings do not delete files and do not cause a nonzero result by themselves. A missing manifest is fatal only with `--manifest-only`; otherwise the output walk can still report orphans. Include/exclude filters affect orphan discovery, not ledger checks. Recorded hashes require the two-space path/hash form. Ledger normalization truncates at spaces and the output walk reads newline-delimited paths, so filenames containing spaces or newlines are not reliably represented.
 
+### Cautions
 
-### Bones of the Code
-The paranoid auditor. It checks files against `bones/manifest.txt` to see what has been stolen or what has crawled in uninvited.
-
-### Restless Spirits
-Its reporting mechanism for missing or orphaned files is easily confused by symlinks, bizarre characters in filenames, or simple directory restructurings. It cries wolf so often that its warnings are eventually ignored.
-
-### Ritual Warnings
-Do not treat its manifest as absolute truth. It is easily fooled by the slightest deviation in the physical realm.
+Run from the repository root: the script converts manifest, output, report, and log locations to relative paths. Render-ledger entries can remain after stale pages are pruned, so a missing entry can reflect source removal rather than corruption. Dry-run skips final reports and the extra scan-specific log assignment, but shared bootstrap still writes a run log and the script creates report/log directories; stdout JSON also uses a scratch file and appends it to the current log.

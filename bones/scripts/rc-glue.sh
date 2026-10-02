@@ -159,7 +159,9 @@ main() {
 template: \"$SAFE_TEMPLATE\"
 rotkeeper_glued: true"
 
-    if [[ -f "$SOUL_FILE" ]]; then
+    # The root lookup shares rotkeeper.soul.md with the dispatcher reference.
+    # File sidecar ownership/review fields must not enter directory indexes.
+    if [[ -f "$SOUL_FILE" && -z "$(rk_frontmatter_field target_file "$SOUL_FILE")" ]]; then
         log "INFO" "💀 Synchronizing folder soul alignment: $SOUL_FILE"
         # DIP SEPARATION: Surgically merge sidecar metadata block via yq array mapping
         MERGED_YAML=$(yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' <(echo "$DEFAULT_YAML") <(yq eval --front-matter="extract" '.' "$SOUL_FILE" 2>/dev/null || echo "{}"))

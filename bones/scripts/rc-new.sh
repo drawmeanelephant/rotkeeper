@@ -470,18 +470,32 @@ EOF
             else
                 # SIDE EFFECT (write): creates bones/meta/<rel>.soul.md sidecar scaffold
                 mkdir -p "$(dirname "$soul_file")"
-                soul_author="${AUTHOR:-$(yq e '.author // ""' "$CONFIG_DIR/rotkeeper.yaml" 2>/dev/null || echo "")}"
-                soul_date=$(date +%Y-%m-%d)
-                cat << SOUL_EOF > "$soul_file"
----
-title: "${SAFE_TITLE}"
-author: "${soul_author}"
-date: "$soul_date"
+                # Review fields remain null until an author checks the claims.
+                # The lookup path is content-relative; ownership is repo-relative.
+                soul_root=$(rk_canonical_path "$ROOT_DIR")
+                soul_target="${FILE#"$soul_root"/}"
+                {
+                    printf '%s\n' '---'
+                    RK_SOUL_TARGET="$soul_target" yq -n '
+                      .target_file = strenv(RK_SOUL_TARGET) |
+                      .reviewed = null |
+                      .reviewed_against = null'
+                    cat << 'SOUL_EOF'
 ---
 
-Notes for \`$rel_path\` — add context, warnings, or DIP notes here.
+### Design
 
+TODO: Describe the target's implementation or content structure.
+
+### Limits
+
+TODO: Record verified restrictions, or state that no additional limits apply.
+
+### Cautions
+
+TODO: Record verified operational risks, or state that no additional cautions apply.
 SOUL_EOF
+                } > "$soul_file"
                 # shellcheck disable=SC2295
                 rel_soul="${soul_file#$ROOT_DIR/}"
                 soul_msg=" + soul $rel_soul"

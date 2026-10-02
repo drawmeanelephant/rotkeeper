@@ -1,21 +1,25 @@
 ---
-title: "Root Workspace"
-description: "Maps top-level scripts, Git wrappers, and root entry-points."
-status: "complete"
+target_file: rotkeeper.sh
+reviewed: "2026-10-01"
+reviewed_against: "0.8.1"
 ---
 
-### Architectural Intent
-The primary dispatcher for the Rotkeeper system. It acts as the gateway cli to bootstrap the environment, invoke scripts like `rc-init.sh`, `rc-render.sh`, `rc-dip.sh`, and `rc-release.sh`, and coordinate test suites.
+### Design
 
-### Directory / File Schema Expectations
-It is a wrapper with high expectations. It requires `rc-utils.sh` and `rc-env.sh` to exist in the same directory, failing immediately if the environment variables are not populated. If child scripts exit with unhandled errors, it occasionally fails to report the specific failure origin. Always execute `rotkeeper.sh` from the workspace root or ensure script directories are accessible. Verify environment paths, or the dispatcher will fail to bootstrap.
+The dispatcher derives the repository root from its own location and
+loads `bones/scripts/rc-utils.sh` for version and help handling. It runs
+command scripts with Bash. `test` and `smoke` select the same harness.
+`release` supplies the current version unless a positional version is given.
 
-## Necromancer's Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-13T23:16:45Z -->
+### Limits
 
+The dispatcher does not load the layout itself; command bootstraps do that.
+It does not require the caller's working directory to be the repository
+root. Unknown commands and the removed `ingest`, `sync-inbox`, `cleanup`,
+and `reseed` commands fail.
 
-### Architectural Intent
-The primary dispatcher for the Rotkeeper system. It acts as the gateway cli to bootstrap the environment, invoke scripts like `rc-init.sh`, `rc-render.sh`, `rc-dip.sh`, and `rc-release.sh`, and coordinate test suites.
+### Cautions
 
-### Directory / File Schema Expectations
-It is a wrapper with high expectations. It requires `rc-utils.sh` and `rc-env.sh` to exist in the same directory, failing immediately if the environment variables are not populated. If child scripts exit with unhandled errors, it occasionally fails to report the specific failure origin. Always execute `rotkeeper.sh` from the workspace root or ensure script directories are accessible. Verify environment paths, or the dispatcher will fail to bootstrap.
+Invoke project commands through `bash rotkeeper.sh <command>`, not by
+executing `rc-*.sh` files directly. Subcommands have their own dependencies
+and side effects. Top-level help and version output do not start a workflow.

@@ -14,7 +14,9 @@ Documentation for `bones/templates/theme-brutal.html`. This file was auto-genera
 
 ## Overview
 <!-- DIP-GENERATED-MARKER: Overview -->
-TODO: Provide a brief overview of what this file does.
+HTML page wrapper using `theme-brutal.css`, one H1 page title, conditional
+page metadata, and a literal article body slot. A root `palette-*` class
+selects a matching stylesheet scope.
 
 ## Usage
 <!-- DIP-HELP-EXTRACTED: 2026-10-01T21:17:26Z -->
@@ -29,6 +31,36 @@ This file is not a script; no script environment contract applies.
 
 No matching entries in CHANGELOG.md.
 ## Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-10-01T21:17:26Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-10-02T01:22:51Z -->
 
-No sidecar notes are documented for `bones/templates/theme-brutal.html`.
+
+### Design
+
+This HTML wrapper links `css/theme-brutal.css` and inserts `$body$` into
+`.brutal-body`. It has one H1 title, optional description and date, and a
+footer containing the loaded version and conditional author, asset metadata,
+and tags.
+
+`palette` adds `class="palette-$palette$"` to the root element. The stylesheet
+defines `mac`, `unix`, and `pwsh` palette scopes. See
+[theme guidance](../../themes.html),
+[creating themes](../../creating-themes.html), and the
+[Oliver contract](../../oliver-contract.html).
+
+### Limits
+
+There is no site-navigation slot or script element. The fixed overline is
+marked `aria-hidden="true"`; it is decoration rather than a runtime status.
+
+Palette names are inserted as classes, not validated by the template.
+A value without a corresponding stylesheet scope does not select a new
+palette.
+
+### Cautions
+
+The version label comes from the loaded Rotkeeper version, not page
+frontmatter. Preserve the literal body slot and conditional footer fields
+when changing the wrapper.
+
+This is an HTML wrapper. See the [XHTML guide](../../xhtml-profile.html)
+before using an XHTML body profile.

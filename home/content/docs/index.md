@@ -85,10 +85,8 @@ The current workflow is deliberately small and local-first:
 - [Rotkeeper Reference](rotkeeper-reference.html)
 - [Rotkeeper Rituals](rotkeeper-rituals.html)
 - [Writing a New Rotkeeper Ritual](new-ritual.html)
-- [Pre-commit Notes](pre-commit.html)
 
 ### 7. 🧯 Ritual Interruptions
-- [Patch Notes](patch.html)
 - [Setup](scripts/setup.html)
 
 ### ✒️ Textile Content
@@ -132,8 +130,6 @@ Sora prompt: “A glitching wiki carved into obsidian, with glowing CLI runes et
 - [new-ritual](<new-ritual.html>)
 - [oliver-contract](<oliver-contract.html>)
 - [onboarding](<onboarding.html>)
-- [patch](<patch.html>)
-- [pre-commit](<pre-commit.html>)
 - [publishing](<publishing.html>)
 - [rotkeeper-reference](<rotkeeper-reference.html>)
 - [rotkeeper-rituals](<rotkeeper-rituals.html>)

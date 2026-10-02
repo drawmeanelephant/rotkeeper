@@ -13,7 +13,7 @@ Documentation for `bones/templates/theme-phosphor.html`. This file was auto-gene
 
 ## Overview
 <!-- DIP-GENERATED-MARKER: Overview -->
-HTML template for the retro-brutalist CRT terminal overlay theme.
+HTML wrapper using the phosphor stylesheet and its CRT overlay element.
 
 
 ## Reads and writes
@@ -25,17 +25,25 @@ This file is not a script; no script environment contract applies.
 
 No matching entries in CHANGELOG.md.
 ## Notes
-<!-- DIP-SOUL-EXTRACTED: 2026-07-23T10:54:47Z -->
+<!-- DIP-SOUL-EXTRACTED: 2026-10-02T01:27:41Z -->
 
 
-# 🟢 theme-phosphor Layout Soul
+### Design
 
-## Architectural Intent
-Provides a retro-brutalist CRT terminal layout block for users or agents checking logs inside a sandboxed environment.
+The wrapper loads `css/theme-phosphor.css` and includes a `crt-overlay`
+element. The header formats the title as `> $title$_`. The article receives
+the rendered body; the footer shows version and optional metadata.
 
-## Directory / File Schema Expectations
-- Requires accompanying layout styling in `home/assets/css/theme-phosphor.css`.
-- Must parse template flags dynamically without fracturing the common `$body$` structure.
+### Limits
+
+This is an HTML page wrapper, not a terminal emulator. It contains no
+inline font import, dynamic flag parser, or description display.
+
+### Cautions
+
+Keep the overlay's styling in the associated stylesheet. Preserve
+`$assets_root$` and `$body$`; layout-specific asset locations are supplied
+by the renderer rather than hard-coded to `home/assets`.
 ## Usage
 <!-- DIP-HELP-EXTRACTED: 2026-10-01T21:17:26Z -->
 

@@ -1,0 +1,31 @@
+---
+target_file: "bones/templates/theme-spooky-light.html"
+reviewed: "2026-10-01"
+reviewed_against: "0.8.1"
+---
+
+### Design
+
+This HTML wrapper links `css/theme-spooky-light.css` and shares the dark
+template's journal/article structure. It uses an H1 page title and an H2
+article title, inserts `$body$` into `.entry-content`, and gates description,
+date, and author on their metadata values. Its footer includes the loaded
+version and optional asset metadata and tags.
+
+See [theme guidance](../../themes.html),
+[creating themes](../../creating-themes.html), and the
+[Oliver token contract](../../oliver-contract.html).
+
+### Limits
+
+The wrapper has no palette hook, site-navigation slot, or script element.
+Its fixed user picture is marked `aria-hidden="true"`. Unlike the dark
+wrapper, the journal footer has no decorative text above the version credit.
+
+### Cautions
+
+Keep the shared journal and entry class names aligned with the stylesheet.
+Asset links depend on the page-relative `$assets_root$` prefix.
+
+This wrapper uses HTML void elements. Use an XHTML wrapper for an XHTML
+document, as described in the [XHTML guide](../../xhtml-profile.html).
