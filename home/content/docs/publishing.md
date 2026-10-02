@@ -33,6 +33,70 @@ The commands below build **this repository's help site**. Their deployment
 workflow and Cloudflare credentials do not automatically publish another
 user's site. Use your host's upload procedure for your own output.
 
+### Upload to an existing Cloudflare Pages project
+
+For this repository, use the GitHub Actions procedure below when the
+repository already holds the Pages secrets. A local Wrangler login is not
+required for that route.
+
+Get the project owner's approval for the project and branch first. A branch
+other than the project's configured production branch creates a **preview**,
+not a production replacement. Do not create a project, edit DNS, or change
+host settings as part of this upload.
+
+For this optional upload tool only, use Node **22** with npm. On macOS you
+can install it with `brew install node@22` and add
+`$(brew --prefix)/opt/node@22/bin` to `PATH`; the site itself needs no Node
+runtime. Confirm `node --version` and `npm --version`. Use the same pinned
+Wrangler version as this repository's deployment workflow:
+
+```bash
+npx --yes wrangler@4.146.0 login
+npx --yes wrangler@4.146.0 whoami
+```
+
+Login opens an interactive browser authorization. Run it in your own
+terminal. If `whoami` reports an expired login, repeat login before uploading.
+Never paste a token into documentation, chat, command arguments, or Git.
+
+After `render`, `links`, and `pack`, upload **only** the generated directory.
+For the approved issue #334 walkthrough, the existing project is `rotkeeper`
+and the preview branch is `docs-334-walkthrough`:
+
+```bash
+npx --yes wrangler@4.146.0 pages deploy output \
+  --project-name=rotkeeper --branch=docs-334-walkthrough
+```
+
+Use your own approved existing project and non-production branch for another
+site. For `sterile`, replace `output` with `dist`. A successful command prints
+the deployment URL. Record that URL, not just the branch alias or CLI exit.
+
+Verify the **deployment URL** before declaring success. Assign the URL
+printed by Wrangler to `DEPLOYMENT_URL`, then compare the uploaded home,
+a nested page you created, and its stylesheet with the local bytes:
+
+```bash
+export DEPLOYMENT_URL="https://YOUR-DEPLOYMENT.rotkeeper.pages.dev"
+curl -fsSL -A rotkeeper-deploy-check "$DEPLOYMENT_URL/" | cmp - output/index.html
+curl -fsSL -A rotkeeper-deploy-check "$DEPLOYMENT_URL/journal/walkthrough.html" | cmp - output/journal/walkthrough.html
+curl -fsSL -A rotkeeper-deploy-check "$DEPLOYMENT_URL/assets/css/theme-spooky-dark.css" | cmp - output/assets/css/theme-spooky-dark.css
+```
+
+Create `journal/walkthrough.md` with `new --subdir journal` as shown in the
+[workflow guide](workflow.html), or substitute another real nested output
+path. Nonzero curl or cmp exits mean verification failed. These reads check
+public delivery, not visual appearance or assistive-technology behavior.
+An archive, a local browser, or a successful CLI upload alone is not
+publication evidence.
+
+Follow redirects because Pages canonicalizes HTML routes. Automated
+verification uses the descriptive `rotkeeper-deploy-check` user agent,
+also used by the production verifier. Cloudflare can reject the default
+Python user agent with HTTP 403/error 1010 even when the public page works.
+Use the named verifier rather than disabling browser-integrity or access
+controls. Continue to require HTTP 200 and exact bytes.
+
 ## This repository's help site
 
 Rotkeeper's own help site uses the Cloudflare Pages project **`rotkeeper`**:
@@ -64,6 +128,9 @@ bash rotkeeper.sh autopsy --all
 bash rotkeeper.sh dip
 bash rotkeeper.sh render
 bash rotkeeper.sh links
+bash rotkeeper.sh a11y
+bash rotkeeper.sh status
+bash rotkeeper.sh test --site
 ```
 
 The filesystem catalog and autopsy reports supply DIP's discovery and help inputs. DIP runs before rendering so the published site includes the refreshed documentation and matrix. Additional book binders are optional retrieval aids; they are not uploaded.
@@ -80,15 +147,53 @@ The approved workflow file is `.github/workflows/deploy.yml` (**Publish Rotkeepe
 
 Tool installation uses `scripts/setup.sh`, the same checksum- and commit-verified Oliver installer used by CI, with Zig 0.16.0 available for its pinned source-build fallback. Actions are pinned to commit SHAs. Node and Wrangler are used only in the deploy job to upload static files; they are not site build or runtime dependencies.
 
-Build errors, missing entry pages, and broken local links block deployment.
-Placeholder and page-structure checks, plus the theme accessibility audit,
-run **warn-only** while the help backlog is open. The workflow still reports
-sidecar and command-reference coverage gates as pending. Issue #334
-integrates and enforces those checks; the presence of a generated index
-does not itself mean the CI gate exists. Setting `HELP_CHECKS_ENFORCE` to
-`true` before those pending gates are implemented intentionally blocks publication.
+The build calls `bash rotkeeper.sh test --site`. All six
+[site quality gates](workflow.html#enforced-site-gates) are enforced:
+placeholder-free Help and Docs, whole-site local links, audited documentation
+stylesheets, sidecar coverage/reachability, generated dispatcher references,
+and one H1 plus a nav landmark on every documentation page. Reviewed authored
+guides and complete generation inputs are required too. There is no warn-only
+or `continue-on-error` path. A failed gate blocks the artifact upload and
+deployment.
 
 Generated docs and `output/` are not committed by the workflow. The checked site artifact expires after one day.
+
+### Run the approved preview walkthrough through GitHub
+
+The existing **Rotkeeper CI** workflow has an optional manual input,
+`publish_walkthrough`, disabled by default. The repository's secrets supply
+the upload credentials; no local Cloudflare login is needed.
+
+1. Get explicit owner approval for publishing to project `rotkeeper`, preview
+   branch `docs-334-walkthrough`. This workflow never selects the production
+   branch or changes host settings.
+2. In GitHub Actions, choose **Rotkeeper CI**, **Run workflow**, and the branch
+   containing the intended site. Enable `publish_walkthrough`. With the
+   authenticated GitHub CLI, the equivalent is:
+
+   ```bash
+   gh workflow run ci.yml --ref YOUR-BRANCH -f publish_walkthrough=true
+   ```
+
+3. The full Linux/macOS matrix must pass first. The walkthrough then reads
+   the rendered Help hub, onboarding, workflow, and publishing pages from
+   that checked build. It makes a fresh remote clone at the selected commit,
+   verifies that generated artifacts are absent, installs the documented
+   tools, and runs `init`, `new`, the onboarding reference refresh
+   (`book --fsbook`, `autopsy --all`, `dip`), `render`, checks, and `pack`.
+4. It checks the gzip archive, embedded metadata, source JSON export, and
+   archived page/stylesheet bytes. The enforced site build refreshes the
+   product references before uploading only `output/` through the existing
+   pinned Wrangler action.
+5. Read **Fresh-clone Help walkthrough and approved preview** in the run.
+   Its final step must report the unique preview URL and HTTP 200 plus exact
+   byte matches for the home page, first page, nested walkthrough page, and
+   stylesheet. Record the run URL, commit, commands, artifact hashes, and
+   publication evidence. A failed or skipped verification is not success.
+
+This explicit manual input is the only CI preview-publishing path. Ordinary
+pull-request CI never receives Pages secrets or deploys. Production remains
+the separate publishing workflow's checked push-to-`main` path.
 
 ## Cloudflare configuration
 

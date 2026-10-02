@@ -19,8 +19,14 @@ Install Git, clone the repository into a new directory, and enter it:
 
 ```bash
 git clone https://github.com/drawmeanelephant/rotkeeper.git
-cd rotkeeper
+cd -P rotkeeper
 ```
+
+Use a physical working directory (`pwd -P`), not a symlink alias. On macOS,
+for example, `/tmp` points to `/private/tmp`. A logical checkout path can
+disagree with canonical paths and correctly trigger a boundary error.
+If you entered through a symlink, switch to the physical directory and
+rerun `init` to refresh the path cache; do not weaken the boundary checks.
 
 Use a separate checkout for a separate site. Commands can update configuration,
 manifests, generated documentation, logs, and output.
@@ -93,11 +99,24 @@ The `new` command refuses to overwrite an existing file. Edit
 
 ## Render and check
 
+This checkout includes Rotkeeper's product documentation. Refresh its
+inventory and references **before the first render**; the checked-in audit
+matrix may describe an older inventory and link to pages no longer generated.
+These commands update documentation sources, not your newly created page:
+
 ```bash
+bash rotkeeper.sh book --fsbook
+bash rotkeeper.sh autopsy --all
+bash rotkeeper.sh dip
 bash rotkeeper.sh render
 bash rotkeeper.sh links
 bash rotkeeper.sh status
 ```
+
+Keep Help and Docs enabled for this first build. For a later user-only site,
+follow the [workflow's system-documentation instructions](workflow.html)
+before disabling them; do not ignore broken links or delete generated
+pages to make the audit pass.
 
 Render writes `output/my-page.html` and synchronizes local assets. Open that
 file in a browser. `links` checks local page and asset references; `status`

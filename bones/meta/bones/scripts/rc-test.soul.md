@@ -1,12 +1,20 @@
 ---
 target_file: bones/scripts/rc-test.sh
-reviewed: "2026-10-01"
+reviewed: "2026-10-02"
 reviewed_against: "0.8.1"
 ---
 
 ### Design
 
 Bash integration harness shared by the dispatcher test and smoke commands. Creates crypt, busy, and sterile fixtures beneath `bones/tmp/rotkeeper-test-env`, exercises initialization, rendering, packaging, scanning, and release, and checks output pruning, archive integrity, metadata/template contracts, documentation navigation, and command help/version behavior. Includes isolated DIP generation and migration fixtures and removed-command regressions.
+
+The full run also builds a disposable copy of the tracked working site and
+enforces the Help/Docs quality gates. Fifteen isolated corruptions prove
+failures for placeholders, links, accessibility, sidecars, generated command
+coverage, page structure, authored guides, and degraded DIP inputs.
+`test --site` runs the same build and gates in the current checkout, without
+the fixture matrix. CI and publication use this mode to check the actual
+deployable artifact. It regenerates source references and the DIP matrix.
 
 ### Limits
 

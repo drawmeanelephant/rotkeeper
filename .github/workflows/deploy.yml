@@ -13,11 +13,6 @@ concurrency:
   group: rotkeeper-pages-${{ github.ref }}
   cancel-in-progress: false
 
-# Issue #334 will enforce the help-site gates once the content backlog clears.
-# Build failures and broken links already block publication.
-env:
-  HELP_CHECKS_ENFORCE: "false"
-
 jobs:
   build:
     name: Build and check help site
@@ -50,71 +45,14 @@ jobs:
       - name: Install the pinned Oliver renderer and site tools
         run: sudo bash scripts/setup.sh
 
-      - name: Build the help site
+      - name: Build and enforce Help and Docs site gates
         shell: bash
         run: |
           set -euo pipefail
           IFS=$'\n\t'
-          bash rotkeeper.sh preflight
-          bash rotkeeper.sh book --fsbook
-          bash rotkeeper.sh autopsy --all
-          bash rotkeeper.sh dip
-          bash rotkeeper.sh render
-          bash rotkeeper.sh links
+          bash rotkeeper.sh test --site
           test -s output/index.html
           test -s output/docs/publishing.html
-
-      - name: Check help placeholders and page structure (warn-only)
-        shell: bash
-        run: |
-          set -euo pipefail
-          IFS=$'\n\t'
-          python3 - <<'PY'
-          import os
-          import re
-          from html.parser import HTMLParser
-          from pathlib import Path
-
-          class Page(HTMLParser):
-              def __init__(self):
-                  super().__init__()
-                  self.h1 = 0
-                  self.nav = False
-                  self.text = []
-
-              def handle_starttag(self, tag, attrs):
-                  self.h1 += tag == "h1"
-                  self.nav |= tag == "nav"
-
-              def handle_data(self, text):
-                  self.text.append(text)
-
-          findings = []
-          pages = sorted(Path("output/docs").rglob("*.html"))
-          if not pages:
-              raise SystemExit("No rendered documentation pages found")
-          for path in pages:
-              page = Page()
-              page.feed(path.read_text(encoding="utf-8"))
-              if re.search(r"Not found:|TODO:", "".join(page.text)):
-                  findings.append(f"{path}: unfinished placeholder text")
-              if page.h1 != 1 or not page.nav:
-                  findings.append(f"{path}: {page.h1} H1 headings; nav={page.nav}")
-          enforce = os.environ["HELP_CHECKS_ENFORCE"] == "true"
-          level = "error" if enforce else "warning"
-          for finding in findings:
-              print(f"::{level}::{finding}")
-          print(f"Checked {len(pages)} docs pages; {len(findings)} findings.")
-          # Do not pretend these checks exist before their dependencies land.
-          print(f"::{level}::Sidecar coverage and generated command-reference "
-                "coverage gates are pending issues #328, #331, and #334.")
-          if enforce:
-              raise SystemExit("Complete the pending #334 gates before enforcing")
-          PY
-
-      - name: Check theme accessibility (warn-only)
-        continue-on-error: ${{ env.HELP_CHECKS_ENFORCE != 'true' }}
-        run: bash rotkeeper.sh a11y
 
       - name: Save the checked site
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7

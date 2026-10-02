@@ -14,7 +14,7 @@ fi
 # rc-test.sh — Integration test harness matrix
 #
 # Usage:
-#   rotkeeper.sh test|smoke [--dry-run]
+#   rotkeeper.sh test|smoke [--dry-run | --site]
 #
 # Description:
 #   Builds temporary crypt, busy, and sterile fixtures, initializes each
@@ -22,15 +22,19 @@ fi
 #   scan, release, preflight), verifies archive properties, stale-output
 #   pruning, dry-run non-mutation, command contracts (--help/--version),
 #   removed-command regressions, and schema-tagged --json output checks for
-#   scan and dip. With --dry-run, runs only the removed-command regression checks.
+#   scan and dip. Also builds the real Help/Docs site and enforces its six
+#   quality gates with negative regressions. --site builds and checks the
+#   current checkout only; --dry-run runs only removed-command regressions.
 #
 # Options:
+#   --site         Build and enforce Help/Docs gates in the current checkout
 #   --dry-run      Run only the removed-command regression checks
 #   --help, -h     Show help
 #   --version, -v  Show version and quit
 #
 # Examples:
 #   bash rotkeeper.sh test               # Full multi-layout harness matrix
+#   bash rotkeeper.sh test --site        # Build/check the deployable help site
 #   bash rotkeeper.sh test --dry-run     # Removed-command regressions only
 #
 # Exit codes:
@@ -44,7 +48,205 @@ if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
   exit 0
 fi
 
-rk_load_env strict
+rk_init_script "rc-test" "$@"
+# Unlike quiet rituals, the harness keeps assertion diagnostics on the console.
+exec 1>&3 2>&1
+
+# The same gate implementation checks the full harness's isolated site and
+# the actual artifact built by CI/deploy. DIP previews share stdout with JSON;
+# the parser below extracts exactly one schema envelope before using it.
+assert_help_site() {
+  local root="$1" content="$2" output="$3" evidence="$4"
+  local links_status=0 a11y_status=0
+  bash "$root/rotkeeper.sh" links --json > "$evidence.links" || links_status=$?
+  bash "$root/rotkeeper.sh" a11y --json > "$evidence.a11y" || a11y_status=$?
+  python3 - "$root" "$content" "$output" "$evidence" "$links_status" "$a11y_status" <<'SITE_GATE_PY'
+import json
+import re
+import sys
+from html.parser import HTMLParser
+from pathlib import Path
+from urllib.parse import unquote, urlsplit
+
+root, content, output, evidence = map(Path, sys.argv[1:5])
+findings = []
+
+def check(condition, gate, detail):
+    if not condition:
+        findings.append(f"Gate {gate} failed: {detail}")
+
+raw = evidence.read_text(encoding="utf-8")
+envelopes = []
+for start in re.finditer(r"(?m)^\{$", raw):
+    try:
+        value, _ = json.JSONDecoder().raw_decode(raw[start.start():])
+    except ValueError:
+        continue
+    if value.get("schema") == "rotkeeper.dip-matrix.v1":
+        envelopes.append(value)
+if len(envelopes) != 1:
+    raise SystemExit("Gate coverage failed: expected one DIP JSON envelope")
+matrix = envelopes[0]
+rows, guides = matrix["rows"], matrix["authored_guides"]
+check(bool(rows) and bool(guides), "coverage", "empty reference or authored-guide report")
+check(not any(matrix["degraded"].values()), "coverage", "missing DIP generation inputs")
+check(not matrix["ownership_collisions"], "coverage", "ambiguous reference ownership")
+coverage = matrix["sidecar_coverage"]
+check(coverage["missing"] == 0 and coverage["orphaned"] == 0
+      and not matrix["orphaned_sidecars"], "sidecars", "missing or unreachable sidecars")
+for row in rows:
+    if row["target_file"] != "Unknown" and row["status"] != "Exempt":
+        sidecar = row["sidecar"]
+        check(sidecar["state"] == "present" and bool(sidecar["path"])
+              and (root / (sidecar["path"] or "")).is_file(),
+              "sidecars", row["target_file"])
+    check(row["placeholder_count"] == 0, "placeholders", row["doc"])
+for guide in guides:
+    check(guide["placeholder_count"] == 0 and guide["status"] == "Reviewed",
+          "guides", f'{guide["doc"]}: {guide["status"]}')
+
+class Page(HTMLParser):
+    def __init__(self, path):
+        super().__init__()
+        self.h1 = 0
+        self.nav = False
+        self.text = []
+        self.css = []
+        self.feed(path.read_text(encoding="utf-8"))
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        self.h1 += tag == "h1"
+        self.nav |= tag == "nav"
+        if tag == "link" and "stylesheet" in attrs.get("rel", "").split():
+            self.css.append(attrs.get("href", ""))
+
+    def handle_data(self, data):
+        self.text.append(data)
+
+pages = []
+used_css = set()
+for section in ("help", "docs"):
+    sources = [p for p in (content / section).rglob("*")
+               if p.suffix in {".md", ".textile", ".cook"}]
+    rendered = sorted((output / section).rglob("*.html"))
+    check(bool(sources) and bool(rendered), "structure", f"missing {section} area")
+    for source in sources:
+        check((output / source.relative_to(content).with_suffix(".html")).is_file(),
+              "structure", f"unrendered source: {source.relative_to(content)}")
+    for path in rendered:
+        page = Page(path)
+        pages.append(path)
+        check(not re.search(r"Not found:|TODO:", "".join(page.text)),
+              "placeholders", str(path.relative_to(output)))
+        check(page.h1 == 1 and page.nav, "structure",
+              f"{path.relative_to(output)}: H1={page.h1}, nav={page.nav}")
+        check(bool(page.css), "accessibility", f"{path.relative_to(output)}: no audited stylesheet")
+        for href in page.css:
+            url = urlsplit(href)
+            css = (path.parent / unquote(url.path)).resolve()
+            check(not url.scheme and not url.netloc and css.is_relative_to(output.resolve())
+                  and css.is_file(), "accessibility", f"unverifiable stylesheet: {href}")
+            used_css.add(css.name)
+
+def audit_report(suffix, gate, status):
+    check(status == "0", gate, f"audit returned {status}")
+    try:
+        return json.loads(Path(str(evidence) + suffix).read_text())
+    except (ValueError, OSError) as error:
+        check(False, gate, f"missing or invalid audit report: {error}")
+        return {}
+
+links = audit_report(".links", "links", sys.argv[5])
+check(links.get("failures") == 0 and links.get("checked", 0) > 0,
+      "links", "empty audit or broken local references")
+a11y = audit_report(".a11y", "accessibility", sys.argv[6])
+audited = {theme["css"]: theme["verdict"] for theme in a11y.get("themes", [])}
+for css in sorted(used_css):
+    check(audited.get(css) == "PASS", "accessibility", f"{css}: {audited.get(css, 'not audited')}")
+
+# Independently verify the marked generated index against real dispatcher
+# mappings, including aliases. Do not keep another manual command list.
+dispatcher = (root / "rotkeeper.sh").read_text()
+mapping = {}
+for arm, body in re.findall(r"(?m)^  ([a-z][a-z0-9|-]*)\)\n(.*?)(?=^    ;;)", dispatcher, re.S):
+    targets = set(re.findall(r'"\$BONES/(rc-[a-z0-9-]+\.sh)"', body))
+    if targets:
+        check(len(targets) == 1, "commands", f"ambiguous dispatcher arm: {arm}")
+        for command in arm.split("|"):
+            mapping[command] = "bones/scripts/" + sorted(targets)[0]
+check(bool(mapping), "commands", "no dispatcher mappings found")
+index = (content / "docs/index.md").read_text()
+start, end = "<!-- DIP-COMMAND-INDEX-START -->", "<!-- DIP-COMMAND-INDEX-END -->"
+check(index.count(start) == index.count(end) == 1 and index.find(start) < index.find(end),
+      "commands", "missing or malformed generated index markers")
+block = index.split(start)[-1].split(end)[0]
+entries = re.findall(r"(?m)^\| `([^`]+)` \| [^\n]+ \| \[[^\]]+\]\(([^)]+)\) \|$", block)
+check(bool(entries) and len({cmd for cmd, _ in entries}) == len(entries),
+      "commands", "empty or duplicated command rows")
+outside = index.split(start)[0] + index.split(end)[-1]
+check(not re.search(r"(?m)^\s*(?:\||[-*])\s*`(?:"
+                    + "|".join(map(re.escape, mapping)) + r")`", outside),
+      "commands", "hand-maintained command list outside generated block")
+by_target = {row["target_file"]: row for row in rows}
+covered = set()
+for command, href in entries:
+    target = mapping.get(command)
+    check(target is not None, "commands", f"unknown command in index: {command}")
+    if target is None:
+        continue
+    row = by_target.get(target)
+    check(row is not None and row["status"] != "Exempt", "commands", f"no reference: {command}")
+    if row is None:
+        continue
+    reference = content / "docs" / row["doc"]
+    text = reference.read_text() if reference.is_file() else ""
+    check(re.search(r"(?m)^reference_contract: [\"']?rotkeeper\.command-reference\.v1[\"']?$", text)
+          and re.search(r"(?m)^target_file: [\"']?" + re.escape(target) + r"[\"']?$", text)
+          and row["sections"].get("usage", {}).get("state") == "populated",
+          "commands", f"ungenerated or empty command reference: {command}")
+    check(unquote(urlsplit(href).path) == str(Path(row["doc"]).with_suffix(".html"))
+          and (output / "docs" / Path(row["doc"]).with_suffix(".html")).is_file(),
+          "commands", f"incorrect or unrendered reference link: {command}")
+    covered.update(cmd for cmd, mapped in mapping.items() if mapped == target)
+check(covered == set(mapping), "commands", f"uncovered dispatcher commands: {sorted(set(mapping) - covered)}")
+
+# These are diagnostics, not exemptions: section gaps on non-command files,
+# git staleness, and unowned indexes are distinct from the six site gates.
+print(f"DIP references: {matrix['totals']}; sidecars: {coverage}")
+print("Reference section gaps:", [(r["target_file"], [k for k, v in r["sections"].items()
+      if v["state"] not in {"populated", "exempt"}]) for r in rows if r["status"] == "Stub"])
+print("Unowned pages:", [r["doc"] for r in rows if r["status"] == "Unowned"])
+print("DIP staleness:", matrix["staleness"])
+print(f"Authored guides: {len(guides)}; states: {[g['status'] for g in guides]}")
+for finding in findings:
+    print(finding, file=sys.stderr)
+if findings:
+    raise SystemExit(1)
+print(f"Help/Docs gates passed: {len(pages)} pages, {len(entries)} commands "
+      f"({len(mapping)} including aliases), {len(used_css)} audited stylesheets.")
+SITE_GATE_PY
+}
+
+build_help_site() {
+  local root="$1"
+  bash "$root/rotkeeper.sh" preflight
+  bash "$root/rotkeeper.sh" book --fsbook
+  bash "$root/rotkeeper.sh" autopsy --all
+  bash "$root/rotkeeper.sh" dip
+  bash "$root/rotkeeper.sh" render
+}
+
+if [[ "${1:-}" == "--site" ]]; then
+  [[ $# -eq 1 ]] || { echo "Use --site without other flags." >&2; exit 1; }
+  require_bins python3 jq
+  build_help_site "$ROOT_DIR"
+  site_evidence="$TMP_DIR/help-site-dip.txt"
+  bash "$ROOT_DIR/rotkeeper.sh" dip --dry-run --json > "$site_evidence"
+  assert_help_site "$ROOT_DIR" "$CONTENT_DIR" "$OUTPUT_DIR" "$site_evidence"
+  bash "$ROOT_DIR/rotkeeper.sh" status
+  exit 0
+fi
 
 # ============================================================
 #  ████████╗███████╗███████╗████████╗
@@ -3135,6 +3337,127 @@ if ! cmp -s "$engine_snapshot" "$engine_root/after.sha256"; then
   exit 170
 fi
 echo "DIP engine migration passed."
+
+echo "--- Enforced Help/Docs site gates and negative regressions ---"
+# Copy tracked working files, including current edits, not reports, archives,
+# secrets, or this harness's own fixtures. The real site build is mandatory.
+require_bins rsync python3 git
+site_root="$TEST_DIR/help-site"
+mkdir -p "$site_root"
+git -C "$ROOT_DIR" ls-files -z |
+  rsync -a --from0 --files-from=- "$ROOT_DIR/" "$site_root/"
+build_help_site "$site_root"
+site_content="$site_root/home/content"
+site_output="$site_root/output"
+case "${LAYOUT_STYLE:-crypt}" in
+  sterile) site_content="$site_root/src/content"; site_output="$site_root/dist" ;;
+esac
+site_evidence="$site_root/bones/tmp/help-site-dip.txt"
+bash "$site_root/rotkeeper.sh" dip --dry-run --json > "$site_evidence"
+assert_help_site "$site_root" "$site_content" "$site_output" "$site_evidence"
+
+# Corrupt only disposable fixture artifacts. Each fault starts from the same
+# passing site and must fail for its named gate, not an unrelated exception.
+site_snapshots="$TEST_DIR/help-site-snapshots"
+mkdir -p "$site_snapshots"
+site_css="$site_root/home/assets/css/theme-spooky-dark.css"
+[[ "${LAYOUT_STYLE:-crypt}" != busy ]] || site_css="$site_root/assets/css/theme-spooky-dark.css"
+[[ "${LAYOUT_STYLE:-crypt}" != sterile ]] || site_css="$site_root/src/assets/css/theme-spooky-dark.css"
+site_files=("$site_evidence" "$site_content/docs/index.md" "$site_output/docs/index.html"
+  "$site_output/help/index.html" "$site_css" "$site_content/docs/bones/scripts/rc-render.md")
+for i in "${!site_files[@]}"; do
+  cp "${site_files[$i]}" "$site_snapshots/$i"
+done
+for fault in placeholder-doc placeholder-help links accessibility sidecars orphan \
+  commands reference manual-index no-h1 two-h1 no-nav missing-page guides degraded; do
+  for i in "${!site_files[@]}"; do
+    cp "$site_snapshots/$i" "${site_files[$i]}"
+  done
+  python3 - "$fault" "${site_files[@]}" <<'SITE_FAULT_PY'
+import json
+import re
+import sys
+from pathlib import Path
+
+fault = sys.argv[1]
+evidence, index, docs, help_page, css, reference = map(Path, sys.argv[2:])
+path = docs
+text = path.read_text()
+if fault == "placeholder-doc":
+    text += "<code>T&#79;DO: regression</code>"
+elif fault == "placeholder-help":
+    path = help_page
+    text = path.read_text() + "<p>Not found: regression</p>"
+elif fault == "links":
+    text += '<a href="#nonexistent-regression-anchor">Broken</a>'
+elif fault == "accessibility":
+    path = css
+    text = path.read_text() + "\n:root { --text-primary: #111111; --bg-color: #111111; }\n"
+elif fault == "commands":
+    path = index
+    text = re.sub(r"(?m)^\| `render`.*\n", "", path.read_text())
+elif fault == "manual-index":
+    path = index
+    text = path.read_text() + "\n- `render` duplicated manual entry\n"
+elif fault == "reference":
+    path = reference
+    text = re.sub(r"(?m)^reference_contract:.*\n", "", path.read_text())
+elif fault == "no-h1":
+    text = re.sub(r"<h1\b[^>]*>.*?</h1>", "", text, flags=re.S | re.I)
+elif fault == "two-h1":
+    text += "<h1>Second title</h1>"
+elif fault == "no-nav":
+    text = re.sub(r"<(/?)nav\b", r"<\1div", text, flags=re.I)
+elif fault == "missing-page":
+    path.unlink()
+    raise SystemExit(0)
+else:
+    path = evidence
+    raw = path.read_text()
+    start = re.search(r"(?m)^\{$", raw).start()
+    matrix, _ = json.JSONDecoder().raw_decode(raw[start:])
+    if fault == "sidecars":
+        row = next(r for r in matrix["rows"] if r["sidecar"]["state"] == "present")
+        row["sidecar"] = {"state": "missing", "path": None}
+        matrix["sidecar_coverage"]["missing"] = 1
+    elif fault == "orphan":
+        matrix["orphaned_sidecars"] = ["bones/meta/unreachable.soul.md"]
+        matrix["sidecar_coverage"]["orphaned"] = 1
+    elif fault == "guides":
+        matrix["authored_guides"][0]["status"] = "Incomplete"
+        matrix["authored_guides"][0]["placeholder_count"] = 1
+    elif fault == "degraded":
+        matrix["degraded"]["help_input"] = True
+    else:
+        raise SystemExit(f"Unknown regression: {fault}")
+    text = json.dumps(matrix, indent=2) + "\n"
+path.write_text(text)
+SITE_FAULT_PY
+  expected_gate="$fault"
+  case "$fault" in
+    placeholder-*) expected_gate=placeholders ;;
+    orphan) expected_gate=sidecars ;;
+    reference|manual-index) expected_gate=commands ;;
+    no-h1|two-h1|no-nav|missing-page) expected_gate=structure ;;
+    degraded) expected_gate=coverage ;;
+  esac
+  if assert_help_site "$site_root" "$site_content" "$site_output" "$site_evidence" \
+    > "$site_snapshots/failure.log" 2>&1; then
+    echo "Assertion failed: Help/Docs gate accepted $fault."
+    exit 171
+  fi
+  if ! grep -Fq "Gate $expected_gate failed:" "$site_snapshots/failure.log"; then
+    cat "$site_snapshots/failure.log"
+    echo "Assertion failed: $fault failed for the wrong gate."
+    exit 171
+  fi
+  echo "Pass: $fault rejected by $expected_gate gate."
+done
+for i in "${!site_files[@]}"; do
+  cp "$site_snapshots/$i" "${site_files[$i]}"
+done
+assert_help_site "$site_root" "$site_content" "$site_output" "$site_evidence"
+echo "Help/Docs site gates and negative regressions passed."
 
 echo "======================================================================"
 echo "--- Regression tests for legacy rituals (ingest, sync-inbox, cleanup, reseed) ---"
