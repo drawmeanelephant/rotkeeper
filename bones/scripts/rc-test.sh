@@ -3507,7 +3507,7 @@ site_files=("$site_evidence" "$site_content/docs/index.md" "$site_output/docs/in
 for i in "${!site_files[@]}"; do
   cp "${site_files[$i]}" "$site_snapshots/$i"
 done
-for fault in placeholder-doc placeholder-help links accessibility sidecars orphan \
+for fault in placeholder-doc placeholder-help links links-cross-page assets accessibility sidecars orphan \
   commands reference manual-index no-h1 two-h1 no-nav missing-page guides degraded; do
   for i in "${!site_files[@]}"; do
     cp "$site_snapshots/$i" "${site_files[$i]}"
@@ -3529,6 +3529,10 @@ elif fault == "placeholder-help":
     text = path.read_text() + "<p>Not found: regression</p>"
 elif fault == "links":
     text += '<a href="#nonexistent-regression-anchor">Broken</a>'
+elif fault == "links-cross-page":
+    text += '<a href="../help/index.html#nonexistent-regression-anchor">Broken destination anchor</a>'
+elif fault == "assets":
+    text += '<link rel="stylesheet" href="../assets/css/nonexistent-regression.css">'
 elif fault == "accessibility":
     path = css
     text = path.read_text() + "\n:root { --text-primary: #111111; --bg-color: #111111; }\n"
@@ -3575,6 +3579,7 @@ SITE_FAULT_PY
   expected_gate="$fault"
   case "$fault" in
     placeholder-*) expected_gate=placeholders ;;
+    links-cross-page|assets) expected_gate=links ;;
     orphan) expected_gate=sidecars ;;
     reference|manual-index) expected_gate=commands ;;
     no-h1|two-h1|no-nav|missing-page) expected_gate=structure ;;

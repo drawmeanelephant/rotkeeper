@@ -2,10 +2,10 @@
 title: "Publish a site"
 slug: publishing
 template: "rotkeeper-doc.html"
-version: "1.1"
-updated: "2026-10-02"
+version: "1.2"
+updated: "2026-10-03"
 doc_type: guide
-reviewed: "2026-10-02"
+reviewed: "2026-10-03"
 description: "Rotkeeper's help site is built in GitHub Actions and published to Cloudflare Pages. The generated output remains portable to other static hosts."
 tags:
   - rotkeeper
@@ -33,69 +33,11 @@ The commands below build **this repository's help site**. Their deployment
 workflow and Cloudflare credentials do not automatically publish another
 user's site. Use your host's upload procedure for your own output.
 
-### Upload to an existing Cloudflare Pages project
-
-For this repository, use the GitHub Actions procedure below when the
-repository already holds the Pages secrets. A local Wrangler login is not
-required for that route.
-
-Get the project owner's approval for the project and branch first. A branch
-other than the project's configured production branch creates a **preview**,
-not a production replacement. Do not create a project, edit DNS, or change
-host settings as part of this upload.
-
-For this optional upload tool only, use Node **22** with npm. On macOS you
-can install it with `brew install node@22` and add
-`$(brew --prefix)/opt/node@22/bin` to `PATH`; the site itself needs no Node
-runtime. Confirm `node --version` and `npm --version`. Use the same pinned
-Wrangler version as this repository's deployment workflow:
-
-```bash
-npx --yes wrangler@4.146.0 login
-npx --yes wrangler@4.146.0 whoami
-```
-
-Login opens an interactive browser authorization. Run it in your own
-terminal. If `whoami` reports an expired login, repeat login before uploading.
-Never paste a token into documentation, chat, command arguments, or Git.
-
-After `render`, `links`, and `pack`, upload **only** the generated directory.
-For the approved issue #334 walkthrough, the existing project is `rotkeeper`
-and the preview branch is `docs-334-walkthrough`:
-
-```bash
-npx --yes wrangler@4.146.0 pages deploy output \
-  --project-name=rotkeeper --branch=docs-334-walkthrough
-```
-
-Use your own approved existing project and non-production branch for another
-site. For `sterile`, replace `output` with `dist`. A successful command prints
-the deployment URL. Record that URL, not just the branch alias or CLI exit.
-
-Verify the **deployment URL** before declaring success. Assign the URL
-printed by Wrangler to `DEPLOYMENT_URL`, then compare the uploaded home,
-a nested page you created, and its stylesheet with the local bytes:
-
-```bash
-export DEPLOYMENT_URL="https://YOUR-DEPLOYMENT.rotkeeper.pages.dev"
-curl -fsSL -A rotkeeper-deploy-check "$DEPLOYMENT_URL/" | cmp - output/index.html
-curl -fsSL -A rotkeeper-deploy-check "$DEPLOYMENT_URL/journal/walkthrough.html" | cmp - output/journal/walkthrough.html
-curl -fsSL -A rotkeeper-deploy-check "$DEPLOYMENT_URL/assets/css/theme-spooky-dark.css" | cmp - output/assets/css/theme-spooky-dark.css
-```
-
-Create `journal/walkthrough.md` with `new --subdir journal` as shown in the
-[workflow guide](workflow.html), or substitute another real nested output
-path. Nonzero curl or cmp exits mean verification failed. These reads check
-public delivery, not visual appearance or assistive-technology behavior.
-An archive, a local browser, or a successful CLI upload alone is not
-publication evidence.
-
-Follow redirects because Pages canonicalizes HTML routes. Automated
-verification uses the descriptive `rotkeeper-deploy-check` user agent,
-also used by the production verifier. Cloudflare can reject the default
-Python user agent with HTTP 403/error 1010 even when the public page works.
-Use the named verifier rather than disabling browser-integrity or access
-controls. Continue to require HTTP 200 and exact bytes.
+For your own site, record your host's deployment URL and verify public
+delivery against your generated files, including a nested page, stylesheet,
+and local image. A local archive or successful upload alone is not
+publication evidence. These checks do not replace visual or
+assistive-technology testing.
 
 ## This repository's help site
 
@@ -107,6 +49,13 @@ Rotkeeper's own help site uses the Cloudflare Pages project **`rotkeeper`**:
 Both hostnames serve the same production deployment. The old rotkeeper.com is abandoned.
 
 The docs are **generated output**, not a separate repository or a host-specific application. Cloudflare is the chosen host for this repository's site; anyone using Rotkeeper can still publish their generated site to another static host.
+
+**Publishing this repository is Actions-only.** Follow the existing GitHub
+Actions procedures below, using the existing project and repository secrets.
+Do not install Node, npm, npx, or Wrangler locally, run local Cloudflare
+login, or supply another token for this walkthrough. Wrangler is an uploader
+implementation detail inside Actions, not a Rotkeeper runtime requirement.
+Do not create a Pages project or change DNS, account, zone, or host settings.
 
 ## What the pipeline produces
 
@@ -182,18 +131,23 @@ the upload credentials; no local Cloudflare login is needed.
    tools, and runs `init`, `new`, the onboarding reference refresh
    (`book --fsbook`, `autopsy --all`, `dip`), `render`, checks, and `pack`.
 4. It checks the gzip archive, embedded metadata, source JSON export, and
-   archived page/stylesheet bytes. The enforced site build refreshes the
+   root/nested image URLs and copied/archived page, stylesheet, and image bytes.
+   The enforced site build refreshes the
    product references before uploading only `output/` through the existing
    pinned Wrangler action.
 5. Read **Fresh-clone Help walkthrough and approved preview** in the run.
    Its final step must report the unique preview URL and HTTP 200 plus exact
    byte matches for the home page, first page, nested walkthrough page, and
-   stylesheet. Record the run URL, commit, commands, artifact hashes, and
+   stylesheet and local image. Record the run URL, commit, commands, artifact hashes, and
    publication evidence. A failed or skipped verification is not success.
 
 This explicit manual input is the only CI preview-publishing path. Ordinary
 pull-request CI never receives Pages secrets or deploys. Production remains
 the separate publishing workflow's checked push-to-`main` path.
+
+The [completed walkthrough](workflow.html#completed-clean-clone-walkthrough-2026-10-02)
+already records a successful run and verified preview. Reuse that evidence;
+do not dispatch another publication merely to refresh its timestamp.
 
 ## Cloudflare configuration
 
@@ -204,24 +158,35 @@ The repository's Actions secrets are:
 | `CLOUDFLARE_ACCOUNT_ID` | Account containing the `rotkeeper` Pages project |
 | `CLOUDFLARE_API_TOKEN` | Token scoped to that account with **Account → Cloudflare Pages → Edit** only |
 
-The workflow references these secrets only in the production deploy step. Do not print their values, enable shell tracing around them, or copy them into source files. A Pages deployment does not need DNS-edit permission.
+The workflows reference these existing secrets only in the production and
+explicitly approved preview upload steps. Do not print their values, enable
+shell tracing around them, or copy them into source files. A Pages deployment
+does not need DNS-edit permission. No new credentials are needed.
 
-The Pages project must have **`main` as its production branch**. Add `rot.filed.fyi` in the project's **Custom domains** settings, not just in DNS. Its proxied CNAME should point to `rotkeeper.pages.dev`. Both hostnames must stay attached to the same project. If the project uses Cloudflare's Git integration, disable its automatic builds so GitHub Actions remains the single publisher.
-
-The active configuration rule `(http.host eq "rot.filed.fyi")` disables
-Real User Monitoring (RUM) only for that hostname. Cloudflare's automatically
-injected analytics beacon otherwise changes the response bytes and fails
-the deployment check. Other hostnames keep their existing analytics settings.
+The existing project uses **`main` as its production branch** and has
+`rot.filed.fyi` attached as a custom domain. This is deployment context, not
+an instruction to reconfigure hosting. GitHub Actions remains the publisher.
 
 ### Initial 522 diagnosis
 
 On 2026-10-01, both hostnames returned HTTP 522. The existing proxied CNAME for `rot.filed.fyi` already targeted `rotkeeper.pages.dev`; the owner confirmed that Pages had **never received a deployment**. The hosting target had no deployed site to serve, rather than needing a different DNS target.
 
 The production deployment and exact-byte verification passed on 2026-10-02
-after the hostname-only RUM exclusion. If the Pages URL works but the custom
-hostname fails, check the project's Custom domains status and certificate
-activation before changing DNS. A CNAME alone does not register a Pages
-custom domain.
+after a hostname-only Real User Monitoring (RUM) exclusion. That historical
+success does not prove current custom-domain delivery.
+
+### Current delivery limitation (2026-10-03) <a id="current-delivery-limitation-2026-10-03"></a>
+
+[Production run 37095154368](https://github.com/drawmeanelephant/rotkeeper/actions/runs/37095154368)
+built, checked, and uploaded successfully, then failed exact-byte verification
+of `https://rot.filed.fyi/docs/publishing`. The Pages hostname matches the
+deployed page; the custom domain's email obfuscation rewrites command examples
+and injects a decoding script.
+
+Report this as a separate hosting concern, not an installation or upload
+failure. Keep HTTP 200 and exact-byte verification unchanged. The owner
+accepts the verified GitHub-runner preview for issue #334; fixing custom-domain
+settings is not a prerequisite or an authorized part of that walkthrough.
 
 ## Publish the bytes
 

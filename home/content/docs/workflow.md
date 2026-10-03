@@ -3,7 +3,7 @@ title: "Write, build, check, and ship"
 slug: workflow
 template: rotkeeper-doc.html
 doc_type: guide
-reviewed: "2026-10-02"
+reviewed: "2026-10-03"
 description: "Content formats, frontmatter, site checks, packaging, documentation maintenance, and troubleshooting."
 ---
 
@@ -223,7 +223,7 @@ separately, including missing/older review dates and unfinished prose; it
 does not require command-reference sections or suppress their findings.
 Review a guide whenever its instructions change.
 
-### Enforced site gates
+### Enforced site gates <a id="enforced-site-gates"></a>
 
 ```bash
 bash rotkeeper.sh test --site
@@ -295,20 +295,23 @@ and [contribution rules](CONTRIBUTING.html). Configuration shapes are in the
 | `links` reports `(outside rendered root)` for an image | Follow the [local asset depth rule](#local-assets): use `assets/images/...` from a root page, `../assets/images/...` from a one-level nested page. Do not use the source-relative path from `home/content/`. Fix the source, render again, and rerun `links`. |
 | Broken links | Repair the source link or create the intended target, render again, then rerun `links`. |
 | `realpath: illegal option -- m` on macOS | Install Homebrew coreutils and put its `libexec/gnubin` directory on `PATH`. Do not weaken canonical-path checks. |
-| Site returns 200 but deployment's uploaded-byte check fails | Ensure the host does not inject analytics or otherwise rewrite HTML. This repository disables Cloudflare RUM only for `rot.filed.fyi`. |
+| Site returns 200 but deployment's uploaded-byte check fails | Report the mismatch without weakening verification. The latest production upload succeeded, but `rot.filed.fyi` email obfuscation rewrites command examples; see the [publishing limitation](publishing.html#current-delivery-limitation-2026-10-03). Host changes are not part of this repository's walkthrough. |
 
 ## Release-day checklist <a id="8-release-day-checklist"></a>
 
 On a fresh checkout, follow [installation](onboarding.html), run
-`preflight`, `init`, `new`, `render`, `links`, `pack`, and the
-[publishing steps](publishing.html). Include a page with a local image:
+`preflight`, `init`, `new`, the reference refresh (`book --fsbook`,
+`autopsy --all`, `dip`), `render`, `links`, `pack`, and the
+[publishing steps](publishing.html). This repository publishes through
+GitHub Actions only, with explicit approval for a preview; no local
+Cloudflare login or Node installation is needed. Include a page with a local image:
 follow the [local asset depth rule](#local-assets), confirm `links` passes,
 and open the rendered page to check the image. Then run the full test harness and
 inspect/extract the framework release if that is the intended deliverable.
 The separate site-level quality work records this clean-clone walkthrough;
 the checklist alone is not evidence that it passed.
 
-## Completed clean-clone walkthrough (2026-10-02)
+## Completed clean-clone walkthrough (2026-10-02) <a id="completed-clean-clone-walkthrough-2026-10-02"></a>
 
 Evidence for issue #334 and documentation epic #325:
 [successful GitHub Actions run 37032630378](https://github.com/drawmeanelephant/rotkeeper/actions/runs/37032630378).
@@ -385,5 +388,39 @@ Cloudflare RUM remains disabled only for `rot.filed.fyi`.
 
 This is the prepared issue/epic evidence summary. Posting it or closing
 issues still requires owner approval.
+
+### Closure recheck (2026-10-03)
+
+At main commit `48701ec981931a6ef5bb7b6106d36852cf543760`,
+[CI run 37095154384](https://github.com/drawmeanelephant/rotkeeper/actions/runs/37095154384)
+passed on Linux and macOS, including all 15 negative site-gate regressions.
+The existing preview above still returns HTTP 200 and matches all four
+recorded hashes. It remains publication evidence; no new preview is needed.
+
+The closure recheck found a remaining audit blind spot: `links` checked
+same-page fragments but not destination-page fragments, and did not collect
+linked stylesheets. The audit now checks both, the guides supply explicit
+section anchors, and the harness injects both faults into its disposable site.
+These checks extend the gates without changing publication or byte verification.
+
+[Issue #345](https://github.com/drawmeanelephant/rotkeeper/issues/345) is
+closed by PR #348's relocation repair and edit-preservation regressions.
+[Issue #346](https://github.com/drawmeanelephant/rotkeeper/issues/346) is
+closed by PR #349's local-image guidance and root/nested URL plus
+copied/packed image-byte checks. Those image checks were added after the
+recorded preview run; that run is not evidence of their execution.
+
+[Issue #347](https://github.com/drawmeanelephant/rotkeeper/issues/347)
+remains an installer recovery concern: a successful pinned source build
+can be left without an artifact-path message when privileged installation
+fails. A local recheck built the pin and passed preflight using
+`RK_OLIVER_BIN`, but deliberately denied privileged writes. Interactive
+sudo installation was not tested. This does not invalidate the successful
+GitHub-runner installation or require passwordless sudo from users.
+
+The latest production upload succeeded, but the
+[custom-domain byte check failed](publishing.html#current-delivery-limitation-2026-10-03).
+It is not a successful production verification or a blocker to the
+owner-accepted preview proof. Hosting settings and byte checks remain unchanged.
 
 **Back to:** [Help](../help/index.html) · [Command reference](index.html)

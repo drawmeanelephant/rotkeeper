@@ -290,7 +290,7 @@ jobs:
           bash rotkeeper.sh test --site
           printf 'Install → init → new → render → pack passed. Root/nested image URLs, copied/packed image bytes, archive metadata, gzip, source JSON, links, themes, and site gates verified.\n' >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Set up the documented upload tool runtime
+      - name: Set up the Actions-only uploader runtime
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: "22"

@@ -9,7 +9,7 @@ IFS=$'\n\t'
 # ============================================================
 # Env assumptions: reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DRY_RUN, LOG_DIR, LOG_FILE, OUTPUT_DIR, QUIET, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TMP_DIR, VERBOSE (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
-# Input/Output contracts: reads rendered HTML under the selected root and audits local href/src targets and anchors, including local asset references. Writes the selected report under the report boundary or emits JSON according to flags; dry-run scans without publishing a report.
+# Input/Output contracts: reads rendered HTML under the selected root and audits local href/src targets, linked assets, and same/cross-page HTML anchors. Writes the selected report under the report boundary or emits JSON according to flags; dry-run scans without publishing a report.
 
 # @HELP
 # rc-links.sh — Audit rendered HTML links and local asset references
@@ -18,8 +18,9 @@ IFS=$'\n\t'
 #   rotkeeper.sh links [options]
 #
 # Description:
-#   Audits rendered output for broken internal links and missing local
-#   asset references; writes a markdown report under bones/reports/.
+#   Audits rendered output for broken internal links, same/cross-page HTML
+#   anchors, and missing local assets (including linked stylesheets).
+#   Writes a markdown report under bones/reports/.
 #
 # Options:
 #   --root DIR       Rendered directory to scan; defaults to output/
@@ -152,7 +153,7 @@ class Page(HTMLParser):
             v = d.get(k)
             if v:
                 self.ids.add(v)
-        attr = "href" if tag == "a" else "src" if tag in {"script", "img", "source", "video", "audio"} else None
+        attr = "href" if tag in {"a", "link"} else "src" if tag in {"script", "img", "source", "video", "audio"} else None
         raw = d.get(attr) if attr else None
         if raw:
             lineno, _ = self.getpos()
@@ -169,14 +170,21 @@ class Page(HTMLParser):
 pages = sorted(root.rglob("*.html"))
 checked = 0
 failures = []  # (page, raw, reason, lineno, excerpt)
+parsers = {}
+
+def read_page(path):
+    if path in parsers:
+        return parsers[path]
+    parser = Page()
+    parser.feed_with_lines(path.read_text(errors="replace"))
+    parsers[path] = parser
+    return parser
 
 for page in pages:
-    parser = Page()
     try:
-        text = page.read_text(errors="replace")
+        parser = read_page(page)
     except Exception:
         continue
-    parser.feed_with_lines(text)
     for tag, raw, lineno, excerpt in parser.links:
         # Split the URL before decoding: an encoded # or ? belongs to the
         # filename, not to the fragment/query grammar.
@@ -197,6 +205,8 @@ for page in pages:
         candidate = (root / local_path.lstrip("/")) if local_path.startswith("/") else (page.parent / local_path)
         try:
             candidate = candidate.resolve()
+            if candidate.is_dir():
+                candidate = (candidate / "index.html").resolve()
         except Exception:
             failures.append((page.relative_to(root), raw, "missing file", lineno, excerpt))
             checked += 1
@@ -204,10 +214,16 @@ for page in pages:
         if candidate != root and root not in candidate.parents:
             failures.append((page.relative_to(root), raw, "outside rendered root", lineno, excerpt))
         else:
-            if candidate.is_dir():
-                candidate /= "index.html"
             if not candidate.exists():
                 failures.append((page.relative_to(root), raw, "missing file", lineno, excerpt))
+            elif parsed.fragment and candidate.suffix.lower() == ".html":
+                try:
+                    destination = read_page(candidate)
+                except OSError:
+                    failures.append((page.relative_to(root), raw, "unreadable target", lineno, excerpt))
+                else:
+                    if unquote(parsed.fragment) not in destination.ids:
+                        failures.append((page.relative_to(root), raw, "missing anchor", lineno, excerpt))
         checked += 1
 
 print(f"SUMMARY\t{len(pages)}\t{checked}\t{len(failures)}")
@@ -335,7 +351,7 @@ PY
           fi
           if [[ "$FIX_HINT" == true ]]; then
             if [[ "$f_reason" == "missing anchor" ]]; then
-              echo "  - hint: anchor not found — check that id exists in \`$f_page\` (case-sensitive) and that the link uses correct \`\`#fragment\`\`"
+              echo "  - hint: anchor not found — check the destination page's id (case-sensitive) and the link's \`\`#fragment\`\`"
             elif [[ "$f_reason" == "missing file" ]]; then
               echo "  - hint: file not found under \`$SCAN_ROOT\` — verify source exists in \`${CONTENT_DIR#"$ROOT_DIR"/}\` and that \`.md\` was rewritten to \`.html\`"
             elif [[ "$f_reason" == "outside rendered root" ]]; then
