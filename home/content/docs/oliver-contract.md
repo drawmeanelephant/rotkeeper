@@ -2,8 +2,8 @@
 title: "Oliver Renderer Contract"
 slug: oliver-contract
 template: rotkeeper-doc.html
-version: "1.15"
-updated: "2026-10-02"
+version: "1.16"
+updated: "2026-10-03"
 description: "The supported contract between Rotkeeper and the native Oliver HTML renderer: executable discovery, input format and output profile, output streams, exit codes, the adapter boundary, and the stable template/input contract."
 tags:
   - rotkeeper
@@ -262,6 +262,20 @@ install -m 0755 zig-out/bin/oliver /usr/local/bin/oliver
 ```
 
 Then either put `oliver` on `PATH` or set `RK_OLIVER_BIN=/path/to/oliver`. CI environments (see `.github/workflows/ci.yml`) run `scripts/setup.sh`, which prefers the builds release (checksum + commit-version verified) and falls back to the Zig 0.16.0 source build when the download path is unavailable.
+
+The source route verifies the checkout's HEAD equals `OLIVER_PIN` before
+building. Local upstream builds normally report `oliver 1.1.0` without a
+commit suffix; upstream embeds the suffix only when built with `-Dcommit`.
+The checked-out source establishes provenance for this route, not a
+post-build version-string check or a byte-reproducible binary hash.
+
+If installing a verified download or successful source build fails, setup
+exits **3**, deliberately preserves its temporary directory, and prints the
+exact artifact path with `RK_OLIVER_BIN` and user-local copy commands. A
+successful install removes the temporary directory as before. See
+[onboarding recovery](onboarding.html#recover-when-the-oliver-install-is-denied)
+for Zig PATH placement, non-interactive sudo behavior, and a persistent
+install without administrative rights.
 
 ## Smoke paths
 
