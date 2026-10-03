@@ -239,6 +239,8 @@ jobs:
           bash rotkeeper.sh init --with-sample
           bash rotkeeper.sh new my-page.md --title "My page" --description "My first Rotkeeper page."
           bash rotkeeper.sh new walkthrough.md --subdir journal --title "Walkthrough"
+          printf '\n![Rotasan reference](assets/images/shikabane-rotasan-reference.jpg)\n' >> home/content/my-page.md
+          printf '\n![Rotasan reference](../assets/images/shikabane-rotasan-reference.jpg)\n' >> home/content/journal/walkthrough.md
           bash rotkeeper.sh book --fsbook
           bash rotkeeper.sh autopsy --all
           bash rotkeeper.sh dip
@@ -251,8 +253,24 @@ jobs:
           import hashlib
           import json
           import tarfile
+          from html.parser import HTMLParser
           from pathlib import Path
-          for name in ("index.html", "my-page.html", "journal/walkthrough.html", "assets/css/theme-spooky-dark.css"):
+          image = "assets/images/shikabane-rotasan-reference.jpg"
+          class Images(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.sources = []
+              def handle_starttag(self, tag, attrs):
+                  if tag == "img":
+                      self.sources.append(dict(attrs).get("src"))
+          for name, src in (("my-page.html", image), ("journal/walkthrough.html", "../" + image)):
+              page = Path("output") / name
+              images = Images()
+              images.feed(page.read_text())
+              assert src in images.sources, (name, images.sources)
+              assert (page.parent / src).resolve() == (Path("output") / image).resolve(), name
+          assert (Path("output") / image).read_bytes() == (Path("home") / image).read_bytes()
+          for name in ("index.html", "my-page.html", "journal/walkthrough.html", "assets/css/theme-spooky-dark.css", image):
               assert (Path("output") / name).stat().st_size > 0, name
           archives = list(Path("bones/archive").glob("tomb-*.tar.gz"))
           assert len(archives) == 1, archives
@@ -261,7 +279,7 @@ jobs:
               metadata = json.load(packed.extractfile("metadata.json"))
               assert metadata["mode"] == "default", metadata
               for name in ("output/index.html", "output/my-page.html", "output/journal/walkthrough.html",
-                           "output/assets/css/theme-spooky-dark.css"):
+                           "output/assets/css/theme-spooky-dark.css", "output/" + image):
                   assert packed.extractfile(name).read() == Path(name).read_bytes(), name
           exports = list(Path("bones/archive").glob("tomb-export-*.json"))
           assert len(exports) == 1 and isinstance(json.loads(exports[0].read_text()), list), exports
@@ -270,7 +288,7 @@ jobs:
           PY
           gzip -t bones/archive/tomb-*.tar.gz
           bash rotkeeper.sh test --site
-          printf 'Install → init → new → render → pack passed. Archive bytes, metadata, gzip, source JSON, links, themes, and site gates verified.\n' >> "$GITHUB_STEP_SUMMARY"
+          printf 'Install → init → new → render → pack passed. Root/nested image URLs, copied/packed image bytes, archive metadata, gzip, source JSON, links, themes, and site gates verified.\n' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Set up the documented upload tool runtime
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
@@ -307,7 +325,8 @@ jobs:
           parsed = urlsplit(host)
           assert parsed.scheme == "https" and parsed.hostname.endswith(".rotkeeper.pages.dev"), host
           assert parsed.hostname != "rotkeeper.pages.dev", "Must verify a preview, not production"
-          files = ("index.html", "my-page.html", "journal/walkthrough.html", "assets/css/theme-spooky-dark.css")
+          files = ("index.html", "my-page.html", "journal/walkthrough.html", "assets/css/theme-spooky-dark.css",
+                   "assets/images/shikabane-rotasan-reference.jpg")
           for attempt in range(12):
               try:
                   evidence = []

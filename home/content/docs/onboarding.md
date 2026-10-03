@@ -97,6 +97,21 @@ to `bones/config/rotkeeper.yaml`; the optional sample is `test-file.md`.
 The `new` command refuses to overwrite an existing file. Edit
 `home/content/my-page.md` and add text below the generated heading.
 
+### Add a local image
+
+This checkout includes `home/assets/images/shikabane-rotasan-reference.jpg`.
+Add the following below the heading in `home/content/my-page.md`:
+
+```markdown
+![Rotasan reference](assets/images/shikabane-rotasan-reference.jpg)
+```
+
+Render copies it to `output/assets/images/`. The URL is relative to
+`output/my-page.html`, not to the source file: image URLs pass through
+unchanged. A page one directory deeper uses `../assets/images/...`.
+See the [local asset depth rule](workflow.html#local-assets) before adding
+images to nested pages or using another layout.
+
 ## Render and check
 
 This checkout includes Rotkeeper's product documentation. Refresh its
@@ -119,7 +134,10 @@ before disabling them; do not ignore broken links or delete generated
 pages to make the audit pass.
 
 Render writes `output/my-page.html` and synchronizes local assets. Open that
-file in a browser. `links` checks local page and asset references; `status`
+file in a browser and confirm the image loads. `links` must report no broken
+local image references. If it reports `(outside rendered root)`, fix the
+source URL using the [depth rule](workflow.html#local-assets), render again,
+and rerun `links`. `links` checks local page and asset references; `status`
 reports the active paths, renderer, and environment health. Use the
 [workflow guide](workflow.html) for frontmatter, additional checks,
 troubleshooting, and documentation maintenance.

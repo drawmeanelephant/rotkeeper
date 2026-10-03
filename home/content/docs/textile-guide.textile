@@ -56,6 +56,13 @@ A URL between exclamation marks creates an image. Oliver does not support
 the @!alt text!url@ syntax. When descriptive image alternatives are needed,
 use a content format whose supported syntax can express them.
 
+Local image URLs follow the "workflow's local asset depth rule":workflow.html#local-assets.
+They pass through rendering unchanged and are relative to the rendered page:
+use @!assets/images/shikabane-rotasan-reference.jpg!@ from a root page,
+or @!../assets/images/shikabane-rotasan-reference.jpg!@ from a one-level
+nested page such as this guide. Add one @../@ per directory level below
+the output root, then render and run @bash rotkeeper.sh links@.
+
 Special characters are escaped; UTF-8 text is preserved. A backslash does
 not disable Textile markup. Raw HTML is escaped rather than inserted.
 
