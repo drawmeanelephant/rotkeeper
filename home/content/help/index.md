@@ -24,6 +24,7 @@ Use `bash rotkeeper.sh new my-page.md --title "My page"` to create a source,
 then edit its frontmatter and body before rendering.
 
 - [Frontmatter, Markdown, Cooklang, and sidecars](../docs/workflow.html).
+- [Embed local images](../docs/workflow.html#local-assets): use paths relative to the rendered page.
 - [Write Textile](../docs/textile-guide.html).
 - [Review the sidecar contract](../docs/new-ritual.html#sidecar-contract).
 

@@ -2,7 +2,7 @@
 title: "Continuous integration"
 description: "Linux and macOS validation in the GitHub Actions test matrix."
 template: rotkeeper-doc.html
-reviewed: "2026-10-01"
+reviewed: "2026-10-02"
 ---
 
 # Continuous integration
@@ -26,6 +26,14 @@ those branches, and manual dispatch. The matrix uses `ubuntu-latest` and
 
 The final `test` job depends on the matrix. `test` and `smoke` select the
 same Bash fixture harness; this workflow does not run a separate Bats suite.
+
+The optional fresh-clone Help walkthrough also embeds the shipped local
+image in a root page and a one-level nested page using the
+[documented depth rule](../../workflow.html#local-assets). It verifies the
+rendered image URLs, `links`, and byte-identical source, copied, and packed
+images. When the approved preview job runs, delivery checks also include
+the image bytes. This opt-in job publishes a preview; ordinary matrix
+validation does not.
 
 ## Limits
 

@@ -3,7 +3,7 @@ title: "Oliver Renderer Contract"
 slug: oliver-contract
 template: rotkeeper-doc.html
 version: "1.15"
-updated: "2026-10-01"
+updated: "2026-10-02"
 description: "The supported contract between Rotkeeper and the native Oliver HTML renderer: executable discovery, input format and output profile, output streams, exit codes, the adapter boundary, and the stable template/input contract."
 tags:
   - rotkeeper
@@ -57,6 +57,14 @@ Oliver implements the CommonMark 0.31.2 specification; its own conformance harne
 - **Supported:** ATX and Setext headings, thematic breaks, fenced and indented code blocks (info strings become `language-*` classes), block quotes, tight and loose lists (ordered/unordered, nesting), code spans, emphasis and strong emphasis, inline links and autolinks (URI and email `mailto:`), images, raw HTML (block and inline, passed through verbatim), entity and numeric character references, reference-style links, and GFM pipe tables (header row with required delimiter row, alignment colons `:---` `:---:` `---:`, escaped `\|` pipes, and inline-parsed cells producing `<table><thead>…<tbody>…`).
 - **Not supported (not part of CommonMark):** task lists and footnotes render as literal text. Content that needs them should stay CommonMark-safe; raw HTML is passed through verbatim as an escape hatch. The test harness asserts this boundary stays literal in `contract-table.html`.
 - **Fidelity verification:** the hermetic golden (`smoke-fixture-expected.html`) is produced by the fixture (fake) binary and verifies the adapter pipeline — frontmatter stripping, link rewriting, escaping — not CommonMark fidelity. Renderer fidelity is asserted by the real-Oliver contract-corpus pass in the test harness (`bones/scripts/tests/fixtures/oliver-contract/`), which runs whenever an `oliver` binary is present.
+
+Local image URLs are not rebased from the source tree. Oliver rewrites
+page-link extensions (`.md`, `.textile`, `.cook`) to `.html`; ordinary
+image paths such as `.jpg` or `.png` pass through unchanged and resolve
+relative to the rendered page. Rotkeeper copies the active asset tree into
+the output's `assets/` directory. Follow the
+[local asset depth rule and examples](workflow.html#local-assets) when
+embedding images in Markdown or Textile bodies.
 
 ## Rendered Cooklang surface
 

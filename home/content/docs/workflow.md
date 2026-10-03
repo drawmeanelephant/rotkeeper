@@ -48,6 +48,40 @@ Use CommonMark headings, lists, links, and fenced code. Oliver supports
 pipe tables; do not assume every extension from another Markdown renderer
 is supported.
 
+### Local assets <a id="local-assets"></a>
+
+Keep local images in `home/assets/images/` in the default layout. Rendering
+copies the asset tree to `output/assets/`. Body asset URLs pass through
+rendering unchanged: write them relative to the **rendered page**, not the
+source file's location under `home/content/`.
+
+For `home/content/my-page.md`, which renders to `output/my-page.html`:
+
+```markdown
+![Rotasan reference](assets/images/shikabane-rotasan-reference.jpg)
+```
+
+For `home/content/journal/notes.md`, which renders to
+`output/journal/notes.html`:
+
+```markdown
+![Rotasan reference](../assets/images/shikabane-rotasan-reference.jpg)
+```
+
+Both examples use an image already shipped in this checkout. Replace the
+filename with your own image and supply descriptive alt text. Add one
+`../` for each directory level below the output root. The same depth rule
+applies to other local body assets and to Textile image URLs. In `busy`,
+source assets live in `assets/`; in `sterile`, they live in `src/assets/`
+and render under `dist/assets/`. The rendered asset directory is always
+`assets/`, so the URL rule stays the same.
+
+Only page-link extensions (`.md`, `.textile`, `.cook`) are rewritten to
+`.html`; image paths are not rebased from the source tree. Keep URLs
+relative so they also work when the site is hosted under a URL prefix.
+After editing, run `bash rotkeeper.sh render`, then `bash rotkeeper.sh links`
+and open the rendered page to check that the image loads.
+
 ### Textile and Cooklang
 
 ```bash
@@ -258,6 +292,7 @@ and [contribution rules](CONTRIBUTING.html). Configuration shapes are in the
 | `Source basename collision` | Keep only one source format for a directory/basename pair. |
 | `RawHtmlNotXmlWellFormed` | Remove incompatible raw HTML or use the HTML profile with an HTML wrapper. |
 | `No templates found` | Provide templates in the active layout's template directory. |
+| `links` reports `(outside rendered root)` for an image | Follow the [local asset depth rule](#local-assets): use `assets/images/...` from a root page, `../assets/images/...` from a one-level nested page. Do not use the source-relative path from `home/content/`. Fix the source, render again, and rerun `links`. |
 | Broken links | Repair the source link or create the intended target, render again, then rerun `links`. |
 | `realpath: illegal option -- m` on macOS | Install Homebrew coreutils and put its `libexec/gnubin` directory on `PATH`. Do not weaken canonical-path checks. |
 | Site returns 200 but deployment's uploaded-byte check fails | Ensure the host does not inject analytics or otherwise rewrite HTML. This repository disables Cloudflare RUM only for `rot.filed.fyi`. |
@@ -266,7 +301,9 @@ and [contribution rules](CONTRIBUTING.html). Configuration shapes are in the
 
 On a fresh checkout, follow [installation](onboarding.html), run
 `preflight`, `init`, `new`, `render`, `links`, `pack`, and the
-[publishing steps](publishing.html). Then run the full test harness and
+[publishing steps](publishing.html). Include a page with a local image:
+follow the [local asset depth rule](#local-assets), confirm `links` passes,
+and open the rendered page to check the image. Then run the full test harness and
 inspect/extract the framework release if that is the intended deliverable.
 The separate site-level quality work records this clean-clone walkthrough;
 the checklist alone is not evidence that it passed.
