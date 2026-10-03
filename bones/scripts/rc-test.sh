@@ -362,6 +362,154 @@ fi
 # pass below builds and mutates its fixtures exclusively inside this boundary
 mkdir -p "$TEST_DIR"
 
+# Exercise setup without network access, a compiler, or system writes. The
+# installer shim handles both sudo and direct root installs; all artifacts
+# stay inside the harness boundary, including paths containing spaces.
+echo "--- Oliver setup install/recovery regressions ---"
+setup_root="$TEST_DIR/setup recovery"
+mkdir -p "$setup_root/scripts" "$setup_root/bones/scripts" "$setup_root/bones/config" "$setup_root/bin"
+cp "$ROOT_DIR/rotkeeper.sh" "$setup_root/"
+cp "$ROOT_DIR/scripts/setup.sh" "$setup_root/scripts/"
+cp "$ROOT_DIR/bones/scripts/rc-utils.sh" "$setup_root/bones/scripts/"
+cp "$ROOT_DIR/bones/config/version" "$setup_root/bones/config/"
+setup_pin=$(awk -F '"' '/^OLIVER_PIN=/ { print $2 }' "$setup_root/scripts/setup.sh")
+setup_mktemp=$(command -v mktemp)
+cat > "$setup_root/fixture-oliver" <<'SETUP_OLIVER'
+#!/usr/bin/env bash
+printf 'oliver 1.1.0%s\n' "${RK_SETUP_VERSION_SUFFIX:-}"
+SETUP_OLIVER
+cat > "$setup_root/bin/shim" <<'SETUP_SHIM'
+#!/usr/bin/env bash
+set -euo pipefail
+case "${0##*/}" in
+  uname)
+    case "${1:-}" in -s) echo Darwin ;; -m) echo x86_64 ;; esac
+    ;;
+  brew) : ;;
+  oliver) echo "oliver 0.0.0 (commit not-the-pin)" ;;
+  sudo) exec "$@" ;;
+  mktemp)
+    kind=download
+    [[ "${2:-}" != /tmp/oliver-build.XXXXXX ]] || kind=source
+    path=$("$RK_SETUP_MKTEMP" -d "$RK_SETUP_ROOT/temps/$kind.XXXXXX")
+    printf '%s\n' "$path" > "$RK_SETUP_ROOT/$kind-dir"
+    printf '%s\n' "$path"
+    ;;
+  curl)
+    [[ "$RK_SETUP_CASE" == binary-* || "$RK_SETUP_CASE" == source-release-mismatch ]] || exit 22
+    url="" out=""
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        -o) out="$2"; shift 2 ;;
+        https://*) url="$1"; shift ;;
+        *) shift ;;
+      esac
+    done
+    if [[ "$url" == */sha256sums.txt ]]; then
+      bin="${out%/*}/oliver-macos-x86_64"
+      if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum "$bin" > "$out"
+      else
+        shasum -a 256 "$bin" > "$out"
+      fi
+    else
+      cp "$RK_SETUP_ROOT/fixture-oliver" "$out"
+    fi
+    ;;
+  git)
+    case "$1" in
+      clone) mkdir -p "$3" ;;
+      -C)
+        if [[ "$3" == rev-parse ]]; then
+          if [[ "$RK_SETUP_CASE" == source-pin-mismatch ]]; then
+            echo wrong-source-pin
+          else
+            printf '%s\n' "$RK_SETUP_PIN"
+          fi
+        fi
+        ;;
+    esac
+    ;;
+  zig)
+    mkdir -p zig-out/bin
+    cp "$RK_SETUP_ROOT/fixture-oliver" zig-out/bin/oliver
+    chmod +x zig-out/bin/oliver
+    ;;
+  install)
+    printf 'install attempted\n' >> "$RK_SETUP_ROOT/install-attempts"
+    case "$RK_SETUP_CASE" in
+      *-denied) echo "install: permission denied (fixture)" >&2; exit 1 ;;
+      source-missing-installer) echo "install: command not found (fixture)" >&2; exit 127 ;;
+    esac
+    # Never allow the fixture to write the requested /usr/local/bin target.
+    cp "$3" "$RK_SETUP_ROOT/installed/oliver"
+    chmod +x "$RK_SETUP_ROOT/installed/oliver"
+    ;;
+esac
+SETUP_SHIM
+chmod +x "$setup_root/bin/shim" "$setup_root/fixture-oliver"
+for setup_tool in uname brew oliver sudo mktemp curl git zig install; do
+  ln -s shim "$setup_root/bin/$setup_tool"
+done
+setup_fixture="$setup_root"
+for setup_case in source-denied source-missing-installer binary-denied source-success binary-success source-release-mismatch source-pin-mismatch; do
+  setup_root="$setup_fixture/$setup_case"
+  mkdir -p "$setup_root/temps" "$setup_root/installed"
+  cp "$setup_fixture/fixture-oliver" "$setup_root/fixture-oliver"
+  setup_suffix=""
+  case "$setup_case" in
+    binary-*) setup_suffix=" (commit $setup_pin)" ;;
+    source-release-mismatch) setup_suffix=" (commit not-the-pin)" ;;
+  esac
+  setup_status=0
+  PATH="$setup_fixture/bin:$PATH" RK_SETUP_ROOT="$setup_root" \
+    RK_SETUP_CASE="$setup_case" RK_SETUP_PIN="$setup_pin" RK_SETUP_MKTEMP="$setup_mktemp" \
+    RK_SETUP_VERSION_SUFFIX="$setup_suffix" \
+    bash "$setup_fixture/scripts/setup.sh" > "$setup_root/result.log" 2>&1 || setup_status=$?
+  case "$setup_case" in
+    *-denied|source-missing-installer)
+      setup_kind=source
+      [[ "$setup_case" != binary-* ]] || setup_kind=download
+      setup_dir=$(< "$setup_root/$setup_kind-dir")
+      setup_artifact="$setup_dir/zig-out/bin/oliver"
+      [[ "$setup_kind" != download ]] || setup_artifact="$setup_dir/oliver-macos-x86_64"
+      printf -v setup_recovery 'export RK_OLIVER_BIN=%q' "$setup_artifact"
+      if [[ "$setup_status" != 3 || ! -x "$setup_artifact" ]] \
+        || ! grep -Fq "$setup_recovery" "$setup_root/result.log" \
+        || ! grep -Fq "Temporary directory deliberately preserved: $setup_dir" "$setup_root/result.log" \
+        || grep -Fq "Setup complete" "$setup_root/result.log"; then
+        cat "$setup_root/result.log"
+        echo "Assertion failed: $setup_case did not preserve/report the pinned artifact with exit 3."
+        exit 173
+      fi
+      cmp -s "$setup_root/fixture-oliver" "$setup_artifact" || exit 173
+      ;;
+    source-pin-mismatch)
+      if [[ "$setup_status" != 1 || -e "$setup_root/install-attempts" ]] \
+        || ! grep -Fq "FATAL: could not check out pinned Oliver commit $setup_pin" "$setup_root/result.log"; then
+        cat "$setup_root/result.log"
+        echo "Assertion failed: setup accepted an unpinned source checkout."
+        exit 173
+      fi
+      ;;
+    *)
+      if [[ "$setup_status" != 0 || ! -x "$setup_root/installed/oliver" ]] \
+        || [[ -n "$(find "$setup_root/temps" -mindepth 1 -print)" ]] \
+        || ! grep -Fq "Setup complete" "$setup_root/result.log"; then
+        cat "$setup_root/result.log"
+        echo "Assertion failed: $setup_case did not install successfully and clean its temporary directory."
+        exit 173
+      fi
+      if [[ "$setup_case" == source-release-mismatch ]] \
+        && ! grep -Fq "Building Oliver from pinned commit $setup_pin" "$setup_root/result.log"; then
+        echo "Assertion failed: a rolling binary with the wrong pin did not fall back to source."
+        exit 173
+      fi
+      ;;
+  esac
+  echo "Pass: Oliver setup $setup_case."
+done
+
 LAYOUT_MODES=("crypt" "busy" "sterile")
 
 assert_env_rejection() {

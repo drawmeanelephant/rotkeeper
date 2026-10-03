@@ -1,6 +1,6 @@
 ---
 target_file: scripts/setup.sh
-reviewed: "2026-10-01"
+reviewed: "2026-10-03"
 reviewed_against: "0.8.1"
 ---
 
@@ -15,12 +15,18 @@ Oliver installation first tries the rolling builds release, verifies its
 published SHA-256 checksum, and requires the reported commit to match
 `b84f6368181079b9df2fc2c28646ffcb29ffd2ff`. The fallback checks out that
 commit and builds with Zig. An existing binary reporting the pin is kept.
+Source provenance comes from checking HEAD before the build; local upstream
+builds do not normally embed a commit in their version string.
 
 ### Limits
 
 The source-build route requires Git and Zig 0.16.0. If neither download nor
 source build is available, setup warns but can still complete without Oliver.
 It has no help or dry-run parser. It does not install Bash 4+ or ShellCheck.
+An Oliver install failure after verification/build exits 3, deliberately
+preserves the artifact's temporary directory, and prints its exact path
+with immediate `RK_OLIVER_BIN` and persistent user-local recovery commands.
+Successful installs remove their temporary directories.
 
 ### Cautions
 

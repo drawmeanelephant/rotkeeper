@@ -3,7 +3,7 @@ title: "Install and create a first site"
 slug: onboarding
 template: rotkeeper-doc.html
 doc_type: guide
-reviewed: "2026-10-02"
+reviewed: "2026-10-03"
 description: "Install the required tools, initialize a checkout, create a page, and render and check the site."
 ---
 
@@ -58,9 +58,56 @@ bash scripts/setup.sh
 first. It verifies the checksum and exact commit pin. If that binary is
 unavailable or does not match, install Zig **0.16.0** from
 [ziglang.org](https://ziglang.org/download/) and rerun setup to build the
-same pinned source. Setup may request administrative permission. It has no
-dry-run mode. See the [Oliver contract](oliver-contract.html) for the renderer
-interface and failure conditions.
+same pinned source. Keep the entire extracted Zig directory, including `lib/`,
+and put the directory containing its `zig` executable on `PATH` in the shell
+that runs setup:
+
+```bash
+export PATH="/absolute/path/to/extracted-zig-0.16.0:$PATH"
+zig version   # must report 0.16.0
+bash scripts/setup.sh
+```
+
+Setup does not install Zig itself. If the published binary cannot satisfy the
+pin and Zig is missing, it warns and may finish without Oliver; preflight is
+still required. Setup may request administrative permission for package, yq,
+and Oliver installs. Without a terminal, sudo cannot prompt for a password
+and may fail. Passwordless sudo is not required for interactive use. Setup
+has no dry-run mode.
+
+### Recover when the Oliver install is denied
+
+If Oliver downloads and verifies or builds successfully, but installing it
+under `/usr/local/bin` fails, setup exits **3**. It prints the exact artifact
+path and recovery commands and **deliberately preserves** its temporary
+directory. This is not a lost or invalid build. Use the printed override to
+run preflight immediately:
+
+```bash
+export RK_OLIVER_BIN="/exact/artifact/path/printed/by/setup"
+bash rotkeeper.sh preflight
+```
+
+For a persistent install without administrative rights, copy that artifact
+into a directory you own:
+
+```bash
+mkdir -p "$HOME/.local/bin"
+install -m 0755 "$RK_OLIVER_BIN" "$HOME/.local/bin/oliver"
+export PATH="$HOME/.local/bin:$PATH"
+export RK_OLIVER_BIN="$HOME/.local/bin/oliver"
+bash rotkeeper.sh preflight
+```
+
+Keep the PATH export or override in your shell configuration. After the copy
+passes preflight, remove the preserved temporary directory when no longer
+needed. Earlier package or yq installs can also fail without administrative
+rights; exit 3 specifically identifies the Oliver artifact recovery path,
+not a general user-local setup mode. On Linux, `--no-apt` skips apt only, not
+the yq or Oliver system installs.
+
+See the [Oliver contract](oliver-contract.html) for the renderer interface
+and pin verification.
 
 ```bash
 bash rotkeeper.sh preflight

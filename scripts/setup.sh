@@ -12,7 +12,7 @@
 #  Purpose : Deterministic environment prep (Ubuntu/macOS)
 # Env assumptions: reads `RK_SKIP_APT`, architecture, OS, and `PATH`; requires network access and uses `sudo` for system installs when not running as root. Oliver is pinned by `OLIVER_PIN`; yq is pinned by `YQ_VERSION` on the download route.
 # CWD assumptions: none; project script permissions are updated relative to this script location.
-# Input/Output contracts: accepts `--no-apt` on Linux; downloads dependencies to temporary directories, installs tools under `/usr/local/bin` or through Homebrew/apt, and marks existing project scripts executable. It has no help or dry-run parser. DIP reads annotations without executing setup.
+# Input/Output contracts: accepts `--no-apt` on Linux; downloads dependencies to temporary directories, installs tools under `/usr/local/bin` or through Homebrew/apt, and marks existing project scripts executable. If a verified Oliver artifact cannot be installed, exits 3 and deliberately preserves/reports its temporary directory with RK_OLIVER_BIN and user-local recovery commands. It has no help or dry-run parser. DIP reads annotations without executing setup.
 # ============================================================
 
 set -euo pipefail
@@ -120,12 +120,31 @@ echo "2. Installing Oliver renderer..."
 # and the full test matrix pass with 1.1.0.
 OLIVER_PIN="b84f6368181079b9df2fc2c28646ffcb29ffd2ff"
 
+report_oliver_install_failure() {
+  local artifact="$1" tempdir="$2"
+  {
+    echo "ERROR: Could not install pinned Oliver to /usr/local/bin/oliver (setup exit 3)."
+    printf 'Temporary directory deliberately preserved: %s\n' "$tempdir"
+    echo "The verified artifact is still usable. To use it now:"
+    printf '  export RK_OLIVER_BIN=%q\n' "$artifact"
+    echo "  bash rotkeeper.sh preflight"
+    echo "For a persistent install without administrative permission:"
+    echo "  mkdir -p \"\$HOME/.local/bin\""
+    printf "  install -m 0755 %q \"\$HOME/.local/bin/oliver\"\n" "$artifact"
+    echo "  export PATH=\"\$HOME/.local/bin:\$PATH\""
+    echo "  export RK_OLIVER_BIN=\"\$HOME/.local/bin/oliver\""
+    echo "  bash rotkeeper.sh preflight"
+    echo "After copying and passing preflight, remove the preserved temporary directory when no longer needed."
+  } >&2
+}
+
 install_oliver_binary() {
   # Prebuilt-binary fast path: upstream publishes a rolling `builds` release.
   # We download the platform binary, verify it against the published
   # sha256sums.txt, and assert `oliver --version` reports exactly the pinned
-  # commit before installing. Any failure falls back to the source build
-  # below — the pin is never silently satisfied by a different commit.
+  # commit before installing. Download/verification failures fall back to
+  # source; installation failures preserve the verified artifact and exit 3.
+  # The pin is never silently satisfied by a different commit.
   local os_token="" arch_token=""
   case "$OS_TYPE" in
     linux) os_token="linux" ;;
@@ -165,7 +184,10 @@ install_oliver_binary() {
     rm -rf "$tmpdir"
     return 1
   fi
-  $SUDO install -m 0755 "$bin_path" /usr/local/bin/oliver
+  if ! $SUDO install -m 0755 "$bin_path" /usr/local/bin/oliver; then
+    report_oliver_install_failure "$bin_path" "$tmpdir"
+    exit 3
+  fi
   echo "Installed oliver from the upstream builds release ($reported)."
   rm -rf "$tmpdir"
 }
@@ -187,19 +209,22 @@ if [[ "$NEED_OLIVER_INSTALL" == true ]]; then
   if install_oliver_binary; then
     :
   elif command -v zig >/dev/null 2>&1; then
-  # Requires Zig 0.16.0 (https://ziglang.org/download/) and git. A full clone
-  # is required: a shallow clone lacks the pinned object once upstream advances.
-  OLIVER_BUILD_DIR="$(mktemp -d /tmp/oliver-build.XXXXXX)"
-  git clone https://github.com/drawmeanelephant/oliver.git "$OLIVER_BUILD_DIR"
-  git -C "$OLIVER_BUILD_DIR" checkout --quiet "$OLIVER_PIN"
-  if [[ "$(git -C "$OLIVER_BUILD_DIR" rev-parse HEAD)" != "$OLIVER_PIN" ]]; then
-    echo "FATAL: could not check out pinned Oliver commit $OLIVER_PIN" >&2
-    exit 1
-  fi
-  echo "Building Oliver from pinned commit $OLIVER_PIN"
-  (cd "$OLIVER_BUILD_DIR" && zig build)
-  $SUDO install -m 0755 "$OLIVER_BUILD_DIR/zig-out/bin/oliver" /usr/local/bin/oliver
-  rm -rf "$OLIVER_BUILD_DIR"
+    # Requires Zig 0.16.0 (https://ziglang.org/download/) and git. A full clone
+    # is required: a shallow clone lacks the pinned object once upstream advances.
+    OLIVER_BUILD_DIR="$(mktemp -d /tmp/oliver-build.XXXXXX)"
+    git clone https://github.com/drawmeanelephant/oliver.git "$OLIVER_BUILD_DIR"
+    git -C "$OLIVER_BUILD_DIR" checkout --quiet "$OLIVER_PIN"
+    if [[ "$(git -C "$OLIVER_BUILD_DIR" rev-parse HEAD)" != "$OLIVER_PIN" ]]; then
+      echo "FATAL: could not check out pinned Oliver commit $OLIVER_PIN" >&2
+      exit 1
+    fi
+    echo "Building Oliver from pinned commit $OLIVER_PIN"
+    (cd "$OLIVER_BUILD_DIR" && zig build)
+    if ! $SUDO install -m 0755 "$OLIVER_BUILD_DIR/zig-out/bin/oliver" /usr/local/bin/oliver; then
+      report_oliver_install_failure "$OLIVER_BUILD_DIR/zig-out/bin/oliver" "$OLIVER_BUILD_DIR"
+      exit 3
+    fi
+    rm -rf "$OLIVER_BUILD_DIR"
   else
     echo "WARN: No Oliver reporting commit $OLIVER_PIN could be installed: the builds release was unavailable and Zig 0.16.0 is not installed."
     echo "      Install Zig 0.16.0 (https://ziglang.org/download/), then re-run this script"
