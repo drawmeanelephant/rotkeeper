@@ -75,7 +75,7 @@ and Oliver installs. Without a terminal, sudo cannot prompt for a password
 and may fail. Passwordless sudo is not required for interactive use. Setup
 has no dry-run mode.
 
-### Recover when the Oliver install is denied
+### Recover when the Oliver install is denied <a id="recover-when-the-oliver-install-is-denied"></a>
 
 If Oliver downloads and verifies or builds successfully, but installing it
 under `/usr/local/bin` fails, setup exits **3**. It prints the exact artifact
