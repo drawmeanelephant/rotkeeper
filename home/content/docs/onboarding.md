@@ -3,7 +3,7 @@ title: "Install and create a first site"
 slug: onboarding
 template: rotkeeper-doc.html
 doc_type: guide
-reviewed: "2026-10-03"
+reviewed: "2026-10-08"
 description: "Install the required tools, initialize a checkout, create a page, and render and check the site."
 ---
 
