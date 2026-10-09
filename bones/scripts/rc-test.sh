@@ -205,7 +205,9 @@ for command, href in entries:
           and re.search(r"(?m)^target_file: [\"']?" + re.escape(target) + r"[\"']?$", text)
           and row["sections"].get("usage", {}).get("state") == "populated",
           "commands", f"ungenerated or empty command reference: {command}")
-    check(unquote(urlsplit(href).path) == str(Path(row["doc"]).with_suffix(".html"))
+    # hrefs are URLs (always '/'); str(Path) yields '\' on Windows, so compare
+    # against the POSIX form or every reference link reads as unrendered there.
+    check(unquote(urlsplit(href).path) == Path(row["doc"]).with_suffix(".html").as_posix()
           and (output / "docs" / Path(row["doc"]).with_suffix(".html")).is_file(),
           "commands", f"incorrect or unrendered reference link: {command}")
     covered.update(cmd for cmd, mapped in mapping.items() if mapped == target)

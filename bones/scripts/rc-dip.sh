@@ -107,7 +107,12 @@ DEGRADED_HELP=false
 [[ -f "$REPORT_DIR/autopsy-help.md" ]] || DEGRADED_HELP=true
 
 GIT_HISTORY="unavailable"
-if [[ "$(git -C "$ROOT_DIR" rev-parse --show-toplevel 2>/dev/null || true)" == "$(rk_canonical_path "$ROOT_DIR")" ]]; then
+# git rev-parse emits a Windows-style path (C:/...) on MSYS while
+# rk_canonical_path yields POSIX form (/c/...); canonicalize both sides so the
+# toplevel comparison is platform-portable.
+_dip_git_top=$(git -C "$ROOT_DIR" rev-parse --show-toplevel 2>/dev/null || true)
+_dip_git_top=$(rk_canonical_path "$_dip_git_top" 2>/dev/null || true)
+if [[ -n "$_dip_git_top" && "$_dip_git_top" == "$(rk_canonical_path "$ROOT_DIR")" ]]; then
   if [[ "$(git -C "$ROOT_DIR" rev-parse --is-shallow-repository 2>/dev/null || true)" == false ]]; then
     GIT_HISTORY="complete"
   else

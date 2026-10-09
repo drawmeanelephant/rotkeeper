@@ -22,15 +22,20 @@ echo "============================================================"
 echo " Starting Rotkeeper Setup..."
 echo "============================================================"
 
-# Ensure we're running as root or with sudo if apt-get is used
-if [[ $EUID -ne 0 ]]; then
+# Ensure we're running as root or with sudo if apt-get is used.
+# Git Bash/MSYS2 has no sudo and a non-root EUID, so require the binary.
+if [[ $EUID -ne 0 ]] && command -v sudo >/dev/null 2>&1; then
     SUDO="sudo"
 else
     SUDO=""
 fi
 
-# Detect System Architecture dynamically
+# Detect System Architecture dynamically.
+# Git Bash/MSYS2/Cygwin report msys_nt-*/mingw*_nt-*/cygwin_nt-*; normalize to windows.
 OS_TYPE=$(uname -s | tr '[:upper:]' '[:lower:]')
+case "$OS_TYPE" in
+  msys*|mingw*|cygwin*) OS_TYPE="windows" ;;
+esac
 ARCH_TYPE=$(uname -m)
 
 case "$ARCH_TYPE" in
@@ -41,6 +46,8 @@ esac
 
 YQ_VERSION="v4.40.5"
 BINARY="yq_${OS_TYPE}_${ARCH}"
+# Upstream publishes yq_windows_amd64.exe; an extensionless install still execs under MSYS.
+[[ "$OS_TYPE" == "windows" ]] && BINARY="${BINARY}.exe"
 
 echo "🤖 Provisioning environment for system profile: $BINARY"
 
@@ -83,9 +90,22 @@ elif [[ "$OS_TYPE" == "darwin" ]]; then
     YQ_TMP="$(mktemp /tmp/yq.XXXXXX)"
     curl -sL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${BINARY}" -o "$YQ_TMP"
   fi
+elif [[ "$OS_TYPE" == "windows" ]]; then
+  # Git Bash/MSYS2: no apt or brew. Git for Windows ships jq, gawk, curl, git,
+  # and tar; rsync and zip must come from MSYS2 packages (pacman -S rsync zip)
+  # or an equivalent manual install. Warn rather than attempt provisioning.
+  for _rk_tool in rsync zip; do
+    if ! command -v "$_rk_tool" >/dev/null 2>&1; then
+      echo "WARN: '$_rk_tool' missing — install it via MSYS2 ('pacman -S $_rk_tool') or copy the package binaries into /usr/bin."
+    fi
+  done
+  unset _rk_tool
+  YQ_TMP="$(mktemp /tmp/yq.XXXXXX)"
+  curl -sL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${BINARY}" -o "$YQ_TMP"
 fi
 
 if [ -n "${YQ_TMP:-}" ] && [ -f "$YQ_TMP" ]; then
+  mkdir -p /usr/local/bin 2>/dev/null || true
   $SUDO mv "$YQ_TMP" /usr/local/bin/yq
   $SUDO chmod +x /usr/local/bin/yq
 fi
@@ -149,6 +169,7 @@ install_oliver_binary() {
   case "$OS_TYPE" in
     linux) os_token="linux" ;;
     darwin) os_token="macos" ;;
+    windows) os_token="windows" ;;
   esac
   case "$ARCH_TYPE" in
     x86_64) arch_token="x86_64" ;;
@@ -156,10 +177,13 @@ install_oliver_binary() {
   esac
   [[ -n "$os_token" && -n "$arch_token" ]] || return 1
 
-  local url="https://github.com/drawmeanelephant/oliver/releases/download/builds/oliver-${os_token}-${arch_token}"
+  local asset="oliver-${os_token}-${arch_token}"
+  # The Windows artifact carries an .exe suffix upstream.
+  [[ "$os_token" == "windows" ]] && asset="${asset}.exe"
+  local url="https://github.com/drawmeanelephant/oliver/releases/download/builds/${asset}"
   local tmpdir bin_path reported expected actual
   tmpdir="$(mktemp -d)"
-  bin_path="$tmpdir/oliver-${os_token}-${arch_token}"
+  bin_path="$tmpdir/${asset}"
   if command -v curl >/dev/null 2>&1; then
     curl -fsSL --max-time 120 "$url" -o "$bin_path" || { rm -rf "$tmpdir"; return 1; }
     curl -fsSL --max-time 60 "${url%/*}/sha256sums.txt" -o "$tmpdir/sha256sums.txt" || { rm -rf "$tmpdir"; return 1; }
@@ -170,7 +194,7 @@ install_oliver_binary() {
     rm -rf "$tmpdir"
     return 1
   fi
-  expected="$(grep -F "oliver-${os_token}-${arch_token}" "$tmpdir/sha256sums.txt" | awk '{print $1}')"
+  expected="$(grep -F "${asset}" "$tmpdir/sha256sums.txt" | awk '{print $1}')"
   actual="$(rk_sha256 "$bin_path" | awk '{print $1}')"
   if [[ -z "$expected" || "$actual" != "$expected" ]]; then
     echo "WARN: builds checksum mismatch for oliver-${os_token}-${arch_token}; falling back to source build."
@@ -184,6 +208,7 @@ install_oliver_binary() {
     rm -rf "$tmpdir"
     return 1
   fi
+  mkdir -p /usr/local/bin 2>/dev/null || true
   if ! $SUDO install -m 0755 "$bin_path" /usr/local/bin/oliver; then
     report_oliver_install_failure "$bin_path" "$tmpdir"
     exit 3
@@ -220,8 +245,12 @@ if [[ "$NEED_OLIVER_INSTALL" == true ]]; then
     fi
     echo "Building Oliver from pinned commit $OLIVER_PIN"
     (cd "$OLIVER_BUILD_DIR" && zig build)
-    if ! $SUDO install -m 0755 "$OLIVER_BUILD_DIR/zig-out/bin/oliver" /usr/local/bin/oliver; then
-      report_oliver_install_failure "$OLIVER_BUILD_DIR/zig-out/bin/oliver" "$OLIVER_BUILD_DIR"
+    OLIVER_BUILT="$OLIVER_BUILD_DIR/zig-out/bin/oliver"
+    # Zig emits oliver.exe on Windows.
+    [[ "$OS_TYPE" == "windows" && ! -f "$OLIVER_BUILT" && -f "$OLIVER_BUILT.exe" ]] && OLIVER_BUILT="$OLIVER_BUILT.exe"
+    mkdir -p /usr/local/bin 2>/dev/null || true
+    if ! $SUDO install -m 0755 "$OLIVER_BUILT" /usr/local/bin/oliver; then
+      report_oliver_install_failure "$OLIVER_BUILT" "$OLIVER_BUILD_DIR"
       exit 3
     fi
     rm -rf "$OLIVER_BUILD_DIR"
