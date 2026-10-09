@@ -164,7 +164,17 @@ rotkeeper_glued: true"
     if [[ -f "$SOUL_FILE" && -z "$(rk_frontmatter_field target_file "$SOUL_FILE")" ]]; then
         log "INFO" "💀 Synchronizing folder soul alignment: $SOUL_FILE"
         # DIP SEPARATION: Surgically merge sidecar metadata block via yq array mapping
-        MERGED_YAML=$(yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' <(echo "$DEFAULT_YAML") <(yq eval --front-matter="extract" '.' "$SOUL_FILE" 2>/dev/null || echo "{}"))
+        # yq's fileIndex counts file arguments; process substitution <(...) cannot
+        # feed it on Windows (a native yq.exe cannot open MSYS /proc fd links), so
+        # stage both documents in temp files — portable on every platform.
+        _glue_default_yaml=$(mktemp "$TMP_DIR/glue-default.XXXXXX")
+        _glue_soul_yaml=$(mktemp "$TMP_DIR/glue-soul.XXXXXX")
+        printf '%s\n' "$DEFAULT_YAML" > "$_glue_default_yaml"
+        if ! yq eval --front-matter="extract" '.' "$SOUL_FILE" > "$_glue_soul_yaml" 2>/dev/null; then
+            printf '{}\n' > "$_glue_soul_yaml"
+        fi
+        MERGED_YAML=$(yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' "$_glue_default_yaml" "$_glue_soul_yaml")
+        rm -f "$_glue_default_yaml" "$_glue_soul_yaml"
         SOUL_TITLE=$(echo "$MERGED_YAML" | yq eval '.title // ""' -)
         [[ -z "$SOUL_TITLE" ]] && SOUL_TITLE="Index of $DIR_NAME"
         FRONTMATTER="---

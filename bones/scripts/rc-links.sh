@@ -133,6 +133,10 @@ from pathlib import Path
 from urllib.parse import unquote, urlsplit
 import sys
 
+# Windows python3 translates \n to \r\n on stdout; this TSV is parsed
+# arithmetically by the caller, so pin LF line endings explicitly.
+sys.stdout.reconfigure(newline="\n")
+
 root = Path(sys.argv[1]).resolve()
 
 class Page(HTMLParser):
