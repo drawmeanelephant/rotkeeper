@@ -41,7 +41,7 @@ Not documented in the script help block. Consult the source; no command behavior
 
 **Working directory:** none; project script permissions are updated relative to this script location.
 
-**Inputs and outputs:** accepts `--no-apt` on Linux; downloads dependencies to temporary directories, installs tools under `/usr/local/bin` or through Homebrew/apt, and marks existing project scripts executable. It has no help or dry-run parser. DIP reads annotations without executing setup.
+**Inputs and outputs:** accepts `--no-apt` on Linux; downloads dependencies to temporary directories, installs tools under `/usr/local/bin` or through Homebrew/apt, and marks existing project scripts executable. If a verified Oliver artifact cannot be installed, exits 3 and deliberately preserves/reports its temporary directory with RK_OLIVER_BIN and user-local recovery commands. It has no help or dry-run parser. DIP reads annotations without executing setup.
 
 ## Side effects
 
@@ -61,12 +61,18 @@ Oliver installation first tries the rolling builds release, verifies its
 published SHA-256 checksum, and requires the reported commit to match
 `b84f6368181079b9df2fc2c28646ffcb29ffd2ff`. The fallback checks out that
 commit and builds with Zig. An existing binary reporting the pin is kept.
+Source provenance comes from checking HEAD before the build; local upstream
+builds do not normally embed a commit in their version string.
 
 ### Limits
 
 The source-build route requires Git and Zig 0.16.0. If neither download nor
 source build is available, setup warns but can still complete without Oliver.
 It has no help or dry-run parser. It does not install Bash 4+ or ShellCheck.
+An Oliver install failure after verification/build exits 3, deliberately
+preserves the artifact's temporary directory, and prints its exact path
+with immediate `RK_OLIVER_BIN` and persistent user-local recovery commands.
+Successful installs remove their temporary directories.
 
 ### Cautions
 
