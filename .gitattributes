@@ -1,0 +1,6 @@
+# Rotkeeper is a POSIX toolchain: bash scripts, templates, markdown sources and
+# checked-in fixtures are consumed byte-for-byte (renders are diffed against
+# goldens with cmp). Everything must check out LF even where a git client
+# defaults to autocrlf (Git for Windows), otherwise rendered output diverges
+# from fixtures and embedded \r leaks into generated HTML.
+* text=auto eol=lf
