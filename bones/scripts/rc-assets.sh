@@ -46,7 +46,7 @@ IFS=$'\n\t'
 #
 # Exit codes:
 #   0    Success
-#   1    Configuration or environment validation failure
+#   1    Configuration/environment validation failure, or source assets skipped (illegal path characters)
 #   2    Missing required dependency
 #   nonzero    I/O failures propagate the failing command's exit status
 # @END-HELP
@@ -119,6 +119,8 @@ main() {
     ASSET_PATHS=$(find "$ASSETS_DIR" -type f ! -name '.DS_Store' | sed "s|^$ASSETS_DIR/||" | sort)
 
     asset_count=$(echo "$ASSET_PATHS" | grep -c . || true)
+    copied_count=0
+    skipped_count=0
     log "INFO" "Found $asset_count assets in $ASSETS_DIR"
 
     # SIDE EFFECT (write): truncates `REPORT_DIR/asset-report-<timestamp>.yaml` (real runs only)
@@ -158,12 +160,14 @@ main() {
             dest="$OUTPUT_ASSET_DIR/$relpath"
             if [[ -f "$src" ]]; then
                 if [[ "$relpath" == *"../"* ]] || [[ ! "$relpath" =~ ^[a-zA-Z0-9/._-]+$ ]]; then
-                    log "ERROR" "Illegal characters in asset path"
+                    log "ERROR" "Illegal characters in asset path: $relpath"
+                    skipped_count=$((skipped_count + 1))
                     continue
                 fi
                 # SIDE EFFECT (write): copies each valid source asset into `OUTPUT_DIR/assets` via `rsync`
                 run mkdir -p "$(dirname "$dest")"
                 run rsync -a "$src" "$dest"
+                copied_count=$((copied_count + 1))
                 if [[ "$DRY_RUN" == true ]]; then
                     log "DRY-RUN" "Would copy asset: $relpath"
                 else
@@ -178,6 +182,7 @@ main() {
                 fi
             else
                 log "WARN" "Missing asset file unexpectedly: $relpath"
+                skipped_count=$((skipped_count + 1))
             fi
         done <<< "$ASSET_PATHS"
         if [[ "$DRY_RUN" == true ]]; then
@@ -192,7 +197,12 @@ main() {
     # SIDE EFFECT (write): creates or truncates `OUTPUT_DIR/.rotkeeper-generated` through `mark_output_generated`; skipped during `--dry-run`
     mark_output_generated
 
-    log "MARKER" "Assets synchronized: $asset_count source assets -> $OUTPUT_ASSET_DIR"
+    log "MARKER" "Assets synchronized: $copied_count of $asset_count source assets -> $OUTPUT_ASSET_DIR"
+    if [[ "$skipped_count" -gt 0 ]]; then
+        log "ERROR" "$skipped_count source asset(s) were skipped; output mirror is incomplete"
+        echo "ERROR: $skipped_count source asset(s) skipped (illegal characters in path or vanished source); '$OUTPUT_ASSET_DIR' is incomplete." >&2
+        exit 1
+    fi
 
     # SITEMAP PURGED ENTIRELY FROM CORE PIPELINE.
 }

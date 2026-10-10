@@ -48,6 +48,22 @@ YQ_VERSION="v4.40.5"
 BINARY="yq_${OS_TYPE}_${ARCH}"
 # Upstream publishes yq_windows_amd64.exe; an extensionless install still execs under MSYS.
 [[ "$OS_TYPE" == "windows" ]] && BINARY="${BINARY}.exe"
+YQ_BASE_URL="https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}"
+
+# Downloads must fail loudly: curl -f/wget return nonzero on HTTP errors so a
+# 404 body is never written to the install target (same contract as the
+# Oliver install below).
+fetch_url() {
+  local url="$1" dest="$2"
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL --max-time 120 "$url" -o "$dest"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q -T 120 "$url" -O "$dest"
+  else
+    echo "ERROR: neither curl nor wget is available to download $url" >&2
+    return 1
+  fi
+}
 
 echo "🤖 Provisioning environment for system profile: $BINARY"
 
@@ -81,14 +97,14 @@ if [[ "$OS_TYPE" == "linux" ]]; then
     echo "Ensure these are present: jq rsync zip gawk wget curl git libxml2-utils."
   fi
   YQ_TMP="$(mktemp /tmp/yq.XXXXXX)"
-  wget -q "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${BINARY}" -O "$YQ_TMP"
+  fetch_url "${YQ_BASE_URL}/${BINARY}" "$YQ_TMP"
 elif [[ "$OS_TYPE" == "darwin" ]]; then
   # macOS environment compatibility fallback
   if command -v brew >/dev/null 2>&1; then
     brew install jq rsync zip gawk yq
   else
     YQ_TMP="$(mktemp /tmp/yq.XXXXXX)"
-    curl -sL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${BINARY}" -o "$YQ_TMP"
+    fetch_url "${YQ_BASE_URL}/${BINARY}" "$YQ_TMP"
   fi
 elif [[ "$OS_TYPE" == "windows" ]]; then
   # Git Bash/MSYS2: no apt or brew. Git for Windows ships jq, gawk, curl, git,
@@ -101,10 +117,32 @@ elif [[ "$OS_TYPE" == "windows" ]]; then
   done
   unset _rk_tool
   YQ_TMP="$(mktemp /tmp/yq.XXXXXX)"
-  curl -sL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${BINARY}" -o "$YQ_TMP"
+  fetch_url "${YQ_BASE_URL}/${BINARY}" "$YQ_TMP"
 fi
 
 if [ -n "${YQ_TMP:-}" ] && [ -f "$YQ_TMP" ]; then
+  # Integrity check before install: upstream publishes a `checksums` file
+  # whose hash columns are ordered by `checksums_hashes_order` (the same
+  # published-checksum model the Oliver install uses with sha256sums.txt).
+  # An unverifiable or mismatched download aborts setup rather than being
+  # installed as /usr/local/bin/yq.
+  # setup.sh never calls rk_init_script, so log()/require_sha256() helpers
+  # that read unguarded QUIET/DEBUG would abort under set -u; check inline.
+  if ! command -v sha256sum >/dev/null 2>&1 && ! command -v shasum >/dev/null 2>&1; then
+    echo "ERROR: need sha256sum or shasum to verify the yq download" >&2
+    exit 1
+  fi
+  YQ_CKSUM_DIR="$(mktemp -d /tmp/yq-checksums.XXXXXX)"
+  fetch_url "${YQ_BASE_URL}/checksums" "$YQ_CKSUM_DIR/checksums"
+  fetch_url "${YQ_BASE_URL}/checksums_hashes_order" "$YQ_CKSUM_DIR/checksums_hashes_order"
+  sha_col="$(awk '$1 == "SHA-256" { print NR; exit }' "$YQ_CKSUM_DIR/checksums_hashes_order")"
+  expected="$(awk -v name="$BINARY" -v col="${sha_col:-0}" '$1 == name { print $(col + 1); exit }' "$YQ_CKSUM_DIR/checksums")"
+  actual="$(rk_sha256 "$YQ_TMP" | awk '{print $1}')"
+  rm -rf "$YQ_CKSUM_DIR"
+  if [[ -z "${sha_col:-}" || -z "${expected:-}" || "$actual" != "$expected" ]]; then
+    echo "ERROR: checksum verification failed for yq ${YQ_VERSION} (${BINARY}); refusing to install." >&2
+    exit 1
+  fi
   mkdir -p /usr/local/bin 2>/dev/null || true
   $SUDO mv "$YQ_TMP" /usr/local/bin/yq
   $SUDO chmod +x /usr/local/bin/yq
