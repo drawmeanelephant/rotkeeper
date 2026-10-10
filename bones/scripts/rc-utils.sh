@@ -786,7 +786,7 @@ validate_layout_alignment() {
                       echo "  -> Fix: Configuration state is corrupted. Run './rotkeeper.sh init' to heal." >&2
                       exit 1
                   fi
-              done < <(yq eval '.paths | to_entries | .[] | (((.value | tag) == "!!str" and (.value | test("[\r\n]") | not)) | tostring) + " " + (.key | @json)' "$target_config" 2>/dev/null || true)
+              done < <(yq eval '.paths | to_entries | .[] | (((.value | tag) == "!!str" and (.value | test("[\r\n]") | not)) | @json) + " " + (.key | @json)' "$target_config" 2>/dev/null || true)
           fi
 
           expected_content=$(yq eval '.paths.CONTENT_DIR // ""' "$target_config" 2>/dev/null)
