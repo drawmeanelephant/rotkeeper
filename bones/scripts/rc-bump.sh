@@ -12,8 +12,8 @@ IFS=$'\n\t'
 # Env assumptions: reads BONES_DIR, CONFIG_DIR, DOCS_DIR, DRY_RUN, LOG_DIR, QUIET, ROOT_DIR, SCRIPT_DIR, TMP_DIR, VERBOSE, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
 # Input/Output contracts: reads the validated semver in `bones/config/version`; the bump calculation does not use `ROTKEEPER_VERSION`. Exactly one of major/minor/patch or `--to` is required; major/minor selectors reset lower segments.
-#   Atomically writes the canonical version, prepends a dated CHANGELOG release, and inserts the timestamped message after `LIVING_BUILDLOG_START` in `DOCS_DIR/road-to-bones/index.md`.
-#   `--commit` stages the version, changelog, and roadmap and commits from `ROOT_DIR`; it never pushes. A dirty worktree is warned about rather than rejected. Dry-run previews all updates and Git actions without writes.
+#   Stages the timestamped message after the first `LIVING_BUILDLOG_START` in `DOCS_DIR/road-to-bones/index.md`, a dated CHANGELOG release, and the canonical version as scratch files beside their targets, then moves them into place with the version file last. A missing anchor or `## [` header, or any staging failure, exits 1 with no file changed.
+#   `--commit` stages the version, changelog, and roadmap and commits from `ROOT_DIR`; it never pushes. A dirty worktree is warned about rather than rejected. Dry-run previews all updates and Git actions without writes and fails on the same missing anchors.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-bump.sh
@@ -163,78 +163,120 @@ fi
 log "INFO" "Current version: $CURRENT_VERSION (from $VERSION_FILE)"
 log "INFO" "New version: $NEW_VERSION"
 
-# Step 1: Update the single canonical version source
-if [[ "$DRY_RUN" == true ]]; then
-  log "DRY-RUN" "Would write $NEW_VERSION to $VERSION_FILE"
-else
-  # SIDE EFFECT (write): overwrites bones/config/version with the new version
-  printf '%s\n' "$NEW_VERSION" > "$VERSION_FILE"
-  log "INFO" "Updated $VERSION_FILE to $NEW_VERSION."
-fi
-
-# Step 2: Inject into Living Buildlog
 ROADMAP_FILE="$DOCS_DIR/road-to-bones/index.md"
+CHANGELOG_FILE="$ROOT_DIR/CHANGELOG.md"
 DATE_STR=$(date +"%Y-%m-%d %H:%M")
 ENTRY="* \`v$NEW_VERSION\` - ($DATE_STR) - $MESSAGE"
+CHANGELOG_DATE=$(date +%Y-%m-%d)
 
-if [[ -f "$ROADMAP_FILE" ]]; then
-  if [[ "$DRY_RUN" == true ]]; then
-    log "DRY-RUN" "Would inject into roadmap: $ENTRY"
-  else
-    # Inject after the anchor through a per-process temp surface (#231)
-    # awk: inject new entry immediately after LIVING_BUILDLOG_START marker, pass through rest
-    # SIDE EFFECT (write): creates <roadmap>.tmp.$$ scratch file, then replaces the roadmap via mv
-    roadmap_tmp="${ROADMAP_FILE}.tmp.$$"
-    if ! awk -v entry="$ENTRY" '
-      /<!-- LIVING_BUILDLOG_START -->/ {
-        print $0
-        print entry
-        next
-      }
-      {print}
-    ' "$ROADMAP_FILE" > "$roadmap_tmp"; then
-      # SIDE EFFECT (delete): removes the scratch file on awk failure
-      rm -f "$roadmap_tmp"
-      log "ERROR" "Failed to inject update into Living Buildlog."
-      exit 1
-    fi
-    mv "$roadmap_tmp" "$ROADMAP_FILE"
-    log "INFO" "Injected update into Living Buildlog."
+# Renderers print a target's replacement on stdout. The document renderers
+# exit 2 when their insertion point is absent, so a missing anchor fails the
+# bump instead of rewriting the file unchanged and reporting success.
+render_version() {
+  printf '%s\n' "$NEW_VERSION"
+}
+
+render_roadmap() {
+  # awk: inject the entry after the first LIVING_BUILDLOG_START marker, pass through rest
+  awk -v entry="$ENTRY" '
+    !inserted && /<!-- LIVING_BUILDLOG_START -->/ {
+      print $0
+      print entry
+      inserted = 1
+      next
+    }
+    { print }
+    END { if (!inserted) exit 2 }
+  ' "$ROADMAP_FILE"
+}
+
+render_changelog() {
+  # awk: prepend the new section before the first ## [ header (newest-first), pass through rest
+  awk -v new_version="$NEW_VERSION" -v date_str="$CHANGELOG_DATE" -v msg="$MESSAGE" '
+    !inserted && /^## \[/ {
+      printf "## [%s] - %s\n\n- %s\n\n", new_version, date_str, msg
+      inserted = 1
+    }
+    { print }
+    END { if (!inserted) exit 2 }
+  ' "$CHANGELOG_FILE"
+}
+
+# Targets staged for replacement, in replacement order, with the message
+# logged once each one lands.
+STAGED_TARGETS=()
+STAGED_NOTES=()
+
+cleanup() {
+  if [[ "${cleanup_ran:-false}" == true ]]; then return 0; fi
+  cleanup_ran=true
+  local target
+  for target in ${STAGED_TARGETS[@]+"${STAGED_TARGETS[@]}"}; do
+    # SIDE EFFECT (delete): removes any <target>.tmp.$$ scratch file a failed run left behind
+    rm -f "$target.tmp.$$" || true
+  done
+}
+
+# ---
+# stage_update: Render one target's replacement into a per-process scratch
+# file beside it (#231) without touching the target. Dry-run renders to
+# /dev/null, so a missing insertion point fails the preview too.
+# Inputs: $1 (target), $2 (renderer), $3 (insertion point named in errors),
+#         $4 (dry-run preview), $5 (message logged after replacement)
+# Outputs: Appends to STAGED_TARGETS/STAGED_NOTES; exits 1 on any failure
+# ---
+stage_update() {
+  local target="$1" renderer="$2" anchor="$3" preview="$4" note="$5"
+  local out="/dev/null" status=0
+  if [[ "$DRY_RUN" != true ]]; then
+    out="$target.tmp.$$"
+    STAGED_TARGETS+=("$target")
+    STAGED_NOTES+=("$note")
   fi
+  # SIDE EFFECT (write): creates <target>.tmp.$$ beside the target (dry-run writes nothing)
+  "$renderer" > "$out" || status=$?
+  if [[ "$status" -eq 2 ]]; then
+    log "ERROR" "$anchor not found in $target; nothing was changed."
+    exit 1
+  elif [[ "$status" -ne 0 ]]; then
+    log "ERROR" "Failed to stage the update for $target; nothing was changed."
+    exit 1
+  fi
+  if [[ "$DRY_RUN" == true ]]; then
+    log "DRY-RUN" "$preview"
+  fi
+}
+
+# Step 1: Stage every update before replacing anything, so a failed render,
+# missing anchor, or unwritable directory leaves all version markers as they were.
+if [[ -f "$ROADMAP_FILE" ]]; then
+  stage_update "$ROADMAP_FILE" render_roadmap "Living Buildlog anchor <!-- LIVING_BUILDLOG_START -->" \
+    "Would inject into roadmap: $ENTRY" "Injected update into Living Buildlog."
 else
   log "WARN" "Roadmap file not found: $ROADMAP_FILE"
 fi
 
-# Step 3: Prepend to CHANGELOG.md (newest-first convention)
-CHANGELOG_FILE="$ROOT_DIR/CHANGELOG.md"
 if [[ -f "$CHANGELOG_FILE" ]]; then
-  if [[ "$DRY_RUN" == true ]]; then
-    log "DRY-RUN" "Would prepend to CHANGELOG.md"
-  else
-    # Prepend through a per-process temp surface (#231)
-    # awk: prepend new changelog section before first ## [ header, pass through rest
-    # SIDE EFFECT (write): creates CHANGELOG.md.tmp.$$ scratch file, then replaces the changelog via mv
-    changelog_tmp="${CHANGELOG_FILE}.tmp.$$"
-    if ! awk -v new_version="$NEW_VERSION" -v date_str="$(date +%Y-%m-%d)" -v msg="$MESSAGE" '
-      !inserted && /^## \[/ {
-        printf "## [%s] - %s\n\n- %s\n\n", new_version, date_str, msg
-        inserted = 1
-      }
-      { print }
-    ' "$CHANGELOG_FILE" > "$changelog_tmp"; then
-      # SIDE EFFECT (delete): removes the scratch file on awk failure
-      rm -f "$changelog_tmp"
-      log "ERROR" "Failed to prepend to CHANGELOG.md."
-      exit 1
-    fi
-    mv "$changelog_tmp" "$CHANGELOG_FILE"
-    log "INFO" "Prepended to CHANGELOG.md."
-  fi
+  stage_update "$CHANGELOG_FILE" render_changelog "CHANGELOG release header (## [)" \
+    "Would prepend to CHANGELOG.md" "Prepended to CHANGELOG.md."
 else
   log "WARN" "CHANGELOG.md not found at $CHANGELOG_FILE"
 fi
 
-# Step 4: Git Commit
+stage_update "$VERSION_FILE" render_version "Version" \
+  "Would write $NEW_VERSION to $VERSION_FILE" "Updated $VERSION_FILE to $NEW_VERSION."
+
+# Step 2: Move staged files into place in staging order. The version file is
+# staged last, so it never runs ahead of the roadmap and CHANGELOG it describes.
+if [[ "$DRY_RUN" != true ]]; then
+  for i in "${!STAGED_TARGETS[@]}"; do
+    # SIDE EFFECT (write): replaces the roadmap, CHANGELOG.md, then bones/config/version with their scratch files via mv
+    mv -f "${STAGED_TARGETS[$i]}.tmp.$$" "${STAGED_TARGETS[$i]}"
+    log "INFO" "${STAGED_NOTES[$i]}"
+  done
+fi
+
+# Step 3: Git Commit
 if [[ "$DRY_RUN" == true ]]; then
   log "DRY-RUN" "Would commit changes with message: bump: $NEW_VERSION - $MESSAGE"
   log "INFO" "Bump ritual complete."

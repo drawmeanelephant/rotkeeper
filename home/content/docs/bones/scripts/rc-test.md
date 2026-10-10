@@ -98,6 +98,10 @@ The isolated scaffold contract checks Markdown, Textile, and Cooklang
 sidecars in every layout, including null review fields, dry-run non-publication,
 and preservation of existing sidecars. It also checks that glue does not
 merge the dispatcher's file sidecar into the content-root index.
+Each layout also checks that `new` rejects control characters and missing
+flag values without creating directories and quotes `--template`, that
+showcase dry-run creates nothing while an empty template fails the run, and
+that `status --json` escapes interpolated strings.
 
 ### Cautions
 

@@ -823,6 +823,12 @@ for doc in ${EXISTING_DOCS[@]+"${EXISTING_DOCS[@]}"}; do
         continue
       fi
     fi
+    # mv -n exits 0 without moving when the destination exists (GNU and BSD);
+    # verify the source is actually gone before reporting the move.
+    if [[ -e "$doc" ]]; then
+      log "ERROR" "Obsolete dest already exists (move aborted, source kept): $DEST_PATH"
+      continue
+    fi
     log "INFO" "Whisked obsolete doc: $REL_PATH (target_file=$target_file_check no longer core)"
     OBSOLETE_MOVED+=("$REL_PATH")
   fi

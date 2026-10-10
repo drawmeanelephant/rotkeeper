@@ -405,8 +405,18 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
       fi
     fi
 
+    # Stage the wrapped page under TMP_DIR and move it into place only on
+    # success — redirecting straight into $dst_path would truncate a published
+    # page before oliver runs, and a failed render must not delete output.
+    wrap_stage="$TMP_DIR/oliver-wrap-out-$$.html"
     wrap_status=0
-    "$oliver_bin" wrap --template "$template_path" --meta-json "$wrap_meta" --assets-root "$assets_root" --body "$body_rewritten" > "$dst_path" 2> "$TMP_DIR/oliver-wrap-$$.log" || wrap_status=$?
+    "$oliver_bin" wrap --template "$template_path" --meta-json "$wrap_meta" --assets-root "$assets_root" --body "$body_rewritten" > "$wrap_stage" 2> "$TMP_DIR/oliver-wrap-$$.log" || wrap_status=$?
+    if [[ "$wrap_status" -eq 0 ]] && ! mv -f "$wrap_stage" "$dst_path"; then
+      wrap_status=1
+      # Clear renderer stderr so the diagnostics below report the failed move
+      # (unwritable output path) rather than stale oliver output.
+      : > "$TMP_DIR/oliver-wrap-$$.log"
+    fi
     if [[ "$wrap_status" -ne 0 ]]; then
       wrap_log="$TMP_DIR/oliver-wrap-$$.log"
       wrap_why="$(head -n1 "$wrap_log" 2>/dev/null || true)"
@@ -432,12 +442,13 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
       fi
       log "ERROR" "$wrap_msg"
       echo "ERROR: $wrap_msg" >&2
-      # SIDE EFFECT (delete): removes the partial output page and wrap scratch files on failure
-      rm -f "$wrap_meta" "$wrap_log" "$dst_path"
+      # SIDE EFFECT (delete): removes the staged page and wrap scratch files on failure;
+      # a previously published page at $dst_path is left intact
+      rm -f "$wrap_meta" "$wrap_log" "$wrap_stage"
       exit 1
     fi
-    # SIDE EFFECT (delete): removes the wrap meta and stderr scratch files on success
-    rm -f "$wrap_meta" "$TMP_DIR/oliver-wrap-$$.log"
+    # SIDE EFFECT (delete): removes the wrap meta, staged page, and stderr scratch files on success
+    rm -f "$wrap_meta" "$wrap_stage" "$TMP_DIR/oliver-wrap-$$.log"
     # Site navigation: render the config-driven nav (raw HTML) into the page by
     # replacing a literal `<site-nav></site-nav>` placeholder after wrap. Wrapped
     # after interpolation because every non-literal oliver token html-escapes;

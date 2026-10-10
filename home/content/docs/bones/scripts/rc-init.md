@@ -80,7 +80,7 @@ Initializes directories and configuration without a content-deletion workflow. T
 
 ### Limits
 
-Does not copy or install templates and has no destructive `--force` mode. Plain `bash rotkeeper.sh init` repairs an initialized checkout copied or moved to another physical root, including stale or incomplete caches. It does not repair malformed YAML, escaping symlinks, or missing layout resources. Optional assets/render work is delegated, and full mode adds sample content plus assets, render, and scan; those commands retain their own contracts.
+Does not copy or install templates and has no destructive `--force` mode. Plain `bash rotkeeper.sh init` repairs an initialized checkout copied or moved to another physical root, including stale or incomplete caches. It does not repair malformed YAML, escaping symlinks, or missing layout resources. Optional assets/render work is delegated, and full mode adds sample content plus assets, render, and scan; those commands retain their own contracts, except that scan findings (exit 3) are logged as a warning instead of failing init.
 
 ### Cautions
 

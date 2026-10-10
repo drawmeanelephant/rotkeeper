@@ -62,16 +62,14 @@ bash rotkeeper.sh bump --minor -m "..." --dry-run                # Preview only
 **Working directory:** No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
 
 **Inputs and outputs:** reads the validated semver in `bones/config/version`; the bump calculation does not use `ROTKEEPER_VERSION`. Exactly one of major/minor/patch or `--to` is required; major/minor selectors reset lower segments.
-Atomically writes the canonical version, prepends a dated CHANGELOG release, and inserts the timestamped message after `LIVING_BUILDLOG_START` in `DOCS_DIR/road-to-bones/index.md`.
-`--commit` stages the version, changelog, and roadmap and commits from `ROOT_DIR`; it never pushes. A dirty worktree is warned about rather than rejected. Dry-run previews all updates and Git actions without writes.
+Stages the timestamped message after the first `LIVING_BUILDLOG_START` in `DOCS_DIR/road-to-bones/index.md`, a dated CHANGELOG release, and the canonical version as scratch files beside their targets, then moves them into place with the version file last. A missing anchor or `## [` header, or any staging failure, exits 1 with no file changed.
+`--commit` stages the version, changelog, and roadmap and commits from `ROOT_DIR`; it never pushes. A dirty worktree is warned about rather than rejected. Dry-run previews all updates and Git actions without writes and fails on the same missing anchors.
 
 ## Side effects
 
-- **write:** overwrites bones/config/version with the new version
-- **write:** creates <roadmap>.tmp.$$ scratch file, then replaces the roadmap via mv
-- **delete:** removes the scratch file on awk failure
-- **write:** creates CHANGELOG.md.tmp.$$ scratch file, then replaces the changelog via mv
-- **delete:** removes the scratch file on awk failure
+- **delete:** removes any <target>.tmp.$$ scratch file a failed run left behind
+- **write:** creates <target>.tmp.$$ beside the target (dry-run writes nothing)
+- **write:** replaces the roadmap, CHANGELOG.md, then bones/config/version with their scratch files via mv
 - **git:** stages the version file, CHANGELOG.md, and roadmap index
 - **git:** creates a commit "bump: <version> - <message>" (no push)
 
@@ -80,11 +78,11 @@ Atomically writes the canonical version, prepends a dated CHANGELOG release, and
 
 ### Design
 
-Uses the canonical `bones/config/version` file for the bump calculation, independently of the display-version override. Updates that file, inserts the message after the roadmap buildlog anchor under `DOCS_DIR/road-to-bones/index.md`, and prepends a release section before the first `## [` heading in `CHANGELOG.md`. Major and minor bumps reset lower version segments.
+Uses the canonical `bones/config/version` file for the bump calculation, independently of the display-version override. Updates that file, inserts the message after the first roadmap buildlog anchor under `DOCS_DIR/road-to-bones/index.md`, and prepends a release section before the first `## [` heading in `CHANGELOG.md`. Every update is rendered into a scratch file beside its target before any target is replaced, and the version file is replaced last. Major and minor bumps reset lower version segments.
 
 ### Limits
 
-Requires exactly one version selector and a non-empty message. Versions have three numeric segments; prerelease and build suffixes are not accepted. Missing roadmap or changelog files produce warnings rather than blocking the version update. A missing insertion anchor leaves the corresponding document unchanged. The version write and document replacements are separate operations, not one transaction.
+Requires exactly one version selector and a non-empty message. Versions have three numeric segments; prerelease and build suffixes are not accepted. Missing roadmap or changelog files produce warnings rather than blocking the version update. A roadmap without the buildlog anchor, or a changelog without a `## [` heading, fails the bump (dry-run included) before any file changes. The final replacements are separate same-directory renames, not one transaction; a rename failure after staging can still leave the roadmap or changelog ahead of the version file, which is never moved early.
 
 ### Cautions
 

@@ -891,12 +891,58 @@ if [[ "${3:-}" == "cooklang" ]]; then
   printf '<article class="recipe"><h1>cooklang-input-confirmed</h1>\n<a href="sibling.html">Sibling</a>\n</article>\n'
   exit 0
 fi
-# Pipeline: strip frontmatter (awk on ---), markdown [text](url) -> <a> (sed), then gawk rewrites href/src .md/.textile/.cook -> .html with angle-bracket unwrapping and external/mailto skip
+# Pipeline: strip frontmatter (awk on ---), ATX "# " -> <h1> and markdown [text](url) -> <a> (sed), then gawk rewrites href/src .md/.textile/.cook -> .html with angle-bracket unwrapping and external/mailto skip
+# The <h1> keeps the preflight smoke render HTML-shaped, as preflight requires of Oliver.
 awk '/^---$/ { f++; next } f>=2 || f==0 { print }' | \
-  sed -E 's/\[([^]]+)\]\(([^)]+)\)/<a href="\2">\1<\/a>/g' | \
+  sed -E -e 's/^# (.+)$/<h1>\1<\/h1>/' -e 's/\[([^]]+)\]\(([^)]+)\)/<a href="\2">\1<\/a>/g' | \
   gawk '{ line=$0; out=""; while(match(line,/(href|src)=("|\x27)([^"\x27]+)("|\x27)/,a)){ outer=RSTART; rlen=RLENGTH; pre=substr(line,1,outer-1); tgt=a[3]; if(tgt~/^(%3C|<|&lt;).*(%3E|>|&gt;)$/){ if(substr(tgt,1,3)=="%3C") tgt=substr(tgt,4); else if(substr(tgt,1,4)=="&lt;") tgt=substr(tgt,5); else if(substr(tgt,1,1)=="<") tgt=substr(tgt,2); tlen=length(tgt); if(tlen>=3 && substr(tgt,tlen-2)=="%3E") tgt=substr(tgt,1,tlen-3); else if(tlen>=4 && substr(tgt,tlen-3)=="&gt;") tgt=substr(tgt,1,tlen-4); else if(tlen>=1 && substr(tgt,tlen)==">") tgt=substr(tgt,1,tlen-1)} if(tgt~/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//||tgt~/^mailto:/) nt=tgt; else if(match(tgt,/\.md(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+3)} else if(match(tgt,/\.textile(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+8)} else if(match(tgt,/\.cook(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+5)} else nt=tgt; out=out pre a[1] "=" a[2] nt a[2]; line=substr(line,outer+rlen)} out=out line; print out }'
 FAKE_EOF
     chmod +x "$fake_bin"
+
+    echo "  [+] Executing preflight impostor and concurrency assertions ($mode)..."
+    # Non-empty stdout alone must not pass: argument echoes and stdin echoes are not Oliver.
+    cat << 'IMPOSTOR_ECHO_EOF' > "$pass_dir/bones/tmp/impostor_echo"
+#!/usr/bin/env bash
+echo "$@"
+IMPOSTOR_ECHO_EOF
+    cat << 'IMPOSTOR_CAT_EOF' > "$pass_dir/bones/tmp/impostor_cat"
+#!/usr/bin/env bash
+cat
+IMPOSTOR_CAT_EOF
+    chmod +x "$pass_dir/bones/tmp/impostor_echo" "$pass_dir/bones/tmp/impostor_cat"
+    for impostor_bin in "$pass_dir/bones/tmp/impostor_echo" "$pass_dir/bones/tmp/impostor_cat"; do
+      if RK_OLIVER_BIN="$impostor_bin" ./rotkeeper.sh preflight > /dev/null 2>&1; then
+        echo "❌ Assertion Failed: preflight accepted a non-Oliver binary ($impostor_bin)."
+        exit 226
+      fi
+    done
+    # A slow renderer widens the window in which shared scratch files would collide.
+    slow_bin="$pass_dir/bones/tmp/slow_oliver"
+    cat << 'SLOW_OLIVER_EOF' > "$slow_bin"
+#!/usr/bin/env bash
+sleep 0.3
+cat > /dev/null
+printf '<h1>slow smoke</h1>\n'
+SLOW_OLIVER_EOF
+    chmod +x "$slow_bin"
+    preflight_pids=()
+    for _ in 1 2 3 4 5 6; do
+      RK_OLIVER_BIN="$slow_bin" ./rotkeeper.sh preflight > /dev/null 2>&1 &
+      preflight_pids+=("$!")
+    done
+    preflight_failed=0
+    for preflight_pid in "${preflight_pids[@]}"; do
+      wait "$preflight_pid" || preflight_failed=$((preflight_failed + 1))
+    done
+    if [[ "$preflight_failed" -ne 0 ]]; then
+      echo "❌ Assertion Failed: $preflight_failed of 6 concurrent preflights failed with a working renderer."
+      exit 227
+    fi
+    if compgen -G "bones/tmp/oliver-preflight*" > /dev/null; then
+      echo "❌ Assertion Failed: preflight left smoke scratch files under bones/tmp."
+      exit 228
+    fi
+    echo "  [+] Pass: preflight rejects impostors and concurrent runs are independent ($mode)."
 
     # Create ugly metadata & edge-case link test file
     cat << 'UGLY_EOF' > "$b_content/ugly-edge-case.md"
@@ -1066,8 +1112,8 @@ if [[ "${1:-}" == "wrap" ]]; then
 fi
 if [[ "${1:-}" != "render" || "${2:-}" != "--from" || ( "${3:-}" != "markdown" && "${3:-}" != "textile" && "${3:-}" != "cooklang" ) ]]; then exit 1; fi
 echo "[OLIVER WARN] Sample non-fatal renderer warning" >&2
-# Pipeline: strip frontmatter (awk on ---), markdown [text](url) -> <a> (sed), then gawk rewrites href/src .md/.textile/.cook -> .html with angle-bracket unwrapping and external/mailto skip
-awk '/^---$/ { f++; next } f>=2 || f==0 { print }' | sed -E 's/\[([^]]+)\]\(([^)]+)\)/<a href="\2">\1<\/a>/g' | gawk '{ line=$0; out=""; while(match(line,/(href|src)=("|\x27)([^"\x27]+)("|\x27)/,a)){ outer=RSTART; rlen=RLENGTH; pre=substr(line,1,outer-1); tgt=a[3]; if(tgt~/^(%3C|<|&lt;).*(%3E|>|&gt;)$/){ if(substr(tgt,1,3)=="%3C") tgt=substr(tgt,4); else if(substr(tgt,1,4)=="&lt;") tgt=substr(tgt,5); else if(substr(tgt,1,1)=="<") tgt=substr(tgt,2); tlen=length(tgt); if(tlen>=3 && substr(tgt,tlen-2)=="%3E") tgt=substr(tgt,1,tlen-3); else if(tlen>=4 && substr(tgt,tlen-3)=="&gt;") tgt=substr(tgt,1,tlen-4); else if(tlen>=1 && substr(tgt,tlen)==">") tgt=substr(tgt,1,tlen-1)} if(tgt~/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//||tgt~/^mailto:/) nt=tgt; else if(match(tgt,/\.md(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+3)} else if(match(tgt,/\.textile(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+8)} else if(match(tgt,/\.cook(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+5)} else nt=tgt; out=out pre a[1] "=" a[2] nt a[2]; line=substr(line,outer+rlen)} out=out line; print out }'
+# Pipeline: strip frontmatter (awk on ---), ATX "# " -> <h1> (keeps the preflight smoke render HTML-shaped) and markdown [text](url) -> <a> (sed), then gawk rewrites href/src .md/.textile/.cook -> .html with angle-bracket unwrapping and external/mailto skip
+awk '/^---$/ { f++; next } f>=2 || f==0 { print }' | sed -E -e 's/^# (.+)$/<h1>\1<\/h1>/' -e 's/\[([^]]+)\]\(([^)]+)\)/<a href="\2">\1<\/a>/g' | gawk '{ line=$0; out=""; while(match(line,/(href|src)=("|\x27)([^"\x27]+)("|\x27)/,a)){ outer=RSTART; rlen=RLENGTH; pre=substr(line,1,outer-1); tgt=a[3]; if(tgt~/^(%3C|<|&lt;).*(%3E|>|&gt;)$/){ if(substr(tgt,1,3)=="%3C") tgt=substr(tgt,4); else if(substr(tgt,1,4)=="&lt;") tgt=substr(tgt,5); else if(substr(tgt,1,1)=="<") tgt=substr(tgt,2); tlen=length(tgt); if(tlen>=3 && substr(tgt,tlen-2)=="%3E") tgt=substr(tgt,1,tlen-3); else if(tlen>=4 && substr(tgt,tlen-3)=="&gt;") tgt=substr(tgt,1,tlen-4); else if(tlen>=1 && substr(tgt,tlen)==">") tgt=substr(tgt,1,tlen-1)} if(tgt~/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//||tgt~/^mailto:/) nt=tgt; else if(match(tgt,/\.md(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+3)} else if(match(tgt,/\.textile(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+8)} else if(match(tgt,/\.cook(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+5)} else nt=tgt; out=out pre a[1] "=" a[2] nt a[2]; line=substr(line,outer+rlen)} out=out line; print out }'
 WARN_BIN_EOF
     chmod +x "$fake_warn_bin"
 
@@ -2383,9 +2429,12 @@ COOK_CFG_EOF
     # into the rendered tree must be classified, and the assets ritual's
     # output/assets/ copies stay exempt from orphan scope. The probe cleans
     # up after itself so later dry-run non-mutation snapshots are unaffected.
+    # Findings must move the exit code (#384): scan exits 3 when it reports any.
     touch "$out_dir_rel/stray-orphan-probe.html"
-    if ! probe_stdout=$(./rotkeeper.sh scan --json); then
-      echo "❌ Assertion Failed: stray-orphan probe scan failed."
+    probe_status=0
+    probe_stdout=$(./rotkeeper.sh scan --json 2>/dev/null) || probe_status=$?
+    if [[ "$probe_status" -ne 3 ]]; then
+      echo "❌ Assertion Failed: stray-orphan probe scan exited $probe_status (expected 3 for findings)."
       exit 183
     fi
     if ! jq -e --arg d "$out_dir_rel" '
@@ -2400,6 +2449,53 @@ COOK_CFG_EOF
     fi
     rm -f "$out_dir_rel/stray-orphan-probe.html"
     echo "  [+] Pass: orphan walk classified stray output file, assets tree exempt ($mode)."
+
+    # Ledger parsing and membership (#378, #377) from a foreign CWD (#362): a
+    # ledgered path with spaces and a recorded digest must verify whole;
+    # ledger entries match disk paths literally, never as regex; and a scan
+    # run elsewhere must audit this fixture and write nothing outside it.
+    _ledger_backup="$TMP_DIR/ledger-probe-backup-$$"
+    mkdir -p "$(dirname "$_ledger_backup")" 2>/dev/null || true
+    cp bones/manifest.txt "$_ledger_backup"
+    _space_probe="$out_dir_rel/ledger probe page.html"
+    _class_probe="$out_dir_rel/ledger-probe[1].html"
+    _dot_probe="$out_dir_rel/ledger-probe.html"
+    printf '<html></html>\n' > "$_space_probe"
+    printf '<html></html>\n' > "$_class_probe"
+    printf '<html></html>\n' > "$_dot_probe"
+    _space_sha=$(rk_sha256 "$_space_probe" | awk '{print $1}')
+    {
+      printf '%s  %s\n' "$_space_probe" "$_space_sha"
+      printf '%s\n' "$_class_probe"
+      printf '%s\n' "$out_dir_rel/ledger-probeXhtml"
+    } >> bones/manifest.txt
+    _foreign_cwd=$(mktemp -d)
+    ledger_status=0
+    ledger_stdout=$(cd "$_foreign_cwd" && "$pass_dir/rotkeeper.sh" scan --json 2>/dev/null) || ledger_status=$?
+    _foreign_leak=$(find "$_foreign_cwd" -mindepth 1 -print -quit)
+    mv "$_ledger_backup" bones/manifest.txt
+    rm -f "$_space_probe" "$_class_probe" "$_dot_probe"
+    if [[ -n "$_foreign_leak" ]]; then
+      echo "❌ Assertion Failed: scan from a foreign CWD wrote outside the repository: $_foreign_leak"
+      exit 200
+    fi
+    rmdir "$_foreign_cwd"
+    if [[ "$ledger_status" -ne 3 ]]; then
+      echo "❌ Assertion Failed: ledger probe scan exited $ledger_status (expected 3 for findings)."
+      exit 201
+    fi
+    if ! jq -e --arg d "$out_dir_rel" --arg sha "$_space_sha" '
+        .schema == "rotkeeper.scan.v2" and
+        .missing == [($d + "/ledger-probeXhtml")] and
+        .orphans == [($d + "/ledger-probe.html")] and
+        .counts.digest_mismatches == 0 and
+        .digests[($d + "/ledger probe page.html")] == $sha
+      ' >/dev/null <<< "$ledger_stdout"; then
+      echo "❌ Assertion Failed: scan misparsed space-containing ledger paths or matched ledger entries as regex."
+      cat <<< "$ledger_stdout"
+      exit 202
+    fi
+    echo "  [+] Pass: ledger paths with spaces verify, membership is literal, foreign CWD audits the repo ($mode)."
 
     # P2 verification (#292): a ledgered archive whose on-disk hash drifts must
     # be reported in digest_mismatches. The probe tampers then restores so later
@@ -2427,8 +2523,11 @@ COOK_CFG_EOF
       mkdir -p "$(dirname "$_probe_backup")" 2>/dev/null || true
       cp "$_probe_archive" "$_probe_backup"
       printf "x" >> "$_probe_archive"
-      if ! mismatch_stdout=$(./rotkeeper.sh scan --json); then
-        echo "❌ Assertion Failed: digest-mismatch probe scan failed."
+      mismatch_status=0
+      mismatch_stdout=$(./rotkeeper.sh scan --json 2>/dev/null) || mismatch_status=$?
+      if [[ "$mismatch_status" -ne 3 ]]; then
+        echo "❌ Assertion Failed: digest-mismatch probe scan exited $mismatch_status (expected 3 for findings)."
+        mv "$_probe_backup" "$_probe_archive"
         exit 185
       fi
       if ! jq -e --arg p "$_probe_archive" '
@@ -2764,7 +2863,14 @@ XHTML_RAW_EOF
     rm -f "$_tmp_pre"
     ./rotkeeper.sh render --dry-run > /dev/null
     ./rotkeeper.sh pack --dry-run > /dev/null
-    ./rotkeeper.sh scan --dry-run > /dev/null
+    # The append-only ledger can legitimately hold pruned pages here, so scan
+    # may report findings (exit 3); only other statuses are failures.
+    scan_dry_status=0
+    ./rotkeeper.sh scan --dry-run > /dev/null 2>&1 || scan_dry_status=$?
+    if [[ "$scan_dry_status" -ne 0 && "$scan_dry_status" -ne 3 ]]; then
+      echo "❌ Assertion Failed: scan --dry-run exited $scan_dry_status."
+      exit 153
+    fi
     ./rotkeeper.sh release "$TEST_RELEASE_VERSION" --dry-run > /dev/null
     ./rotkeeper.sh assets --dry-run > /dev/null
     # Documented flag order (mode then --dry-run): parseflags must set DRY_RUN
@@ -2854,6 +2960,45 @@ XHTML_RAW_EOF
       jq -e 'has("target_file") == false and has("reviewed_against") == false' > /dev/null; then
       echo "❌ Assertion Failed: glue merged a file sidecar into the content-root index."
       exit 156
+    fi
+
+    # --- Scaffold value, showcase failure, and status JSON escaping regressions ---
+    echo "  [+] Testing scaffold value validation, showcase failures, and status JSON escaping..."
+    missing_value_out=$(./rotkeeper.sh new inject-probe --subdir inject-contract --title 2>&1 || true)
+    if ./rotkeeper.sh new inject-probe --subdir inject-contract --title $'Probe\nrotkeeper_glued: true' > /dev/null 2>&1 \
+      || ./rotkeeper.sh new inject-probe --subdir inject-contract --template $'x.html\rrotkeeper_glued: true' > /dev/null 2>&1 \
+      || ! grep -q -- '--title requires a value' <<< "$missing_value_out" \
+      || [[ -e "$b_content/inject-contract" ]]; then
+      echo "❌ Assertion Failed: new accepted a control character or a missing flag value, or created directories for a rejected scaffold ($mode)."
+      exit 157
+    fi
+    ./rotkeeper.sh new quote-probe --subdir inject-contract --template 'odd "x" #y.html' > /dev/null
+    if [[ "$(yq --front-matter extract '.template' "$b_content/inject-contract/quote-probe.md")" != 'odd "x" #y.html' ]]; then
+      echo "❌ Assertion Failed: new did not emit --template as a quoted YAML scalar ($mode)."
+      exit 157
+    fi
+    rm -rf "$b_content/inject-contract" "$b_content/showcase"
+    if ! ./rotkeeper.sh showcase --dry-run > /dev/null 2>&1 || [[ -e "$b_content/showcase" ]]; then
+      echo "❌ Assertion Failed: showcase --dry-run failed or created the showcase source directory ($mode)."
+      exit 157
+    fi
+    : > "$b_templates/theme-empty-probe.html"
+    if RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh showcase > /dev/null 2>&1 \
+      || [[ -e "$b_content/showcase/showcase-empty-probe.md" ]]; then
+      echo "❌ Assertion Failed: showcase exited 0 or scaffolded a page for an empty template ($mode)."
+      exit 157
+    fi
+    rm -f "$b_templates/theme-empty-probe.html"
+    rm -rf "$b_content/showcase"
+    # Filenames cannot carry quotes on every supported host, so the version
+    # override drives the escaping path instead.
+    status_probe_version='0.0.0-"probe\x"'
+    if ! ROTKEEPER_VERSION="$status_probe_version" ./rotkeeper.sh status --json |
+      jq -e --arg v "$status_probe_version" '
+        .environment.canonical_version == $v and all(.script_health.scripts[]; .version == $v)
+      ' > /dev/null; then
+      echo "❌ Assertion Failed: status --json did not escape interpolated strings ($mode)."
+      exit 157
     fi
 
     echo "  🎉 Pass [$mode] successful: canonical distribution payload matches criteria."

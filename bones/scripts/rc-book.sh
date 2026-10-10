@@ -173,10 +173,17 @@ parseflags() {
   done
 }
 
-# Ensure write directory safety boundary
+# Ensure write directory safety boundary: canonicalize both sides and require
+# strict containment under BOOK_REPORT_DIR. A raw prefix check would authorize
+# the whole repository root and prefix-sibling paths.
 validate_boundary() {
   local target_path="$1"
-  if [[ "$target_path" != "$ROOT_DIR"* && "$target_path" != "$BOOK_REPORT_DIR"* ]]; then
+  local canonical boundary_canonical
+  canonical=$(rk_canonical_or_raw "$target_path")
+  boundary_canonical=$(rk_canonical_or_raw "$BOOK_REPORT_DIR")
+  if [[ -z "$canonical" || -z "$boundary_canonical" \
+    || "/${canonical}/" == */../* \
+    || "$canonical" != "$boundary_canonical/"* ]]; then
     log "ERROR" "Boundary violation: Attempted write outside authorized zones: $target_path"
     exit 3
   fi
@@ -190,8 +197,6 @@ validate_boundary() {
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 runscriptbookfull() {
-  # SIDE EFFECT (write): creates bones/book-reports if missing
-  mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-scriptbook-full.md"
   validate_boundary "$OUT"
 
@@ -206,6 +211,8 @@ runscriptbookfull() {
     return 0
   fi
 
+  # SIDE EFFECT (write): creates bones/book-reports if missing
+  mkdir -p "$BOOK_REPORT_DIR"
   {
     echo "---"
     echo "title: Rotkeeper Scriptbook Full"
@@ -241,14 +248,14 @@ runscriptbookfull() {
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 rundocbook() {
-  # SIDE EFFECT (write): creates bones/book-reports if missing
-  mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-docbook.md"
   validate_boundary "$OUT"
   if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would generate docbook at $OUT"
     return 0
   fi
+  # SIDE EFFECT (write): creates bones/book-reports if missing
+  mkdir -p "$BOOK_REPORT_DIR"
   {
     echo "---"
     echo "title: Rotkeeper Docbook"
@@ -286,14 +293,14 @@ rundocbook() {
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 rundocbookclean() {
-  # SIDE EFFECT (write): creates bones/book-reports if missing
-  mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-docbook-clean.md"
   validate_boundary "$OUT"
   if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would generate cleaned docbook at $OUT"
     return 0
   fi
+  # SIDE EFFECT (write): creates bones/book-reports if missing
+  mkdir -p "$BOOK_REPORT_DIR"
   {
     echo "---"
     echo "title: Home Content Cleaned"
@@ -327,14 +334,14 @@ rundocbookclean() {
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 runconfigbook() {
-  # SIDE EFFECT (write): creates bones/book-reports if missing
-  mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-configbook.md"
   validate_boundary "$OUT"
   if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would generate configbook at $OUT"
     return 0
   fi
+  # SIDE EFFECT (write): creates bones/book-reports if missing
+  mkdir -p "$BOOK_REPORT_DIR"
   {
     echo "---"
     echo "title: Rotkeeper Configbook"
@@ -367,14 +374,14 @@ runconfigbook() {
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 runcontentbook() {
-  # SIDE EFFECT (write): creates bones/book-reports if missing
-  mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-contentbook.md"
   validate_boundary "$OUT"
   if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would generate full contentbook at $OUT"
     return 0
   fi
+  # SIDE EFFECT (write): creates bones/book-reports if missing
+  mkdir -p "$BOOK_REPORT_DIR"
   {
     echo "---"
     echo "title: Rotkeeper Contentbook"
@@ -412,14 +419,14 @@ runcontentbook() {
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 runcontentmeta() {
-  # SIDE EFFECT (write): creates bones/book-reports if missing
-  mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-contentmeta.yaml"
   validate_boundary "$OUT"
   if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would extract content metadata to $OUT"
     return 0
   fi
+  # SIDE EFFECT (write): creates bones/book-reports if missing
+  mkdir -p "$BOOK_REPORT_DIR"
   log "INFO" "Extracting frontmatter YAML from content files..."
   # SIDE EFFECT (write): overwrites bones/book-reports/rotkeeper-contentmeta.yaml; entries appended below
   echo "" > "$OUT"
@@ -448,14 +455,14 @@ runcontentmeta() {
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 runfsbook() {
-  # SIDE EFFECT (write): creates bones/book-reports if missing
-  mkdir -p "$BOOK_REPORT_DIR"
   local OUT="$BOOK_REPORT_DIR/rotkeeper-files.md"
   validate_boundary "$OUT"
   if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would generate file system catalog at $OUT"
     return 0
   fi
+  # SIDE EFFECT (write): creates bones/book-reports if missing
+  mkdir -p "$BOOK_REPORT_DIR"
   {
     echo "---"
     echo "title: Rotkeeper File System Catalog"
@@ -495,14 +502,14 @@ runfsbook() {
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 collapse() {
-  # SIDE EFFECT (write): creates bones/book-reports if missing
-  mkdir -p "$BOOK_REPORT_DIR"
   local OUTPUT="$BOOK_REPORT_DIR/collapsed-content.yaml"
   validate_boundary "$OUTPUT"
   if [[ "$DRY_RUN" == true ]]; then
     log "DRY-RUN" "Would collapse reports into $OUTPUT"
     return 0
   fi
+  # SIDE EFFECT (write): creates bones/book-reports if missing
+  mkdir -p "$BOOK_REPORT_DIR"
   log "INFO" "Collapsing reports into YAML..."
   # SIDE EFFECT (write): overwrites bones/book-reports/collapsed-content.yaml; bodies appended below
   echo "" > "$OUTPUT"
@@ -586,9 +593,11 @@ main() {
   export BOOK_SUFFIX=$(printf "%04x%04x" "$RANDOM" "$RANDOM")
   require_bins bash
   log "INFO" "Running rc-book.sh safely bounded."
-  # SIDE EFFECT (write): creates bones/book-reports before any binder runs
-  mkdir -p "$BOOK_REPORT_DIR"
   parseflags "$@"
+  # SIDE EFFECT (write): creates bones/book-reports before any binder runs
+  if [[ "$DRY_RUN" != true ]]; then
+    mkdir -p "$BOOK_REPORT_DIR"
+  fi
   runmode
 }
 

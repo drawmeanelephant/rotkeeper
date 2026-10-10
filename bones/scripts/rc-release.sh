@@ -206,6 +206,7 @@ verify_archive_contents() {
         ".agentignore"
         ".blessed"
         ".editorconfig"
+        ".gitattributes"
         ".gitignore"
         ".shellcheckrc"
     )
@@ -309,6 +310,7 @@ main() {
 
     # SIDE EFFECT (write): copies the repo (minus exclusions) into the staging tree
     rsync -a \
+        --exclude='.git' \
         --exclude='.git/' \
         --exclude='.github/' \
         --exclude='.vscode/' \

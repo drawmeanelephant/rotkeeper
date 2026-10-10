@@ -1,6 +1,6 @@
 ---
 target_file: bones/scripts/rc-scan.sh
-reviewed: "2026-10-01"
+reviewed: "2026-10-10"
 reviewed_against: "0.8.1"
 ---
 
@@ -10,8 +10,8 @@ Audits `bones/manifest.txt` against disk and walks the rendered output tree for 
 
 ### Limits
 
-Findings do not delete files and do not cause a nonzero result by themselves. A missing manifest is fatal only with `--manifest-only`; otherwise the output walk can still report orphans. Include/exclude filters affect orphan discovery, not ledger checks. Recorded hashes require the two-space path/hash form. Ledger normalization truncates at spaces and the output walk reads newline-delimited paths, so filenames containing spaces or newlines are not reliably represented.
+Findings never delete files, but any missing file, orphan, or digest mismatch exits 3 so CI gates fail on a drifted ledger. A missing manifest is fatal only with `--manifest-only`; otherwise it is logged as a warning and the output walk can still report orphans. Include/exclude filters affect orphan discovery, not ledger checks. Recorded hashes require the two-space path/hash form; only a trailing 64-hex field is split from the path, so ledger paths may contain spaces. Ledger membership is an exact string comparison. The ledger and output walk are newline-delimited, so filenames containing newlines are not representable.
 
 ### Cautions
 
-Run from the repository root: the script converts manifest, output, report, and log locations to relative paths. Render-ledger entries can remain after stale pages are pruned, so a missing entry can reflect source removal rather than corruption. Dry-run skips final reports and the extra scan-specific log assignment, but shared bootstrap still writes a run log and the script creates report/log directories; stdout JSON also uses a scratch file and appends it to the current log.
+The script changes to the repository root before resolving the root-relative manifest, output, report, and log locations, so it audits the same repository from any working directory. Render-ledger entries can remain after stale pages are pruned, so a missing entry can reflect source removal rather than corruption; `init --full` logs such findings as a warning instead of failing. Dry-run skips final reports, scan-side report/log directory creation, and the extra scan-specific log assignment, but shared bootstrap still writes a run log; stdout JSON also uses a scratch file and appends it to the current log.
