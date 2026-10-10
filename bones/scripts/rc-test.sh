@@ -2834,6 +2834,45 @@ XHTML_RAW_EOF
       exit 156
     fi
 
+    # --- Scaffold value, showcase failure, and status JSON escaping regressions ---
+    echo "  [+] Testing scaffold value validation, showcase failures, and status JSON escaping..."
+    missing_value_out=$(./rotkeeper.sh new inject-probe --subdir inject-contract --title 2>&1 || true)
+    if ./rotkeeper.sh new inject-probe --subdir inject-contract --title $'Probe\nrotkeeper_glued: true' > /dev/null 2>&1 \
+      || ./rotkeeper.sh new inject-probe --subdir inject-contract --template $'x.html\rrotkeeper_glued: true' > /dev/null 2>&1 \
+      || ! grep -q -- '--title requires a value' <<< "$missing_value_out" \
+      || [[ -e "$b_content/inject-contract" ]]; then
+      echo "❌ Assertion Failed: new accepted a control character or a missing flag value, or created directories for a rejected scaffold ($mode)."
+      exit 157
+    fi
+    ./rotkeeper.sh new quote-probe --subdir inject-contract --template 'odd "x" #y.html' > /dev/null
+    if [[ "$(yq --front-matter extract '.template' "$b_content/inject-contract/quote-probe.md")" != 'odd "x" #y.html' ]]; then
+      echo "❌ Assertion Failed: new did not emit --template as a quoted YAML scalar ($mode)."
+      exit 157
+    fi
+    rm -rf "$b_content/inject-contract" "$b_content/showcase"
+    if ! ./rotkeeper.sh showcase --dry-run > /dev/null 2>&1 || [[ -e "$b_content/showcase" ]]; then
+      echo "❌ Assertion Failed: showcase --dry-run failed or created the showcase source directory ($mode)."
+      exit 157
+    fi
+    : > "$b_templates/theme-empty-probe.html"
+    if RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh showcase > /dev/null 2>&1 \
+      || [[ -e "$b_content/showcase/showcase-empty-probe.md" ]]; then
+      echo "❌ Assertion Failed: showcase exited 0 or scaffolded a page for an empty template ($mode)."
+      exit 157
+    fi
+    rm -f "$b_templates/theme-empty-probe.html"
+    rm -rf "$b_content/showcase"
+    # Filenames cannot carry quotes on every supported host, so the version
+    # override drives the escaping path instead.
+    status_probe_version='0.0.0-"probe\x"'
+    if ! ROTKEEPER_VERSION="$status_probe_version" ./rotkeeper.sh status --json |
+      jq -e --arg v "$status_probe_version" '
+        .environment.canonical_version == $v and all(.script_health.scripts[]; .version == $v)
+      ' > /dev/null; then
+      echo "❌ Assertion Failed: status --json did not escape interpolated strings ($mode)."
+      exit 157
+    fi
+
     echo "  🎉 Pass [$mode] successful: canonical distribution payload matches criteria."
   )
 done
