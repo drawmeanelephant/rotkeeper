@@ -3,7 +3,7 @@ title: "Write, build, check, and ship"
 slug: workflow
 template: rotkeeper-doc.html
 doc_type: guide
-reviewed: "2026-10-03"
+reviewed: "2026-10-10"
 description: "Content formats, frontmatter, site checks, packaging, documentation maintenance, and troubleshooting."
 ---
 
@@ -151,7 +151,7 @@ bash rotkeeper.sh status
 - `assets` can be run separately after asset changes: `bash rotkeeper.sh assets`. It mirrors local assets and rebuilds `bones/asset-manifest.yaml`.
 - `links` checks local page, fragment, and asset targets. It does not prove external sites are reachable.
 - `a11y` runs a static theme audit. It is not a substitute for browser and assistive-technology testing.
-- `scan` checks the render/archive ledger in `bones/manifest.txt`. It is not the asset-manifest generator.
+- `scan` checks the render/archive ledger in `bones/manifest.txt` and exits 3 when it reports missing files, orphans, or digest mismatches. It is not the asset-manifest generator.
 - `status` reports environment health and freshness; inspect warnings rather than treating the command's exit alone as proof.
 
 `render --dry-run` previews output changes. Most dry-runs still create

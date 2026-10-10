@@ -10,10 +10,10 @@ IFS=$'\n\t'
 #  ╚══════╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝
 # ============================================================
 # Env assumptions: reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DRY_RUN, LOG_DIR, LOG_FILE, OUTPUT_DIR, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TMP_DIR, VERBOSE, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
-# CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
-# Input/Output contracts: reads `bones/manifest.txt`, ignoring blank/comment lines and normalizing paths relative to the root. Requires Bash, jq, and a SHA-256 tool. Writes timestamped Markdown/JSON reports under `REPORT_DIR`; findings never delete source or output files.
-#   The output-tree walk excludes generated support directories and `output/assets`; its default extensions are `png jpg svg css js md html json yaml`, adjustable through `--include` and repeatable `--exclude`.
-#   Reports classify missing ledger entries, output orphans, SHA-256 digests, and mismatches against pack entries in `<path>  <sha256>` format. Missing digest targets have `actual: null`. `--manifest-only` skips the output walk.
+# CWD assumptions: none — changes to ROOT_DIR before resolving the root-relative ledger, output walk, and report/log paths, so any caller CWD audits the same repository and writes only inside it.
+# Input/Output contracts: reads `bones/manifest.txt`, ignoring blank/comment lines and normalizing paths relative to the root; ledger paths may contain spaces. Requires Bash, jq, and a SHA-256 tool. Writes timestamped Markdown/JSON reports under `REPORT_DIR`; findings never delete source or output files.
+#   The output-tree walk excludes generated support directories and `output/assets`; its default extensions are `png jpg svg css js md html json yaml`, adjustable through `--include` and repeatable `--exclude`. Ledger membership is an exact path comparison.
+#   Reports classify missing ledger entries, output orphans, SHA-256 digests, and mismatches against pack entries in `<path>  <sha256>` format. Missing digest targets have `actual: null`. `--manifest-only` skips the output walk. Any finding exits 3.
 #   `--json` also emits `rotkeeper.scan.v2` on stdout without changing report files or exit codes. `--json-only` and `--md-only` select report formats. Dry-run writes neither reports nor a run log; a missing manifest with `--manifest-only` exits 2.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
@@ -65,9 +65,10 @@ disk_list=()
 #   bash rotkeeper.sh scan --json | jq .                       # Machine-readable output
 #
 # Exit codes:
-#   0    Success
+#   0    Success: no missing files, orphans, or digest mismatches
 #   1    Environment failure
 #   2    Manifest file missing
+#   3    Findings: missing files, orphans, or digest mismatches
 # @END-HELP
 
 # rc-scan is the one ritual whose help takes an optional exit code
@@ -95,12 +96,16 @@ fi
 # Inputs: $@ (flags: --manifest-only, --include, --exclude, --json, --json-only, --md-only)
 # Outputs: Writes scan reports to REPORT_DIR; logs digests and orphans
 # Env: Reads BONES_DIR, CONTENT_DIR, DRY_RUN, LOG_DIR, LOG_FILE, OUTPUT_DIR ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
-# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
+# CWD: Changes to ROOT_DIR; ledger, walk, report, and log paths are root-relative
 # ---
 main() {
     require_bins bash jq
     require_sha256
     log "INFO" "Running rc-scan.sh."
+    # Every path below is root-relative. Without this, a foreign CWD reads no
+    # ledger, walks nothing, reports a false clean audit, and writes
+    # bones/{logs,reports} outside the repository (#362).
+    cd "$ROOT_DIR" || { log "ERROR" "Cannot enter repository root: $ROOT_DIR"; exit 1; }
     # Use plain arrays for manifest and disk lists
     manifest_list=()
     disk_list=()
@@ -154,17 +159,13 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-#
-# Create necessary report and log directories.
-#
-  # SIDE EFFECT (write): creates bones/reports and bones/logs if missing
-mkdir -p "$REPORT_DIR" "$LOG_DIR"
-
-# --dry-run must stay non-mutating: the per-run scan log is only opened for
-# real runs.
+# --dry-run must stay non-mutating: report/log directories and the per-run
+# scan log are only created for real runs.
 start_ts=$(date +%s)
 
 if [[ "${DRY_RUN:-false}" != true ]]; then
+  # SIDE EFFECT (write): creates bones/reports and bones/logs if missing (real runs only)
+  mkdir -p "$REPORT_DIR" "$LOG_DIR"
   # SIDE EFFECT (write): opens a fresh per-run scan log under bones/logs (real runs only)
   LOG_FILE="$LOG_DIR/rc-scan-$(date +%Y%m%d_%H%M%S).log"
 
@@ -183,6 +184,8 @@ if [[ -f "$MANIFEST_FILE" ]]; then
   log "INFO" "Loaded ${#manifest_list[@]} entries from $MANIFEST_FILE"
 elif [[ "${MANIFEST_ONLY:-false}" == true ]]; then
   log "ERROR" "Manifest file not found: $MANIFEST_FILE"; exit 2
+else
+  log "WARN" "Manifest file not found: $MANIFEST_FILE; every walked output file is an orphan."
 fi
 
 #
@@ -226,13 +229,30 @@ fi
 # (output-tree files the ledger does not list) against normalized paths.
 missing=(); orphans=()
 manifest_paths=()
+declare -A ledger_paths=()
+declare -A expected_sha=()
 
 for f in ${manifest_list[@]+"${manifest_list[@]}"}; do
-  p="${f%%  *}"
-  p="${p%% *}"
+  # Ledger lines are "<path>" (render) or "<path>  <sha256>" (pack). Split
+  # only a trailing digest field so paths containing spaces stay whole (#378).
+  p="$f"
+  e_sha=""
+  if [[ "$f" =~ ^(.*[^[:space:]])([[:space:]]+)([0-9a-fA-F]{64})$ ]]; then
+    p="${BASH_REMATCH[1]}"
+    # pack uses exactly two spaces between path and lowercase hex sha256; a
+    # single-space digest is stripped from the path but not verified.
+    if [[ ${#BASH_REMATCH[2]} -ge 2 ]]; then
+      e_sha="${BASH_REMATCH[3]}"
+    fi
+  fi
   p="${p#"$ROOT_DIR"/}"
   p="${p#./}"
-  [[ -n "$p" ]] && manifest_paths+=("$p")
+  [[ -n "$p" ]] || continue
+  manifest_paths+=("$p")
+  ledger_paths["$p"]=1
+  if [[ -n "$e_sha" ]]; then
+    expected_sha["$p"]="${e_sha,,}"
+  fi
 done
 
 for rel_f in ${manifest_paths[@]+"${manifest_paths[@]}"}; do
@@ -250,7 +270,9 @@ for f in ${disk_list[@]+"${disk_list[@]}"}; do
   [[ -z "$f" ]] && continue
   rel="${f#"$ROOT_DIR"/}"
   rel="${rel#./}"
-  if ! printf '%s\n' ${manifest_paths[@]+"${manifest_paths[@]}"} | grep -xq "$rel"; then
+  # Exact set membership: a grep pattern would read '.', '[', '*' in paths
+  # as regex syntax and misclassify orphans (#377).
+  if [[ -z "${ledger_paths[$rel]+x}" ]]; then
     orphans+=("$rel")
   fi
 done
@@ -273,23 +295,9 @@ done
 #
 # --- Step 4a: Ledger Integrity (digest_mismatches) ---
 # Manifest lines recorded by pack as "<path>  <sha256>" carry the expected
-# digest. Verify each such line against the on-disk SHA-256; a mismatch
-# signals tamper/drift, a missing file is already in missing[] but also
-# surfaced here with actual null for a single audit view.
-declare -A expected_sha=()
-for raw in ${manifest_list[@]+"${manifest_list[@]}"}; do
-  # pack uses exactly two spaces between path and lowercase hex sha256
-  if [[ "$raw" =~ ^(.+)[[:space:]]{2}([0-9a-fA-F]{64})$ ]]; then
-    e_path="${BASH_REMATCH[1]}"
-    e_sha="${BASH_REMATCH[2]}"
-    e_path="${e_path%%  *}"
-    e_path="${e_path%% *}"
-    e_path="${e_path#"$ROOT_DIR"/}"
-    e_path="${e_path#./}"
-    [[ -n "$e_path" ]] && expected_sha["$e_path"]="${e_sha,,}"
-  fi
-done
-
+# digest (parsed into expected_sha in Step 3). Verify each against the
+# on-disk SHA-256; a mismatch signals tamper/drift, a missing file is already
+# in missing[] but also surfaced here with actual null for a single audit view.
 digest_mismatches=()
 for e_path in "${!expected_sha[@]}"; do
   e_sha="${expected_sha[$e_path]}"
@@ -466,12 +474,21 @@ fi
 #
 end_ts=$(date +%s)
 duration=$((end_ts - start_ts))
+findings=$(( ${#missing[@]} + ${#orphans[@]} + ${#digest_mismatches[@]} ))
+summary="Scan complete — ${#missing[@]} missing, ${#orphans[@]} orphans, ${#digest_mismatches[@]} digest mismatches in ${duration}s"
 # JSON mode keeps fd 3 pure machine-readable output (Step 4b contract): the
 # summary goes to the log only, so the envelope stays jq-able.
 if [[ "$JSON_MODE" == true ]]; then
-  log "INFO" "Scan complete — ${#missing[@]} missing, ${#orphans[@]} orphans, ${#digest_mismatches[@]} digest mismatches in ${duration}s"
+  log "INFO" "$summary"
+elif [[ "$findings" -gt 0 ]]; then
+  log "MARKER" "⚠️ $summary"
 else
-  log "MARKER" "✓ Scan complete — ${#missing[@]} missing, ${#orphans[@]} orphans, ${#digest_mismatches[@]} digest mismatches in ${duration}s"
+  log "MARKER" "✓ $summary"
+fi
+# Findings are the audit's signal, so they must move the exit code; a CI
+# gate on scan would otherwise pass a drifted or tampered ledger (#384).
+if [[ "$findings" -gt 0 ]]; then
+  exit 3
 fi
 exit 0
 }

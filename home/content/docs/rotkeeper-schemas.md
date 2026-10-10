@@ -3,9 +3,9 @@ title: "Configuration and manifest schemas"
 slug: rotkeeper-schemas
 template: rotkeeper-doc.html
 version: "1.0"
-updated: "2026-10-02"
+updated: "2026-10-10"
 doc_type: guide
-reviewed: "2026-10-02"
+reviewed: "2026-10-10"
 description: "Field-by-field schemas for Rotkeeper's YAML and manifest files: bones/asset-manifest.yaml, bones/config/rotkeeper.yaml, the release-manifest.txt bill of materials — plus the CLI --json stdout envelopes for scan and dip."
 tags:
   - rotkeeper
@@ -116,7 +116,7 @@ Several dispatcher commands emit a single machine-readable JSON object on stdout
 
 ### `scan --json`
 
-Emitted by `bash rotkeeper.sh scan --json`. Scan audits the render ledger (`bones/manifest.txt`): `missing` are ledger entries absent from disk, `orphans` are files under the rendered output tree the ledger does not list, and `digests` verify ledger-listed files. The report files under `bones/reports/` keep their existing shape; this object carries the same findings inside an additive envelope.
+Emitted by `bash rotkeeper.sh scan --json`. Scan audits the render ledger (`bones/manifest.txt`): `missing` are ledger entries absent from disk, `orphans` are files under the rendered output tree the ledger does not list, and `digests` verify ledger-listed files. The report files under `bones/reports/` keep their existing shape; this object carries the same findings inside an additive envelope. With or without `--json`, scan exits 3 whenever any `counts` value is nonzero, so CI can gate on the exit code and parse this object for detail.
 
 ```json
 {
