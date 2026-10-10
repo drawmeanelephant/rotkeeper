@@ -3,9 +3,9 @@ title: "Configuration and manifest schemas"
 slug: rotkeeper-schemas
 template: rotkeeper-doc.html
 version: "1.0"
-updated: "2026-10-02"
+updated: "2026-10-09"
 doc_type: guide
-reviewed: "2026-10-02"
+reviewed: "2026-10-09"
 description: "Field-by-field schemas for Rotkeeper's YAML and manifest files: bones/asset-manifest.yaml, bones/config/rotkeeper.yaml, the release-manifest.txt bill of materials — plus the CLI --json stdout envelopes for scan and dip."
 tags:
   - rotkeeper
@@ -104,9 +104,13 @@ Verification failures (unexpected root files, missing required spine, forbidden 
 
 **Archive naming:** a timestamp and random `-NNNN` tag reduce same-second
 name collisions on GNU and BSD systems; this is not an enforced immutability
-guarantee. Default and self archives embed `metadata.json` (name, uncompressed
-tar SHA-256, timestamp, mode, and file count); content-only archives do not.
-Pack records archive entries in `bones/manifest.txt` and verifies `gzip -t`.
+guarantee. Default and self archives embed `metadata.json` (name,
+`payload_sha256`, `payload_sha256_scope`, timestamp, mode, and file count);
+content-only archives do not. An embedded digest cannot cover the archive that
+contains it, so `payload_sha256` is the tar before `metadata.json` was
+appended. Every mode records the final `.tar.gz` path and SHA-256 in
+`bones/manifest.txt`; check the shipped archive against that ledger entry.
+Pack verifies `gzip -t`.
 Its failure trap removes an in-progress partial archive. Keep source exports
 and full-system bundles private unless their contents are intended for sharing.
 

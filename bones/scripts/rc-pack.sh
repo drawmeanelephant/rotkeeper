@@ -12,7 +12,7 @@ IFS=$'\n\t'
 # Env assumptions: reads ARCHIVE_DIR, BONES_DIR, CONFIG_DIR, CONTENT_DIR, DEBUG, DOCS_DIR, DRY_RUN, LOG_DIR, OUTPUT_DIR, ROOT_DIR, SCRIPT_DIR, TMP_DIR, VERBOSE, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
 # Input/Output contracts: requires Bash, jq, tar, gzip, yq v4, and a SHA-256 tool. Default mode reads `OUTPUT_DIR`; `--content` reads content excluding `help` and `*_temp.md`; `--self` reads the dispatcher, bones, content, and output excluding the archive tree.
-#   Writes timestamped/random-tag `.tar.gz` archives under `ARCHIVE_DIR`, validates them with `gzip -t`, and appends archive entries to `bones/manifest.txt`. Default/self archives embed `metadata.json` with name, uncompressed-tar SHA-256, timestamp, mode, and file count.
+#   Writes timestamped/random-tag `.tar.gz` archives under `ARCHIVE_DIR`, validates them with `gzip -t`, and appends archive entries to `bones/manifest.txt`. Default/self archives embed `metadata.json` with name, `payload_sha256` (the tar before metadata.json is appended, labeled by `payload_sha256_scope`), timestamp, mode, and file count; the manifest entry holds the final `.tar.gz` digest.
 #   Default mode also exports every Markdown source to `tomb-export-<timestamp>.json`, with absolute_path, relative_path, parsed frontmatter, and full source_markdown fields; jq validates the export before publication.
 #   Scratch directories are removed through `rk_guard_delete`. Failure cleanup removes partial archives, not source files. Dry-run does not archive or export; shared bootstrap logging still writes. Content packing uses repository-relative tar paths, so run it from the repository root.
 #  Project : Rotkeeper
@@ -162,6 +162,10 @@ main() {
     TIMESTAMP_VERSION="${TIMESTAMP_VERSION}-$(printf '%04d' $((RANDOM % 10000)))"
     TOMB="tomb-$TIMESTAMP_VERSION.tar"
     EXPORT_JSON="$ARCHIVE_DIR/tomb-export-$TIMESTAMP_VERSION.json"
+    # An embedded digest cannot cover the archive that contains it, so the
+    # metadata labels its digest as the pre-append payload tar; the shipped
+    # .tar.gz digest lives only in the manifest ledger.
+    PAYLOAD_SHA_SCOPE="tar before metadata.json was appended; the shipped .tar.gz digest is recorded in bones/manifest.txt"
 
     # SIDE EFFECT (write): creates bones/archives and bones/logs if missing
     run mkdir -p "$ARCHIVE_DIR"
@@ -218,10 +222,11 @@ main() {
         jq -n \
           --arg name "$TOMB" \
           --arg sha "$SHA_UNCOMPRESSED" \
+          --arg scope "$PAYLOAD_SHA_SCOPE" \
           --arg timestamp "$TIMESTAMP_VERSION" \
           --arg mode "default" \
           --arg count "$count" \
-          '{name: $name, sha256: $sha, timestamp: $timestamp, mode: $mode, file_count: $count|tonumber}' > "$PACK_META_DIR/metadata.json"
+          '{name: $name, payload_sha256: $sha, payload_sha256_scope: $scope, timestamp: $timestamp, mode: $mode, file_count: $count|tonumber}' > "$PACK_META_DIR/metadata.json"
         # SIDE EFFECT (archive): appends metadata.json member to tomb-<ts>.tar
         run tar --append --file="$ARCHIVE_DIR/$TOMB" -C "$PACK_META_DIR" metadata.json
         if ! CANONICAL_PACK_META=$(rk_guard_delete "$PACK_META_DIR" "$(dirname -- "$PACK_META_DIR")"); then
@@ -254,9 +259,7 @@ main() {
         # SIDE EFFECT (archive): writes tombkit-<ts>.tar (full system bundle) under bones/archives
         pack_archive "$ARCHIVE_DIR/$SELF_ARCHIVE" \
           tar --exclude="${ARCHIVE_DIR#"$ROOT_DIR"/}" --exclude="${ARCHIVE_DIR#"$ROOT_DIR"/}/*" -C "$ROOT_DIR" -cf "$ARCHIVE_DIR/$SELF_ARCHIVE" rotkeeper.sh "${BONES_DIR#"$ROOT_DIR"/}/" "${CONTENT_DIR#"$ROOT_DIR"/}/" "${OUTPUT_DIR#"$ROOT_DIR"/}/"
-        SHA=$(rk_sha256 "$ARCHIVE_DIR/$SELF_ARCHIVE" | cut -d' ' -f1)
-        # SIDE EFFECT (write): appends "<archive>  <sha256>" line to bones/manifest.txt
-        echo "$SELF_ARCHIVE  $SHA" >> "$MANIFEST_FILE"
+        SHA_UNCOMPRESSED=$(rk_sha256 "$ARCHIVE_DIR/$SELF_ARCHIVE" | cut -d' ' -f1)
 
         # Embed metadata into archive as metadata.json
         # SIDE EFFECT (write): mktemp creates a scratch dir under bones/tmp (or system tmp)
@@ -264,11 +267,12 @@ main() {
         # SIDE EFFECT (write): serializes metadata.json into the scratch dir
         jq -n \
           --arg name "$SELF_ARCHIVE" \
-          --arg sha "$SHA" \
+          --arg sha "$SHA_UNCOMPRESSED" \
+          --arg scope "$PAYLOAD_SHA_SCOPE" \
           --arg timestamp "$TIMESTAMP_VERSION" \
           --arg mode "self" \
           --arg count "$count" \
-          '{name: $name, sha256: $sha, timestamp: $timestamp, mode: $mode, file_count: $count|tonumber}' > "$PACK_META_DIR/metadata.json"
+          '{name: $name, payload_sha256: $sha, payload_sha256_scope: $scope, timestamp: $timestamp, mode: $mode, file_count: $count|tonumber}' > "$PACK_META_DIR/metadata.json"
         # SIDE EFFECT (archive): appends metadata.json member to tombkit-<ts>.tar
         run tar --append --file="$ARCHIVE_DIR/$SELF_ARCHIVE" -C "$PACK_META_DIR" metadata.json
         if ! CANONICAL_PACK_META=$(rk_guard_delete "$PACK_META_DIR" "$(dirname -- "$PACK_META_DIR")"); then
@@ -281,6 +285,10 @@ main() {
         run gzip -f "$ARCHIVE_DIR/$SELF_ARCHIVE"
         validate_gz "$ARCHIVE_DIR/$SELF_ARCHIVE.gz" || exit 1
         SELF_ARCHIVE="$SELF_ARCHIVE.gz"
+        SHA_COMPRESSED=$(rk_sha256 "$ARCHIVE_DIR/$SELF_ARCHIVE" | cut -d' ' -f1)
+        rel_self="${ARCHIVE_DIR#"$ROOT_DIR"/}/$SELF_ARCHIVE"
+        # SIDE EFFECT (write): appends "<path>  <sha256>" line to bones/manifest.txt
+        echo "$rel_self  $SHA_COMPRESSED" >> "$MANIFEST_FILE"
         log "INFO" "Embedded metadata.json into $SELF_ARCHIVE"
 
         echo "🧾 Archived full tombkit to \"$ARCHIVE_DIR/$SELF_ARCHIVE\""
