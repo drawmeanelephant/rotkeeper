@@ -555,16 +555,20 @@ require_gawk_version() {
   fi
 }
 
+# Private scratch directory of the in-flight preflight smoke render; the EXIT
+# teardown removes it when a run is interrupted mid-render.
+RK_OLIVER_PREFLIGHT_SCRATCH=""
+
 # ---
 # rk_oliver_preflight: The single Oliver availability check (Slice 1B). Resolves
 # the binary (RK_OLIVER_BIN override, then PATH discovery), asserts
-# executability, and smoke-renders an empty document through the real Oliver
-# CLI (oliver render --from markdown, plus --to xhtml when render_profile in
-# rotkeeper.yaml selects it) to prove the binary actually runs.
+# executability, and smoke-renders a one-heading document through the real
+# Oliver CLI (oliver render --from markdown, plus --to xhtml when render_profile
+# in rotkeeper.yaml selects it) to prove the binary actually runs and emits HTML.
 # Oliver's CLI is provisional and has no stable release yet, so the live smoke
 # render is the compatibility gate (see oliver-contract.md). Prints one
 # actionable setup message on failure.
-# Inputs: reads RK_OLIVER_BIN and RENDER_PROFILE; uses TMP_DIR for the smoke document
+# Inputs: reads RK_OLIVER_BIN and RENDER_PROFILE; uses a private mktemp dir under TMP_DIR for the smoke document
 # Outputs: sets OLIVER_BIN to the resolved executable on success
 # Env: Reads BONES_DIR, DRY_RUN, INPUT_FORMAT, OLIVER_BIN, OUTPUT_DIR, QUIET ... (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
@@ -572,9 +576,7 @@ require_gawk_version() {
 # ---
 rk_oliver_preflight() {
   local candidate="" reason="" smoke_status=0
-  local smoke_doc="$TMP_DIR/oliver-preflight-smoke.md"
-  local smoke_out="$TMP_DIR/oliver-preflight-smoke.html"
-  local smoke_err="$TMP_DIR/oliver-preflight-smoke.log"
+  local smoke_dir="" smoke_doc="" smoke_out="" smoke_err="" smoke_head=""
   local profile="${RENDER_PROFILE:-html}"
   local path_oliver=""
   OLIVER_BIN=""
@@ -594,8 +596,17 @@ rk_oliver_preflight() {
   fi
 
   if [[ -z "$reason" ]]; then
-    # SIDE EFFECT (write): creates bones/tmp and the smoke doc/output/stderr scratch files
-    mkdir -p "$TMP_DIR"
+    # SIDE EFFECT (write): creates bones/tmp and a private per-run scratch dir, so concurrent runs never share smoke files
+    if ! mkdir -p "$TMP_DIR" || ! smoke_dir="$(mktemp -d "$TMP_DIR/oliver-preflight.XXXXXX")"; then
+      reason="cannot create a preflight scratch directory under $TMP_DIR"
+    fi
+  fi
+
+  if [[ -z "$reason" ]]; then
+    RK_OLIVER_PREFLIGHT_SCRATCH="$smoke_dir"
+    smoke_doc="$smoke_dir/smoke.md"
+    smoke_out="$smoke_dir/smoke.html"
+    smoke_err="$smoke_dir/smoke.log"
     printf '# preflight smoke\n' > "$smoke_doc"
     if [[ "$profile" == "xhtml" ]]; then
       "$candidate" render --from "${INPUT_FORMAT:-markdown}" --to xhtml < "$smoke_doc" > "$smoke_out" 2> "$smoke_err" || smoke_status=$?
@@ -609,9 +620,13 @@ rk_oliver_preflight() {
       fi
     elif [[ ! -s "$smoke_out" ]]; then
       reason="Oliver binary produced empty output on its smoke render"
+    elif ! grep -Eq '<[A-Za-z][A-Za-z0-9]*[[:space:]/>]' "$smoke_out"; then
+      # Oliver emits HTML elements for the smoke document in every input format
+      # and profile; plain text means an impostor such as /bin/echo.
+      smoke_head="$(head -n 1 "$smoke_out")"
+      reason="smoke render produced no HTML, so '$candidate' does not look like Oliver (stdout began: ${smoke_head:0:80})"
     fi
-    # SIDE EFFECT (delete): removes the smoke scratch files under bones/tmp
-    rm -f "$smoke_doc" "$smoke_out" "$smoke_err"
+    rk_oliver_preflight_cleanup
   fi
 
   if [[ -z "$reason" ]]; then
@@ -634,6 +649,20 @@ Full install steps (macOS/Linux): see home/content/docs/oliver-contract.md (Inst
 OLIVER_GUIDE_EOF
   } >&3
   return 1
+}
+
+# ---
+# rk_oliver_preflight_cleanup: Removes the in-flight preflight scratch directory.
+# Inputs: reads RK_OLIVER_PREFLIGHT_SCRATCH
+# Outputs: clears RK_OLIVER_PREFLIGHT_SCRATCH; idempotent
+# ---
+rk_oliver_preflight_cleanup() {
+  local dir="${RK_OLIVER_PREFLIGHT_SCRATCH:-}"
+  RK_OLIVER_PREFLIGHT_SCRATCH=""
+  [[ -n "$dir" ]] || return 0
+  # SIDE EFFECT (delete): removes this run's smoke doc/output/stderr and its private dir under bones/tmp
+  rm -f "$dir/smoke.md" "$dir/smoke.html" "$dir/smoke.log"
+  rmdir "$dir" 2>/dev/null || true
 }
 
 # Output tree ownership marker. Stale-output deletion is only permitted when
@@ -991,7 +1020,7 @@ cleanup() {
 # rk_exit_teardown: EXIT trap body that runs cleanup without masking the real exit code.
 # Inputs: none; reads pending $? set by the EXIT trap
 # Outputs: Exits with the pre-trap status after teardown
-# Env: Runs cleanup() override when present; disables errexit/ERR relay for teardown only
+# Env: Removes any in-flight Oliver preflight scratch dir, then runs cleanup() override when present; disables errexit/ERR relay for teardown only
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 rk_exit_teardown() {
@@ -1000,6 +1029,8 @@ rk_exit_teardown() {
   # cannot abort the trap and replace the original status with its own.
   trap - ERR EXIT
   set +e
+  # Called here rather than from cleanup(), which scripts may override.
+  rk_oliver_preflight_cleanup
   cleanup
   exit "$__rk_exit_status"
 }

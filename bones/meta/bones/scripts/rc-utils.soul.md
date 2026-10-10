@@ -1,6 +1,6 @@
 ---
 target_file: bones/scripts/rc-utils.sh
-reviewed: "2026-10-02"
+reviewed: "2026-10-09"
 reviewed_against: "0.8.1"
 ---
 
@@ -14,4 +14,4 @@ Shared Bash helper library rather than a dispatcher command. Sourcing defines he
 
 ### Cautions
 
-Canonical-path helpers have different fallback behavior, so callers must use the appropriate guard rather than assume every helper fails closed. Destructive callers must honor a failed `rk_guard_delete` result. Cleanup runs without masking the original exit status; scripts can override it. Help exits before environment/log initialization. Other initialization, including dry-run, creates logs, and Oliver preflight creates and removes its own smoke files and invokes the renderer.
+Canonical-path helpers have different fallback behavior, so callers must use the appropriate guard rather than assume every helper fails closed. Destructive callers must honor a failed `rk_guard_delete` result. Cleanup runs without masking the original exit status; scripts can override it. Help exits before environment/log initialization. Other initialization, including dry-run, creates logs, and Oliver preflight invokes the renderer inside a private `mktemp` scratch directory that it removes, or the exit teardown removes on interruption.
