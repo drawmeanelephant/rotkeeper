@@ -58,7 +58,7 @@ bash rotkeeper.sh pack --content --dry-run
 **Working directory:** No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
 
 **Inputs and outputs:** requires Bash, jq, tar, gzip, yq v4, and a SHA-256 tool. Default mode reads `OUTPUT_DIR`; `--content` reads content excluding `help` and `*_temp.md`; `--self` reads the dispatcher, bones, content, and output excluding the archive tree.
-Writes timestamped/random-tag `.tar.gz` archives under `ARCHIVE_DIR`, validates them with `gzip -t`, and appends archive entries to `bones/manifest.txt`. Default/self archives embed `metadata.json` with name, uncompressed-tar SHA-256, timestamp, mode, and file count.
+Writes timestamped/random-tag `.tar.gz` archives under `ARCHIVE_DIR`, validates them with `gzip -t`, and appends archive entries to `bones/manifest.txt`. Default/self archives embed `metadata.json` with name, `payload_sha256` (the tar before metadata.json is appended, labeled by `payload_sha256_scope`), timestamp, mode, and file count; the manifest entry holds the final `.tar.gz` digest.
 Default mode also exports every Markdown source to `tomb-export-<timestamp>.json`, with absolute_path, relative_path, parsed frontmatter, and full source_markdown fields; jq validates the export before publication.
 Scratch directories are removed through `rk_guard_delete`. Failure cleanup removes partial archives, not source files. Dry-run does not archive or export; shared bootstrap logging still writes. Content packing uses repository-relative tar paths, so run it from the repository root.
 
@@ -77,12 +77,12 @@ Scratch directories are removed through `rk_guard_delete`. Failure cleanup remov
 - **write:** gzips the tomb in place, replacing the bare .tar
 - **write:** appends "<path>  <sha256>" line to bones/manifest.txt
 - **archive:** writes tombkit-<ts>.tar (full system bundle) under bones/archives
-- **write:** appends "<archive>  <sha256>" line to bones/manifest.txt
 - **write:** mktemp creates a scratch dir under bones/tmp (or system tmp)
 - **write:** serializes metadata.json into the scratch dir
 - **archive:** appends metadata.json member to tombkit-<ts>.tar
 - **delete:** removes the metadata.json scratch dir
 - **write:** gzips the tombkit in place, replacing the bare .tar
+- **write:** appends "<path>  <sha256>" line to bones/manifest.txt
 - **write:** mktemp creates scratch files under bones/tmp (or system tmp)
 - **delete:** removes the find scratch file
 - **write:** atomically promotes the export into bones/archives/tomb-export-<ts>.json via mv
@@ -102,7 +102,7 @@ Content mode excludes the content help subtree and `*_temp.md`, and runs tar wit
 
 ### Cautions
 
-Default and content ledger entries record the final compressed archive path and digest. Self mode instead records a bare pre-compression archive name and digest before appending metadata and gzip, so that entry is not a final compressed-file integrity record. Embedded metadata hashes likewise describe the tar before metadata insertion. Default export includes host-specific absolute paths. Dry-run checks dependencies and writes bootstrap logs but does not archive, export, or update the ledger.
+Default, content, and self ledger entries record the final compressed archive path and digest, written only after gzip validation. Embedded metadata cannot hash the archive that contains it: `payload_sha256` describes the tar before metadata insertion, and `payload_sha256_scope` says so inside the archive. Default export includes host-specific absolute paths. Dry-run checks dependencies and writes bootstrap logs but does not archive, export, or update the ledger.
 
 ## History
 <!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->

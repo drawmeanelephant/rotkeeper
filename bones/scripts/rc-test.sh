@@ -2776,6 +2776,28 @@ XHTML_RAW_EOF
       tar -tzf "$newest_tomb" | head -n 5
       exit 139
     fi
+    if ! tar -xzOf "$newest_tomb" metadata.json \
+      | jq -e '.mode == "default" and (.payload_sha256 | test("^[0-9a-f]{64}$")) and (.payload_sha256_scope | type == "string") and (has("sha256") | not)' > /dev/null; then
+      echo "❌ Assertion Failed: tomb metadata.json does not label its digest as the pre-append payload: $newest_tomb"
+      exit 157
+    fi
+
+    echo "  [+] Executing self-pack ledger assertions..."
+    ./rotkeeper.sh pack --self > /dev/null
+    self_entry=$(tail -n 1 bones/manifest.txt)
+    self_path="${self_entry%%  *}"
+    self_sha="${self_entry##*  }"
+    if [[ "$self_path" != "$b_archive"/tombkit-*.tar.gz || ! -f "$self_path" ]] \
+      || [[ "$(rk_sha256 "$self_path" | cut -d' ' -f1)" != "$self_sha" ]]; then
+      echo "❌ Assertion Failed: pack --self ledger entry does not match the shipped archive: $self_entry"
+      exit 178
+    fi
+    if ! tar -xzOf "$self_path" metadata.json \
+      | jq -e '.mode == "self" and (.payload_sha256 | test("^[0-9a-f]{64}$")) and (.payload_sha256_scope | type == "string") and (has("sha256") | not)' > /dev/null; then
+      echo "❌ Assertion Failed: tombkit metadata.json does not label its digest as the pre-append payload: $self_path"
+      exit 178
+    fi
+    echo "  [+] Pass: pack --self ledger entry names the shipped .tar.gz and its digest ($mode)."
 
     echo "  [+] Executing release packager assertions..."
     ./rotkeeper.sh release "$TEST_RELEASE_VERSION" > /dev/null

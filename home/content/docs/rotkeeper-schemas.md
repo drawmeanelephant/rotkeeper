@@ -104,9 +104,13 @@ Verification failures (unexpected root files, missing required spine, forbidden 
 
 **Archive naming:** a timestamp and random `-NNNN` tag reduce same-second
 name collisions on GNU and BSD systems; this is not an enforced immutability
-guarantee. Default and self archives embed `metadata.json` (name, uncompressed
-tar SHA-256, timestamp, mode, and file count); content-only archives do not.
-Pack records archive entries in `bones/manifest.txt` and verifies `gzip -t`.
+guarantee. Default and self archives embed `metadata.json` (name,
+`payload_sha256`, `payload_sha256_scope`, timestamp, mode, and file count);
+content-only archives do not. An embedded digest cannot cover the archive that
+contains it, so `payload_sha256` is the tar before `metadata.json` was
+appended. Every mode records the final `.tar.gz` path and SHA-256 in
+`bones/manifest.txt`; check the shipped archive against that ledger entry.
+Pack verifies `gzip -t`.
 Its failure trap removes an in-progress partial archive. Keep source exports
 and full-system bundles private unless their contents are intended for sharing.
 

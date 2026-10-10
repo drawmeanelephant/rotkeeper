@@ -1,6 +1,6 @@
 ---
 target_file: bones/scripts/rc-pack.sh
-reviewed: "2026-10-01"
+reviewed: "2026-10-09"
 reviewed_against: "0.8.1"
 ---
 
@@ -14,4 +14,4 @@ Content mode excludes the content help subtree and `*_temp.md`, and runs tar wit
 
 ### Cautions
 
-Default and content ledger entries record the final compressed archive path and digest. Self mode instead records a bare pre-compression archive name and digest before appending metadata and gzip, so that entry is not a final compressed-file integrity record. Embedded metadata hashes likewise describe the tar before metadata insertion. Default export includes host-specific absolute paths. Dry-run checks dependencies and writes bootstrap logs but does not archive, export, or update the ledger.
+Default, content, and self ledger entries record the final compressed archive path and digest, written only after gzip validation. Embedded metadata cannot hash the archive that contains it: `payload_sha256` describes the tar before metadata insertion, and `payload_sha256_scope` says so inside the archive. Default export includes host-specific absolute paths. Dry-run checks dependencies and writes bootstrap logs but does not archive, export, or update the ledger.
