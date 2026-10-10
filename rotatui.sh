@@ -927,9 +927,21 @@ handle_bump() {
     *) return 0 ;;
   esac
 
+  local bump_msg
+  bump_msg=$(gum input --placeholder "e.g. Fix wrap bug" \
+    --prompt.foreground "$COLOR_VIOLET" \
+    --prompt "Update Message > " \
+    --width 60 || true)
+  if [[ -z "${bump_msg//[[:space:]]/}" ]]; then
+    gum log --level warn --prefix "rotatui" --level.foreground "$COLOR_AMBER" \
+      "Bump cancelled: update message cannot be empty."
+    pause_prompt
+    return 0
+  fi
+
   if gum confirm --prompt.foreground "$COLOR_AMBER" --affirmative "Bump" --negative "Cancel" \
     "Execute version bump (${bump_args[*]}) and record changelog?"; then
-    run_with_spin "Recording microrelease update..." "$DISPATCHER" bump "${bump_args[@]}"
+    run_with_spin "Recording microrelease update..." "$DISPATCHER" bump "${bump_args[@]}" -m "$bump_msg"
   fi
   pause_prompt
 }
