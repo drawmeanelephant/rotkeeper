@@ -49,8 +49,8 @@ Reads `ROT_SKIP_ENV`, `ROTKEEPER_VERSION`, `VERSION_FILE`, common RK_* flag defa
 ## Side effects
 
 - **write:** appends each message to bones/logs/<ritual>-<ts>.log
-- **write:** creates bones/tmp and the smoke doc/output/stderr scratch files
-- **delete:** removes the smoke scratch files under bones/tmp
+- **write:** creates bones/tmp and a private per-run scratch dir, so concurrent runs never share smoke files
+- **delete:** removes this run's smoke doc/output/stderr and its private dir under bones/tmp
 - **write:** creates the output tree if missing and drops/truncates its .rotkeeper-generated marker
 - **write:** creates bones/logs and a new per-run log file (one per invocation)
 - **write:** rebinds stdout/stderr so everything also lands in $LOG_FILE
@@ -68,7 +68,7 @@ Shared Bash helper library rather than a dispatcher command. Sourcing defines he
 
 ### Cautions
 
-Canonical-path helpers have different fallback behavior, so callers must use the appropriate guard rather than assume every helper fails closed. Destructive callers must honor a failed `rk_guard_delete` result. Cleanup runs without masking the original exit status; scripts can override it. Help exits before environment/log initialization. Other initialization, including dry-run, creates logs, and Oliver preflight creates and removes its own smoke files and invokes the renderer.
+Canonical-path helpers have different fallback behavior, so callers must use the appropriate guard rather than assume every helper fails closed. Destructive callers must honor a failed `rk_guard_delete` result. Cleanup runs without masking the original exit status; scripts can override it. Help exits before environment/log initialization. Other initialization, including dry-run, creates logs, and Oliver preflight invokes the renderer inside a private `mktemp` scratch directory that it removes, or the exit teardown removes on interruption.
 
 ## History
 <!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->

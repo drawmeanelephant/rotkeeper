@@ -891,12 +891,58 @@ if [[ "${3:-}" == "cooklang" ]]; then
   printf '<article class="recipe"><h1>cooklang-input-confirmed</h1>\n<a href="sibling.html">Sibling</a>\n</article>\n'
   exit 0
 fi
-# Pipeline: strip frontmatter (awk on ---), markdown [text](url) -> <a> (sed), then gawk rewrites href/src .md/.textile/.cook -> .html with angle-bracket unwrapping and external/mailto skip
+# Pipeline: strip frontmatter (awk on ---), ATX "# " -> <h1> and markdown [text](url) -> <a> (sed), then gawk rewrites href/src .md/.textile/.cook -> .html with angle-bracket unwrapping and external/mailto skip
+# The <h1> keeps the preflight smoke render HTML-shaped, as preflight requires of Oliver.
 awk '/^---$/ { f++; next } f>=2 || f==0 { print }' | \
-  sed -E 's/\[([^]]+)\]\(([^)]+)\)/<a href="\2">\1<\/a>/g' | \
+  sed -E -e 's/^# (.+)$/<h1>\1<\/h1>/' -e 's/\[([^]]+)\]\(([^)]+)\)/<a href="\2">\1<\/a>/g' | \
   gawk '{ line=$0; out=""; while(match(line,/(href|src)=("|\x27)([^"\x27]+)("|\x27)/,a)){ outer=RSTART; rlen=RLENGTH; pre=substr(line,1,outer-1); tgt=a[3]; if(tgt~/^(%3C|<|&lt;).*(%3E|>|&gt;)$/){ if(substr(tgt,1,3)=="%3C") tgt=substr(tgt,4); else if(substr(tgt,1,4)=="&lt;") tgt=substr(tgt,5); else if(substr(tgt,1,1)=="<") tgt=substr(tgt,2); tlen=length(tgt); if(tlen>=3 && substr(tgt,tlen-2)=="%3E") tgt=substr(tgt,1,tlen-3); else if(tlen>=4 && substr(tgt,tlen-3)=="&gt;") tgt=substr(tgt,1,tlen-4); else if(tlen>=1 && substr(tgt,tlen)==">") tgt=substr(tgt,1,tlen-1)} if(tgt~/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//||tgt~/^mailto:/) nt=tgt; else if(match(tgt,/\.md(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+3)} else if(match(tgt,/\.textile(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+8)} else if(match(tgt,/\.cook(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+5)} else nt=tgt; out=out pre a[1] "=" a[2] nt a[2]; line=substr(line,outer+rlen)} out=out line; print out }'
 FAKE_EOF
     chmod +x "$fake_bin"
+
+    echo "  [+] Executing preflight impostor and concurrency assertions ($mode)..."
+    # Non-empty stdout alone must not pass: argument echoes and stdin echoes are not Oliver.
+    cat << 'IMPOSTOR_ECHO_EOF' > "$pass_dir/bones/tmp/impostor_echo"
+#!/usr/bin/env bash
+echo "$@"
+IMPOSTOR_ECHO_EOF
+    cat << 'IMPOSTOR_CAT_EOF' > "$pass_dir/bones/tmp/impostor_cat"
+#!/usr/bin/env bash
+cat
+IMPOSTOR_CAT_EOF
+    chmod +x "$pass_dir/bones/tmp/impostor_echo" "$pass_dir/bones/tmp/impostor_cat"
+    for impostor_bin in "$pass_dir/bones/tmp/impostor_echo" "$pass_dir/bones/tmp/impostor_cat"; do
+      if RK_OLIVER_BIN="$impostor_bin" ./rotkeeper.sh preflight > /dev/null 2>&1; then
+        echo "❌ Assertion Failed: preflight accepted a non-Oliver binary ($impostor_bin)."
+        exit 226
+      fi
+    done
+    # A slow renderer widens the window in which shared scratch files would collide.
+    slow_bin="$pass_dir/bones/tmp/slow_oliver"
+    cat << 'SLOW_OLIVER_EOF' > "$slow_bin"
+#!/usr/bin/env bash
+sleep 0.3
+cat > /dev/null
+printf '<h1>slow smoke</h1>\n'
+SLOW_OLIVER_EOF
+    chmod +x "$slow_bin"
+    preflight_pids=()
+    for _ in 1 2 3 4 5 6; do
+      RK_OLIVER_BIN="$slow_bin" ./rotkeeper.sh preflight > /dev/null 2>&1 &
+      preflight_pids+=("$!")
+    done
+    preflight_failed=0
+    for preflight_pid in "${preflight_pids[@]}"; do
+      wait "$preflight_pid" || preflight_failed=$((preflight_failed + 1))
+    done
+    if [[ "$preflight_failed" -ne 0 ]]; then
+      echo "❌ Assertion Failed: $preflight_failed of 6 concurrent preflights failed with a working renderer."
+      exit 227
+    fi
+    if compgen -G "bones/tmp/oliver-preflight*" > /dev/null; then
+      echo "❌ Assertion Failed: preflight left smoke scratch files under bones/tmp."
+      exit 228
+    fi
+    echo "  [+] Pass: preflight rejects impostors and concurrent runs are independent ($mode)."
 
     # Create ugly metadata & edge-case link test file
     cat << 'UGLY_EOF' > "$b_content/ugly-edge-case.md"
@@ -1066,8 +1112,8 @@ if [[ "${1:-}" == "wrap" ]]; then
 fi
 if [[ "${1:-}" != "render" || "${2:-}" != "--from" || ( "${3:-}" != "markdown" && "${3:-}" != "textile" && "${3:-}" != "cooklang" ) ]]; then exit 1; fi
 echo "[OLIVER WARN] Sample non-fatal renderer warning" >&2
-# Pipeline: strip frontmatter (awk on ---), markdown [text](url) -> <a> (sed), then gawk rewrites href/src .md/.textile/.cook -> .html with angle-bracket unwrapping and external/mailto skip
-awk '/^---$/ { f++; next } f>=2 || f==0 { print }' | sed -E 's/\[([^]]+)\]\(([^)]+)\)/<a href="\2">\1<\/a>/g' | gawk '{ line=$0; out=""; while(match(line,/(href|src)=("|\x27)([^"\x27]+)("|\x27)/,a)){ outer=RSTART; rlen=RLENGTH; pre=substr(line,1,outer-1); tgt=a[3]; if(tgt~/^(%3C|<|&lt;).*(%3E|>|&gt;)$/){ if(substr(tgt,1,3)=="%3C") tgt=substr(tgt,4); else if(substr(tgt,1,4)=="&lt;") tgt=substr(tgt,5); else if(substr(tgt,1,1)=="<") tgt=substr(tgt,2); tlen=length(tgt); if(tlen>=3 && substr(tgt,tlen-2)=="%3E") tgt=substr(tgt,1,tlen-3); else if(tlen>=4 && substr(tgt,tlen-3)=="&gt;") tgt=substr(tgt,1,tlen-4); else if(tlen>=1 && substr(tgt,tlen)==">") tgt=substr(tgt,1,tlen-1)} if(tgt~/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//||tgt~/^mailto:/) nt=tgt; else if(match(tgt,/\.md(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+3)} else if(match(tgt,/\.textile(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+8)} else if(match(tgt,/\.cook(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+5)} else nt=tgt; out=out pre a[1] "=" a[2] nt a[2]; line=substr(line,outer+rlen)} out=out line; print out }'
+# Pipeline: strip frontmatter (awk on ---), ATX "# " -> <h1> (keeps the preflight smoke render HTML-shaped) and markdown [text](url) -> <a> (sed), then gawk rewrites href/src .md/.textile/.cook -> .html with angle-bracket unwrapping and external/mailto skip
+awk '/^---$/ { f++; next } f>=2 || f==0 { print }' | sed -E -e 's/^# (.+)$/<h1>\1<\/h1>/' -e 's/\[([^]]+)\]\(([^)]+)\)/<a href="\2">\1<\/a>/g' | gawk '{ line=$0; out=""; while(match(line,/(href|src)=("|\x27)([^"\x27]+)("|\x27)/,a)){ outer=RSTART; rlen=RLENGTH; pre=substr(line,1,outer-1); tgt=a[3]; if(tgt~/^(%3C|<|&lt;).*(%3E|>|&gt;)$/){ if(substr(tgt,1,3)=="%3C") tgt=substr(tgt,4); else if(substr(tgt,1,4)=="&lt;") tgt=substr(tgt,5); else if(substr(tgt,1,1)=="<") tgt=substr(tgt,2); tlen=length(tgt); if(tlen>=3 && substr(tgt,tlen-2)=="%3E") tgt=substr(tgt,1,tlen-3); else if(tlen>=4 && substr(tgt,tlen-3)=="&gt;") tgt=substr(tgt,1,tlen-4); else if(tlen>=1 && substr(tgt,tlen)==">") tgt=substr(tgt,1,tlen-1)} if(tgt~/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//||tgt~/^mailto:/) nt=tgt; else if(match(tgt,/\.md(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+3)} else if(match(tgt,/\.textile(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+8)} else if(match(tgt,/\.cook(\?|#|$)/)){ nt=substr(tgt,1,RSTART-1) ".html" substr(tgt,RSTART+5)} else nt=tgt; out=out pre a[1] "=" a[2] nt a[2]; line=substr(line,outer+rlen)} out=out line; print out }'
 WARN_BIN_EOF
     chmod +x "$fake_warn_bin"
 
