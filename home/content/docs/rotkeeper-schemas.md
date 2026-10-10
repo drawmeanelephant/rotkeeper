@@ -5,7 +5,7 @@ template: rotkeeper-doc.html
 version: "1.0"
 updated: "2026-10-09"
 doc_type: guide
-reviewed: "2026-10-09"
+reviewed: "2026-10-10"
 description: "Field-by-field schemas for Rotkeeper's YAML and manifest files: bones/asset-manifest.yaml, bones/config/rotkeeper.yaml, the release-manifest.txt bill of materials — plus the CLI --json stdout envelopes for scan and dip."
 tags:
   - rotkeeper
