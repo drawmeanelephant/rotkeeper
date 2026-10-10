@@ -220,7 +220,15 @@ EOF_HELLO
 
     if [[ "$FULL" == true ]]; then
         if [[ -f "$SCRIPT_DIR/rc-scan.sh" ]]; then
-            run "$SCRIPT_DIR/rc-scan.sh"
+            # scan exits 3 when it reports findings; init's audit step is
+            # informational, so only genuine scan failures abort init.
+            scan_status=0
+            run "$SCRIPT_DIR/rc-scan.sh" || scan_status=$?
+            if [[ "$scan_status" -eq 3 ]]; then
+                log "WARN" "Scan reported ledger findings; see the latest scan report under $REPORT_DIR."
+            elif [[ "$scan_status" -ne 0 ]]; then
+                exit "$scan_status"
+            fi
         else
             log "WARN" "rc-scan.sh not found in prototype, skipping scan."
         fi

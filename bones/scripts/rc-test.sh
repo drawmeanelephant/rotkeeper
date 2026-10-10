@@ -2383,9 +2383,12 @@ COOK_CFG_EOF
     # into the rendered tree must be classified, and the assets ritual's
     # output/assets/ copies stay exempt from orphan scope. The probe cleans
     # up after itself so later dry-run non-mutation snapshots are unaffected.
+    # Findings must move the exit code (#384): scan exits 3 when it reports any.
     touch "$out_dir_rel/stray-orphan-probe.html"
-    if ! probe_stdout=$(./rotkeeper.sh scan --json); then
-      echo "❌ Assertion Failed: stray-orphan probe scan failed."
+    probe_status=0
+    probe_stdout=$(./rotkeeper.sh scan --json 2>/dev/null) || probe_status=$?
+    if [[ "$probe_status" -ne 3 ]]; then
+      echo "❌ Assertion Failed: stray-orphan probe scan exited $probe_status (expected 3 for findings)."
       exit 183
     fi
     if ! jq -e --arg d "$out_dir_rel" '
@@ -2400,6 +2403,53 @@ COOK_CFG_EOF
     fi
     rm -f "$out_dir_rel/stray-orphan-probe.html"
     echo "  [+] Pass: orphan walk classified stray output file, assets tree exempt ($mode)."
+
+    # Ledger parsing and membership (#378, #377) from a foreign CWD (#362): a
+    # ledgered path with spaces and a recorded digest must verify whole;
+    # ledger entries match disk paths literally, never as regex; and a scan
+    # run elsewhere must audit this fixture and write nothing outside it.
+    _ledger_backup="$TMP_DIR/ledger-probe-backup-$$"
+    mkdir -p "$(dirname "$_ledger_backup")" 2>/dev/null || true
+    cp bones/manifest.txt "$_ledger_backup"
+    _space_probe="$out_dir_rel/ledger probe page.html"
+    _class_probe="$out_dir_rel/ledger-probe[1].html"
+    _dot_probe="$out_dir_rel/ledger-probe.html"
+    printf '<html></html>\n' > "$_space_probe"
+    printf '<html></html>\n' > "$_class_probe"
+    printf '<html></html>\n' > "$_dot_probe"
+    _space_sha=$(rk_sha256 "$_space_probe" | awk '{print $1}')
+    {
+      printf '%s  %s\n' "$_space_probe" "$_space_sha"
+      printf '%s\n' "$_class_probe"
+      printf '%s\n' "$out_dir_rel/ledger-probeXhtml"
+    } >> bones/manifest.txt
+    _foreign_cwd=$(mktemp -d)
+    ledger_status=0
+    ledger_stdout=$(cd "$_foreign_cwd" && "$pass_dir/rotkeeper.sh" scan --json 2>/dev/null) || ledger_status=$?
+    _foreign_leak=$(find "$_foreign_cwd" -mindepth 1 -print -quit)
+    mv "$_ledger_backup" bones/manifest.txt
+    rm -f "$_space_probe" "$_class_probe" "$_dot_probe"
+    if [[ -n "$_foreign_leak" ]]; then
+      echo "❌ Assertion Failed: scan from a foreign CWD wrote outside the repository: $_foreign_leak"
+      exit 200
+    fi
+    rmdir "$_foreign_cwd"
+    if [[ "$ledger_status" -ne 3 ]]; then
+      echo "❌ Assertion Failed: ledger probe scan exited $ledger_status (expected 3 for findings)."
+      exit 201
+    fi
+    if ! jq -e --arg d "$out_dir_rel" --arg sha "$_space_sha" '
+        .schema == "rotkeeper.scan.v2" and
+        .missing == [($d + "/ledger-probeXhtml")] and
+        .orphans == [($d + "/ledger-probe.html")] and
+        .counts.digest_mismatches == 0 and
+        .digests[($d + "/ledger probe page.html")] == $sha
+      ' >/dev/null <<< "$ledger_stdout"; then
+      echo "❌ Assertion Failed: scan misparsed space-containing ledger paths or matched ledger entries as regex."
+      cat <<< "$ledger_stdout"
+      exit 202
+    fi
+    echo "  [+] Pass: ledger paths with spaces verify, membership is literal, foreign CWD audits the repo ($mode)."
 
     # P2 verification (#292): a ledgered archive whose on-disk hash drifts must
     # be reported in digest_mismatches. The probe tampers then restores so later
@@ -2427,8 +2477,11 @@ COOK_CFG_EOF
       mkdir -p "$(dirname "$_probe_backup")" 2>/dev/null || true
       cp "$_probe_archive" "$_probe_backup"
       printf "x" >> "$_probe_archive"
-      if ! mismatch_stdout=$(./rotkeeper.sh scan --json); then
-        echo "❌ Assertion Failed: digest-mismatch probe scan failed."
+      mismatch_status=0
+      mismatch_stdout=$(./rotkeeper.sh scan --json 2>/dev/null) || mismatch_status=$?
+      if [[ "$mismatch_status" -ne 3 ]]; then
+        echo "❌ Assertion Failed: digest-mismatch probe scan exited $mismatch_status (expected 3 for findings)."
+        mv "$_probe_backup" "$_probe_archive"
         exit 185
       fi
       if ! jq -e --arg p "$_probe_archive" '
@@ -2742,7 +2795,14 @@ XHTML_RAW_EOF
     rm -f "$_tmp_pre"
     ./rotkeeper.sh render --dry-run > /dev/null
     ./rotkeeper.sh pack --dry-run > /dev/null
-    ./rotkeeper.sh scan --dry-run > /dev/null
+    # The append-only ledger can legitimately hold pruned pages here, so scan
+    # may report findings (exit 3); only other statuses are failures.
+    scan_dry_status=0
+    ./rotkeeper.sh scan --dry-run > /dev/null 2>&1 || scan_dry_status=$?
+    if [[ "$scan_dry_status" -ne 0 && "$scan_dry_status" -ne 3 ]]; then
+      echo "❌ Assertion Failed: scan --dry-run exited $scan_dry_status."
+      exit 153
+    fi
     ./rotkeeper.sh release "$TEST_RELEASE_VERSION" --dry-run > /dev/null
     ./rotkeeper.sh assets --dry-run > /dev/null
     # Documented flag order (mode then --dry-run): parseflags must set DRY_RUN
