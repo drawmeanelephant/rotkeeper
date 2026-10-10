@@ -12,8 +12,8 @@ IFS=$'\n\t'
 # Env assumptions: reads BONES_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, DRY_RUN, LOG_DIR, META_DIR, QUIET, ROOT_DIR, SCRIPT_DIR, TMP_DIR, VERBOSE (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
 # Input/Output contracts: reads directories and immediate `.md`, `.textile`, and `.cook` children under `CONTENT_DIR`, or a canonicalized `--path` subtree. Requires yq v4+ and GNU awk; destinations outside the content boundary are rejected.
-#   Creates missing `index.md` files using the resolved default template and directory-sidecar frontmatter, with child links between ROTKEEPER-GLUE-START/END markers. Generated indexes carry `rotkeeper_glued: true`; `--force` removes and regenerates only those marked indexes.
-#   Custom indexes keep their authored prose. An ordered single marker pair is replaced through a temporary file; otherwise glue is appended. Rewrite failures preserve the original. Dry-run previews writes without changing indexes.
+#   Creates missing `index.md` files using the resolved default template and directory-sidecar frontmatter, with child links between ROTKEEPER-GLUE-START/END markers. Generated indexes carry `rotkeeper_glued: true` in frontmatter; `--force` regenerates and replaces only those marked indexes.
+#   Custom indexes keep their authored prose. An ordered single marker pair is replaced through a temporary file; otherwise glue is appended. Generated indexes are staged in bones/tmp and promoted by mv, so failures preserve the previous index. Dry-run previews writes without changing indexes.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-glue.sh
@@ -22,6 +22,10 @@ IFS=$'\n\t'
 # ------------------------------------------------------------
 
 FORCE_GLUE=false
+
+# Scratch files staged during soul-merge and index regeneration. The EXIT
+# teardown calls cleanup(), so interrupted runs never leak bones/tmp litter.
+GLUE_TMP_FILES=()
 
 # @HELP
 # rc-glue.sh — Generate navigation glue for unindexed content directories
@@ -78,6 +82,22 @@ while [[ $# -gt 0 ]]; do
 done
 
 # ---
+# cleanup: Remove glue scratch files (soul-merge temps and staged index
+# replacements) on any exit, including errexit and signal teardown.
+# Inputs: none (reads GLUE_TMP_FILES)
+# Outputs: Deletes each tracked scratch file still present
+# Env: Reads BONES_DIR, DRY_RUN, QUIET, ROOT_DIR, VERBOSE (via rc-env.sh / rk_init_script); respects DRY_RUN/VERBOSE where applicable
+# CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
+# ---
+cleanup() {
+  local _glue_scratch
+  for _glue_scratch in ${GLUE_TMP_FILES[@]+"${GLUE_TMP_FILES[@]}"}; do
+    # SIDE EFFECT (delete): removes glue scratch files on exit
+    rm -f "$_glue_scratch" || true
+  done
+}
+
+# ---
 # main: Generate or refresh navigation glue indexes under CONTENT_DIR.
 # Inputs: none (reads CONTENT_DIR, TARGET_DIR, FORCE_GLUE, DRY_RUN)
 # Outputs: Creates/updates index.md files with navigation blocks
@@ -90,6 +110,10 @@ main() {
     log "WARN" "👻 Content catacomb missing. Generating sterile home environment dynamically."
     run mkdir -p "$CONTENT_DIR"
   fi
+
+  # bones/tmp is gitignored and absent on fresh clones; create it before any
+  # mktemp scratch use, matching every other TMP_DIR consumer.
+  mkdir -p "$TMP_DIR"
 
   if [[ -n "$TARGET_DIR" ]]; then
     if [[ "$TARGET_DIR" == /* ]]; then
@@ -119,15 +143,16 @@ main() {
 
     IS_EXISTING_CUSTOM=false
     if [[ -f "$INDEX_FILE" ]]; then
-      if grep -q "rotkeeper_glued: true" "$INDEX_FILE"; then
+      # Only the frontmatter marker identifies a generated index; body prose
+      # quoting "rotkeeper_glued: true" must not mark an authored file as ours.
+      if [[ "$(rk_frontmatter_field rotkeeper_glued "$INDEX_FILE")" == "true" ]]; then
         if [[ "$FORCE_GLUE" == true ]]; then
             log "INFO" "Overwriting existing auto-glued index with --force: $INDEX_FILE"
             if [[ "$DRY_RUN" == true ]]; then
               log "DRY-RUN" "Would overwrite auto-glued index: $INDEX_FILE"
               continue
             fi
-            # SIDE EFFECT (delete): removes the auto-glued index before regenerating it
-            rm "$INDEX_FILE"
+            # Regenerate below and replace only on success — never delete first.
         else
             log "WARN" "Auto-glued index exists at $INDEX_FILE. Skipping."
             continue
@@ -167,13 +192,26 @@ rotkeeper_glued: true"
         # yq's fileIndex counts file arguments; process substitution <(...) cannot
         # feed it on Windows (a native yq.exe cannot open MSYS /proc fd links), so
         # stage both documents in temp files — portable on every platform.
-        _glue_default_yaml=$(mktemp "$TMP_DIR/glue-default.XXXXXX")
-        _glue_soul_yaml=$(mktemp "$TMP_DIR/glue-soul.XXXXXX")
+        # Guarded mktemp: the ERR trap does not fire inside function bodies, so
+        # a scratch failure must be surfaced explicitly or it dies in the log.
+        if ! _glue_default_yaml=$(mktemp "$TMP_DIR/glue-default.XXXXXX"); then
+            log "ERROR" "Cannot create soul-merge scratch file under TMP_DIR: $TMP_DIR"
+            exit 1
+        fi
+        GLUE_TMP_FILES+=("$_glue_default_yaml")
+        if ! _glue_soul_yaml=$(mktemp "$TMP_DIR/glue-soul.XXXXXX"); then
+            log "ERROR" "Cannot create soul-merge scratch file under TMP_DIR: $TMP_DIR"
+            exit 1
+        fi
+        GLUE_TMP_FILES+=("$_glue_soul_yaml")
         printf '%s\n' "$DEFAULT_YAML" > "$_glue_default_yaml"
         if ! yq eval --front-matter="extract" '.' "$SOUL_FILE" > "$_glue_soul_yaml" 2>/dev/null; then
             printf '{}\n' > "$_glue_soul_yaml"
         fi
-        MERGED_YAML=$(yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' "$_glue_default_yaml" "$_glue_soul_yaml")
+        if ! MERGED_YAML=$(yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' "$_glue_default_yaml" "$_glue_soul_yaml"); then
+            log "ERROR" "Folder soul frontmatter merge failed for $SOUL_FILE — index left intact: $INDEX_FILE"
+            exit 1
+        fi
         rm -f "$_glue_default_yaml" "$_glue_soul_yaml"
         SOUL_TITLE=$(echo "$MERGED_YAML" | yq eval '.title // ""' -)
         [[ -z "$SOUL_TITLE" ]] && SOUL_TITLE="Index of $DIR_NAME"
@@ -223,6 +261,7 @@ ${DEFAULT_YAML}
         if gawk 'BEGIN { start=0; end=0; ok=0 } /<!-- ROTKEEPER-GLUE-START -->/ { start++ } /<!-- ROTKEEPER-GLUE-END -->/ { end++; if(start == 1) ok=1 } END { if (start == 1 && end == 1 && ok == 1) exit 0; else exit 1 }' "$INDEX_FILE"; then
             # SIDE EFFECT (write): rewrites the glue block through <index>.tmp.$$ scratch, promoted by mv below
             glue_tmp="${INDEX_FILE}.tmp.$$"
+            GLUE_TMP_FILES+=("$glue_tmp")
             # gawk: replace existing glue block — print new glue at START, suppress old block until END, pass through rest
             if GLUE_CONTENT="$GLUE_CONTENT" gawk 'BEGIN { p=1 } /<!-- ROTKEEPER-GLUE-START -->/ { print ENVIRON["GLUE_CONTENT"]; p=0 } /<!-- ROTKEEPER-GLUE-END -->/ { p=1; next } p { print }' "$INDEX_FILE" > "$glue_tmp"; then
                 mv "$glue_tmp" "$INDEX_FILE"
@@ -236,8 +275,19 @@ ${DEFAULT_YAML}
             printf '\n%s\n' "$GLUE_CONTENT" >> "$INDEX_FILE"
         fi
     else
-        # SIDE EFFECT (write): creates a new index.md with frontmatter and navigation glue
-        printf '%s\n\n# %s\n\n%s\n' "$FRONTMATTER" "$SOUL_TITLE" "$GLUE_CONTENT" > "$INDEX_FILE"
+        # SIDE EFFECT (write): stages the generated index in bones/tmp and
+        # promotes it with mv only on success — a failed --force regeneration
+        # leaves the previous glued index intact.
+        if ! glue_tmp=$(mktemp "$TMP_DIR/glue-index.XXXXXX"); then
+            log "ERROR" "Cannot create index scratch file under TMP_DIR: $TMP_DIR"
+            exit 1
+        fi
+        GLUE_TMP_FILES+=("$glue_tmp")
+        if ! { printf '%s\n\n# %s\n\n%s\n' "$FRONTMATTER" "$SOUL_TITLE" "$GLUE_CONTENT" > "$glue_tmp" && mv -f "$glue_tmp" "$INDEX_FILE"; }; then
+            rm -f "$glue_tmp"
+            log "ERROR" "Index generation failed for $INDEX_FILE — previous index left intact."
+            exit 1
+        fi
     fi
   done < <(find "$TARGET_DIR" -type d -print0)
   if [[ "$DRY_RUN" == true ]]; then
