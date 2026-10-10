@@ -83,6 +83,13 @@ if [[ "$FULL" == true ]]; then
 fi
 
 if [[ -n "$PROFILE" && "$PROFILE" != "default" ]]; then
+    case "${PROFILE,,}" in
+        crypt|busy|sterile) ;;
+        *)
+            echo "[ERROR] Unknown --profile style: '$PROFILE' (expected crypt, busy, or sterile)." >&2
+            exit 1
+            ;;
+    esac
     export LAYOUT_STYLE="$PROFILE"
 fi
 
@@ -165,14 +172,43 @@ main() {
         fi
 
         if [[ -n "$PROFILE" && "$PROFILE" != "default" ]]; then
-           yq eval ".layout_style = \"$PROFILE\"" -i "$CONFIG_TARGET"
+           # strenv passes the value as data, never expression text.
+           PROFILE="$PROFILE" yq eval '.layout_style = strenv(PROFILE)' -i "$CONFIG_TARGET"
+           # Re-derive the environment from the new layout_style (bootstrap
+           # ignores the stale paths cache) so the serialized paths below
+           # match the requested layout instead of the previous one.
+           FORCE_ENV_RELOAD=true rk_load_env bootstrap
         fi
+
+        # The strict readiness check requires the layout's content, output,
+        # template, and asset directories; create them for the active layout.
+        mkdir -p "$CONTENT_DIR" "$OUTPUT_DIR" "$TEMPLATE_DIR" "$ASSETS_DIR"
 
         # Explicitly map the active folder locations straight into the target yaml config.
         # Single yq transaction: a crash mid-write can no longer leave a partially
         # populated paths block (which strict validation treats as fatal corruption).
+        # Values flow through strenv so quotes or backslashes in paths cannot
+        # break or rewrite the yq expression.
         # SIDE EFFECT (write): rewrites rotkeeper.yaml in place with the serialized paths cache
-        yq eval ".paths = {} | .paths.ROOT_DIR = \"$ROOT_DIR\" | .paths.BONES_DIR = \"$BONES_DIR\" | .paths.SCRIPT_DIR = \"$SCRIPT_DIR\" | .paths.CONFIG_DIR = \"$CONFIG_DIR\" | .paths.LOG_DIR = \"$LOG_DIR\" | .paths.TMP_DIR = \"$TMP_DIR\" | .paths.ARCHIVE_DIR = \"$ARCHIVE_DIR\" | .paths.RELEASE_DIR = \"$RELEASE_DIR\" | .paths.REPORT_DIR = \"$REPORT_DIR\" | .paths.BOOK_REPORT_DIR = \"$BOOK_REPORT_DIR\" | .paths.META_DIR = \"$META_DIR\" | .paths.TEMPLATE_DIR = \"$TEMPLATE_DIR\" | .paths.ASSETS_DIR = \"$ASSETS_DIR\" | .paths.CONTENT_DIR = \"$CONTENT_DIR\" | .paths.OUTPUT_DIR = \"$OUTPUT_DIR\" | .paths.DOCS_DIR = \"$DOCS_DIR\" | .paths.HELP_DIR = \"$HELP_DIR\" | .paths.WEB_DIR = \"$WEB_DIR\"" -i "$CONFIG_TARGET"
+        yq eval '.paths = {}
+            | .paths.ROOT_DIR = strenv(ROOT_DIR)
+            | .paths.BONES_DIR = strenv(BONES_DIR)
+            | .paths.SCRIPT_DIR = strenv(SCRIPT_DIR)
+            | .paths.CONFIG_DIR = strenv(CONFIG_DIR)
+            | .paths.LOG_DIR = strenv(LOG_DIR)
+            | .paths.TMP_DIR = strenv(TMP_DIR)
+            | .paths.ARCHIVE_DIR = strenv(ARCHIVE_DIR)
+            | .paths.RELEASE_DIR = strenv(RELEASE_DIR)
+            | .paths.REPORT_DIR = strenv(REPORT_DIR)
+            | .paths.BOOK_REPORT_DIR = strenv(BOOK_REPORT_DIR)
+            | .paths.META_DIR = strenv(META_DIR)
+            | .paths.TEMPLATE_DIR = strenv(TEMPLATE_DIR)
+            | .paths.ASSETS_DIR = strenv(ASSETS_DIR)
+            | .paths.CONTENT_DIR = strenv(CONTENT_DIR)
+            | .paths.OUTPUT_DIR = strenv(OUTPUT_DIR)
+            | .paths.DOCS_DIR = strenv(DOCS_DIR)
+            | .paths.HELP_DIR = strenv(HELP_DIR)
+            | .paths.WEB_DIR = strenv(WEB_DIR)' -i "$CONFIG_TARGET"
 
         FORCE_ENV_RELOAD=true rk_load_env strict
 
