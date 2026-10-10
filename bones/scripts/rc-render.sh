@@ -13,7 +13,7 @@ IFS=$'\n\t'
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
 # Input/Output contracts: discovers `.md`, `.textile`, and `.cook` sources under `CONTENT_DIR` with NUL-delimited paths, plans a TSV batch with Oliver, and executes the adapter to write mirrored HTML under `OUTPUT_DIR`.
 #   Oliver discovery uses `RK_OLIVER_BIN` then `PATH` and the shared live preflight. Theme registry/default-template resolution chooses the site template; per-page metadata can override it. Missing templates and source-basename collisions abort the render.
-#   With `render_system_docs: false`, discovery excludes `docs`, `messages`, and `help` directories. Stale pages and assets are pruned only from an output tree marked `.rotkeeper-generated`; real runs delegate asset synchronization.
+#   With `render_system_docs: false`, discovery excludes `docs`, `messages`, and `help` directories. A discovery `find` failure aborts the render, and source filenames containing a newline or tab are rejected by name (the plan/adapter handoff is a line-based TSV). Stale pages are collected from an output tree marked `.rotkeeper-generated` but deleted only after the batch render succeeds; real runs delegate asset synchronization.
 #   Each output is recorded through `oliver manifest --add` in `bones/manifest.txt`. Failures abort rather than desynchronize the ledger. Scratch files and warning accumulators live under `TMP_DIR`; logs summarize duration and warnings. Dry-run does not execute the adapter or publish output.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
@@ -209,24 +209,55 @@ main() {
 
     # Use gfind to avoid macOS CoreFoundation fork-without-exec after yq (BSD find + yq = segfault)
     local _tmp_find
+    local _tmp_find_err
     local _find_cmd
+    local _find_status=0
     _find_cmd="$(rk_find_command)"
-    # SIDE EFFECT: mktemp creates a scratch file in the system temp dir (cleaned up below)
+    # SIDE EFFECT: mktemp creates scratch files in the system temp dir (cleaned up below)
     _tmp_find=$(mktemp)
+    _tmp_find_err=$(mktemp)
     if [[ "$render_sys_docs" == "false" ]]; then
         log "INFO" "Surgically pruning internal system docs and platform messages from user space."
         # Find prune: skip internal docs/messages/help subtrees (prune) and emit only source files NUL-terminated.
         # SIDE EFFECT: writes the NUL-separated source list into $_tmp_find (scratch file)
-        "$_find_cmd" "$CONTENT_DIR" \( -type d -a \( -name "docs" -o -name "messages" -o -name "help" \) -prune \) -o \( -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) -print0 \) > "$_tmp_find" 2>/dev/null || true
+        "$_find_cmd" "$CONTENT_DIR" \( -type d -a \( -name "docs" -o -name "messages" -o -name "help" \) -prune \) -o \( -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) -print0 \) > "$_tmp_find" 2> "$_tmp_find_err" || _find_status=$?
     else
         # SIDE EFFECT: writes the NUL-separated source list into $_tmp_find (scratch file)
-        "$_find_cmd" "$CONTENT_DIR" -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) -print0 > "$_tmp_find" 2>/dev/null || true
+        "$_find_cmd" "$CONTENT_DIR" -type f \( -name "*.md" -o -name "*.textile" -o -name "*.cook" \) -print0 > "$_tmp_find" 2> "$_tmp_find_err" || _find_status=$?
     fi
+    if [[ "$_find_status" -ne 0 ]]; then
+        # A partial discovery must not proceed: an incomplete source list
+        # would mark published pages stale and let the prune delete them.
+        log "ERROR" "Content discovery failed (find exited $_find_status): $(head -n1 "$_tmp_find_err" 2>/dev/null || echo "no stderr")"
+        echo "ERROR: Content discovery failed (find exited $_find_status):" >&2
+        cat "$_tmp_find_err" >&2
+        # SIDE EFFECT: deletes the scratch source list and stderr capture
+        rm -f "$_tmp_find" "$_tmp_find_err"
+        exit 1
+    fi
+    # SIDE EFFECT: deletes the scratch find stderr capture
+    rm -f "$_tmp_find_err"
+    local bad_names=()
     while IFS= read -r -d '' corpse; do
+        # The plan/adapter handoff is a line-based TSV emitted by `oliver
+        # plan`; a source path containing a newline or tab would split a row
+        # and corrupt the batch. Reject such filenames at discovery, by name.
+        if [[ "$corpse" == *$'\n'* || "$corpse" == *$'\t'* ]]; then
+            bad_names+=("$corpse")
+            continue
+        fi
         md_corpses+=("$corpse")
     done < "$_tmp_find"
     # SIDE EFFECT: deletes the scratch source list $_tmp_find
     rm -f "$_tmp_find"
+    if [[ ${#bad_names[@]} -gt 0 ]]; then
+        for bad_name in "${bad_names[@]}"; do
+            log "ERROR" "Source filename may not contain a newline or tab: $(printf '%q' "$bad_name")"
+            printf 'ERROR: source filename contains a newline or tab: %q\n' "$bad_name" >&2
+        done
+        echo "ERROR: Render aborted — rename the source file(s) above; the batch plan cannot carry a newline or tab in a filename." >&2
+        exit 1
+    fi
 
     log "INFO" "Discovered ${#md_corpses[@]} source files for compilation."
 
@@ -282,6 +313,10 @@ main() {
       OUTPUT_SOURCES[$outkey]="$relpath"
     done
 
+    # Collect stale rendered pages now (EXPECTED_OUTPUTS is complete) but do
+    # not delete them yet: the prune is applied only after the batch render is
+    # known to have succeeded — a failed render must not mutate output/.
+    local -a STALE_PAGES=()
     if output_is_generated; then
         local _tmp_stale
         local _find_stale
@@ -292,13 +327,7 @@ main() {
         "$_find_stale" "$OUTPUT_DIR" -type f -name "*.html" -print0 > "$_tmp_stale" 2>/dev/null || true
         while IFS= read -r -d '' stale_html; do
           if [[ -z "${EXPECTED_OUTPUTS[$stale_html]:-}" ]]; then
-            if [[ "$DRY_RUN" == true ]]; then
-              log "DRY-RUN" "Would prune stale rendered page: $stale_html"
-            else
-              # SIDE EFFECT: deletes stale rendered HTML not backed by a current source file
-              rm -f "$stale_html"
-              log "INFO" "Pruned stale rendered page: $stale_html"
-            fi
+            STALE_PAGES+=("$stale_html")
           fi
         done < "$_tmp_stale"
         # SIDE EFFECT: deletes the scratch stale list $_tmp_stale
@@ -509,6 +538,20 @@ main() {
 
       # SIDE EFFECT: deletes bones/tmp/oliver-batch-<pid>.tsv after the batch pass
       rm -f "$batch_tsv"
+    fi
+
+    # Deferred stale-page prune: this point is reached only after the plan and
+    # adapter pass succeeded — a failed render exits earlier and deletes nothing.
+    if [[ ${#STALE_PAGES[@]} -gt 0 ]]; then
+        for stale_html in "${STALE_PAGES[@]}"; do
+            if [[ "$DRY_RUN" == true ]]; then
+              log "DRY-RUN" "Would prune stale rendered page: $stale_html"
+            else
+              # SIDE EFFECT: deletes stale rendered HTML not backed by a current source file
+              rm -f "$stale_html"
+              log "INFO" "Pruned stale rendered page: $stale_html"
+            fi
+        done
     fi
 
     end_ts=$(date +%s)
