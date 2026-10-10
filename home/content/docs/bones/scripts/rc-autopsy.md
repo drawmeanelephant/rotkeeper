@@ -81,7 +81,7 @@ The output catalog uses line-oriented regular expressions for selected redirecti
 
 ### Cautions
 
-Verify report entries against current source before using them as operational facts. DIP may consume the output report for artifact exclusions, but harvests command help directly from source comments. Use a leading `--dry-run` before a report-mode flag: the shared parser stops at the first custom flag, and the local mode parser does not set dry-run. A recognized dry-run skips report writes and help execution but still writes bootstrap logs.
+Verify report entries against current source before using them as operational facts. DIP may consume the output report for artifact exclusions, but harvests command help directly from source comments. `--dry-run` is honored before or after a report-mode flag; the shared parser sets it and the local mode parser ignores it. A dry-run skips report writes and help execution but still writes bootstrap logs.
 
 ## History
 <!-- DIP-HISTORY-EXTRACTED: command-reference.v1 -->

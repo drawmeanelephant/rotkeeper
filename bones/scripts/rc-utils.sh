@@ -96,6 +96,9 @@ RK_FD3_WIRED=false
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 # Interprets the whispered command-line flags (--dry-run, --verbose, --help)
+# anywhere in the argument list. Command-specific arguments are skipped, not
+# treated as the end of options, so a safety flag such as --dry-run is honored
+# after them; callers still parse their own arguments from the full list.
 parse_flags() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -105,7 +108,7 @@ parse_flags() {
       --quiet)     QUIET=true; shift ;;
       --debug)     DEBUG=true; VERBOSE=true; QUIET=false; shift ;;
       --help|-h)   HELP=true; shift ;;
-      *) break ;;
+      *) shift ;;
     esac
   done
 }
@@ -707,13 +710,29 @@ output_is_generated() {
 
 
 
+# ---
+# rk_is_path_cache_key: Allowlist of the keys init serializes into the paths
+# cache. rc-env.sh exports only these from the cache and strict validation
+# rejects any other key, so a crafted cache cannot inject variables such as
+# PATH, IFS, or RK_OLIVER_BIN into every command.
+# Inputs: $1 (key)
+# Outputs: Returns 0 for a known path key, 1 otherwise
+# Env: No env vars (pure args)
+# CWD: No assumption
+# ---
+rk_is_path_cache_key() {
+  case "${1:-}" in
+    ROOT_DIR|BONES_DIR|SCRIPT_DIR|CONFIG_DIR|LOG_DIR|TMP_DIR|ARCHIVE_DIR|RELEASE_DIR|REPORT_DIR|BOOK_REPORT_DIR|META_DIR|TEMPLATE_DIR|ASSETS_DIR|CONTENT_DIR|OUTPUT_DIR|DOCS_DIR|HELP_DIR|WEB_DIR) return 0 ;;
+    *) return 1 ;;
+  esac
+}
 
 # ---
 # validate_layout_alignment: Validates configured path cache against current runtime context.
 # Ensures the repository has not been broken, moved, or corrupted since initialization.
 # Inputs: $1 (mode: strict | bootstrap)
-# Outputs: Exits 1 on relocation/coherence/layout mismatch
-# Env: Reads ASSETS_DIR, BONES_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, META_DIR, OUTPUT_DIR, ROOT_DIR, TEMPLATE_DIR (via rc-env.sh / rk_load_env); respects DRY_RUN/VERBOSE where applicable
+# Outputs: Exits 1 on relocation/coherence/layout mismatch or unexpected cache entries
+# Env: Reads ARCHIVE_DIR, ASSETS_DIR, BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DOCS_DIR, HELP_DIR, LOG_DIR, META_DIR, OUTPUT_DIR, RELEASE_DIR, REPORT_DIR, ROOT_DIR, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, WEB_DIR (via rc-env.sh / rk_load_env); respects DRY_RUN/VERBOSE where applicable
 # CWD: No assumption — config discovery and the boundary root anchor on the rc-env.sh cached ROOT_DIR only; never consults PWD
 # ---
 validate_layout_alignment() {
@@ -790,6 +809,24 @@ validate_layout_alignment() {
               fi
           fi
 
+          # Every cache entry must be an allowlisted key with a one-line string
+          # value. Keys are JSON-encoded so a key containing a newline or quote
+          # cannot pass as one or more allowlisted names.
+          if [[ "$mode" != "bootstrap" ]]; then
+              local cache_ok cache_key
+              while IFS=' ' read -r cache_ok cache_key; do
+                  [[ -z "$cache_ok" && -z "$cache_key" ]] && continue
+                  cache_key="${cache_key#\"}"
+                  cache_key="${cache_key%\"}"
+                  if [[ "$cache_ok" != "true" ]] || ! rk_is_path_cache_key "$cache_key"; then
+                      echo "[ERROR] Corrupted path cache." >&2
+                      echo "  -> Unexpected key or non-path value in config paths: $cache_key" >&2
+                      echo "  -> Fix: Configuration state is corrupted. Run './rotkeeper.sh init' to heal." >&2
+                      exit 1
+                  fi
+              done < <(yq eval '.paths | to_entries | .[] | (((.value | tag) == "!!str" and (.value | test("[\r\n]") | not)) | @json) + " " + (.key | @json)' "$target_config" 2>/dev/null || true)
+          fi
+
           expected_content=$(yq eval '.paths.CONTENT_DIR // ""' "$target_config" 2>/dev/null)
           expected_output=$(yq eval '.paths.OUTPUT_DIR // ""' "$target_config" 2>/dev/null)
           expected_bones=$(yq eval '.paths.BONES_DIR // ""' "$target_config" 2>/dev/null)
@@ -798,9 +835,10 @@ validate_layout_alignment() {
           expected_docs=$(yq eval '.paths.DOCS_DIR // ""' "$target_config" 2>/dev/null)
           expected_meta=$(yq eval '.paths.META_DIR // ""' "$target_config" 2>/dev/null)
 
-          # Validate internal path coherency: ensure paths are within ROOT_DIR
+          # Validate internal path coherency: ensure paths are within ROOT_DIR.
+          # Keys without a layout expectation below are checked as loaded.
           if [[ "$mode" != "bootstrap" ]]; then
-              for p_name in CONTENT_DIR OUTPUT_DIR BONES_DIR TEMPLATE_DIR ASSETS_DIR DOCS_DIR META_DIR; do
+              for p_name in CONTENT_DIR OUTPUT_DIR BONES_DIR TEMPLATE_DIR ASSETS_DIR DOCS_DIR META_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR ARCHIVE_DIR RELEASE_DIR REPORT_DIR BOOK_REPORT_DIR HELP_DIR WEB_DIR; do
                   local p_val="${!p_name:-}"
                   if [[ "$p_name" == "CONTENT_DIR" ]]; then p_val="$expected_content"; fi
                   if [[ "$p_name" == "OUTPUT_DIR" ]]; then p_val="$expected_output"; fi
@@ -813,6 +851,15 @@ validate_layout_alignment() {
                   if [[ -z "$p_val" || "$p_val" == "null" ]]; then
                       echo "[ERROR] Corrupted path cache." >&2
                       echo "  -> Expected value for $p_name is empty or missing in config paths." >&2
+                      echo "  -> Fix: Configuration state is corrupted. Run './rotkeeper.sh init' to heal." >&2
+                      exit 1
+                  fi
+
+                  # Init writes absolute paths; a relative value would resolve
+                  # against the caller's CWD rather than the repository root.
+                  if [[ "$p_val" != /* ]]; then
+                      echo "[ERROR] Corrupted path cache." >&2
+                      echo "  -> $p_name is not an absolute path: $p_val" >&2
                       echo "  -> Fix: Configuration state is corrupted. Run './rotkeeper.sh init' to heal." >&2
                       exit 1
                   fi

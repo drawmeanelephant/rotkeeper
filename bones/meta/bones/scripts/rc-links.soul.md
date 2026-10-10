@@ -39,7 +39,7 @@ creates parent directories and overwrites an existing report.
 JSON mode also writes a short Markdown summary unless `--dry-run` is active.
 `--fix-hint` suggests changes; it does not change pages.
 
-Put shared flags such as `--dry-run` before command-specific options.
-The shared parser stops at the first unrecognized option. Dry-run scans
+Shared flags such as `--dry-run` are honored before or after
+command-specific options. Dry-run scans
 normally and writes bootstrap logs and temporary results, but does not
 publish a report. Its result scratch file is removed on exit.

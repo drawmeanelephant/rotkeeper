@@ -69,12 +69,17 @@ fi
 
 # 3. Optimized layout loading pass
 if [[ "$HAS_PATHS" == "true" ]]; then
-    # Parse the entire key/value block instantly in a single shell loop sweep
+    # Parse the entire key/value block instantly in a single shell loop sweep.
+    # Only one-line string entries with allowlisted path keys are exported, so
+    # a crafted cache cannot inject other variables or split into extra lines;
+    # strict validation in rc-utils rejects a cache carrying anything else.
     while IFS='=' read -r key val; do
         [[ -z "$key" ]] && continue
-        clean_val=$(echo "$val" | sed -E 's/^"//; s/"$//')
+        rk_is_path_cache_key "$key" || continue
+        clean_val="${val#\"}"
+        clean_val="${clean_val%\"}"
         export "$key"="$clean_val"
-    done < <(yq eval '.paths | to_entries | .[] | .key + "=" + .value' "$CONFIG_TARGET" 2>/dev/null || true)
+    done < <(yq eval '.paths | to_entries | .[] | select((.key | tag) == "!!str" and (.key | test("^[A-Z_]+$")) and (.value | tag) == "!!str" and (.value | test("[\r\n]") | not)) | .key + "=" + .value' "$CONFIG_TARGET" 2>/dev/null || true)
 else
     # Fallback to standard manual calculations if configuration paths are unseeded
     LAYOUT_STYLE="crypt"

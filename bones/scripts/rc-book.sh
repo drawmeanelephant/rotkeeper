@@ -69,16 +69,6 @@ source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&
 #   3         Write-boundary violation
 # @END-HELP
 
-# --dry-run may follow a mode flag; parse_flags only consumes leading common
-# flags, so detect it before bootstrap so QUIET is lifted the same as
-# `book --dry-run --configbook`.
-for _arg in "$@"; do
-  if [[ "$_arg" == "--dry-run" ]]; then
-    DRY_RUN=true
-    break
-  fi
-done
-
 rk_init_script "rc-book" "$@"
 require_env_vars ROOT_DIR BONES_DIR SCRIPT_DIR CONFIG_DIR TEMPLATE_DIR LOG_DIR TMP_DIR REPORT_DIR BOOK_REPORT_DIR DOCS_DIR CONTENT_DIR
 
