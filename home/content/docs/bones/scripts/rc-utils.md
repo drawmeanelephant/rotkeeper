@@ -64,7 +64,7 @@ Shared Bash helper library rather than a dispatcher command. Sourcing defines he
 
 ### Limits
 
-`parse_flags` handles leading common flags only and stops at the first custom argument; each caller must handle later flags. `run` suppresses only commands routed through it during dry-run, not arbitrary caller writes. Normal commands retain strict cache, relocation, layout, boundary, and readiness checks. Only init uses the shared bootstrap: it ignores cached destinations, validates YAML and every derived destination canonically before writes, and strictly reloads after replacing the cache. Canonical bootstrap validation requires GNU `realpath -m` or `readlink -m`. Sidecar mapping rejects escaping destinations by returning `bones/meta/null.soul.md`.
+`parse_flags` recognizes common flags anywhere in the argument list and skips command-specific arguments; callers still parse their own options from the full list. `run` suppresses only commands routed through it during dry-run, not arbitrary caller writes. Normal commands retain strict cache, relocation, layout, boundary, and readiness checks; the cache may hold only the path keys init writes, each a one-line string inside the root. Only init uses the shared bootstrap: it ignores cached destinations, validates YAML and every derived destination canonically before writes, and strictly reloads after replacing the cache. Canonical bootstrap validation requires GNU `realpath -m` or `readlink -m`. Sidecar mapping rejects escaping destinations by returning `bones/meta/null.soul.md`.
 
 ### Cautions
 

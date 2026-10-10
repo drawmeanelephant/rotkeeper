@@ -80,7 +80,7 @@ if [[ -z "$CURRENT_VERSION" || ! "$CURRENT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ 
   exit 1
 fi
 
-# Parse flags manually; the shared parser already handled leading common flags.
+# Parse flags manually; the shared parser already handled common flags.
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --version|-v) echo "$(basename "$0") v${VERSION:-unknown}"; exit 0 ;;

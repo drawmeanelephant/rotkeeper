@@ -78,8 +78,8 @@ source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&
 #   nonzero   Audit could not complete
 # @END-HELP
 
-# --json is extracted before shared bootstrap because parse_flags stops at the
-# first unknown flag; everything else passes through to it untouched.
+# --json is dip's only option outside the shared flag set; extract it here and
+# pass everything else through to the shared bootstrap untouched.
 JSON_MODE=false
 DIP_ARGS=()
 for _arg in "$@"; do

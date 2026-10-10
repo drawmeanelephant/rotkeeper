@@ -622,7 +622,7 @@ CONF_EOF
     bash "$repair_root/rotkeeper.sh" preflight > /dev/null
     repair_good="$TEST_DIR/repair-$mode.yaml"
     cp "$repair_config" "$repair_good"
-    for invalid in malformed missing escape layout; do
+    for invalid in malformed missing unknown nonstring escape escape-tmp layout; do
       cp "$repair_good" "$repair_config"
       case "$invalid" in
         malformed)
@@ -633,8 +633,21 @@ CONF_EOF
           yq eval 'del(.paths.CONTENT_DIR)' -i "$repair_config"
           expected_error="Corrupted path cache."
           ;;
+        unknown)
+          # Only the path keys init writes may be loaded from the cache.
+          yq eval '.paths.RK_OLIVER_BIN = "/nonexistent/oliver" | .paths.PATH = "/nonexistent"' -i "$repair_config"
+          expected_error="Corrupted path cache."
+          ;;
+        nonstring)
+          yq eval '.paths.TMP_DIR = ["bones/tmp"]' -i "$repair_config"
+          expected_error="Corrupted path cache."
+          ;;
         escape)
           ROOT_ESCAPE="$pass_dir/output" yq eval '.paths.OUTPUT_DIR = strenv(ROOT_ESCAPE)' -i "$repair_config"
+          expected_error="Structural coherence violation."
+          ;;
+        escape-tmp)
+          ROOT_ESCAPE="$pass_dir/bones/tmp" yq eval '.paths.TMP_DIR = strenv(ROOT_ESCAPE)' -i "$repair_config"
           expected_error="Structural coherence violation."
           ;;
         layout)
@@ -2745,8 +2758,8 @@ XHTML_RAW_EOF
     ./rotkeeper.sh scan --dry-run > /dev/null
     ./rotkeeper.sh release "$TEST_RELEASE_VERSION" --dry-run > /dev/null
     ./rotkeeper.sh assets --dry-run > /dev/null
-    # Documented flag order (mode then --dry-run): parseflags must set DRY_RUN
-    # after rk_init_script's parse_flags stops at the mode flag.
+    # Documented flag order (mode then --dry-run): the shared parser must
+    # honor --dry-run after the mode flag.
     ./rotkeeper.sh book --configbook --dry-run > /dev/null
     ./rotkeeper.sh book --contentmeta --dry-run > /dev/null
     ./rotkeeper.sh book --collapse --dry-run > /dev/null
@@ -2759,6 +2772,53 @@ XHTML_RAW_EOF
       echo "❌ Assertion Failed: --dry-run mutated the workspace ($pre_count -> $post_count files)."
       exit 153
     fi
+
+    echo "  [+] Executing shared-flag-after-command-flag assertions..."
+    # Shared flags must be honored after command-specific flags, not only
+    # when they come first. Each probe moves a write target aside so a write
+    # that ignored --dry-run/--help is visible even when it would be identical.
+    order_dir="$TEST_DIR/flag-order-$mode"
+    mkdir -p "$order_dir"
+    mv "$b_content/test-file.md" "$order_dir/test-file.md"
+    ./rotkeeper.sh init --with-sample --dry-run > /dev/null
+    ./rotkeeper.sh init --with-sample --help > /dev/null
+    if [[ -e "$b_content/test-file.md" ]]; then
+      echo "❌ Assertion Failed: init --with-sample ignored a later --dry-run or --help."
+      exit 153
+    fi
+    mv "$order_dir/test-file.md" "$b_content/test-file.md"
+    if [[ ! -f "$rendered_ugly" ]]; then
+      echo "❌ Assertion Failed: flag-order probe needs rendered $rendered_ugly."
+      exit 153
+    fi
+    mv "$rendered_ugly" "$order_dir/rendered.html"
+    RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh render --renderer oliver --dry-run > /dev/null
+    if [[ -e "$rendered_ugly" ]]; then
+      echo "❌ Assertion Failed: render --renderer oliver ignored a later --dry-run."
+      exit 153
+    fi
+    mv "$order_dir/rendered.html" "$rendered_ugly"
+    if [[ -e bones/reports/autopsy-help.md ]]; then
+      mv bones/reports/autopsy-help.md "$order_dir/autopsy-help.md"
+    fi
+    ./rotkeeper.sh autopsy --help-report --dry-run > /dev/null
+    if [[ -e bones/reports/autopsy-help.md ]]; then
+      echo "❌ Assertion Failed: autopsy --help-report ignored a later --dry-run."
+      exit 153
+    fi
+    if [[ -e "$order_dir/autopsy-help.md" ]]; then
+      mv "$order_dir/autopsy-help.md" bones/reports/autopsy-help.md
+    fi
+    link_reports_before=$( (find bones/reports -name 'link-report-*' 2>/dev/null || true) | wc -l | tr -d ' ')
+    links_status=0
+    ./rotkeeper.sh links --json --dry-run > /dev/null || links_status=$?
+    link_reports_after=$( (find bones/reports -name 'link-report-*' 2>/dev/null || true) | wc -l | tr -d ' ')
+    if [[ "$links_status" -gt 1 || "$link_reports_before" != "$link_reports_after" ]]; then
+      echo "❌ Assertion Failed: links --json ignored a later --dry-run (status $links_status)."
+      exit 153
+    fi
+    rm -rf "$order_dir"
+    echo "  [+] Pass: shared flags honored after command-specific flags ($mode)."
 
     echo "  [+] Executing stale-output pruning assertions..."
     rm -f "$b_content/ugly-edge-case.md"
