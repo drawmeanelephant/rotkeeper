@@ -14,7 +14,7 @@ IFS=$'\n\t'
 # Input/Output contracts: creates one new `.md`, `.textile`, or `.cook` source under `CONTENT_DIR`; bare names get `.md`. No filename or `--list` lists templates, marking the configured default and palette support.
 #   YAML fields include title, slug, and template; optional description, author, tags, and source_url are emitted when supplied. Multiline descriptions use a block scalar and tags use a quoted YAML list. Template selection uses the shared registry/default resolution.
 #   Markdown gets a `#` heading, Textile an `h1.` heading, and Cooklang a sample recipe body without a heading. `--url` creates Source/Notes/Summary sections. `--soul` requests a sidecar through the traversal-guarded metadata mapping.
-#   Filename/subdirectory traversal and destinations outside `CONTENT_DIR` are rejected. Existing content is never overwritten; existing sidecars are warned about and kept. Dry-run previews the scaffold without publishing files.
+#   Filename/subdirectory traversal and destinations outside `CONTENT_DIR` are rejected, as are value flags without a value and frontmatter values containing control characters (descriptions may span lines). Existing content is never overwritten; existing sidecars are warned about and kept. Dry-run previews the scaffold without publishing files.
 #  Project : Rotkeeper
 #  Repo    : https://github.com/drawmeanelephant/rotkeeper
 #  Script  : rc-new.sh
@@ -158,6 +158,41 @@ list_templates() {
   fi
 }
 
+# ---
+# require_flag_value: Abort when a value-taking flag is the last argument.
+# Inputs: $1 (flag name), remaining parser arguments
+# Outputs: Logs ERROR and exits 1 when no value follows the flag
+# Env: none beyond log()
+# CWD: No assumption
+# ---
+require_flag_value() {
+  if [[ $# -lt 2 ]]; then
+    log "ERROR" "$1 requires a value. Usage: rotkeeper.sh new <file> [options]"
+    exit 1
+  fi
+}
+
+# ---
+# reject_control_chars: Refuse frontmatter values that could break out of their YAML scalar.
+# Inputs: $1 (field label), $2 (value), $3 (optional "multiline" to permit LF and TAB)
+# Outputs: Logs ERROR and exits 1 when the value contains a control character
+# Env: none beyond log()
+# CWD: No assumption
+# ---
+reject_control_chars() {
+  local label="$1"
+  local value="$2"
+  if [[ "${3:-}" == multiline ]]; then
+    value="${value//[$'\n\t']/}"
+  fi
+  # A newline or CR would start a new frontmatter line (e.g. an injected
+  # rotkeeper_glued key) even when the scalar itself is quoted.
+  if [[ "$value" == *[[:cntrl:]]* ]]; then
+    log "ERROR" "$label must not contain newlines or other control characters"
+    exit 1
+  fi
+}
+
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/rc-utils.sh" || { echo "FATAL: cannot source rc-utils.sh" >&2; exit 1; }
@@ -203,34 +238,42 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --title)
+      require_flag_value "$@"
       TITLE_OVERRIDE="$2"
       shift 2
       ;;
     --author)
+      require_flag_value "$@"
       AUTHOR_OVERRIDE="$2"
       shift 2
       ;;
     --tags)
+      require_flag_value "$@"
       TAGS="$2"
       shift 2
       ;;
     --template)
+      require_flag_value "$@"
       TEMPLATE_OVERRIDE="$2"
       shift 2
       ;;
     --description)
+      require_flag_value "$@"
       DESCRIPTION="$2"
       shift 2
       ;;
     --body)
+      require_flag_value "$@"
       BODY_TEXT="$2"
       shift 2
       ;;
     --url)
+      require_flag_value "$@"
       SOURCE_URL="$2"
       shift 2
       ;;
     --subdir)
+      require_flag_value "$@"
       SUBDIR="$2"
       shift 2
       ;;
@@ -305,11 +348,6 @@ main() {
         exit 1
     fi
 
-    if [[ "$DRY_RUN" == false ]]; then
-        # SIDE EFFECT (write): creates the target directory under content/ if missing
-        mkdir -p "$(dirname "$FILE")"
-    fi
-
     if [[ -f "$FILE" ]]; then
         log "ERROR" "File already exists: $FILE"
         exit 1
@@ -333,6 +371,15 @@ main() {
         AUTHOR=$(yq e '.author // ""' "$CONFIG_DIR/rotkeeper.yaml" 2>/dev/null || echo "")
     fi
 
+    # Validate the final values (including filename- and config-derived ones)
+    # before any write, so a rejected scaffold leaves no directories behind.
+    reject_control_chars "Title" "$TITLE"
+    reject_control_chars "Template" "$TEMPLATE_OVERRIDE"
+    reject_control_chars "Author" "$AUTHOR"
+    reject_control_chars "Tags" "$TAGS"
+    reject_control_chars "URL" "$SOURCE_URL"
+    reject_control_chars "Description" "$DESCRIPTION" multiline
+
     TAGS_YAML=""
     if [[ -n "$TAGS" ]]; then
         IFS=',' read -ra TAG_ITEMS <<< "$TAGS"
@@ -353,6 +400,8 @@ main() {
     # Sanitize and escape double quotes for frontmatter strings
     SAFE_TITLE="${TITLE//\\/\\\\}"
     SAFE_TITLE="${SAFE_TITLE//\"/\\\"}"
+    SAFE_TEMPLATE="${TEMPLATE_OVERRIDE//\\/\\\\}"
+    SAFE_TEMPLATE="${SAFE_TEMPLATE//\"/\\\"}"
 
     # Format-aware default heading: textile pages get h1., markdown pages get #,
     # cooklang recipes get none (Cooklang has no heading syntax — the recipe
@@ -385,13 +434,15 @@ main() {
     fi
 
     if [[ "$DRY_RUN" == false ]]; then
+        # SIDE EFFECT (write): creates the target directory under content/ if missing
+        mkdir -p "$(dirname "$FILE")"
         # SIDE EFFECT (write): creates the new content page (frontmatter + body appended below);
         # earlier existence check guarantees this never overwrites an existing file
         cat << EOF > "$FILE"
 ---
 title: "${SAFE_TITLE}"
 slug: $SLUG
-template: $TEMPLATE_OVERRIDE
+template: "${SAFE_TEMPLATE}"
 EOF
 
         if [[ -n "$DESCRIPTION" ]]; then

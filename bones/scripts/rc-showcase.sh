@@ -36,7 +36,7 @@ IFS=$'\n\t'
 # Env assumptions: reads CONTENT_DIR, DRY_RUN, OLIVER_BIN, OUTPUT_DIR, RK_OLIVER_BIN, ROOT_DIR, SCRIPT_DIR, TEMPLATE_DIR (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
 # Input/Output contracts: reads every HTML template in `TEMPLATE_DIR`; overwrites generated `CONTENT_DIR/showcase/showcase-<theme>.md` sources, the gallery index source, and `OUTPUT_DIR/showcase/index.html`.
-#   Template variables get sample frontmatter values except internal tokens; descriptions alternate present/absent across themes. A fixed sample body exercises headings, emphasis, quotes, tables, and code. Available Oliver validates templates; without it the command warns and continues.
+#   Template variables get sample frontmatter values except internal tokens; descriptions alternate present/absent across themes. A fixed sample body exercises headings, emphasis, quotes, tables, and code. When Oliver is available, an empty template stops the run with exit 1 before its page is written; without Oliver the command warns and continues.
 #   The gallery HTML is a direct preview write, not a rendered page. Run `bash rotkeeper.sh render` after scaffolding to render showcase sources. Manual changes to generated showcase files are replaced on the next real run; dry-run previews only.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -54,13 +54,18 @@ main() {
   log "INFO" "Initializing Gallery of the Damned showcase scanner..."
 
   local showcase_dir="$CONTENT_DIR/showcase"
-  # SIDE EFFECT (write): creates home/content/showcase if missing
-  mkdir -p "$showcase_dir"
-  log "INFO" "Ensured showcase directory exists: $showcase_dir"
 
   if [[ ! -d "$TEMPLATE_DIR" ]]; then
     log "ERROR" "Template directory not found: $TEMPLATE_DIR"
     exit 1
+  fi
+
+  if [[ "$DRY_RUN" == true ]]; then
+    log "DRY-RUN" "Would ensure showcase directory exists: $showcase_dir"
+  else
+    # SIDE EFFECT (write): creates home/content/showcase if missing
+    mkdir -p "$showcase_dir"
+    log "INFO" "Ensured showcase directory exists: $showcase_dir"
   fi
 
   local count=0
@@ -101,6 +106,22 @@ template: \"$template_name\""
       frontmatter+=$'\n'"$var: \"Dummy value for $var\""
     done
     frontmatter+=$'\n'"---"
+
+    # Lightweight structural probe when Oliver is discoverable: the template must
+    # be non-empty. It runs before the page write (and in dry-run) so a rejected
+    # template never gets a showcase page; full rendering is rc-render.sh's job.
+    OLIVER_BIN="${RK_OLIVER_BIN:-$(command -v oliver 2>/dev/null || true)}"
+    if [[ -n "$OLIVER_BIN" && -x "$OLIVER_BIN" ]]; then
+      if [[ ! -s "$template_file" ]]; then
+        log "ERROR" "Template $(basename "$template_file") is empty or missing — Oliver cannot render against it."
+        # Not trap_err: outside the ERR trap it would report log()'s status (0).
+        exit 1
+      else
+        log "INFO" "Template $(basename "$template_file") passed Oliver structural check (non-empty, readable)."
+      fi
+    else
+      log "WARN" "RK_OLIVER_BIN is unset or not executable; skipping live template validation for $(basename "$template_file"). Set RK_OLIVER_BIN to enable."
+    fi
 
     if [[ "$DRY_RUN" == true ]]; then
       log "DRY-RUN" "Would scaffold showcase page: $target_file"
@@ -201,22 +222,6 @@ echo "With benchmark archival channels implementing viral bash-rituals."
 | Data | A very long string that might cause overflow | Data | Data | Data | Data |
 
 MD_EOF
-
-    # Validate template is parseable by Oliver adapter (no external renderer dependency).
-    # If RK_OLIVER_BIN is available and executable, confirm the template file is
-    # non-empty and syntactically sane by checking it can be read by yq / gawk.
-    # This is a lightweight structural probe — full rendering is handled by rc-render.sh.
-    OLIVER_BIN="${RK_OLIVER_BIN:-$(command -v oliver 2>/dev/null || true)}"
-    if [[ -n "$OLIVER_BIN" && -x "$OLIVER_BIN" ]]; then
-      if [[ ! -s "$template_file" ]]; then
-        log "ERROR" "Template $(basename "$template_file") is empty or missing — Oliver cannot render against it."
-        trap_err $LINENO
-      else
-        log "INFO" "Template $(basename "$template_file") passed Oliver structural check (non-empty, readable)."
-      fi
-    else
-      log "WARN" "RK_OLIVER_BIN is unset or not executable; skipping live template validation for $(basename "$template_file"). Set RK_OLIVER_BIN to enable."
-    fi
 
     count=$((count + 1))
   done

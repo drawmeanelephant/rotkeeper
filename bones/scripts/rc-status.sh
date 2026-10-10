@@ -193,9 +193,10 @@ JSON_CONFIG=""
 # CWD: No assumption — uses root-relative paths via rk_canonical_path helpers
 # ---
 escape_json() {
-  # Trim newlines and escape
-  # Pipeline: jq -R -s encodes raw string to JSON; sed strips outer quotes to inline into larger object.
-  echo -n "$1" | jq -R -s -c . | sed 's/^"//' | sed 's/"$//'
+  # jq -R -s encodes the raw string as one JSON string; the slice drops its
+  # outer quotes so callers can inline it. printf, unlike echo, never treats a
+  # value such as "-n" or "-e" as an option.
+  printf '%s' "$1" | jq -R -s -r 'tojson | .[1:-1]'
 }
 
 # --- Section 1: Environment ---
@@ -232,15 +233,15 @@ if [[ "$SHORT_MODE" == true && "$JSON_MODE" == false ]]; then
 fi
 
 if [[ "$JSON_MODE" == true ]]; then
-    GIT_B_JSON="\"$GIT_BRANCH\""
+    GIT_B_JSON="\"$(escape_json "$GIT_BRANCH")\""
     [[ "$GIT_BRANCH" == "[no git]" ]] && GIT_B_JSON="null"
-    GIT_C_JSON="\"$GIT_COMMIT\""
+    GIT_C_JSON="\"$(escape_json "$GIT_COMMIT")\""
     [[ "$GIT_COMMIT" == "[no git]" ]] && GIT_C_JSON="null"
 
     JSON_ENV="  \"environment\": {
-    \"canonical_version\": \"$CANONICAL_VERSION\",
-    \"version_source\": \"$VERSION_SOURCE\",
-    \"cwd\": \"$CWD\",
+    \"canonical_version\": \"$(escape_json "$CANONICAL_VERSION")\",
+    \"version_source\": \"$(escape_json "$VERSION_SOURCE")\",
+    \"cwd\": \"$(escape_json "$CWD")\",
     \"branch\": $GIT_B_JSON,
     \"commit\": $GIT_C_JSON
   }"
@@ -267,6 +268,7 @@ else
 fi
 
 first_script=true
+canonical_version_j=$(escape_json "$CANONICAL_VERSION")
 for script in ${scripts_list[@]+"${scripts_list[@]}"}; do
     [[ ! -f "$script" ]] && continue
     total_scripts=$((total_scripts + 1))
@@ -284,8 +286,8 @@ for script in ${scripts_list[@]+"${scripts_list[@]}"}; do
         [[ "$first_script" == false ]] && json_scripts+=","
         json_scripts+="
       {
-        \"script\": \"$s_name\",
-        \"version\": \"$s_version\",
+        \"script\": \"$(escape_json "$s_name")\",
+        \"version\": \"$canonical_version_j\",
         \"matches_canonical\": $match_json
       }"
         first_script=false
@@ -311,7 +313,7 @@ fi
 # --- Section 3: RAG Exports (book-reports) ---
 if [[ "$JSON_MODE" == true ]]; then
     if [[ ! -d "$BOOK_REPORT_DIR" ]]; then
-        JSON_RAG='"rag_exports": {"status": "skipped", "reason": "'"${BOOK_REPORT_DIR#"$ROOT_DIR"/}"'/ does not exist"}'
+        JSON_RAG='"rag_exports": {"status": "skipped", "reason": "'"$(escape_json "${BOOK_REPORT_DIR#"$ROOT_DIR"/}")"'/ does not exist"}'
     else
         mapfile -t rag_files < <(find "$BOOK_REPORT_DIR" -maxdepth 1 -type f 2>/dev/null || true)
         if [[ ${#rag_files[@]} -eq 0 ]]; then
@@ -330,8 +332,8 @@ if [[ "$JSON_MODE" == true ]]; then
                 [[ "$first_rag" == false ]] && json_rag_arr+=","
                 json_rag_arr+="
           {
-            \"filename\": \"$fn\",
-            \"size\": \"$sz\",
+            \"filename\": \"$(escape_json "$fn")\",
+            \"size\": \"$(escape_json "$sz")\",
             \"chars\": $ch,
             \"estimated_tokens\": $tk,
             \"context_pct\": $pct
@@ -388,7 +390,7 @@ fi
 RELEASES_DIR="${ARCHIVE_DIR#"$ROOT_DIR"/}/releases"
 if [[ "$JSON_MODE" == true ]]; then
     if [[ ! -d "$RELEASES_DIR" ]]; then
-        JSON_RELEASES='"releases": {"status": "skipped", "reason": "'"${ARCHIVE_DIR#"$ROOT_DIR"/}"'/releases/ does not exist"}'
+        JSON_RELEASES='"releases": {"status": "skipped", "reason": "'"$(escape_json "${ARCHIVE_DIR#"$ROOT_DIR"/}")"'/releases/ does not exist"}'
     else
         mapfile -t rel_files < <(find "$RELEASES_DIR" -maxdepth 1 -type f -name '*.zip' 2>/dev/null | sort -r || true)
         if [[ ${#rel_files[@]} -eq 0 ]]; then
@@ -404,9 +406,9 @@ if [[ "$JSON_MODE" == true ]]; then
                 [[ "$first_rel" == false ]] && json_rel_arr+=","
                 json_rel_arr+="
           {
-            \"filename\": \"$fn\",
-            \"size\": \"$sz\",
-            \"date\": \"$mod\"
+            \"filename\": \"$(escape_json "$fn")\",
+            \"size\": \"$(escape_json "$sz")\",
+            \"date\": \"$(escape_json "$mod")\"
           }"
                 first_rel=false
             done
@@ -454,7 +456,7 @@ fi
 # --- Section 4b: Recent Tombs ---
 if [[ "$JSON_MODE" == true ]]; then
     if [[ ! -d "$ARCHIVE_DIR" ]]; then
-        JSON_TOMBS='"recent_tombs": {"status": "skipped", "reason": "'"${ARCHIVE_DIR#"$ROOT_DIR"/}"'/ does not exist"}'
+        JSON_TOMBS='"recent_tombs": {"status": "skipped", "reason": "'"$(escape_json "${ARCHIVE_DIR#"$ROOT_DIR"/}")"'/ does not exist"}'
     else
         mapfile -t tomb_files < <(find "$ARCHIVE_DIR" -maxdepth 1 -type f -name '*.tar.gz' 2>/dev/null | sort -r | head -n 5 || true)
         if [[ ${#tomb_files[@]} -eq 0 ]]; then
@@ -470,9 +472,9 @@ if [[ "$JSON_MODE" == true ]]; then
                 [[ "$first_tomb" == false ]] && json_tomb_arr+=","
                 json_tomb_arr+="
           {
-            \"filename\": \"$fn\",
-            \"size\": \"$sz\",
-            \"date\": \"$mod\"
+            \"filename\": \"$(escape_json "$fn")\",
+            \"size\": \"$(escape_json "$sz")\",
+            \"date\": \"$(escape_json "$mod")\"
           }"
                 first_tomb=false
             done
@@ -528,7 +530,7 @@ if [[ ! -d "$CONTENT_DIR" ]] || [[ -z "$(find "$CONTENT_DIR" -type f \( -name '*
     if [[ "$JSON_MODE" == true ]]; then
         JSON_PULSE="  \"content_pulse\": {
     \"status\": \"empty\",
-    \"reason\": \"no content files found in ${CONTENT_DIR#"$ROOT_DIR"/}/\",
+    \"reason\": \"no content files found in $(escape_json "${CONTENT_DIR#"$ROOT_DIR"/}")/\",
     \"total_md\": 0,
     \"total_textile\": 0,
     \"total_cook\": 0,
@@ -625,7 +627,7 @@ fi
 if [[ "$JSON_MODE" == true ]]; then
     JSON_RENDER="  \"render_freshness\": {
     \"status\": \"$status_json\",
-    \"message\": \"$status_render\"
+    \"message\": \"$(escape_json "$status_render")\"
   }"
 else
     status_heading "=== Render Freshness ==="
@@ -645,7 +647,7 @@ fi
 CONFIG_FILE="$CONFIG_DIR/rotkeeper.yaml"
 if [[ ! -f "$CONFIG_FILE" ]]; then
     if [[ "$JSON_MODE" == true ]]; then
-        JSON_CONFIG='"config_summary": {"status": "skipped", "reason": "'"${CONFIG_DIR#"$ROOT_DIR"/}"'/rotkeeper.yaml does not exist"}'
+        JSON_CONFIG='"config_summary": {"status": "skipped", "reason": "'"$(escape_json "${CONFIG_DIR#"$ROOT_DIR"/}")"'/rotkeeper.yaml does not exist"}'
     else
         status_heading "=== Config Summary ==="
         echo "[SKIP] ${CONFIG_DIR#"$ROOT_DIR"/}/rotkeeper.yaml does not exist"

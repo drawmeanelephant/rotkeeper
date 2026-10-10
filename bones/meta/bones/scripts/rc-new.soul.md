@@ -1,6 +1,6 @@
 ---
 target_file: bones/scripts/rc-new.sh
-reviewed: "2026-10-01"
+reviewed: "2026-10-09"
 reviewed_against: "0.8.1"
 ---
 
@@ -15,7 +15,7 @@ a review date and version.
 
 ### Limits
 
-Canonical destination checks reject parent traversal and paths outside the content boundary, and existing content files are refused. Titles, authors, tags, and single-line descriptions escape quotes and backslashes; multiline descriptions use a block scalar. Slugs are ASCII-oriented. The selected template name is written to frontmatter without checking whether that template exists; rendering has its own template checks.
+Canonical destination checks reject parent traversal and paths outside the content boundary, and existing content files are refused. Value flags given without a value are rejected. Titles, templates, authors, tags, URLs, and descriptions containing control characters are rejected before any directory or file is written; only descriptions may contain newlines and tabs. Titles, templates, authors, tags, URLs, and single-line descriptions are double-quoted with quotes and backslashes escaped; multiline descriptions use a block scalar. Slugs are ASCII-oriented. The selected template name is written to frontmatter without checking whether that template exists; rendering has its own template checks.
 
 ### Cautions
 

@@ -69,7 +69,7 @@ bash rotkeeper.sh new ember-report --title "Ember Report" --tags "news,ember" --
 **Inputs and outputs:** creates one new `.md`, `.textile`, or `.cook` source under `CONTENT_DIR`; bare names get `.md`. No filename or `--list` lists templates, marking the configured default and palette support.
 YAML fields include title, slug, and template; optional description, author, tags, and source_url are emitted when supplied. Multiline descriptions use a block scalar and tags use a quoted YAML list. Template selection uses the shared registry/default resolution.
 Markdown gets a `#` heading, Textile an `h1.` heading, and Cooklang a sample recipe body without a heading. `--url` creates Source/Notes/Summary sections. `--soul` requests a sidecar through the traversal-guarded metadata mapping.
-Filename/subdirectory traversal and destinations outside `CONTENT_DIR` are rejected. Existing content is never overwritten; existing sidecars are warned about and kept. Dry-run previews the scaffold without publishing files.
+Filename/subdirectory traversal and destinations outside `CONTENT_DIR` are rejected, as are value flags without a value and frontmatter values containing control characters (descriptions may span lines). Existing content is never overwritten; existing sidecars are warned about and kept. Dry-run previews the scaffold without publishing files.
 
 ## Side effects
 
@@ -92,7 +92,7 @@ a review date and version.
 
 ### Limits
 
-Canonical destination checks reject parent traversal and paths outside the content boundary, and existing content files are refused. Titles, authors, tags, and single-line descriptions escape quotes and backslashes; multiline descriptions use a block scalar. Slugs are ASCII-oriented. The selected template name is written to frontmatter without checking whether that template exists; rendering has its own template checks.
+Canonical destination checks reject parent traversal and paths outside the content boundary, and existing content files are refused. Value flags given without a value are rejected. Titles, templates, authors, tags, URLs, and descriptions containing control characters are rejected before any directory or file is written; only descriptions may contain newlines and tabs. Titles, templates, authors, tags, URLs, and single-line descriptions are double-quoted with quotes and backslashes escaped; multiline descriptions use a block scalar. Slugs are ASCII-oriented. The selected template name is written to frontmatter without checking whether that template exists; rendering has its own template checks.
 
 ### Cautions
 
