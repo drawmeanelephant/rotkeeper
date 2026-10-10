@@ -698,15 +698,24 @@ validate_layout_alignment() {
       # Init may replace an invalid cache, never use it to select write targets.
       # Check every derived destination before logs, chmod, mkdir, or yq writes.
       local canon_root canon_val p_name
-      canon_root=$(realpath -m "$root_fallback" 2>/dev/null || readlink -m "$root_fallback" 2>/dev/null) || {
-          echo "[ERROR] Cannot validate canonical paths; GNU realpath/readlink -m is required." >&2
-          exit 1
-      }
+      # Portable canonicalization: realpath/readlink -m are GNU-only, so fall
+      # back through rk_canonical_path (and finally the raw path, as the
+      # strict branch does) instead of hard-requiring GNU coreutils.
+      canon_root=$(rk_canonical_or_raw "$root_fallback")
       for p_name in BONES_DIR SCRIPT_DIR CONFIG_DIR LOG_DIR TMP_DIR ARCHIVE_DIR RELEASE_DIR REPORT_DIR BOOK_REPORT_DIR META_DIR TEMPLATE_DIR ASSETS_DIR CONTENT_DIR OUTPUT_DIR DOCS_DIR HELP_DIR WEB_DIR CONFIG_TARGET; do
-          canon_val=$(realpath -m "${!p_name}" 2>/dev/null || readlink -m "${!p_name}" 2>/dev/null) || {
-              echo "[ERROR] Cannot canonicalize $p_name." >&2
-              exit 1
-          }
+          canon_val="${!p_name}"
+          # Resolve leaf symlinks first, including dangling ones: plain
+          # readlink works on BSD, while readlink -f needs the target to
+          # exist and rk_canonical_path keeps a non-directory leaf literal.
+          local link_depth=0
+          while [[ -L "$canon_val" && $link_depth -lt 40 ]]; do
+              local link_target
+              link_target=$(readlink "$canon_val" 2>/dev/null) || break
+              [[ "$link_target" == /* ]] || link_target="$(dirname "$canon_val")/$link_target"
+              canon_val="$link_target"
+              link_depth=$((link_depth + 1))
+          done
+          canon_val=$(rk_canonical_or_raw "$canon_val")
           if [[ "$canon_val" != "$canon_root/"* ]]; then
               echo "[ERROR] Structural coherence violation." >&2
               echo "  -> $p_name ($canon_val) escapes Root Dir ($canon_root)." >&2
