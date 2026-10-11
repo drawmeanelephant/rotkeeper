@@ -20,6 +20,7 @@ their exact Git commit. Where the source is silent, the ledger stays silent.
 
 ## Living Buildlog
 <!-- LIVING_BUILDLOG_START -->
+* `v0.9.0` - (2026-10-11 18:20) - 0.9.0: Windows/MSYS toolchain port, published Help site (generated references, quality gates, Cloudflare Pages), DIP reporting upgrades, audit hardening sweep across rc-* scripts
 * `v0.8.1` - (2026-09-24 22:11) - Small release: rotatui spin wrapper gated on fixed gum, Linux review nits, charm stack + pride/flash themes
 * `v0.8.0` - (2026-08-28 11:08) - Release 0.8.0: Phase 6 completion (Oliver pin 06dd640, adapter direct), theme registry + config nav, DaisyUI trio + palette switching, UX sweep 2, identity primitives, docs trio
 * `v0.7.0` - (2026-08-15 11:45) - Release 0.7.0: Oliver pinned to 6edb520c with download-first install from upstream builds release

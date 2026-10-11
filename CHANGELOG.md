@@ -1,3 +1,7 @@
+## [0.9.0] - 2026-10-11
+
+- 0.9.0: Windows/MSYS toolchain port, published Help site (generated references, quality gates, Cloudflare Pages), DIP reporting upgrades, audit hardening sweep across rc-* scripts
+
 ## [0.8.1] - 2026-09-24
 
 - Small release: rotatui spin wrapper gated on fixed gum, Linux review nits, charm stack + pride/flash themes
