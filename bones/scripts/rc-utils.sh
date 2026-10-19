@@ -68,7 +68,7 @@ rk_load_env() {
 # ------------------------------------------------------------
 #  Part of the Rotkeeper ritual system — bones, scripts, tombs.
 # ============================================================
-# Env assumptions: reads ARCHIVE_DIR, ASSETS_DIR, BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DEBUG, DOCS_DIR, DRY_RUN, HELP_DIR, INPUT_FORMAT, LOG_DIR, LOG_FILE, META_DIR, OLIVER_BIN, OUTPUT_DIR, QUIET, RELEASE_DIR, RENDER_PROFILE, REPORT_DIR, RK_OLIVER_BIN, ROOT_DIR, ROTKEEPER_VERSION, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, VERBOSE, VERSION, WEB_DIR (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+# Env assumptions: reads ARCHIVE_DIR, ASSETS_DIR, BONES_DIR, BOOK_REPORT_DIR, CONFIG_DIR, CONTENT_DIR, DEBUG, DOCS_DIR, DRY_RUN, HELP_DIR, INPUT_FORMAT, LOG_DIR, LOG_FILE, MARKDOWN_EXTENSIONS, META_DIR, OLIVER_BIN, OUTPUT_DIR, QUIET, RELEASE_DIR, RENDER_PROFILE, REPORT_DIR, RK_OLIVER_BIN, ROOT_DIR, ROTKEEPER_VERSION, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, VERBOSE, VERSION, WEB_DIR (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
 # Input/Output contracts: shared helper library, not a dispatcher command. Sourcing defines helpers and loads the version but does not load the layout; scripts call `rk_init_script`, which parses common flags, installs traps, loads/validates the environment, opens a run log, and saves stdout on fd 3.
 #   Provides flag/help handling, log/run wrappers, dependency gates, strict/bootstrap layout validation, source/frontmatter/sidecar helpers, version loading, portable SHA-256/mtime/find helpers, Oliver preflight, and output-ownership markers.
@@ -563,11 +563,52 @@ require_gawk_version() {
 RK_OLIVER_PREFLIGHT_SCRATCH=""
 
 # ---
+# rk_markdown_extension_flags: Map the markdown_extensions names loaded from
+# rotkeeper.yaml (MARKDOWN_EXTENSIONS, space-separated) to Oliver
+# `render --from markdown` extension flags. Each accepted name maps to its
+# same-named --flag. The --obsidian preset is rejected by policy: it bundles
+# task-lists and footnotes, which contradict the documented literal-render
+# boundary (see oliver-contract.md and rc-test.sh contract-table checks).
+# Inputs: reads MARKDOWN_EXTENSIONS
+# Outputs: prints one --flag per line on stdout
+# Returns: 0 when every name maps; 1 with the invalid names on stderr so
+#   preflight and the adapter fail instead of silently dropping the config
+# ---
+rk_markdown_extension_flags() {
+  local IFS=' '
+  local name
+  local -a flags=() invalid=()
+  for name in ${MARKDOWN_EXTENSIONS:-}; do
+    case "$name" in
+      wikilinks|callouts|smartypants|footnotes|definition-lists|heading-attributes|strikethrough|heading-ids|task-lists|highlights|math|comments|embeds)
+        flags+=("--$name")
+        ;;
+      obsidian)
+        invalid+=("obsidian (preset rejected: list individual extension names)")
+        ;;
+      *)
+        invalid+=("$name")
+        ;;
+    esac
+  done
+  if (( ${#invalid[@]} > 0 )); then
+    printf 'unknown markdown_extensions name(s): %s\n' "${invalid[*]}" >&2
+    return 1
+  fi
+  if (( ${#flags[@]} > 0 )); then
+    printf '%s\n' "${flags[@]}"
+  fi
+  return 0
+}
+
+# ---
 # rk_oliver_preflight: The single Oliver availability check (Slice 1B). Resolves
 # the binary (RK_OLIVER_BIN override, then PATH discovery), asserts
 # executability, and smoke-renders a one-heading document through the real
 # Oliver CLI (oliver render --from markdown, plus --to xhtml when render_profile
-# in rotkeeper.yaml selects it) to prove the binary actually runs and emits HTML.
+# in rotkeeper.yaml selects it, plus any markdown_extensions flags when the
+# input format is markdown — an unknown name or a binary that predates a flag
+# fails here) to prove the binary actually runs and emits HTML.
 # Oliver's CLI is provisional and has no stable release yet, so the live smoke
 # render is the compatibility gate (see oliver-contract.md). Prints one
 # actionable setup message on failure.
@@ -580,6 +621,8 @@ RK_OLIVER_PREFLIGHT_SCRATCH=""
 rk_oliver_preflight() {
   local candidate="" reason="" smoke_status=0
   local smoke_dir="" smoke_doc="" smoke_out="" smoke_err="" smoke_head=""
+  local smoke_ext_err="" smoke_ext_flag=""
+  local -a smoke_cmd=()
   local profile="${RENDER_PROFILE:-html}"
   local path_oliver=""
   OLIVER_BIN=""
@@ -611,12 +654,29 @@ rk_oliver_preflight() {
     smoke_out="$smoke_dir/smoke.html"
     smoke_err="$smoke_dir/smoke.log"
     printf '# preflight smoke\n' > "$smoke_doc"
+    smoke_cmd=("$candidate" render --from "${INPUT_FORMAT:-markdown}")
     if [[ "$profile" == "xhtml" ]]; then
-      "$candidate" render --from "${INPUT_FORMAT:-markdown}" --to xhtml < "$smoke_doc" > "$smoke_out" 2> "$smoke_err" || smoke_status=$?
-    else
-      "$candidate" render --from "${INPUT_FORMAT:-markdown}" < "$smoke_doc" > "$smoke_out" 2> "$smoke_err" || smoke_status=$?
+      smoke_cmd+=(--to xhtml)
     fi
-    if [[ "$smoke_status" -ne 0 ]]; then
+    # markdown_extensions (#402): the smoke render carries the configured
+    # flags, so an unknown name or a binary that predates a flag fails here
+    # instead of silently rendering without it. Markdown-only per Oliver's CLI.
+    if [[ -z "$reason" && "${INPUT_FORMAT:-markdown}" == "markdown" && -n "${MARKDOWN_EXTENSIONS:-}" ]]; then
+      smoke_ext_err=""
+      if ! smoke_ext_err="$(rk_markdown_extension_flags 2>&1)"; then
+        reason="invalid markdown_extensions in config: $smoke_ext_err"
+      else
+        while IFS= read -r smoke_ext_flag; do
+          [[ -n "$smoke_ext_flag" ]] && smoke_cmd+=("$smoke_ext_flag")
+        done <<< "$smoke_ext_err"
+      fi
+    fi
+    if [[ -z "$reason" ]]; then
+      "${smoke_cmd[@]}" < "$smoke_doc" > "$smoke_out" 2> "$smoke_err" || smoke_status=$?
+    fi
+    if [[ -n "$reason" ]]; then
+      : # config-level failure already recorded; smoke never ran
+    elif [[ "$smoke_status" -ne 0 ]]; then
       reason="Oliver binary runs but failed its smoke render (exit $smoke_status)"
       if [[ -s "$smoke_err" ]]; then
         reason="$reason: $(head -n 1 "$smoke_err")"

@@ -5,7 +5,7 @@ template: rotkeeper-doc.html
 version: "1.0"
 updated: "2026-10-10"
 doc_type: guide
-reviewed: "2026-10-10"
+reviewed: "2026-10-19"
 description: "Field-by-field schemas for Rotkeeper's YAML and manifest files: bones/asset-manifest.yaml, bones/config/rotkeeper.yaml, the release-manifest.txt bill of materials — plus the CLI --json stdout envelopes for scan and dip."
 tags:
   - rotkeeper
@@ -64,6 +64,7 @@ paths:                       # optional serialized path cache (init writes it)
 | `theme_registry` | map | render, glue, new, status | mode names → template files; `default` selects the site-wide theme (#252) |
 | `input_format` | string | env, render, preflight, adapter | `markdown`; valid values `markdown` \| `textile` \| `cooklang` (anything else warns and falls back to `markdown`) |
 | `render_profile` | string | env, render, adapter | `html`; `xhtml` requires a compatible wrapper and XML validation |
+| `markdown_extensions` | list of strings (or bare scalar) | env, preflight, adapter | empty; each name maps to its same-named `oliver render --from markdown` flag — unknown names and unsupported flags fail preflight (#402); `obsidian` preset rejected by policy |
 | `render_system_docs` | boolean | render | `true`; `false` excludes Docs, Help, and messages |
 | `layout_style` | string | env | `crypt`; valid profiles `crypt` \| `busy` \| `sterile` |
 | `paths` | map | env | derived per layout style when absent |

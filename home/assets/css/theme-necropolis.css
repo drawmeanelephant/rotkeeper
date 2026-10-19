@@ -1420,3 +1420,31 @@ td[align="right"] {
   h4 { color: #000; }
   th { background: #eee; color: #000; }
 }
+
+/* Oliver markdown extensions (rotkeeper #403/#405): Obsidian `> [!type]`
+   callouts incl. +/- fold markers, and ==highlights== -> <mark>. The base
+   mark rule above already themes plain highlights in necro-glow; the
+   emoji-prefixed .highlight-<color> classes carry Oliver's six-color syntax.
+   Folded callouts collapse via CSS only; Oliver emits classes, not <details>. */
+.callout {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--necro-amethyst);
+  background: var(--necro-stone);
+}
+.callout-title {
+  font-weight: 700;
+  color: var(--necro-glow);
+}
+.callout-fold-open > .callout-title::after { content: " ▾"; }
+.callout-fold-closed > .callout-title::after { content: " ▸"; }
+.callout-fold-closed > :not(.callout-title) { display: none; }
+.callout-warning, .callout-caution, .callout-danger, .callout-important { border-left-color: var(--necro-blood-bright); }
+.callout-tip, .callout-hint, .callout-success { border-left-color: #4caf6d; }
+
+mark.highlight-red { background: #ff8a80; color: #2b0000; }
+mark.highlight-orange { background: #ffb74d; color: #2b1a00; }
+mark.highlight-yellow { background: #fff176; color: #2b2500; }
+mark.highlight-green { background: #a5d6a7; color: #002b05; }
+mark.highlight-blue { background: #90caf9; color: #001b2b; }
+mark.highlight-purple { background: #ce93d8; color: #25002b; }

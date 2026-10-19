@@ -12,7 +12,7 @@ IFS=$'\n\t'
 #  Updated : 2026-08-27
 #  Phase 6 complete: frontmatter `oliver meta`, template `oliver wrap`, link rewriting `oliver render`, output planning `oliver plan`, manifest `oliver manifest` — direct on pin 06dd640; v2 contract (#244): wrap_meta enriched with version/subtitle/tags/asset_meta via yq --front-matter extract (oliver meta stays 7 S1 fields).
 # ============================================================
-# Env assumptions: reads INPUT_FORMAT, RENDER_PROFILE, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
+# Env assumptions: reads INPUT_FORMAT, MARKDOWN_EXTENSIONS, RENDER_PROFILE, SCRIPT_DIR, TEMPLATE_DIR, TMP_DIR, VERSION (canonical via rc-env.sh / rk_load_env); overrides RK_OLIVER_BIN, RK_RENDERER, ROTKEEPER_VERSION when set.
 # CWD assumptions: No CWD assumption — all paths are root-relative via ROOT_DIR/BONES_DIR/CONTENT_DIR/etc. derived from rc-env.sh; helpers rk_canonical_path/rk_canonical_or_raw resolve symlinks/portably.
 # Input/Output contracts: internal batch worker invoked by render, not a dispatcher command. Reads a TSV manifest with source/destination/template/assets-root/sidecar/binary/layout/flag fields per row; rejects paths outside content/output/template/meta boundaries and unavailable renderer binaries.
 #   Oliver meta extracts frontmatter; sidecar metadata overrides page fields. Source extension selects Textile/Cooklang over the configured input default. Per-page render_profile overrides the site HTML/XHTML profile; invalid or escaping templates abort.
@@ -272,6 +272,22 @@ while IFS=$'\t' read -r src_path dst_path template_path assets_root soul_path ol
   oliver_cmd=("$oliver_bin" render --from "$input_format" --frontmatter yaml)
   if [[ "$profile" == "xhtml" ]]; then
     oliver_cmd+=(--to xhtml)
+  fi
+  # markdown_extensions (#402): site-level names from rotkeeper.yaml arrive
+  # via MARKDOWN_EXTENSIONS and append their same-named --flags. Oliver gates
+  # the flags to `--from markdown`, so textile/cooklang sources never see them;
+  # an invalid name aborts the batch rather than silently rendering without it
+  # (rk_oliver_preflight already failed such config, this is the belt).
+  if [[ "$input_format" == "markdown" && -n "${MARKDOWN_EXTENSIONS:-}" ]]; then
+    ext_flag_lines=""
+    if ! ext_flag_lines="$(rk_markdown_extension_flags 2>&1)"; then
+      log "ERROR" "Invalid markdown_extensions in config: $ext_flag_lines"
+      echo "ERROR: Invalid markdown_extensions in config: $ext_flag_lines" >&2
+      exit 1
+    fi
+    while IFS= read -r ext_flag; do
+      [[ -n "$ext_flag" ]] && oliver_cmd+=("$ext_flag")
+    done <<< "$ext_flag_lines"
   fi
 
   oliver_status=0

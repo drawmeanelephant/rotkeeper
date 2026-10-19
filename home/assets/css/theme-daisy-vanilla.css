@@ -644,3 +644,32 @@ body.daisy-body {
     border-color: #ccc;
   }
 }
+
+/* Oliver markdown extensions (rotkeeper #403/#405): Obsidian `> [!type]`
+   callouts incl. +/- fold markers, and ==highlights== -> <mark>. The base
+   mark rule above already themes plain highlights; the emoji-prefixed
+   .highlight-<color> classes carry Oliver's six-color syntax. Folded
+   callouts collapse via CSS only; Oliver emits classes, not <details>. */
+.daisy-article .callout {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--color-primary, var(--accent-color));
+  background: var(--color-base-200, var(--surface-color));
+}
+.daisy-article .callout-title {
+  font-weight: 700;
+}
+.daisy-article .callout-fold-open > .callout-title::after { content: " ▾"; }
+.daisy-article .callout-fold-closed > .callout-title::after { content: " ▸"; }
+.daisy-article .callout-fold-closed > :not(.callout-title) { display: none; }
+.daisy-article .callout-warning, .daisy-article .callout-caution,
+.daisy-article .callout-danger, .daisy-article .callout-important { border-left-color: var(--color-error, #d64545); }
+.daisy-article .callout-tip, .daisy-article .callout-hint,
+.daisy-article .callout-success { border-left-color: var(--color-success, #4caf6d); }
+
+.daisy-article mark.highlight-red { background: #ff8a80; color: #2b0000; }
+.daisy-article mark.highlight-orange { background: #ffb74d; color: #2b1a00; }
+.daisy-article mark.highlight-yellow { background: #fff176; color: #2b2500; }
+.daisy-article mark.highlight-green { background: #a5d6a7; color: #002b05; }
+.daisy-article mark.highlight-blue { background: #90caf9; color: #001b2b; }
+.daisy-article mark.highlight-purple { background: #ce93d8; color: #25002b; }

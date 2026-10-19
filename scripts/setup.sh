@@ -176,7 +176,15 @@ echo "2. Installing Oliver renderer..."
 # no longer matches the downloadable binary, which forced every fresh setup
 # onto the Zig source-build fallback. Verified on Linux: render/preflight
 # and the full test matrix pass with 1.1.0.
-OLIVER_PIN="b84f6368181079b9df2fc2c28646ffcb29ffd2ff"
+# 2026-10-19: bumped to 967bfdf — rolling `builds` release now serves oliver
+# 1.3.0 (commit 967bfdf428ff58b9b6e292d2f0d05184e929fb92): the issue-#189
+# Obsidian extension family (oliver PRs #191-#196: callout fold markers,
+# ==highlights==, $math$, %% comments, ![[embeds]], --obsidian preset), the
+# v1.3.0 version bump (#202), inline/math content-line cursor fixes (#198,
+# #199 via #200/#201), an html4-strict output profile, and a --max-input-bytes
+# stdin budget. The extension flags are opt-in through the new
+# markdown_extensions config knob (rotkeeper #402).
+OLIVER_PIN="967bfdf428ff58b9b6e292d2f0d05184e929fb92"
 
 report_oliver_install_failure() {
   local artifact="$1" tempdir="$2"
