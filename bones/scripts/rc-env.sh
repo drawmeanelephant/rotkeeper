@@ -152,9 +152,20 @@ esac
 # a binary that predates a flag fails loudly instead of silently rendering
 # without it. A bare scalar is accepted as a single-name list; non-string
 # entries are dropped here and leftover invalid names fail preflight.
+# yq v4.40 (CI pin) cannot parse `if` expressions, so dispatch on `tag`
+# instead of a conditional.
 MARKDOWN_EXTENSIONS=""
 if [[ -f "$CONFIG_TARGET" ]]; then
-    MARKDOWN_EXTENSIONS=$(yq eval '.markdown_extensions | if tag == "!!seq" then [.[] | select(tag == "!!str")] | join(" ") elif tag == "!!str" then . else "" end' "$CONFIG_TARGET" 2>/dev/null | tr -d '\n' || echo "")
+    _mdext_tag=$(yq eval '.markdown_extensions | tag' "$CONFIG_TARGET" 2>/dev/null || echo "")
+    case "$_mdext_tag" in
+        !!seq)
+            MARKDOWN_EXTENSIONS=$(yq eval '[.markdown_extensions[]? | select(tag == "!!str")] | join(" ")' "$CONFIG_TARGET" 2>/dev/null | tr -d '\n' || echo "")
+            ;;
+        !!str)
+            MARKDOWN_EXTENSIONS=$(yq eval '.markdown_extensions' "$CONFIG_TARGET" 2>/dev/null | tr -d '\n' || echo "")
+            ;;
+    esac
+    unset _mdext_tag
 fi
 
 export ROOT_DIR BONES_DIR OUTPUT_DIR CONTENT_DIR ASSETS_DIR DOCS_DIR HELP_DIR
