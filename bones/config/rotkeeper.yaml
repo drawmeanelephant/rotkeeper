@@ -5,6 +5,21 @@ description: "Minimal valid config for rendering tests"
 default_template: "theme-spooky-dark.html"
 input_format: "markdown"
 
+# Opt-in Oliver `render --from markdown` extensions (#402). Each name maps to
+# its same-named CLI flag and is exercised by the preflight smoke render, so
+# an unknown name or a renderer that predates a flag fails loudly. Adopted
+# per #403-#405: callouts (> [!type] blocks incl. +/- fold markers), comments
+# (Obsidian %% %% annotations, stripped from output), highlights (==text== ->
+# <mark>, emoji-prefixed -> .highlight-<color>). Deliberately NOT adopted:
+# math (#406, no typesetting story yet — renders raw TeX in a styled span)
+# and embeds (#407, CLI emits dead placeholder spans without a resolver).
+# The `obsidian` preset is rejected by policy: it bundles task-lists and
+# footnotes across the documented literal-render boundary.
+markdown_extensions:
+  - callouts
+  - comments
+  - highlights
+
 # Config-driven theme registry (#252): mode names -> template files.
 # `default` selects the per-site theme and wins over the legacy
 # `default_template` key above; per-page `template:` frontmatter still wins

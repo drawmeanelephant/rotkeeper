@@ -888,6 +888,16 @@ fi
 if [[ "${1:-}" != "render" || "${2:-}" != "--from" || ( "${3:-}" != "markdown" && "${3:-}" != "textile" && "${3:-}" != "cooklang" ) ]]; then
   exit 1
 fi
+# markdown_extensions (#402): the adapter appends --<name> flags for markdown
+# input only; echo each seen flag as a marker so the harness can prove the
+# plumbing reached the renderer (or prove none leaked into textile/cooklang).
+for ext_arg in "$@"; do
+  case "$ext_arg" in
+    --wikilinks|--callouts|--smartypants|--footnotes|--definition-lists|--heading-attributes|--strikethrough|--heading-ids|--task-lists|--highlights|--math|--comments|--embeds)
+      printf '<!-- ext:%s -->\n' "${ext_arg#--}"
+      ;;
+  esac
+done
 if [[ "$*" == *"--to xhtml"* ]]; then
   printf '<h1>xhtml-profile-confirmed</h1>\n<hr />\n'
   # Pipeline: strip frontmatter (awk on ---), markdown [text](url) -> <a> (sed), then gawk rewrites href/src .md/.textile/.cook -> .html with angle-bracket unwrapping and external/mailto skip
@@ -2035,10 +2045,45 @@ FIXTURE_EOF
         check_contract "literal footnote ref (documented boundary)" "$table" -F '[^1]'
         check_contract "literal footnote body (documented boundary)" "$table" -F '[^1]: footnote text'
 
+        # markdown_extensions (#402): with no extensions configured every
+        # extension construct must render literally — the off-by-default
+        # boundary before the opt-in pass below flips it.
+        ext_page="$out_dir_rel/contract-extensions.html"
+        check_contract "extension-free callout boundary" "$ext_page" -F '[!note]+ Foldable'
+        check_contract "extension-free comment boundary" "$ext_page" -F '%%hidden%%'
+        check_contract "extension-free highlight boundary" "$ext_page" -F '==marked=='
+        check_contract "extension-free math boundary" "$ext_page" -F "\$math stays literal\$"
+        check_contract "extension-free embed boundary" "$ext_page" -F '![[embed stays literal]]'
+
         if [[ "$contract_failed" == true ]]; then
           exit 140
         fi
         echo "  [+] Pass: real Oliver CommonMark contract corpus ($mode)."
+
+        # markdown_extensions opt-in pass (#403-#405): enabling
+        # callouts/comments/highlights in the fixture config must reach the
+        # real renderer. math and embeds are deliberately not adopted and
+        # must stay literal even with the adopted extensions on.
+        echo "  [+] Executing real Oliver markdown_extensions corpus ($mode)..."
+        yq eval '.markdown_extensions = ["callouts", "comments", "highlights"]' -i "$b_config/rotkeeper.yaml"
+        RK_OLIVER_BIN="$REAL_OLIVER" ./rotkeeper.sh render > /dev/null
+
+        check_contract "callout div with fold class" "$ext_page" 'class="callout callout-note callout-fold-open"'
+        check_contract "callout title" "$ext_page" '<div class="callout-title">Foldable</div>'
+        check_contract "highlight mark" "$ext_page" '<mark>marked</mark>'
+        check_contract "comment stripped" "$ext_page" -F 'a  b and'
+        if grep -qF '%%hidden%%' "$ext_page"; then
+          echo "❌ Assertion Failed: contract corpus kept a %% comment under markdown_extensions=comments in $ext_page"
+          contract_failed=true
+        fi
+        check_contract "math stays literal (not adopted)" "$ext_page" -F "\$math stays literal\$"
+        check_contract "embed stays literal (not adopted)" "$ext_page" -F '![[embed stays literal]]'
+
+        yq eval 'del(.markdown_extensions)' -i "$b_config/rotkeeper.yaml"
+        if [[ "$contract_failed" == true ]]; then
+          exit 140
+        fi
+        echo "  [+] Pass: real Oliver markdown_extensions corpus ($mode)."
       else
         if [[ "${RK_STRICT:-0}" == "1" ]]; then
           echo "❌ Assertion Failed: real Oliver contract corpus skipped ($CONTRACT_DIR missing) but RK_STRICT=1 requires it."
@@ -2327,6 +2372,91 @@ COLLIDE_TX_EOF
     fi
     rm -f "$b_content/collision.md" "$b_content/collision.textile"
     echo "  [+] Pass: source basename collision refused ($mode)."
+
+    echo "  [+] Executing markdown_extensions plumbing assertions ($mode)..."
+    # A pre-extension renderer: answers render normally but rejects any
+    # --extension flag like an old binary would (usage + exit 1).
+    legacy_bin="$pass_dir/bones/tmp/fake_oliver_legacy"
+    cat << 'LEGACY_EOF' > "$legacy_bin"
+#!/usr/bin/env bash
+set -euo pipefail
+for legacy_arg in "$@"; do
+  case "$legacy_arg" in
+    --wikilinks|--callouts|--smartypants|--footnotes|--definition-lists|--heading-attributes|--strikethrough|--heading-ids|--task-lists|--highlights|--math|--comments|--embeds|--obsidian)
+      echo "usage: oliver render --from <markdown|textile|cooklang>" >&2
+      exit 1
+      ;;
+  esac
+done
+if [[ "${1:-}" != "render" || "${2:-}" != "--from" ]]; then
+  exit 1
+fi
+awk '/^---$/ { f++; next } f>=2 || f==0 { print }' | sed -E 's/^# (.+)$/<h1>\1<\/h1>/'
+LEGACY_EOF
+    chmod +x "$legacy_bin"
+
+    yq eval '.markdown_extensions = ["comments", "highlights"]' -i "$b_config/rotkeeper.yaml"
+    cat << 'MDEXT_EOF' > "$b_content/mdext-check.md"
+---
+title: "Markdown Extensions Check"
+description: "markdown_extensions config verification"
+---
+
+# Extension Check
+
+Body proves --comments and --highlights reached the renderer.
+MDEXT_EOF
+
+    if ! RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null; then
+      echo "❌ Assertion Failed: render with markdown_extensions failed."
+      exit 235
+    fi
+    rendered_mdext="$out_dir_rel/mdext-check.html"
+    if [[ ! -f "$rendered_mdext" ]]; then
+      echo "❌ Assertion Failed: markdown_extensions page missing after render: $rendered_mdext"
+      exit 236
+    fi
+    if ! grep -q 'ext:comments' "$rendered_mdext" || ! grep -q 'ext:highlights' "$rendered_mdext"; then
+      echo "❌ Assertion Failed: markdown_extensions flags did not reach the renderer."
+      exit 237
+    fi
+
+    # Oliver gates extension flags to `--from markdown`; a textile render must
+    # not see them even when the config names extensions.
+    yq eval '.input_format = "textile"' -i "$b_config/rotkeeper.yaml"
+    if ! RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh render > /dev/null; then
+      echo "❌ Assertion Failed: textile render with markdown_extensions configured failed."
+      exit 238
+    fi
+    if grep -q 'ext:comments\|ext:highlights' "$rendered_mdext"; then
+      echo "❌ Assertion Failed: markdown extension flags leaked into a textile render."
+      exit 239
+    fi
+    yq eval '.input_format = "markdown"' -i "$b_config/rotkeeper.yaml"
+
+    # Unknown names and the policy-rejected --obsidian preset fail preflight,
+    # as does a renderer that predates the configured flags.
+    yq eval '.markdown_extensions = ["bogus-ext"]' -i "$b_config/rotkeeper.yaml"
+    if RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh preflight > /dev/null 2>&1; then
+      echo "❌ Assertion Failed: preflight accepted an unknown markdown_extensions name."
+      exit 229
+    fi
+    yq eval '.markdown_extensions = ["obsidian"]' -i "$b_config/rotkeeper.yaml"
+    if RK_OLIVER_BIN="$fake_bin" ./rotkeeper.sh preflight > /dev/null 2>&1; then
+      echo "❌ Assertion Failed: preflight accepted the rejected obsidian preset."
+      exit 229
+    fi
+    yq eval '.markdown_extensions = ["comments"]' -i "$b_config/rotkeeper.yaml"
+    if RK_OLIVER_BIN="$legacy_bin" ./rotkeeper.sh preflight > /dev/null 2>&1; then
+      echo "❌ Assertion Failed: preflight passed with a renderer lacking --comments."
+      exit 229
+    fi
+
+    # Config restored; the fixture source stays in place like the other
+    # contract fixtures — deleting it post-render would orphan the output
+    # against the append-only ledger at the downstream scan check.
+    yq eval 'del(.markdown_extensions)' -i "$b_config/rotkeeper.yaml"
+    echo "  [+] Pass: markdown_extensions plumbing propagated to renderer ($mode)."
 
     echo "  [+] Executing .cook source extension assertions..."
     cat << 'COOK_SRC_EOF' > "$b_content/necromancer-stew.cook"

@@ -799,3 +799,44 @@ th[align="right"],
 td[align="right"] {
   text-align: right;
 }
+
+/* Oliver markdown extensions (rotkeeper #403/#405): Obsidian `> [!type]`
+   callouts incl. +/- fold markers, and ==highlights== -> <mark>. Mirrors
+   the .txp-callout pattern: slate for the default, crimson for warning
+   family. Folded callouts collapse via CSS only; Oliver emits classes,
+   not <details>. */
+.callout {
+  margin: 1.5rem 0;
+  padding: 16px 20px;
+  border-left: 4px solid var(--txp-slate);
+  background-color: var(--txp-slate-light);
+  font-family: var(--txp-font-sans);
+  font-size: 0.95rem;
+}
+.callout-title {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+  color: var(--txp-slate);
+}
+.callout-fold-open > .callout-title::after { content: " ▾"; }
+.callout-fold-closed > .callout-title::after { content: " ▸"; }
+.callout-fold-closed > :not(.callout-title) { display: none; }
+.callout-warning, .callout-caution, .callout-danger, .callout-important {
+  border-left-color: var(--txp-crimson);
+  background-color: var(--txp-crimson-light);
+}
+.callout-warning > .callout-title, .callout-caution > .callout-title,
+.callout-danger > .callout-title, .callout-important > .callout-title {
+  color: var(--txp-crimson);
+}
+.callout-tip, .callout-hint, .callout-success { border-left-color: #3f7d4e; }
+
+mark { background: #ffe58a; color: var(--txp-text-main); padding: 0 0.2em; }
+mark.highlight-red { background: #ff8a80; color: #2b0000; }
+mark.highlight-orange { background: #ffb74d; color: #2b1a00; }
+mark.highlight-yellow { background: #fff176; color: #2b2500; }
+mark.highlight-green { background: #a5d6a7; color: #002b05; }
+mark.highlight-blue { background: #90caf9; color: #001b2b; }
+mark.highlight-purple { background: #ce93d8; color: #25002b; }
