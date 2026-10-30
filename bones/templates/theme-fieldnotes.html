@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>$title$</title>
+$if(description)$
+  <meta name="description" content="$description$">
+$endif$
+  <link rel="stylesheet" href="$assets_root$css/theme-fieldnotes.css">
+</head>
+<body class="fieldnotes">
+  <div class="field-shell">
+    <header class="field-header">
+      <div class="field-masthead">
+        <span class="field-mark" aria-hidden="true">F / N</span>
+        <span class="field-edition">A fieldnotes theme<br>for Rotkeeper</span>
+        <div class="field-nav"><site-nav></site-nav></div>
+      </div>
+      <div class="field-heading">
+        <p class="field-kicker">A record worth keeping</p>
+        <h1>$title$</h1>
+$if(description)$
+        <p class="field-deck">$description$</p>
+$endif$
+        <div class="field-meta">
+$if(date)$          <span>$date$</span>
+$endif$$if(author)$          <span>$author$</span>
+$endif$        </div>
+      </div>
+    </header>
+    <main id="content" class="field-main">
+      <article class="field-article">
+        $body$
+      </article>
+    </main>
+    <footer class="field-footer">
+      <span class="field-footer-mark" aria-hidden="true">F / N</span>
+      <div>
+        <p>Made to be kept. Rendered by Rotkeeper v$version$.</p>
+$if(asset_meta)$        <p>$asset_meta$</p>
+$endif$$if(tags)$        <p>$tags$</p>
+$endif$      </div>
+    </footer>
+  </div>
+</body>
+</html>

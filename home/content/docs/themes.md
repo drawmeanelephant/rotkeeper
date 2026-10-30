@@ -37,7 +37,7 @@ Keep each registered template available in the active template directory.
 | --- | --- | --- |
 | Terminal-oriented | `theme-phosphor.html`, `theme-brutal.html` | Monospace presentation |
 | General-purpose | `theme-spooky-dark.html`, `theme-dark.html`, `theme-light.html`, `theme-kawaii.html`, `theme-flash.html`, `theme-pride.html` | Content and documentation |
-| Reading-oriented | `theme-spooky-light.html`, `theme-overgrown.html`, `theme-textpattern.html` | Longer prose |
+| Reading-oriented | `theme-spooky-light.html`, `theme-overgrown.html`, `theme-textpattern.html`, `theme-fieldnotes.html` | Longer prose |
 | XHTML variant | `theme-spooky-dark-xhtml.html` | Pages using the XHTML output profile |
 | 404 treatment | `theme-necropolis.html` | The `page_type: 404` presentation |
 | Prototypes | `theme-daisy.html`, `theme-daisy-vanilla.html` | Vendored DaisyUI and a plain-CSS counterpart |
@@ -46,6 +46,8 @@ The DaisyUI theme uses locally vendored CSS, not a CDN or a Node build.
 The [DaisyUI comparison](daisyui-map.html) explains its prototype status.
 The XHTML wrapper must be paired with the
 [XHTML profile](xhtml-profile.html).
+See the [Field Station](../field-station/index.html) for a small site using
+the Fieldnotes theme.
 
 ## Choose a palette
 

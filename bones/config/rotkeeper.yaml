@@ -32,6 +32,7 @@ theme_registry:
   spooky-light: "theme-spooky-light.html"
   dark: "theme-dark.html"
   light: "theme-light.html"
+  fieldnotes: "theme-fieldnotes.html"
   kawaii: "theme-kawaii.html"
   overgrown: "theme-overgrown.html"
   phosphor: "theme-phosphor.html"

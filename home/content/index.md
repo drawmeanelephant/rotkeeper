@@ -26,6 +26,7 @@ for flags, examples, inputs, outputs, and side effects.
 - [Write, build, check, and ship](docs/workflow.html).
 - [Choose a theme](docs/themes.html).
 - [Compare theme previews](showcase/index.html).
+- [Visit the Field Station sample site](field-station/index.html).
 - [Publish a site](docs/publishing.html).
 - [Read the first-page example](my-first-page.html).
 - [Check configuration schemas](docs/rotkeeper-schemas.html).

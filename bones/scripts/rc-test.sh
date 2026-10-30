@@ -149,6 +149,19 @@ for section in ("help", "docs"):
                   and css.is_file(), "accessibility", f"unverifiable stylesheet: {href}")
             used_css.add(css.name)
 
+# The sample site exercises a non-docs theme at a nested output depth.
+for name in ("index", "edges", "rain", "notebook", "about"):
+    path = output / "field-station" / f"{name}.html"
+    check(path.is_file(), "sample", f"missing Field Station page: {name}")
+    if not path.is_file():
+        continue
+    page = Page(path)
+    check(page.h1 == 1 and page.nav, "sample", f"{name}: H1={page.h1}, nav={page.nav}")
+    check("../assets/css/theme-fieldnotes.css" in page.css,
+          "sample", f"{name}: missing depth-relative Fieldnotes stylesheet")
+    check("$body$" not in "".join(page.text), "sample", f"{name}: unexpanded body")
+used_css.add("theme-fieldnotes.css")
+
 def audit_report(suffix, gate, status):
     check(status == "0", gate, f"audit returned {status}")
     try:
