@@ -10,6 +10,8 @@
   sha256: "590aba1b9aea7fee60d68640f871db06999abef340e7954f703427d7a30cc723"
 - path: "css/theme-dark.css"
   sha256: "cd59d2ab899c2a3a3e94896947fe51035e96dfc86122ead7e8162bd2d5c7dc21"
+- path: "css/theme-fieldnotes.css"
+  sha256: "437d82d1b90a1e16cdea40f508273db7d47db621c24b7d165ede59152fb88855"
 - path: "css/theme-flash.css"
   sha256: "06e126726a5752519b6b60b9669131039ee85ae5481097762cc406d311313167"
 - path: "css/theme-kawaii.css"

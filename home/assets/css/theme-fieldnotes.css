@@ -1,0 +1,358 @@
+@font-face {
+  font-family: "Fira Sans";
+  src: url("../fonts/fira-sans-400.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Fira Sans";
+  src: url("../fonts/fira-sans-700.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Fira Code";
+  src: url("../fonts/fira-code-400.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+:root {
+  --bg-color: #f2f0e8;
+  --surface-color: #fcfbf6;
+  --text-primary: #202d30;
+  --text-secondary: #4b5c5c;
+  --accent-color: #28596b;
+  --code-bg: #e4e9e4;
+  --code-text: #202d30;
+  --rule: #b6c2bb;
+  --highlight: #d9ad62;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-color);
+  color: var(--text-primary);
+  font-family: "Fira Sans", sans-serif;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.field-shell {
+  max-width: 96rem;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 0 clamp(1.25rem, 5vw, 5rem);
+  background: linear-gradient(90deg, transparent 0 74%, rgba(40, 89, 107, 0.035) 74% 100%), var(--surface-color);
+}
+
+.field-masthead {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  min-height: 6rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--text-primary);
+}
+
+.field-mark,
+.field-footer-mark {
+  display: grid;
+  flex: 0 0 auto;
+  width: 3.5rem;
+  height: 3.5rem;
+  place-items: center;
+  border: 1px solid var(--text-primary);
+  border-radius: 50%;
+  font-family: Georgia, serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+}
+
+.field-edition,
+.field-kicker,
+.field-meta,
+.field-footer,
+.field-nav {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+.field-edition {
+  min-width: 8.5rem;
+}
+
+.field-nav {
+  margin-left: auto;
+}
+
+.field-nav nav,
+.field-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem 1.1rem;
+}
+
+.field-nav ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.field-nav a {
+  color: var(--text-primary);
+}
+
+.field-heading {
+  position: relative;
+  padding: clamp(4rem, 8vw, 8rem) 0 clamp(3rem, 6vw, 6rem);
+  border-bottom: 1px solid var(--rule);
+}
+
+.field-heading::after {
+  position: absolute;
+  right: 3%;
+  bottom: 2rem;
+  width: clamp(4rem, 10vw, 9rem);
+  aspect-ratio: 1;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+}
+
+.field-kicker {
+  margin: 0 0 1.5rem;
+  color: var(--accent-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.field-heading h1 {
+  max-width: 15ch;
+  margin: 0;
+  font-size: clamp(3.3rem, 8vw, 8rem);
+  letter-spacing: -0.055em;
+}
+
+.field-deck {
+  max-width: 35rem;
+  margin: 1.7rem 0 0;
+  color: var(--text-secondary);
+  font-size: clamp(1.1rem, 1.6vw, 1.35rem);
+  line-height: 1.5;
+}
+
+.field-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin-top: 1.5rem;
+  color: var(--text-secondary);
+}
+
+.field-main {
+  padding: clamp(3rem, 6vw, 6rem) 0;
+}
+
+.field-article {
+  max-width: 52rem;
+  margin-left: clamp(0rem, 10vw, 10rem);
+}
+
+.field-article h2 {
+  margin: 2.5em 0 0.6em;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  letter-spacing: -0.035em;
+}
+
+.field-article h2:first-child {
+  margin-top: 0;
+}
+
+.field-article h3 {
+  margin: 2em 0 0.5em;
+  font-size: 1.65rem;
+}
+
+p, ul, ol, blockquote, pre, table {
+  margin: 0 0 1.35rem;
+}
+
+a {
+  color: var(--accent-color);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+a:focus-visible {
+  outline: 3px solid var(--accent-color);
+  outline-offset: 4px;
+}
+
+blockquote {
+  padding: 0.4rem 0 0.4rem 1.5rem;
+  border-left: 3px solid var(--highlight);
+  color: var(--text-secondary);
+  font-family: Georgia, serif;
+  font-size: 1.25rem;
+  font-style: italic;
+}
+
+blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+code {
+  padding: 0.1em 0.25em;
+  background: var(--code-bg);
+  color: var(--code-text);
+  font-family: "Fira Code", monospace;
+  font-size: 0.9em;
+}
+
+pre {
+  overflow-x: auto;
+  padding: 1.25rem;
+  background: var(--code-bg);
+}
+
+pre code {
+  padding: 0;
+}
+
+table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+th, td {
+  min-width: 8rem;
+  padding: 0.75rem 1rem 0.75rem 0;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+hr {
+  margin: 2.5rem 0;
+  border: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.field-article .field-list {
+  padding: 0;
+  list-style: none;
+}
+
+.field-list li {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1.1rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.field-list li:last-child {
+  border-bottom: 1px solid var(--rule);
+}
+
+.field-list .field-number {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+}
+
+.field-list a {
+  font-family: Georgia, serif;
+  font-size: 1.5rem;
+  text-decoration: none;
+}
+
+.field-list a:hover {
+  text-decoration: underline;
+}
+
+.field-list p {
+  margin: 0.3rem 0 0;
+  color: var(--text-secondary);
+}
+
+.field-footer {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 2rem 0 3rem;
+  border-top: 1px solid var(--text-primary);
+  color: var(--text-secondary);
+}
+
+.field-footer p {
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .field-shell {
+    background: var(--surface-color);
+  }
+
+  .field-masthead {
+    flex-wrap: wrap;
+  }
+
+  .field-nav {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+
+  .field-nav nav,
+  .field-nav ul {
+    justify-content: flex-start;
+  }
+
+  .field-heading::after {
+    opacity: 0.4;
+  }
+
+  .field-article {
+    margin-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
